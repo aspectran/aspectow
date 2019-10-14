@@ -11,7 +11,7 @@
         <properties>
             <item name="tow.server.startup" valueType="boolean">true</item>
             <item name="tow.server.stopDelayTime" valueType="int">1000</item>
-            <item name="tow.server.listener.http.port" valueType="int">8080</item>
+            <item name="tow.server.listener.http.port" valueType="int">8088</item>
             <item name="tow.server.listener.http.host">0.0.0.0</item>
         </properties>
     </environment>
@@ -126,8 +126,8 @@
                 <bean class="com.aspectran.undertow.server.servlet.TowJasperInitializer">
                     <properties>
                         <item name="jarsToScan" type="array">
+                            <value>/WEB-INF/lib/taglibs-standard-spec-1.2.5.jar</value>
                             <value>/WEB-INF/lib/taglibs-standard-impl-1.2.5.jar</value>
-                            <value>/WEB-INF/lib/taglibs-standard-jstlel-1.2.5.jar</value>
                         </item>
                     </properties>
                 </bean>
