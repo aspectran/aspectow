@@ -1,0 +1,158 @@
+* {
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
+html,body {
+    height: 100%;
+    overflow: hidden;
+}
+body:before {
+    height: 35%;
+    width: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    background: #35505b;
+    content: "";
+    z-index: 0;
+}
+body {
+    background: #4c7483;
+    height: 100%;
+}
+section.wrap {
+    position: absolute;
+    width: 100%;
+}
+
+#title {
+    background-color: #35505B;
+    padding: 10px 20px 10px 20px;
+    color: #fff;
+}
+#title h2 {
+    float: left;
+    font-size: 28px;
+}
+#title a {
+    float: right;
+    line-height: 38px;
+    vertical-align: bottom;
+    display: none;
+}
+
+#signin {
+    padding: 0 0 100px;
+    background-color: #f5f5f5;
+    margin-top: calc(50vh - 155px);
+}
+#signin * {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 20px;
+}
+#signin h3 {
+    text-align: center;
+    margin-bottom: 30px;
+}
+#signin input {
+    max-width: 300px;
+}
+#contacts {
+    float: left;
+    padding: 15px;
+    background-color: #bbedfe;
+    min-height: calc(100vh - 130px);
+    max-height: calc(100vh - 130px);
+    overflow: auto;
+}
+
+#contacts .contact .status {
+    background-color: #13CF13;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 10px;
+}
+#contacts .contact .name {
+    line-height: 35px;
+    vertical-align: super;
+}
+
+#room {
+    background-color: #f5f5f5;
+    min-height: calc(100vh - 130px);
+    max-height: calc(100vh - 130px);
+}
+#messages {
+    min-height: calc(100vh - 205px);
+    max-height: calc(100vh - 205px);
+    overflow-y: auto;
+    display: none;
+}
+#messages .message {
+    margin-bottom: 3px;
+}
+#messages .message .content {
+    border-radius: 20px;
+    padding: 10px;
+    display: table;
+}
+#messages .message.event .content {
+    background-color: #bbedfe;
+    padding: 7px 20px;
+    border-radius: 6px;
+    width: 100%;
+    text-align: center;
+}
+#messages .message.event .content strong {
+    font-weight: bold;
+}
+#messages .message.event.error .content {
+    background-color: palevioletred;
+    color: yellow;
+}
+#messages .message.received {
+    left: 0;
+    text-align: left;
+}
+#messages .message.received .content {
+    background-color: #0084FF;
+    color: #fff;
+    border-radius: 0 20px 20px;
+}
+#messages .message.received .sender {
+    font-weight: bold;
+    color: #0084FF;
+}
+#messages .message.sent {
+    right: 0;
+    text-align: right;
+}
+#messages .message.sent .content {
+    background-color: #ccc;
+    margin-left: auto;
+    margin-right: 0;
+    text-align: right;
+    border-radius: 20px 0 20px 20px;
+}
+#messages .message.sent .sender {
+    font-weight: bold;
+}
+
+#chat-controls {
+    height: 40px;
+    padding: 20px 0;
+    display: none;
+}
+
+#messages .message.sent.same-sender-previous-message .sender,
+#messages .message.received.same-sender-previous-message .sender {
+    display: none;
+}
+#messages .message:not(.same-sender-previous-message) {
+    margin-top: 10px;
+}
