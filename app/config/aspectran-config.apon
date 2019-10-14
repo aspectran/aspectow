@@ -4,7 +4,7 @@ context: {
         /config
     ]
     scan: [
-        com.aspectran.demo
+        club.textchat
     ]
     profiles: {
         default: [
