@@ -88,8 +88,9 @@ section.wrap {
     max-height: calc(100vh - 130px);
 }
 #messages {
-    min-height: calc(100vh - 205px);
-    max-height: calc(100vh - 205px);
+    min-height: calc(100vh - 195px);
+    max-height: calc(100vh - 195px);
+    margin-bottom: 10px;
     overflow-y: auto;
     display: none;
 }
@@ -144,8 +145,6 @@ section.wrap {
 }
 
 #chat-controls {
-    height: 40px;
-    padding: 20px 0;
     display: none;
 }
 
