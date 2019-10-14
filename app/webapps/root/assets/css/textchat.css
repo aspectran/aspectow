@@ -28,16 +28,18 @@ section.wrap {
 
 #title {
     background-color: #35505B;
-    padding: 10px 20px 10px 20px;
+    padding: 0 20px;
     color: #fff;
+    height: 50px;
 }
 #title h2 {
     float: left;
-    font-size: 28px;
+    font-size: 24px;
+    line-height: 50px;
 }
 #title a {
     float: right;
-    line-height: 38px;
+    line-height: 50px;
     vertical-align: bottom;
     display: none;
 }
@@ -45,7 +47,7 @@ section.wrap {
 #signin {
     padding: 0 0 100px;
     background-color: #f5f5f5;
-    margin-top: calc(50vh - 155px);
+    margin-top: calc(50vh - 100px);
 }
 #signin * {
     display: block;
@@ -55,20 +57,19 @@ section.wrap {
 }
 #signin h3 {
     text-align: center;
-    margin-bottom: 30px;
+    margin-bottom: 50px;
 }
 #signin input {
     max-width: 300px;
 }
+
 #contacts {
-    float: left;
     padding: 15px;
     background-color: #bbedfe;
-    min-height: calc(100vh - 130px);
-    max-height: calc(100vh - 130px);
+    min-height: calc(100vh - 50px);
+    max-height: calc(100vh - 50px);
     overflow: auto;
 }
-
 #contacts .contact .status {
     background-color: #13CF13;
     width: 20px;
@@ -84,12 +85,12 @@ section.wrap {
 
 #room {
     background-color: #f5f5f5;
-    min-height: calc(100vh - 130px);
-    max-height: calc(100vh - 130px);
+    min-height: calc(100vh - 50px);
+    max-height: calc(100vh - 50px);
 }
 #messages {
-    min-height: calc(100vh - 195px);
-    max-height: calc(100vh - 195px);
+    min-height: calc(100vh - 115px);
+    max-height: calc(100vh - 115px);
     margin-bottom: 10px;
     overflow-y: auto;
     display: none;
