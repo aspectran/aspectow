@@ -12,14 +12,17 @@ body:before {
     background: #35505b;
     content: "";
     z-index: 0;
+    box-shadow: 0 4px 8px 0 rgba(255, 255, 255, 0.2), 0 60px 120px 0 rgba(255, 255, 255, 0.19);
 }
 body {
     background: #4c7483;
     height: 100.1%;
+    overflow: hidden;
 }
 section.wrap {
     position: absolute;
     width: 100%;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
 }
 
 #title {
@@ -65,6 +68,7 @@ section.wrap {
     min-height: calc(100vh - 50px);
     max-height: calc(100vh - 50px);
     overflow: auto;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
 }
 #contacts .contact .status {
     background-color: #13CF13;
@@ -83,11 +87,14 @@ section.wrap {
     background-color: #f5f5f5;
     min-height: calc(100vh - 50px);
     max-height: calc(100vh - 50px);
+    padding: 0;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
 }
 #messages {
     min-height: calc(100vh - 115px);
     max-height: calc(100vh - 115px);
     margin-bottom: 10px;
+    padding: 0 12px;
     overflow-y: auto;
     display: none;
 }
@@ -96,7 +103,7 @@ section.wrap {
 }
 #messages .message .content {
     border-radius: 20px;
-    padding: 10px;
+    padding: 10px 20px;
     display: table;
 }
 #messages .message.event .content {
@@ -118,8 +125,7 @@ section.wrap {
     text-align: left;
 }
 #messages .message.received .content {
-    background-color: #0084FF;
-    color: #fff;
+    background-color: #72baec8a;
     border-radius: 0 20px 20px;
 }
 #messages .message.received .sender {
@@ -131,7 +137,7 @@ section.wrap {
     text-align: right;
 }
 #messages .message.sent .content {
-    background-color: #ccc;
+    background-color: #fbe2ae;
     margin-left: auto;
     margin-right: 0;
     text-align: right;
@@ -142,6 +148,7 @@ section.wrap {
 }
 
 #chat-controls {
+    padding: 0 12px;
     display: none;
 }
 

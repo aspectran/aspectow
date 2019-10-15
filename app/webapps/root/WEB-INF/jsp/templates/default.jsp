@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
     <meta name="google" content="notranslate">
     <title>${empty page.title ? "Text Chat Club" : page.title}</title>
-    <meta name="description" content="${empty page.description ? "Welcome to Text Chat Club" : page.description}" />
+    <meta name="description" content="${empty page.description ? "Online Chat Rooms For Everyone" : page.description}" />
     <link rel="stylesheet" type="text/css" href="/assets/css/base.css" />
     <link rel="stylesheet" type="text/css" href="/assets/css/textchat.css" />
     <link href="http://fonts.googleapis.com/css?family=Raleway:500,500i,700" rel="stylesheet">
