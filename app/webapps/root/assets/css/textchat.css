@@ -130,7 +130,6 @@ section.wrap {
 }
 #messages .message.received .sender {
     font-weight: bold;
-    color: #0084FF;
 }
 #messages .message.sent {
     right: 0;
