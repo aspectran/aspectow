@@ -1,7 +1,7 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <div class="row">
-    <div id="title" class="columns small-12">
+    <div id="title" class="columns">
         <h2>Chat <span id="totalPeople"></span></h2>
         <a class="leave" onclick="leaveRoom();">Leave</a>
     </div>
@@ -15,7 +15,7 @@
         <div id="messages"></div>
         <form id="chat-controls" onsubmit="sendMessage();return false;">
             <div class="input-group">
-                <input class="input-group-field" type="text" id="message" placeholder="Type a message..."/>
+                <input class="input-group-field" type="text" id="message" autocomplete="off" placeholder="Type a message..."/>
                 <div class="input-group-button">
                     <button type="submit" class="button">Send</button>
                 </div>
