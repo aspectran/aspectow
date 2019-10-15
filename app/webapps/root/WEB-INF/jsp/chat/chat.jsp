@@ -7,10 +7,11 @@
     </div>
     <div id="contacts" class="columns medium-4 large-3 hide-for-small-only"></div>
     <div id="room" class="columns small-12 medium-8 large-9">
-        <form id="signin" onsubmit="return false;">
+        <form id="signin" method="post" onsubmit="return false;">
             <h3>Type your username</h3>
             <input type="text" id="username" maxlength="50" placeholder="Username" autocomplete="off" autofocus/>
-            <button class="button" onclick="signIn()">Start Chatting</button>
+            <div class="g-recaptcha" data-sitekey="6Lcmtr0UAAAAALVTub2iLRQh0sZLUIYmueMRLi5S"></div>
+            <button class="button" type="submit" onclick="signIn()">Start Chatting</button>
         </form>
         <div id="messages"></div>
         <form id="chat-controls" onsubmit="sendMessage();return false;">
@@ -23,11 +24,16 @@
         </form>
     </div>
 </div>
+<script src="https://www.google.com/recaptcha/api.js" async defer></script>
 <script>
     var socket;
     var currentUser;
 
     function signIn() {
+        var recaptchaResponse = grecaptcha.getResponse();
+        if (!recaptchaResponse) {
+            return;
+        }
         currentUser = $("#username").val().trim();
         $("#username").val("");
         if (currentUser) {
@@ -36,15 +42,15 @@
             $("#chat-controls").show();
             $("a.leave").show();
             $("#message").focus();
-            openSocket();
+            openSocket(recaptchaResponse);
         }
     }
 
-    function openSocket() {
+    function openSocket(recaptchaResponse) {
         if (socket) {
             socket.close();
         }
-        var url = new URL('/chat', location.href);
+        var url = new URL('/chat?' + recaptchaResponse, location.href);
         url.protocol = url.protocol.replace('https:', 'wss:');
         url.protocol = url.protocol.replace('http:', 'ws:');
         socket = new WebSocket(url.href);
@@ -95,6 +101,8 @@
         };
 
         socket.onclose = function (event) {
+            location.reload();
+            /*
             clearTotalPeople();
             $("#contacts").empty();
             $("#messages").empty().hide();
@@ -103,6 +111,7 @@
             $("#message").val('');
             $("#signin").show();
             $("#username").focus();
+            */
         };
 
         socket.onerror = function (event) {

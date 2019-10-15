@@ -15,6 +15,7 @@
  */
 package club.textchat.server;
 
+import club.textchat.common.recaptcha.ReCaptchaVerifier;
 import club.textchat.server.codec.ChatMessageDecoder;
 import club.textchat.server.codec.ChatMessageEncoder;
 import club.textchat.server.model.ChatMessage;
@@ -58,6 +59,13 @@ public class ChatServerEndpoint extends ActivityContextAwareEndpoint {
 
     @OnOpen
     public void onOpen(Session session, EndpointConfig config) throws IOException {
+        String recaptchaResponse = session.getQueryString();
+        boolean success = ReCaptchaVerifier.verifySuccess(recaptchaResponse);
+        if (!success) {
+            String reason = "reCAPTCHA verification failed";
+            session.close(new CloseReason(CloseReason.CloseCodes.CANNOT_ACCEPT, reason));
+            throw new IOException(reason);
+        }
     }
 
     @OnMessage
