@@ -11,9 +11,7 @@
     <link rel="stylesheet" type="text/css" href="/assets/css/base.css" />
     <link rel="stylesheet" type="text/css" href="/assets/css/textchat.css" />
     <link href="http://fonts.googleapis.com/css?family=Raleway:500,500i,700" rel="stylesheet">
-    <script src="/assets/js/modernizr.js"></script>
     <script src="/assets/js/jquery.js"></script>
-    <script src="/assets/js/fastclick.js"></script>
     <script>
         (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
             (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),

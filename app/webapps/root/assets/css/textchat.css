@@ -17,8 +17,12 @@ body:before {
 body {
     background: #4c7483;
     height: 100.1%;
-    overflow: hidden;
+    -ms-overflow-style: none;
 }
+body::-webkit-scrollbar {
+    display: none;
+}
+
 section.wrap {
     position: absolute;
     width: 100%;
