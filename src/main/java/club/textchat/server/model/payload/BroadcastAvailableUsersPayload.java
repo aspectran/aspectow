@@ -28,15 +28,15 @@ import java.util.Set;
  */
 public class BroadcastAvailableUsersPayload extends AbstractParameters {
 
-    private static final ParameterKey usernames;
+    private static final ParameterKey nicknames;
 
     private static final ParameterKey[] parameterKeys;
 
     static {
-        usernames = new ParameterKey("usernames", ValueType.STRING, true);
+        nicknames = new ParameterKey("nicknames", ValueType.STRING, true);
 
         parameterKeys = new ParameterKey[] {
-                usernames
+                nicknames
         };
     }
 
@@ -44,9 +44,9 @@ public class BroadcastAvailableUsersPayload extends AbstractParameters {
         super(parameterKeys);
     }
 
-    public void setUsernames(Set<String> usernames) {
-        for (String username : usernames) {
-            putValue(BroadcastAvailableUsersPayload.usernames, username);
+    public void setNicknames(Set<String> nicknames) {
+        for (String nickname : nicknames) {
+            putValue(BroadcastAvailableUsersPayload.nicknames, nickname);
         }
     }
 

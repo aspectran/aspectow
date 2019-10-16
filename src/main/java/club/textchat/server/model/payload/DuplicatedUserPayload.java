@@ -26,15 +26,15 @@ import com.aspectran.core.util.apon.ValueType;
  */
 public class DuplicatedUserPayload extends AbstractParameters {
 
-    private static final ParameterKey username;
+    private static final ParameterKey nickname;
 
     private static final ParameterKey[] parameterKeys;
 
     static {
-        username = new ParameterKey("username", ValueType.STRING);
+        nickname = new ParameterKey("nickname", ValueType.STRING);
 
         parameterKeys = new ParameterKey[] {
-                username
+                nickname
         };
     }
 
@@ -42,8 +42,8 @@ public class DuplicatedUserPayload extends AbstractParameters {
         super(parameterKeys);
     }
 
-    public void setUsername(String username) {
-        putValue(DuplicatedUserPayload.username, username);
+    public void setNickname(String nickname) {
+        putValue(DuplicatedUserPayload.nickname, nickname);
     }
 
 }

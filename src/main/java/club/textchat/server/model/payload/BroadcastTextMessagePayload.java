@@ -26,17 +26,17 @@ import com.aspectran.core.util.apon.ValueType;
  */
 public class BroadcastTextMessagePayload extends AbstractParameters {
 
-    private static final ParameterKey username;
+    private static final ParameterKey nickname;
     private static final ParameterKey content;
 
     private static final ParameterKey[] parameterKeys;
 
     static {
-        username = new ParameterKey("username", ValueType.STRING);
+        nickname = new ParameterKey("nickname", ValueType.STRING);
         content = new ParameterKey("content", ValueType.TEXT);
 
         parameterKeys = new ParameterKey[] {
-                username,
+                nickname,
                 content
         };
     }
@@ -45,8 +45,8 @@ public class BroadcastTextMessagePayload extends AbstractParameters {
         super(parameterKeys);
     }
 
-    public void setUsername(String username) {
-        putValue(BroadcastTextMessagePayload.username, username);
+    public void setNickname(String nickname) {
+        putValue(BroadcastTextMessagePayload.nickname, nickname);
     }
 
     public void setContent(String content) {

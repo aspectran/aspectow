@@ -72,30 +72,30 @@ public class ChatServerEndpoint extends ActivityContextAwareEndpoint {
     public void onMessage(Session session, ChatMessage chatMessage) {
         SendTextMessagePayload payload = chatMessage.getSendTextMessagePayload();
         if (payload != null) {
-            String username = getUsername(session);
+            String nickname = getNickname(session);
             switch (payload.getType()) {
                 case CHAT:
-                    if (username != null) {
-                        broadcastTextMessage(username, payload.getContent());
+                    if (nickname != null) {
+                        broadcastTextMessage(nickname, payload.getContent());
                     }
                     break;
                 case JOIN:
-                    if (username == null) {
-                        username = payload.getUsername();
-                        if (sessions.containsKey(username)) {
-                            duplicatedUser(session, username);
+                    if (nickname == null) {
+                        nickname = payload.getNickname();
+                        if (sessions.containsKey(nickname)) {
+                            duplicatedUser(session, nickname);
                             return;
                         }
-                        setUsername(session, username);
-                        sessions.put(username, session);
-                        welcomeUser(session, username);
-                        broadcastUserConnected(session, username);
+                        setNickname(session, nickname);
+                        sessions.put(nickname, session);
+                        welcomeUser(session, nickname);
+                        broadcastUserConnected(session, nickname);
                         broadcastAvailableUsers();
                     }
                     break;
                 case LEAVE:
-                    if (username != null) {
-                        leaveUser(username);
+                    if (nickname != null) {
+                        leaveUser(nickname);
                     }
                     break;
             }
@@ -104,64 +104,64 @@ public class ChatServerEndpoint extends ActivityContextAwareEndpoint {
 
     @OnClose
     public void onClose(Session session, CloseReason reason) {
-        String username = getUsername(session);
-        if (username != null) {
-            leaveUser(username);
+        String nickname = getNickname(session);
+        if (nickname != null) {
+            leaveUser(nickname);
         }
     }
 
-    private String getUsername(Session session) {
-        if (session.getUserProperties().get("username") != null) {
-            return session.getUserProperties().get("username").toString();
+    private String getNickname(Session session) {
+        if (session.getUserProperties().get("nickname") != null) {
+            return session.getUserProperties().get("nickname").toString();
         } else {
             return null;
         }
     }
 
-    private void setUsername(Session session, String username) {
-        session.getUserProperties().put("username", username);
+    private void setNickname(Session session, String nickname) {
+        session.getUserProperties().put("nickname", nickname);
     }
 
-    private void welcomeUser(Session session, String username) {
+    private void welcomeUser(Session session, String nickname) {
         WelcomeUserPayload payload = new WelcomeUserPayload();
-        payload.setUsername(username);
+        payload.setNickname(nickname);
         session.getAsyncRemote().sendObject(new ChatMessage(payload));
     }
 
-    private void duplicatedUser(Session session, String username) {
+    private void duplicatedUser(Session session, String nickname) {
         DuplicatedUserPayload payload = new DuplicatedUserPayload();
-        payload.setUsername(username);
+        payload.setNickname(nickname);
         session.getAsyncRemote().sendObject(new ChatMessage(payload));
     }
 
-    private void leaveUser(String username) {
-        sessions.remove(username);
-        broadcastUserDisconnected(username);
+    private void leaveUser(String nickname) {
+        sessions.remove(nickname);
+        broadcastUserDisconnected(nickname);
         broadcastAvailableUsers();
     }
 
-    private void broadcastUserConnected(Session session, String username) {
+    private void broadcastUserConnected(Session session, String nickname) {
         BroadcastConnectedUserPayload payload = new BroadcastConnectedUserPayload();
-        payload.setUsername(username);
+        payload.setNickname(nickname);
         broadcast(session, new ChatMessage(payload));
     }
 
-    private void broadcastUserDisconnected(String username) {
+    private void broadcastUserDisconnected(String nickname) {
         BroadcastDisconnectedUserPayload payload = new BroadcastDisconnectedUserPayload();
-        payload.setUsername(username);
+        payload.setNickname(nickname);
         broadcast(new ChatMessage(payload));
     }
 
-    private void broadcastTextMessage(String username, String text) {
+    private void broadcastTextMessage(String nickname, String text) {
         BroadcastTextMessagePayload payload = new BroadcastTextMessagePayload();
         payload.setContent(text);
-        payload.setUsername(username);
+        payload.setNickname(nickname);
         broadcast(new ChatMessage(payload));
     }
 
     private void broadcastAvailableUsers() {
         BroadcastAvailableUsersPayload payload = new BroadcastAvailableUsersPayload();
-        payload.setUsernames(sessions.keySet());
+        payload.setNicknames(sessions.keySet());
         broadcast(new ChatMessage(payload));
     }
 
