@@ -11,64 +11,62 @@ body:before {
     height: 35%;
     background: #35505b;
     content: "";
-    z-index: 0;
+    z-index: -1;
     box-shadow: 0 4px 8px 0 rgba(255, 255, 255, 0.2), 0 60px 120px 0 rgba(255, 255, 255, 0.19);
 }
 body {
     background: #4c7483;
     height: 100vh;
 }
-
-section.wrap {
-    position: absolute;
-    width: 100%;
-    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
-}
-
-#title {
+.columns.header {
     background-color: #35505B;
     padding: 0 20px;
     color: #fff;
     height: 50px;
 }
-#title h2 {
+.columns.header h2 {
     float: left;
     font-size: 24px;
     line-height: 50px;
 }
-#title a {
+.columns.header a {
     float: right;
     line-height: 50px;
-    vertical-align: bottom;
     display: none;
 }
-
-#signin {
-    padding: 0 0 100px;
-    background-color: #f5f5f5;
-    margin-top: calc(50vh - 170px);
+.columns.sidebar {
+    position: relative;
+    padding: 15px;
+    background-color: #bbedfe;
+    min-height: calc(100vh - 50px);
+    max-height: calc(100vh - 50px);
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+    overflow: auto;
 }
-#signin * {
+.columns.main {
+    background-color: #f5f5f5;
+    min-height: calc(100vh - 50px);
+    max-height: calc(100vh - 50px);
+    padding: 0;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+}
+#sign-in {
+    padding: 10px;
+    background-color: #f5f5f5;
+    margin-top: calc(50vh - 180px);
+}
+#sign-in * {
     display: block;
     margin-left: auto;
     margin-right: auto;
     margin-bottom: 20px;
 }
-#signin h3 {
+#sign-in h3 {
     text-align: center;
     margin-bottom: 20px;
 }
-#signin input {
+#sign-in input {
     max-width: 300px;
-}
-
-#contacts {
-    padding: 15px;
-    background-color: #bbedfe;
-    min-height: calc(100vh - 50px);
-    max-height: calc(100vh - 50px);
-    overflow: auto;
-    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
 }
 #contacts .contact .status {
     background-color: #13CF13;
@@ -79,20 +77,12 @@ section.wrap {
     margin-right: 10px;
 }
 #contacts .contact .name {
-    line-height: 35px;
+    line-height: 30px;
     vertical-align: super;
 }
-
-#room {
-    background-color: #f5f5f5;
-    min-height: calc(100vh - 50px);
-    max-height: calc(100vh - 50px);
-    padding: 0;
-    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
-}
 #messages {
-    min-height: calc(100vh - 115px);
-    max-height: calc(100vh - 115px);
+    min-height: calc(100vh - 116px);
+    max-height: calc(100vh - 116px);
     margin-bottom: 10px;
     padding: 0 12px;
     overflow-y: auto;
@@ -145,12 +135,10 @@ section.wrap {
 #messages .message.sent .sender {
     font-weight: bold;
 }
-
 #chat-controls {
     padding: 0 12px;
     display: none;
 }
-
 #messages .message.sent.same-sender-previous-message .sender,
 #messages .message.received.same-sender-previous-message .sender {
     display: none;

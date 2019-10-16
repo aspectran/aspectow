@@ -27,6 +27,8 @@ import java.util.List;
 public class ReCaptchaVerifyResponse extends AbstractParameters {
 
     private static final ParameterKey success;
+    private static final ParameterKey score;
+    private static final ParameterKey action;
     private static final ParameterKey challengeTimestamp;
     private static final ParameterKey hostname;
     private static final ParameterKey errorCodes;
@@ -35,12 +37,16 @@ public class ReCaptchaVerifyResponse extends AbstractParameters {
 
     static {
         success = new ParameterKey("success", ValueType.BOOLEAN);
+        score = new ParameterKey("score", ValueType.FLOAT);
+        action = new ParameterKey("action", ValueType.STRING);
         challengeTimestamp = new ParameterKey("challenge_ts", ValueType.STRING);
         hostname = new ParameterKey("hostname", ValueType.STRING);
         errorCodes = new ParameterKey("error-codes", ValueType.STRING, true);
 
         parameterKeys = new ParameterKey[] {
                 success,
+                score,
+                action,
                 challengeTimestamp,
                 hostname,
                 errorCodes
@@ -53,6 +59,14 @@ public class ReCaptchaVerifyResponse extends AbstractParameters {
 
     public boolean isSuccess() {
         return getBoolean(success, false);
+    }
+
+    public float getScore() {
+        return getFloat(score, 0.0f);
+    }
+
+    public String getAction() {
+        return getString(action);
     }
 
     public String getChallengeTimestamp() {

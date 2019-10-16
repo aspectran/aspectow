@@ -1,17 +1,18 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
-<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
-<div class="row">
-    <div id="title" class="columns">
+<div class="wrap row">
+    <div class="header columns">
         <h2>Chat <span id="totalPeople"></span></h2>
         <a class="leave" onclick="leaveRoom();">Leave</a>
     </div>
-    <div id="contacts" class="columns medium-4 large-3 hide-for-small-only"></div>
-    <div id="room" class="columns small-12 medium-8 large-9">
-        <form id="signin" method="post" onsubmit="return false;">
+    <div class="sidebar columns medium-4 large-3 hide-for-small-only">
+        <div id="contacts"></div>
+    </div>
+    <div class="main columns small-12 medium-8 large-9">
+        <form id="sign-in" method="post" onsubmit="return false;">
             <h3>Type your username</h3>
             <input type="text" id="username" maxlength="50" placeholder="Username" autocomplete="off" autofocus/>
-            <div class="g-recaptcha" data-sitekey="6Lcmtr0UAAAAALVTub2iLRQh0sZLUIYmueMRLi5S"></div>
             <button class="button" type="submit" onclick="signIn()">Start Chatting</button>
+            <div id="inline-badge"></div>
         </form>
         <div id="messages"></div>
         <form id="chat-controls" onsubmit="sendMessage();return false;">
@@ -24,29 +25,45 @@
         </form>
     </div>
 </div>
-<script src="https://www.google.com/recaptcha/api.js" async defer></script>
+<script src="https://www.google.com/recaptcha/api.js?render=explicit&onload=onRecaptchaLoadCallback"></script>
 <script>
+    function onRecaptchaLoadCallback() {
+        var clientId = grecaptcha.render('inline-badge', {
+            'sitekey': '6Ldt0r0UAAAAAP4ejDGFZLB0S-zDzWL3ZkB49FvN',
+            'badge': 'inline',
+            'size': 'invisible'
+        });
+        grecaptcha.ready(function() {
+            grecaptcha.execute(clientId, {
+                action: 'sign_in'
+            }).then(function(token) {
+                recaptchaResponse = token;
+            });
+        });
+    }
+</script>
+<script>
+    var recaptchaResponse;
     var socket;
     var currentUser;
 
     function signIn() {
-        var recaptchaResponse = grecaptcha.getResponse();
         if (!recaptchaResponse) {
             return;
         }
         currentUser = $("#username").val().trim();
         $("#username").val("");
         if (currentUser) {
-            $("#signin").hide();
+            $("#sign-in").hide();
             $("#messages").show();
             $("#chat-controls").show();
             $("a.leave").show();
             $("#message").focus();
-            openSocket(recaptchaResponse);
+            openSocket();
         }
     }
 
-    function openSocket(recaptchaResponse) {
+    function openSocket() {
         if (socket) {
             socket.close();
         }
@@ -102,16 +119,6 @@
 
         socket.onclose = function (event) {
             location.reload();
-            /*
-            clearTotalPeople();
-            $("#contacts").empty();
-            $("#messages").empty().hide();
-            $("#chat-controls").hide();
-            $("a.leave").hide();
-            $("#message").val('');
-            $("#signin").show();
-            $("#username").focus();
-            */
         };
 
         socket.onerror = function (event) {

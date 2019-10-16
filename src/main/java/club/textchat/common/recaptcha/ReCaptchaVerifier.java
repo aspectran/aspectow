@@ -20,7 +20,7 @@ public class ReCaptchaVerifier {
 
     private static final String SITEVERIFY_URL = "https://www.google.com/recaptcha/api/siteverify";
 
-    private static final String SECRET_KEY = "6Lcmtr0UAAAAAEaBKxAgxym3kUT3TTSiVfJNRvMY";
+    private static final String SECRET_KEY = "6Ldt0r0UAAAAAFFsdRWamrAKViusrrJIXiAGK7bU";
 
     /**
      * Verify re captcha status.

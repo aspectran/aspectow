@@ -22,11 +22,9 @@
     </script>
 </head>
 <body>
-<section class="wrap">
 <c:if test="${not empty page.include}">
     <jsp:include page="/WEB-INF/jsp/${page.include}.jsp"/>
 </c:if>
-</section>
 <script src="/assets/js/foundation.min.js"></script>
 <script>
     $(document).foundation();
