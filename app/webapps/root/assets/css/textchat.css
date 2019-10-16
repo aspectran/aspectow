@@ -51,22 +51,20 @@ body {
     box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
 }
 #sign-in {
-    padding: 10px;
-    background-color: #f5f5f5;
-    margin-top: calc(50vh - 180px);
-}
-#sign-in * {
-    display: block;
-    margin-left: auto;
-    margin-right: auto;
-    margin-bottom: 20px;
+    padding: 20px;
 }
 #sign-in h3 {
-    text-align: center;
     margin-bottom: 20px;
+    color: #455259;
+}
+#sign-in h4 {
+    margin-bottom: 20px;
+    color: #555555;
+}
+#sign-in .input-group {
+    max-width: 500px;
 }
 #sign-in input {
-    max-width: 300px;
 }
 #contacts .contact .status {
     background-color: #13CF13;

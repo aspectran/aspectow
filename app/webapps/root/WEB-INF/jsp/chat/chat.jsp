@@ -9,9 +9,17 @@
     </div>
     <div class="main columns small-12 medium-8 large-9">
         <form id="sign-in" method="post" onsubmit="return false;">
+            <h4>Only one chat room!<br/>
+                If no one chats for a minute, this chat room will close.<br/>
+                Then shall we start chatting?<br/>
+                Our chat history is never saved.</h4>
             <h3>Type your username</h3>
-            <input type="text" id="username" maxlength="50" placeholder="Username" autocomplete="off" autofocus/>
-            <button class="button" type="submit" onclick="signIn()">Start Chatting</button>
+            <div class="input-group">
+                <input class="input-group-field" type="text" id="username" maxlength="30" placeholder="Username" autocomplete="off" autofocus/>
+                <div class="input-group-button">
+                    <button type="submit" class="button" onclick="signIn()">Join</button>
+                </div>
+            </div>
             <div id="inline-badge"></div>
         </form>
         <div id="messages"></div>
