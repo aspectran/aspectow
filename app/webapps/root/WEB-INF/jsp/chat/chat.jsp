@@ -10,7 +10,7 @@
     <div class="main columns small-12 medium-8 large-9">
         <form id="sign-in" method="post" onsubmit="return false;">
             <h3>Only one chat room!</h3>
-            <h4>If no one chats for a minute, this chat room will close.<br/>
+            <h4>If no one chats for a minute, the chat room will close.<br/>
                 So shall we start chatting?<br/>
                 Our chat is not recorded anywhere.</h4>
             <h4>Please enter your nickname.</h4>
