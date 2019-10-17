@@ -17,7 +17,7 @@
             <div class="input-group">
                 <input class="input-group-field" type="text" id="nickname" maxlength="30" placeholder="Nickname" autocomplete="off" autofocus/>
                 <div class="input-group-button">
-                    <button type="submit" class="button" onclick="signIn()">Join</button>
+                    <button type="submit" class="button" onclick="executeCaptcha()">Join</button>
                 </div>
             </div>
             <div id="inline-badge"></div>
@@ -33,29 +33,35 @@
         </form>
     </div>
 </div>
-<script src="https://www.google.com/recaptcha/api.js?render=explicit&onload=onRecaptchaLoadCallback"></script>
+<script src="https://www.google.com/recaptcha/api.js?render=explicit&onload=loadCaptcha"></script>
 <script>
-    function onRecaptchaLoadCallback() {
-        var clientId = grecaptcha.render('inline-badge', {
-            'sitekey': '6Ldt0r0UAAAAAP4ejDGFZLB0S-zDzWL3ZkB49FvN',
-            'badge': 'inline',
-            'size': 'invisible'
+    var clientId;
+    var recaptchaResponse;
+    function loadCaptcha() {
+        grecaptcha.ready(function() {
+            clientId = grecaptcha.render('inline-badge', {
+                'sitekey': '6Ldt0r0UAAAAAP4ejDGFZLB0S-zDzWL3ZkB49FvN',
+                'badge': 'inline',
+                'size': 'invisible'
+            });
         });
+    }
+    function executeCaptcha() {
         grecaptcha.ready(function() {
             grecaptcha.execute(clientId, {
                 action: 'sign_in'
             }).then(function(token) {
                 recaptchaResponse = token;
+                startChat();
             });
         });
     }
 </script>
 <script>
-    var recaptchaResponse;
     var socket;
     var currentUser;
 
-    function signIn() {
+    function startChat() {
         if (!recaptchaResponse) {
             return;
         }
@@ -67,7 +73,7 @@
             $("#chat-controls").show();
             $("a.leave").show();
             $("#message").focus();
-            openSocket();
+            openSocket(recaptchaResponse);
         }
     }
 
