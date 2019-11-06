@@ -73,7 +73,7 @@
             $("#chat-controls").show();
             $("a.leave").show();
             $("#message").focus();
-            openSocket(recaptchaResponse);
+            openSocket();
         }
     }
 
