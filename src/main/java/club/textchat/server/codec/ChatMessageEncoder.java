@@ -34,6 +34,7 @@ public class ChatMessageEncoder implements Encoder.Text<ChatMessage> {
     public String encode(ChatMessage message) throws EncodeException {
         try {
             JsonWriter jsonWriter = new JsonWriter();
+            jsonWriter.nullWritable(false);
             jsonWriter.write(message);
             return jsonWriter.toString();
         } catch (IOException e) {
