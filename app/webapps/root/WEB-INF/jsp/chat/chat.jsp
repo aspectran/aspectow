@@ -23,7 +23,7 @@
             <div id="inline-badge"></div>
         </form>
         <div id="messages"></div>
-        <form id="chat-controls" onsubmit="sendMessage();return false;">
+        <form id="chat-controls">
             <div class="input-group">
                 <input class="input-group-field" type="text" id="message" autocomplete="off" placeholder="Type a message..."/>
                 <div class="input-group-button">
@@ -60,6 +60,13 @@
 <script>
     var socket;
     var currentUser;
+
+    $(function() {
+        $("form#chat-controls]").submit(function() {
+            sendMessage();
+            return false;
+        });
+    });
 
     function startChat() {
         if (!recaptchaResponse) {
@@ -147,8 +154,6 @@
 
     function sendMessage() {
         var text = $("#message").val().trim();
-        $("#message").val('');
-
         if (text) {
             var chatMessage = {
                 sendTextMessage: {
@@ -158,6 +163,7 @@
                 }
             };
             socket.send(JSON.stringify(chatMessage));
+            $("#message").val('').focus();
         }
     }
 
