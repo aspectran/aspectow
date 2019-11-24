@@ -62,7 +62,7 @@
     var currentUser;
 
     $(function() {
-        $("form#chat-controls]").submit(function() {
+        $("form#chat-controls").submit(function() {
             sendMessage();
             return false;
         });
