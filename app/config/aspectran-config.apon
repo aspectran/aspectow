@@ -43,7 +43,6 @@ shell: {
     prompt: "{{green}}textchat>{{reset}} "
     commands: [
         com.aspectran.shell.command.builtins.UndertowCommand
-        com.aspectran.shell.command.builtins.JettyCommand
         com.aspectran.shell.command.builtins.TransletCommand
         com.aspectran.shell.command.builtins.AspectCommand
         com.aspectran.shell.command.builtins.JobCommand

@@ -124,7 +124,6 @@ public class ChatServerEndpoint extends ActivityContextAwareEndpoint {
             if (nickname != null) {
                 leaveUser(nickname);
             }
-            leaveUser(nickname);
             session.close(new CloseReason(CloseReason.CloseCodes.UNEXPECTED_CONDITION, null));
         } catch (IOException e) {
             throw new UncheckedIOException(e);

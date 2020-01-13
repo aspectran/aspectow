@@ -11,7 +11,7 @@
         <properties>
             <item name="tow.server.startup" valueType="boolean">true</item>
             <item name="tow.server.stopDelayTime" valueType="int">1000</item>
-            <item name="tow.server.listener.http.port" valueType="int">9080</item>
+            <item name="tow.server.listener.http.port" valueType="int">8090</item>
             <item name="tow.server.listener.http.host">0.0.0.0</item>
         </properties>
     </environment>
