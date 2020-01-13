@@ -1,4 +1,4 @@
-package club.textchat.common.recaptcha;
+package club.textchat.recaptcha;
 
 import com.aspectran.core.util.apon.JsonToApon;
 

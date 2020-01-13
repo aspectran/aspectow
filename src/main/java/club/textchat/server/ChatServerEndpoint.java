@@ -15,7 +15,7 @@
  */
 package club.textchat.server;
 
-import club.textchat.common.recaptcha.ReCaptchaVerifier;
+import club.textchat.recaptcha.ReCaptchaVerifier;
 import club.textchat.server.codec.ChatMessageDecoder;
 import club.textchat.server.codec.ChatMessageEncoder;
 import club.textchat.server.model.ChatMessage;
@@ -33,7 +33,6 @@ import com.aspectran.web.socket.jsr356.ActivityContextAwareEndpoint;
 import com.aspectran.web.socket.jsr356.AspectranConfigurator;
 
 import javax.websocket.CloseReason;
-import javax.websocket.EndpointConfig;
 import javax.websocket.OnClose;
 import javax.websocket.OnError;
 import javax.websocket.OnMessage;
