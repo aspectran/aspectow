@@ -31,8 +31,9 @@ public class ReCaptchaVerifier {
      */
     public static ReCaptchaVerifyResponse verify(String recaptchaResponse, String remoteIp) throws IOException {
         String params = "secret=" + SECRET_KEY + "&response=" + recaptchaResponse;
-        if (remoteIp != null)
+        if (remoteIp != null) {
             params += "&remoteip=" + remoteIp;
+        }
 
         byte[] postData = params.getBytes(StandardCharsets.UTF_8);
         int postDataLength = postData.length;
