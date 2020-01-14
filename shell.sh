@@ -2,4 +2,4 @@
 
 source app.conf
 
-"$DEPLOY_DIR"/bin/shell.sh --debug
+"$DEPLOY_DIR/bin/shell.sh" --debug
