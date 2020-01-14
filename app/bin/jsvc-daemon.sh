@@ -39,38 +39,32 @@ while [ ".$1" != . ]; do
   case "$1" in
   --base-dir)
     BASE_DIR="$2"
-    shift
-    shift
+    shift; shift;
     continue
     ;;
   --java-home)
     JAVA_HOME="$2"
-    shift
-    shift
+    shift; shift;
     continue
     ;;
   --proc-name)
     PROC_NAME="$2"
-    shift
-    shift
+    shift; shift;
     continue
     ;;
   --pid-file)
     PID_FILE="$2"
-    shift
-    shift
+    shift; shift;
     continue
     ;;
   --user)
     DAEMON_USER="-user $2"
-    shift
-    shift
+    shift; shift;
     continue
     ;;
   --service-start-wait-time)
     SERVICE_START_WAIT_TIME="$2"
-    shift
-    shift
+    shift; shift;
     continue
     ;;
   *)
@@ -110,10 +104,8 @@ if [ ! -x "$JSVC" ]; then
   exit 3
 fi
 
-test ".$PROC_NAME" = . && PROC_NAME="aspectran-jsvc-daemon"
-# Set -pidfile
-test ".$PID_FILE" = . && PID_FILE="$BASE_DIR/.jsvc_daemon.pid"
-# Set the default service-start wait time if necessary
+test ".$PROC_NAME" = . && PROC_NAME="jsvc-daemon"
+test ".$PID_FILE" = . && PID_FILE="$BASE_DIR/.$PROC_NAME.pid"
 test ".$SERVICE_START_WAIT_TIME" = . && SERVICE_START_WAIT_TIME=10
 DAEMON_OUT="$BASE_DIR/logs/daemon.out"
 DAEMON_ERR="$BASE_DIR/logs/daemon.err"
