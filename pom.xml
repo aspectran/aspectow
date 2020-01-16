@@ -53,8 +53,6 @@
                     <optimize>true</optimize>
                     <showDeprecation>true</showDeprecation>
                     <showWarnings>true</showWarnings>
-                    <meminitial>256m</meminitial>
-                    <maxmem>1024m</maxmem>
                     <excludes>
                         <exclude>**/package-info.java</exclude>
                     </excludes>
