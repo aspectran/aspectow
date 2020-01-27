@@ -8,18 +8,14 @@
     <logger name="com.aspectran" level="debug" additivity="false">
         <appender-ref ref="STDOUT"/>
     </logger>
-    <logger name="com.aspectran.core.component.session" level="debug" additivity="false">
-        <appender-ref ref="STDOUT"/>
-    </logger>
     <logger name="org.quartz" level="info" additivity="false">
         <appender-ref ref="STDOUT"/>
     </logger>
-    <logger name="org.eclipse.jetty" level="error" additivity="false">
+    <logger name="app.demo" level="debug" additivity="false">
         <appender-ref ref="STDOUT"/>
     </logger>
     <root level="info">
         <appender-ref ref="STDOUT"/>
     </root>
     <include optional="true" file="${aspectran.basePath}/config/logback-scheduler.xml"/>
-    <include optional="true" file="${aspectran.basePath}/config/logback-undertow.xml"/>
 </configuration>

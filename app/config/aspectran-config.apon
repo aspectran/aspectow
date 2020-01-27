@@ -4,7 +4,7 @@ context: {
         /config
     ]
     scan: [
-        com.aspectran.aspectow
+        app.demo
     ]
     profiles: {
         active: [
@@ -30,10 +30,10 @@ shell: {
         |{{GREEN }}   /   |  _________  ___  _____/ /_____ _      __
         |{{GREEN }}  / /| | / ___/ __ \/ _ \/ ___/ __/ __ \ | /| / /
         |{{GREEN }} / ___ |(__  ) /_/ /  __/ /__/ /_/ /_/ / |/ |/ /
-        |{{CYAN  }}/_/  |_/____/ .___/\___/\___/\__/\____/|__/|__/
+        |{{CYAN  }}/_/  |_/____/ .___/\___/\___/\__/\____/|__/|__/   Enterprise
         |{{CYAN  }}           /_/
         |{{reset }}
-        |{{RED   }}Welcome To Aspectow 0.1
+        |{{RED   }}Welcome To Aspectow Enterprise 0.1
         |{{reset }}
         |If you want a list of all supported built-in commands, type '{{GREEN}}help{{reset}}'.
         |To get help on a specific command, type '{{GREEN}}command_name -h{{reset}}'.
@@ -80,8 +80,8 @@ daemon: {
     poller: {
         pollingInterval: 5000
         maxThreads: 5
+        requeuable: true
         incoming: /commands/incoming
-        requeue: true
     }
     commands: [
         com.aspectran.daemon.command.builtins.UndertowCommand

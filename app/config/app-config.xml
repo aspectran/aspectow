@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE aspectran PUBLIC "-//ASPECTRAN//DTD Aspectran Configuration 6.0//EN"
         "http://aspectran.github.io/dtd/aspectran-6.dtd">
 <aspectran>
@@ -7,8 +7,9 @@
         |
         |{{bold}}Commands that can run examples:{{bold:off}}
         |   {{CYAN}}hello{{fg:reset}}      Prints "Hello, World!" in your console
-        |   {{CYAN}}hello2{{fg:reset}}     Prints "Hello, World!" in your console using ANSI color codes
-        |   {{CYAN}}echo1{{fg:reset}}      It accepts parameters and print as is
+        |   {{CYAN}}hello2{{fg:reset}}     Prints "Hello, World!" in your console using ANSI escape sequences
+        |   {{CYAN}}echo{{fg:reset}}       It accepts parameters and print as is
+        |   {{CYAN}}echo2{{fg:reset}}      It accepts parameters and attributes, and print them as is
         |   --- for more examples, type '{{GREEN}}translet -l{{reset}}' ---
         |
         |Use the command '{{GREEN}}undertow{{reset}}' to control the Undertow Server.
@@ -19,10 +20,24 @@
 
     <bean id="basePath" class="com.aspectran.core.support.BasePathFactoryBean"/>
     <bean id="currentTranslet" class="com.aspectran.core.support.CurrentTransletFactoryBean" scope="request"/>
+    <bean id="currentActivityData" class="com.aspectran.core.support.CurrentActivityDataFactoryBean" scope="request"/>
 
-    <append file="/config/undertow/tow-config.xml"/>
-    <append file="/config/shell/shell-config.xml" profile="!daemon"/>
+    <aspect id="activityDataAccessibility">
+        <description>
+            The Activity Data Map of all translets can be referenced as a "data" attribute in View Dispatching.
+        </description>
+        <advice>
+            <before>
+                <echo>
+                    <item name="data">#{currentActivityData}</item>
+                </echo>
+            </before>
+        </advice>
+    </aspect>
+
+    <append file="/config/server/server-config.xml"/>
+    <append file="/config/shell/shell-config.xml"/>
     <append file="/config/web/web-config.xml"/>
-    <append file="/config/error-report-dev.xml" profile="dev"/>
+    <append file="/config/mybatis/db-tx-config.xml"/>
 
 </aspectran>

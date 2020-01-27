@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE aspectran PUBLIC "-//ASPECTRAN//DTD Aspectran Configuration 6.0//EN"
         "http://aspectran.github.io/dtd/aspectran-6.dtd">
 <aspectran>
@@ -9,34 +9,21 @@
         always start with a forward slash (/).
     </description>
 
-    <bean id="freemarkerConfigurationFactory" class="com.aspectran.freemarker.FreeMarkerConfigurationFactoryBean">
-        <properties>
-            <item name="freemarkerSettings" type="properties">
-                <entry name="incompatible_improvements">2.3.23</entry>
-                <entry name="template_exception_handler">rethrow</entry>
-                <entry name="default_encoding">UTF-8</entry>
-                <entry name="number_format">0.####</entry>
-            </item>
-            <item name="templateLoaderPath">/webapps/root/WEB-INF/pages</item>
-        </properties>
-    </bean>
-
-    <bean id="freemarkerViewDispatcher" class="com.aspectran.freemarker.view.FreeMarkerViewDispatcher">
+    <bean id="jspViewDispatcher" class="com.aspectran.web.support.view.JspViewDispatcher">
         <description>
-            Register a Freemarker View Dispatcher.
+            Register a JSP View Dispatcher.
         </description>
         <properties>
-            <item name="suffix">.ftl</item>
+            <item name="prefix">/WEB-INF/jsp/</item>
+            <item name="suffix">.jsp</item>
         </properties>
     </bean>
 
-    <aspect id="transletSettings">
+    <aspect id="defaultTransletSettings">
         <description>
             Specifies the environment variables used during request and response processing.
         </description>
         <settings>
-            <setting name="characterEncoding" value="utf-8"/>
-            <setting name="viewDispatcher" value="freemarkerViewDispatcher"/>
             <setting name="format.indentSize" value="2"/>
             <setting name="format.dateFormat" value="yyyy-MM-dd"/>
             <setting name="format.dateTimeFormat" value="yyyy-MM-dd HH:mm:ss"/>
@@ -44,10 +31,28 @@
         </settings>
     </aspect>
 
+    <aspect id="webTransletSettings">
+        <description>
+            Specifies the environment variables used during request and response processing.
+        </description>
+        <joinpoint>
+            pointcut: {
+                +: /**
+            }
+        </joinpoint>
+        <settings>
+            <setting name="characterEncoding" value="utf-8"/>
+            <setting name="viewDispatcher" value="jspViewDispatcher"/>
+        </settings>
+    </aspect>
+
     <append file="/config/web/home/main.xml"/>
     <append file="/config/web/examples/hello-world.xml"/>
-    <append file="/config/web/examples/gs-rest-service.xml" profile="!daemon"/>
-    <append file="/config/web/examples/file-upload.xml" profile="!daemon"/>
-    <append file="/config/web/terminal/translet-interpreter.xml" profile="!daemon"/>
+    <append file="/config/web/examples/gs-rest-service.xml"/>
+    <append file="/config/web/examples/file-upload.xml"/>
+    <append file="/config/web/terminal/translet-interpreter.xml"/>
+    <append file="/config/web/skylark/skylark.xml"/>
+    <append file="/config/web/chat/chat.xml"/>
+    <append file="/config/web/apm/apm.xml"/>
 
 </aspectran>

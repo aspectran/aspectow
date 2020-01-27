@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE aspectran PUBLIC "-//ASPECTRAN//DTD Aspectran Configuration 6.0//EN"
         "http://aspectran.github.io/dtd/aspectran-6.dtd">
 <aspectran>
@@ -7,7 +7,7 @@
         Simple program to demonstrate the use of the FreeTTS speech synthesizer.
     </description>
 
-    <bean id="speaker" class="com.aspectran.aspectow.tts.TextToSpeechBean">
+    <bean id="speaker" class="app.demo.tts.TextToSpeechBean">
         <properties>
             <item name="properties" type="properties">
                 <entry name="freetts.voices">com.sun.speech.freetts.en.us.cmu_us_kal.KevinVoiceDirectory</entry>
@@ -24,9 +24,11 @@
             |   you type.
             |
         </description>
-        <parameters>
-            <item name="text" mandatory="true"/>
-        </parameters>
+        <request>
+            <parameters>
+                <item name="text"/>
+            </parameters>
+        </request>
         <action bean="speaker" method="speak">
             <arguments>
                 <item>${text:Hello}</item>
