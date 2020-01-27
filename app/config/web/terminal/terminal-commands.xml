@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE aspectran PUBLIC "-//ASPECTRAN//DTD Aspectran Configuration 6.0//EN"
+        "http://aspectran.github.io/dtd/aspectran-6.dtd">
+<aspectran>
+
+    <translet name="/hello">
+        <parameters>
+            <item name="email" mandatory="true">${id}@${domain}</item>
+            <item name="password" mandatory="true" secret="true"/>
+        </parameters>
+        <attributes>
+            <item name="attr1" mandatory="true">${id}@${domain}</item>
+            <item name="attr2" mandatory="true" secret="true">${password}</item>
+        </attributes>
+        <transform type="text">
+            <template style="apon">
+                |------------------------------------------------
+                |The parameters you entered are:
+                |   email: ${email}
+                |   password: ${password}
+                |The internally generated attributes are:
+                |   attr1: @{attr1}
+                |   attr2: @{attr2}
+                |------------------------------------------------
+            </template>
+        </transform>
+    </translet>
+
+</aspectran>

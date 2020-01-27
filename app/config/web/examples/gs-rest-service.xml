@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE aspectran PUBLIC "-//ASPECTRAN//DTD Aspectran Configuration 6.0//EN"
+        "http://aspectran.github.io/dtd/aspectran-6.dtd">
+<aspectran>
+
+    <description>
+        A collection of Translets for the Restful Web Service example.
+    </description>
+
+    <translet name="/examples/gs-rest-service/">
+        <echo id="page">
+            <item name="headline">Building a RESTful Web Service</item>
+            <item name="teaser">
+                A sample page that uses RESTful web services using HTTP support methods such as
+                GET, PUT, POST, and DELETE.
+            </item>
+            <item name="include">examples/gs-rest-service</item>
+        </echo>
+        <dispatch name="templates/default"/>
+    </translet>
+
+</aspectran>

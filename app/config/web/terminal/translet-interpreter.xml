@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE aspectran PUBLIC "-//ASPECTRAN//DTD Aspectran Configuration 6.0//EN"
+        "http://aspectran.github.io/dtd/aspectran-6.dtd">
+<aspectran>
+
+    <description>
+        You can run translets with a command line interpreter implemented using the jQuery Terminal Emulator.
+    </description>
+
+    <settings>
+        <setting name="transletNamePrefix" value="/terminal/"/>
+    </settings>
+
+    <translet name="/">
+        <echo id="page">
+            <item name="headline">Translet Interpreter</item>
+            <item name="teaser">You can run translets with a command line interpreter implemented using the jQuery Terminal Emulator.</item>
+            <item name="include">terminal/translet-interpreter</item>
+        </echo>
+        <dispatch name="templates/default"/>
+    </translet>
+
+    <append file="/config/web/terminal/terminal-commands.xml"/>
+
+</aspectran>
