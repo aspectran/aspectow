@@ -36,7 +36,7 @@
             && !obj.href.match(/^mailto\:/)
             && (obj.hostname != location.hostname);
     };
-    $(function(){
+    $(function() {
         /* Add 'external' CSS class to all external links */
         $('a:external').addClass('external');
         /* turn target into target=_blank for elements w external class */
