@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package app.demo;
+package app;
 
 import com.aspectran.core.util.ResourceUtils;
 import com.aspectran.shell.AspectranShell;
@@ -24,11 +24,9 @@ import java.io.File;
 import java.io.IOException;
 
 /**
- * Test for JPetStoreDemo.
- *
- * <p>Created: 2017. 11. 19.</p>
+ * Main entry point for the application.
  */
-public class AspectowEnterpriseTest {
+public class AspectowEnterprise {
 
     public static void main(String[] args) {
         try {

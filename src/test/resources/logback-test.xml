@@ -24,7 +24,7 @@
     <logger name="org.apache.ibatis" level="error" additivity="false">
         <appender-ref ref="APP-OUT"/>
     </logger>
-    <Logger name="app.demo" level="debug" additivity="false">
+    <Logger name="app" level="debug" additivity="false">
         <appender-ref ref="APP-OUT"/>
     </Logger>
     <root level="info">
@@ -51,7 +51,7 @@
     <logger name="org.apache.ibatis" level="error" additivity="false">
         <appender-ref ref="STDOUT"/>
     </logger>
-    <logger name="app.demo" level="debug" additivity="false">
+    <logger name="app" level="debug" additivity="false">
         <appender-ref ref="STDOUT"/>
     </logger>
     <root level="info">
