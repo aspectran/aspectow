@@ -11,7 +11,7 @@
     <link rel="stylesheet" type="text/css" href="/assets/css/base.css?20191015" />
     <link rel="stylesheet" type="text/css" href="/assets/css/textchat.css?20191016-2" />
     <link href="https://fonts.googleapis.com/css?family=Raleway:500,500i,700" rel="stylesheet">
-    <script src="/assets/js/jquery.js"></script>
+    <script src="/assets/js/jquery.min.js"></script>
     <!-- Global site tag (gtag.js) - Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=UA-150079188-1"></script>
     <script>
@@ -36,7 +36,7 @@
             && !obj.href.match(/^mailto\:/)
             && (obj.hostname != location.hostname);
     };
-    $(function(){
+    $(function() {
         /* Add 'external' CSS class to all external links */
         $('a:external').addClass('external');
         /* turn target into target=_blank for elements w external class */
