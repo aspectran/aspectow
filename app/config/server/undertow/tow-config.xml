@@ -162,16 +162,30 @@
                     </arguments>
                 </bean>
             </item>
+        </properties>
+        <properties profile="prod">
             <item name="sessionStoreFactory">
                 <bean class="com.aspectran.core.component.session.redis.lettuce.DefaultLettuceSessionStoreFactory">
                     <properties>
                         <item name="poolConfig">
                             <bean class="com.aspectran.core.component.session.redis.lettuce.RedisConnectionPoolConfig">
                                 <properties>
-                                    <item name="uri">redis://redis-001.el2p2o.0001.apn2.cache.amazonaws.com:6379/0</item>
+                                    <item name="uri">redis://redis1.el2p2o.0001.apn2.cache.amazonaws.com:6379/0</item>
                                 </properties>
                             </bean>
                         </item>
+                        <item name="nonPersistentAttributes" type="array">
+                            <value>io.undertow.websocket.current-connections</value>
+                        </item>
+                    </properties>
+                </bean>
+            </item>
+        </properties>
+        <properties profile="!prod">
+            <item name="sessionStoreFactory">
+                <bean class="com.aspectran.core.component.session.FileSessionStoreFactory">
+                    <properties>
+                        <item name="storeDir">/temp/sessions/tow</item>
                         <item name="nonPersistentAttributes" type="array">
                             <value>io.undertow.websocket.current-connections</value>
                         </item>
