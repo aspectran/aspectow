@@ -7,7 +7,7 @@ context: {
         app.demo
     ]
     profiles: {
-        active: [
+        default: [
             dev
         ]
     }
