@@ -75,8 +75,8 @@ public class SimpleFileUploadAction {
 
     @RequestToPost("/files")
     @Transform(TransformType.JSON)
-    @Action(id = "files")
-    public Collection<?> upload(Translet translet) throws IOException {
+    @Action("files")
+    public List<UploadedFile> upload(Translet translet) throws IOException {
         FileParameter fileParameter = translet.getFileParameter("file");
         if (fileParameter != null) {
             String key = UUID.randomUUID().toString();
@@ -127,8 +127,8 @@ public class SimpleFileUploadAction {
 
     @RequestToGet("/files")
     @Transform(TransformType.JSON)
-    @Action(id = "files")
-    public Collection<?> list() {
+    @Action("files")
+    public Collection<UploadedFile> list() {
         return uploadedFiles.values();
     }
 
