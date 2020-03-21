@@ -19,7 +19,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.aspectran</groupId>
     <artifactId>aspectow-enterprise</artifactId>
-    <version>0.1-SNAPSHOT</version>
+    <version>0.2-SNAPSHOT</version>
     <name>Aspectow Enterprise</name>
     <description>Aspectow is a web application server on top of Aspectran 6, Undertow.</description>
     <contributors>
@@ -33,7 +33,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.build.resourceEncoding>UTF-8</project.build.resourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <aspectran.version>6.6.7</aspectran.version>
+        <aspectran.version>6.6.8-SNAPSHOT</aspectran.version>
     </properties>
     <repositories>
         <repository>
