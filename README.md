@@ -28,4 +28,4 @@ JBoss's [Undertow](http://undertow.io) or Eclipse [Jetty](https://www.eclipse.or
   $ ./shell.sh
   ```
 
-- Access in your browser at http://localhost:8080
+- Access in your browser at http://localhost:8081
