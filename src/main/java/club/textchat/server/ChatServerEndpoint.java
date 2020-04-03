@@ -27,8 +27,8 @@ import club.textchat.server.model.payload.DuplicatedUserPayload;
 import club.textchat.server.model.payload.SendTextMessagePayload;
 import club.textchat.server.model.payload.WelcomeUserPayload;
 import com.aspectran.core.component.bean.annotation.Component;
-import com.aspectran.core.util.logging.Log;
-import com.aspectran.core.util.logging.LogFactory;
+import com.aspectran.core.util.logging.Logger;
+import com.aspectran.core.util.logging.LoggerFactory;
 import com.aspectran.web.socket.jsr356.ActivityContextAwareEndpoint;
 import com.aspectran.web.socket.jsr356.AspectranConfigurator;
 
@@ -58,7 +58,7 @@ import java.util.concurrent.ConcurrentHashMap;
 )
 public class ChatServerEndpoint extends ActivityContextAwareEndpoint {
 
-    private static final Log log = LogFactory.getLog(ChatServerEndpoint.class);
+    private static final Logger logger = LoggerFactory.getLogger(ChatServerEndpoint.class);
 
     private static final Map<String, Session> sessions = new ConcurrentHashMap<>();
 
@@ -117,7 +117,7 @@ public class ChatServerEndpoint extends ActivityContextAwareEndpoint {
 
     @OnError
     public void onError(Session session, Throwable error) {
-        log.error("Error in websocket session: " + session.getId(), error);
+        logger.error("Error in websocket session: " + session.getId(), error);
         try {
             String nickname = getNickname(session);
             if (nickname != null) {
