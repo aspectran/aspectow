@@ -18,14 +18,14 @@ context: {
     }
     autoReload: {
         scanIntervalSeconds: 5
-        startup: false
+        enabled: false
     }
     singleton: true
 }
 scheduler: {
     startDelaySeconds: 3
     waitOnShutdown: true
-    startup: false
+    enabled: false
 }
 shell: {
     greetings: (
@@ -71,7 +71,7 @@ shell: {
         fileStore: {
             storeDir: /temp/sessions/shell
         }
-        startup: true
+        enabled: true
     }
     workingDir: /work
     historyFile: /logs/history.log
