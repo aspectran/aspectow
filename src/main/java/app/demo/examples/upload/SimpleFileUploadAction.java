@@ -11,8 +11,8 @@ import com.aspectran.core.component.bean.annotation.Transform;
 import com.aspectran.core.context.rule.type.TransformType;
 import com.aspectran.core.util.FilenameUtils;
 import com.aspectran.core.util.StringUtils;
-import com.aspectran.core.util.logging.Log;
-import com.aspectran.core.util.logging.LogFactory;
+import com.aspectran.core.util.logging.Logger;
+import com.aspectran.core.util.logging.LoggerFactory;
 import com.aspectran.web.support.http.HttpStatus;
 import com.aspectran.web.support.http.HttpStatusSetter;
 
@@ -31,7 +31,7 @@ import java.util.UUID;
 @Component("/examples/file-upload")
 public class SimpleFileUploadAction {
 
-    private static final Log log = LogFactory.getLog(SimpleFileUploadAction.class);
+    private static final Logger logger = LoggerFactory.getLogger(SimpleFileUploadAction.class);
 
     private final Map<String, UploadedFile> uploadedFiles = new LinkedHashMap<>();
 
@@ -48,8 +48,8 @@ public class SimpleFileUploadAction {
     private void addUploadedFile(UploadedFile uploadedFile) {
         synchronized (uploadedFiles) {
             uploadedFiles.put(uploadedFile.getKey(), uploadedFile);
-            if (log.isDebugEnabled()) {
-                log.debug("Uploaded File " + uploadedFile);
+            if (logger.isDebugEnabled()) {
+                logger.debug("Uploaded File " + uploadedFile);
             }
 
             if (uploadedFiles.size() > this.maxFiles) {
@@ -58,8 +58,8 @@ public class SimpleFileUploadAction {
                 while (cnt-- > 0) {
                     if (it.hasNext()) {
                         UploadedFile removedFile = uploadedFiles.remove(it.next());
-                        if (log.isDebugEnabled()) {
-                            log.debug("Remove Old File " + removedFile);
+                        if (logger.isDebugEnabled()) {
+                            logger.debug("Remove Old File " + removedFile);
                         }
                     }
                 }
