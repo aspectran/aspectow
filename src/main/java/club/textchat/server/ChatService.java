@@ -34,6 +34,11 @@ public abstract class ChatService extends InstantActivitySupport {
     }
 
     protected void handle(Session session, ChatMessage chatMessage) throws Exception {
+        if (chatMessage.heartBeatPing()) {
+            chatMessage.heartBeatPong();
+            broadcast(session, chatMessage);
+            return;
+        }
         SendTextMessagePayload payload = chatMessage.getSendTextMessagePayload();
         if (payload != null) {
             String username = getUsername(session);

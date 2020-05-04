@@ -24,6 +24,8 @@ import club.textchat.server.model.payload.SendTextMessagePayload;
 import club.textchat.server.model.payload.WelcomeUserPayload;
 import com.aspectran.core.util.apon.AbstractParameters;
 import com.aspectran.core.util.apon.ParameterKey;
+import com.aspectran.core.util.apon.ParameterValue;
+import com.aspectran.core.util.apon.ValueType;
 
 /**
  * The Chat Message.
@@ -32,6 +34,10 @@ import com.aspectran.core.util.apon.ParameterKey;
  */
 public class ChatMessage extends AbstractParameters {
 
+    private static final String HEARTBEAT_PING_MSG = "--heartbeat-ping--";
+    private static final String HEARTBEAT_PONG_MSG = "--heartbeat-pong--";
+
+    private static final ParameterKey heartBeat;
     private static final ParameterKey welcomeUser;
     private static final ParameterKey duplicatedUser;
     private static final ParameterKey broadcastAvailableUsers;
@@ -43,6 +49,7 @@ public class ChatMessage extends AbstractParameters {
     private static final ParameterKey[] parameterKeys;
 
     static {
+        heartBeat = new ParameterKey("heartBeat", ValueType.STRING);
         welcomeUser = new ParameterKey("welcomeUser", WelcomeUserPayload.class);
         duplicatedUser = new ParameterKey("duplicatedUser", DuplicatedUserPayload.class);
         broadcastAvailableUsers = new ParameterKey("broadcastAvailableUsers", BroadcastAvailableUsersPayload.class);
@@ -52,6 +59,7 @@ public class ChatMessage extends AbstractParameters {
         sendTextMessage = new ParameterKey("sendTextMessage", SendTextMessagePayload.class);
 
         parameterKeys = new ParameterKey[] {
+                heartBeat,
                 welcomeUser,
                 duplicatedUser,
                 broadcastAvailableUsers,
@@ -94,6 +102,15 @@ public class ChatMessage extends AbstractParameters {
     public ChatMessage(BroadcastTextMessagePayload broadcastTextMessagePayload) {
         this();
         putValue(broadcastTextMessage, broadcastTextMessagePayload);
+    }
+
+    public boolean heartBeatPing() {
+        String heartBeatMsg = getString(heartBeat);
+        return HEARTBEAT_PING_MSG.equals(heartBeatMsg);
+    }
+
+    public void heartBeatPong() {
+        putValue(heartBeat, HEARTBEAT_PONG_MSG);
     }
 
     public SendTextMessagePayload getSendTextMessagePayload() {

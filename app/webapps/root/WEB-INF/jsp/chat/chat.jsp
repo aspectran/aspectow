@@ -2,7 +2,7 @@
 <div class="wrap grid-container">
     <div class="grid-x grid-padding-x">
         <div class="header cell">
-            <h2>Chat <span id="totalPeople"></span></h2>
+            <h2>Text Chat Club <span id="totalPeople"></span></h2>
             <a class="leave" onclick="leaveRoom();">Leave</a>
         </div>
         <div class="sidebar cell medium-4 large-3 hide-for-small-only">
@@ -36,8 +36,8 @@
 </div>
 <script src="https://www.google.com/recaptcha/api.js?render=explicit&onload=loadCaptcha"></script>
 <script>
-    var clientId;
-    var recaptchaResponse;
+    let clientId;
+    let recaptchaResponse;
     function loadCaptcha() {
         grecaptcha.ready(function() {
             clientId = grecaptcha.render('inline-badge', {
@@ -59,9 +59,10 @@
     }
 </script>
 <script>
-    var socket;
-    var currentUser;
-    var pendedMessages;
+    let socket;
+    let currentUser;
+    let pendedMessages;
+    let heartbeatTimer;
 
     $(function() {
         $("form#chat-controls").submit(function() {
@@ -90,23 +91,28 @@
         if (socket) {
             socket.close();
         }
-        var url = new URL('/chat?' + recaptchaResponse, location.href);
+        let url = new URL('/chat?' + recaptchaResponse, location.href);
         url.protocol = url.protocol.replace('https:', 'wss:');
         url.protocol = url.protocol.replace('http:', 'ws:');
         socket = new WebSocket(url.href);
         socket.onopen = function (event) {
-            var chatMessage = {
+            let chatMessage = {
                 sendTextMessage: {
                     type: 'JOIN',
                     username: currentUser
                 }
             };
             socket.send(serialize(chatMessage));
+            heartbeatPing();
         };
 
         socket.onmessage = function (event) {
             if (typeof event.data === "string") {
-                var chatMessage = deserialize(event.data);
+                if (event.data === "--heartbeat-pong--") {
+                    heartbeatPing();
+                    return;
+                }
+                let chatMessage = deserialize(event.data);
                 handleMessage(chatMessage);
             }
         };
@@ -120,6 +126,19 @@
             printError('Could not connect to WebSocket server. Please refresh this page to try again!');
         };
     }
+    
+    function heartbeatPing() {
+        if (heartbeatTimer) {
+            clearTimeout(heartbeatTimer);
+        }
+        this.heartbeatTimer = setTimeout(function() {
+            if (socket) {
+                socket.send("--heartbeat-ping--");
+                heartbeatTimer = null;
+                heartbeatPing();
+            }
+        }, 57000);
+    }
 
     function handleMessage(chatMessage) {
         if (pendedMessages) {
@@ -127,7 +146,7 @@
             return;
         }
         Object.getOwnPropertyNames(chatMessage).forEach(function(val, idx, array) {
-            var payload = chatMessage[val];
+            let payload = chatMessage[val];
             if (payload) {
                 switch (val) {
                     case "welcomeUser":
@@ -155,7 +174,7 @@
                         break;
                     case "broadcastAvailableUsers":
                         cleanAvailableUsers();
-                        for (var i = 0; i < payload.usernames.length; i++) {
+                        for (let i = 0; i < payload.usernames.length; i++) {
                             addAvailableUsers(payload.usernames[i]);
                         }
                         break;
@@ -165,9 +184,9 @@
     }
 
     function sendMessage() {
-        var text = $("#message").val().trim();
+        let text = $("#message").val().trim();
         if (text) {
-            var chatMessage = {
+            let chatMessage = {
                 sendTextMessage: {
                     type: 'CHAT',
                     username: currentUser,
@@ -185,9 +204,9 @@
     }
 
     function addAvailableUsers(username) {
-        var contact = $("<div/>").addClass("contact");
-        var status = $("<div/>").addClass("status");
-        var name = $("<span/>").addClass("name").text(username);
+        let contact = $("<div/>").addClass("contact");
+        let status = $("<div/>").addClass("status");
+        let name = $("<span/>").addClass("name").text(username);
         contact.append(status).append(name).appendTo($("#contacts"));
         updateTotalPeople();
     }
@@ -206,33 +225,33 @@
     }
 
     function printWelcomeMessage(username, animatable) {
-        var text = "Welcome <strong>" + username + "</strong>";
+        let text = "Welcome <strong>" + username + "</strong>";
         printEvent(text, animatable);
     }
 
     function printJoinMessage(username, animatable) {
-        var text = "<strong>" + username + "</strong> joined the chat";
+        let text = "<strong>" + username + "</strong> joined the chat";
         printEvent(text, animatable);
     }
 
     function printLeaveMessage(username, animatable) {
-        var text = "<strong>" + username + "</strong> left the chat";
+        let text = "<strong>" + username + "</strong> left the chat";
         printEvent(text, animatable);
     }
     
     function printMessage(username, text, animatable) {
-        var sentByCurrentUer = (currentUser === username);
-        var message = $("<div/>").addClass(sentByCurrentUer === true ? "message sent" : "message received");
+        let sentByCurrentUer = (currentUser === username);
+        let message = $("<div/>").addClass(sentByCurrentUer === true ? "message sent" : "message received");
         message.data("sender", username);
 
-        var sender = $("<span/>").addClass("sender");
+        let sender = $("<span/>").addClass("sender");
         sender.text(sentByCurrentUer === true ? "You" : username);
         sender.appendTo(message);
 
-        var content = $("<span/>").addClass("content").text(text);
+        let content = $("<span/>").addClass("content").text(text);
         content.appendTo(message);
 
-        var lastMessage = $("#conversations .message").last();
+        let lastMessage = $("#conversations .message").last();
         if (lastMessage.length && lastMessage.data("sender") === username) {
             message.addClass("same-sender-previous-message");
         }
@@ -244,7 +263,7 @@
     }
 
     function printEvent(text, animatable) {
-        var div = $("<div/>").addClass("message event");
+        let div = $("<div/>").addClass("message event");
         $("<p/>").addClass("content").html(text).appendTo(div);
         $("#conversations").append(div);
         if (animatable !== false) {
@@ -253,7 +272,7 @@
     }
 
     function printError(text, animatable) {
-        var div = $("<div/>").addClass("message event error");
+        let div = $("<div/>").addClass("message event error");
         $("<p/>").addClass("content").html(text).appendTo(div);
         $("#conversations").append(div);
         if (animatable !== false) {
@@ -262,10 +281,10 @@
     }
 
     function printRecentConversations(chatMessages) {
-        for (var i in chatMessages) {
-            var chatMessage = chatMessages[i];
+        for (let i in chatMessages) {
+            let chatMessage = chatMessages[i];
             Object.getOwnPropertyNames(chatMessage).forEach(function(val, idx, array) {
-                var payload = chatMessage[val];
+                let payload = chatMessage[val];
                 if (payload) {
                     switch (val) {
                         case "broadcastTextMessage":
