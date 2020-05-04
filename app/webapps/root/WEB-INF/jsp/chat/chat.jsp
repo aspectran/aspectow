@@ -151,7 +151,6 @@
                     case "heartBeat":
                         if (payload === "--heartbeat-pong--") {
                             heartbeatPing();
-                            alert(payload);
                         }
                         break;
                     case "welcomeUser":
