@@ -45,7 +45,9 @@
         </exception>
     </aspect>
 
+    <append file="/config/mybatis/db-tx-config.xml"/>
     <append file="/config/server/server-config.xml"/>
+    <append file="/config/chat/chat-config.xml"/>
     <append file="/config/web/web-config.xml"/>
 
 </aspectran>

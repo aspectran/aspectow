@@ -13,9 +13,9 @@
             <h4>If no one chats for a minute, the chat room will close.<br/>
                 So shall we start chatting?<br/>
                 Our chat is not recorded anywhere.</h4>
-            <h4>Please enter your nickname.</h4>
+            <h4>Please enter your username.</h4>
             <div class="input-group">
-                <input class="input-group-field" type="text" id="nickname" maxlength="30" placeholder="Nickname" autocomplete="off" autofocus/>
+                <input class="input-group-field" type="text" id="username" maxlength="30" placeholder="Username" autocomplete="off" autofocus/>
                 <div class="input-group-button">
                     <button type="submit" class="button" onclick="executeCaptcha()">Join</button>
                 </div>
@@ -72,8 +72,8 @@
         if (!recaptchaResponse) {
             return;
         }
-        currentUser = $("#nickname").val().trim();
-        $("#nickname").val("");
+        currentUser = $("#username").val().trim();
+        $("#username").val("");
         if (currentUser) {
             $("#sign-in").hide();
             $("#messages").show();
@@ -96,7 +96,7 @@
             var chatMessage = {
                 sendTextMessage: {
                     type: 'JOIN',
-                    nickname: currentUser
+                    username: currentUser
                 }
             };
             socket.send(JSON.stringify(chatMessage));
@@ -110,26 +110,26 @@
                     if (payload) {
                         switch (val) {
                             case "welcomeUser":
-                                displayConnectedUserMessage(payload.nickname);
+                                displayConnectedUserMessage(payload.username);
                                 break;
                             case "duplicatedUser":
                                 socket.close();
-                                alert("Your nickname is already in use. Please enter a different nickname.");
+                                alert("Your username is already in use. Please enter a different username.");
                                 location.reload();
                                 break;
                             case "broadcastTextMessage":
-                                displayMessage(payload.nickname, payload.content);
+                                displayMessage(payload.username, payload.content);
                                 break;
                             case "broadcastConnectedUser":
-                                displayConnectedUserMessage(payload.nickname);
+                                displayConnectedUserMessage(payload.username);
                                 break;
                             case "broadcastDisconnectedUser":
-                                displayDisconnectedUserMessage(payload.nickname);
+                                displayDisconnectedUserMessage(payload.username);
                                 break;
                             case "broadcastAvailableUsers":
                                 cleanAvailableUsers();
-                                for (var i = 0; i < payload.nicknames.length; i++) {
-                                    addAvailableUsers(payload.nicknames[i]);
+                                for (var i = 0; i < payload.usernames.length; i++) {
+                                    addAvailableUsers(payload.usernames[i]);
                                 }
                                 break;
                         }
@@ -158,29 +158,30 @@
             var chatMessage = {
                 sendTextMessage: {
                     type: 'CHAT',
-                    nickname: currentUser,
+                    username: currentUser,
                     content: text
                 }
             };
             socket.send(JSON.stringify(chatMessage));
+            displayMessage(currentUser, text);
             $("#message").val('').focus();
         }
     }
 
-    function displayMessage(nickname, text) {
-        var sentByCurrentUer = (currentUser === nickname);
+    function displayMessage(username, text) {
+        var sentByCurrentUer = (currentUser === username);
         var message = $("<div/>").addClass(sentByCurrentUer === true ? "message sent" : "message received");
-        message.data("sender", nickname);
+        message.data("sender", username);
 
         var sender = $("<span/>").addClass("sender");
-        sender.text(sentByCurrentUer === true ? "You" : nickname);
+        sender.text(sentByCurrentUer === true ? "You" : username);
         sender.appendTo(message);
 
         var content = $("<span/>").addClass("content").text(text);
         content.appendTo(message);
 
         var lastMessage = $("#messages .message").last();
-        if (lastMessage.length && lastMessage.data("sender") === nickname) {
+        if (lastMessage.length && lastMessage.data("sender") === username) {
             message.addClass("same-sender-previous-message");
         }
 
@@ -188,21 +189,21 @@
         $("#messages").animate({scrollTop: $("#messages").prop("scrollHeight")});
     }
 
-    function displayConnectedUserMessage(nickname) {
-        var sentByCurrentUer = currentUser === nickname;
-        var text = (sentByCurrentUer === true ? "Welcome <strong>" + nickname : nickname + "</strong> joined the chat");
+    function displayConnectedUserMessage(username) {
+        var sentByCurrentUer = currentUser === username;
+        var text = (sentByCurrentUer === true ? "Welcome <strong>" + username + "</strong>" : "<strong>" + username + "</strong> joined the chat");
         displayEventMessage(text);
     }
 
-    function displayDisconnectedUserMessage(nickname) {
-        var text = "<strong>" + nickname + "</strong> left the chat";
+    function displayDisconnectedUserMessage(username) {
+        var text = "<strong>" + username + "</strong> left the chat";
         displayEventMessage(text);
     }
 
-    function addAvailableUsers(nickname) {
+    function addAvailableUsers(username) {
         var contact = $("<div/>").addClass("contact");
         var status = $("<div/>").addClass("status");
-        var name = $("<span/>").addClass("name").text(nickname);
+        var name = $("<span/>").addClass("name").text(username);
         contact.append(status).append(name).appendTo($("#contacts"));
         updateTotalPeople();
     }

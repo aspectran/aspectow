@@ -26,15 +26,15 @@ import com.aspectran.core.util.apon.ValueType;
  */
 public class BroadcastConnectedUserPayload extends AbstractParameters {
 
-    private static final ParameterKey nickname;
+    private static final ParameterKey username;
 
     private static final ParameterKey[] parameterKeys;
 
     static {
-        nickname = new ParameterKey("nickname", ValueType.STRING);
+        username = new ParameterKey("username", ValueType.STRING);
 
         parameterKeys = new ParameterKey[] {
-                nickname
+                username
         };
     }
 
@@ -42,8 +42,8 @@ public class BroadcastConnectedUserPayload extends AbstractParameters {
         super(parameterKeys);
     }
 
-    public void setNickname(String nickname) {
-        putValue(BroadcastConnectedUserPayload.nickname, nickname);
+    public void setUsername(String username) {
+        putValue(BroadcastConnectedUserPayload.username, username);
     }
 
 }

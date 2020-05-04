@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE aspectran PUBLIC "-//ASPECTRAN//DTD Aspectran Configuration 6.0//EN"
+        "http://aspectran.github.io/dtd/aspectran-6.dtd">
+<aspectran>
+
+    <bean id="redisConnectionPool-1" class="club.textchat.persistence.RedisConnectionPool">
+        <arguments>
+            <item>
+                <bean class="club.textchat.persistence.RedisConnectionPoolConfig">
+                    <properties>
+                        <item name="uri">redis://140.238.17.52:6379/1</item>
+                    </properties>
+                </bean>
+            </item>
+        </arguments>
+    </bean>
+
+    <bean class="club.textchat.persistence.ChatRoomPersistence">
+        <arguments>
+            <item>#{redisConnectionPool-1}</item>
+        </arguments>
+    </bean>
+
+    <bean class="club.textchat.persistence.ChatMessagePersistence">
+        <arguments>
+            <item>#{redisConnectionPool-1}</item>
+            <item valueType="int">10</item>
+        </arguments>
+    </bean>
+
+</aspectran>

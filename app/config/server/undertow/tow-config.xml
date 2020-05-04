@@ -163,9 +163,15 @@
                 </bean>
             </item>
             <item name="sessionStoreFactory">
-                <bean class="com.aspectran.core.component.session.FileSessionStoreFactory">
+                <bean class="com.aspectran.core.component.session.redis.lettuce.DefaultLettuceSessionStoreFactory">
                     <properties>
-                        <item name="storeDir">/temp/sessions/tow</item>
+                        <item name="poolConfig">
+                            <bean class="com.aspectran.core.component.session.redis.lettuce.RedisConnectionPoolConfig">
+                                <properties>
+                                    <item name="uri">redis://140.238.17.52:6379/0</item>
+                                </properties>
+                            </bean>
+                        </item>
                         <item name="nonPersistentAttributes" type="array">
                             <value>io.undertow.websocket.current-connections</value>
                         </item>

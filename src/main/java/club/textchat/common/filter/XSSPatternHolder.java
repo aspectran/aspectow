@@ -13,44 +13,45 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package club.textchat.server.model.payload;
+package club.textchat.common.filter;
 
+import com.aspectran.core.util.StringUtils;
 import com.aspectran.core.util.apon.AbstractParameters;
 import com.aspectran.core.util.apon.ParameterKey;
-import com.aspectran.core.util.apon.ValueType;
 
-/**
- * Represents the payload of a WebSocket frame to broadcast a text message.
- *
- * <p>Created: 2019/10/09</p>
- */
-public class BroadcastTextMessagePayload extends AbstractParameters {
+import java.io.IOException;
+import java.util.List;
 
-    private static final ParameterKey username;
-    private static final ParameterKey content;
+public class XSSPatternHolder extends AbstractParameters {
+
+    private static final ParameterKey patterns;
 
     private static final ParameterKey[] parameterKeys;
 
     static {
-        username = new ParameterKey("username", ValueType.STRING);
-        content = new ParameterKey("content", ValueType.TEXT);
+        patterns = new ParameterKey("patterns", XSSPatternItem.class, true, false);
 
         parameterKeys = new ParameterKey[] {
-                username,
-                content
+                patterns
         };
     }
 
-    public BroadcastTextMessagePayload() {
+    public XSSPatternHolder() {
         super(parameterKeys);
     }
 
-    public void setUsername(String username) {
-        putValue(BroadcastTextMessagePayload.username, username);
+    public XSSPatternHolder(String text) throws IOException {
+        this();
+        readFrom("patterns: [\n" + StringUtils.trimWhitespace(text) + "\n]");
     }
 
-    public void setContent(String content) {
-        putValue(BroadcastTextMessagePayload.content, content);
+    public List<XSSPatternItem> getXSSPatternItems() {
+        return getParametersList(patterns);
+    }
+
+    public XSSPatternHolder addXSSPatternItem(XSSPatternItem xssPatternItem) {
+        putValue(patterns, xssPatternItem);
+        return this;
     }
 
 }
