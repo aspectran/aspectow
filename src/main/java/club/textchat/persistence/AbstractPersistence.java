@@ -18,12 +18,8 @@ public class AbstractPersistence {
         this.connectionPool = connectionPool;
     }
 
-    protected ConnectionPool getConnectionPool() {
-        return connectionPool;
-    }
-
     <R> R sync(Function<RedisCommands<String, String>, R> func) throws Exception {
-        try (StatefulRedisConnection<String, String> conn = getConnectionPool().getConnection()) {
+        try (StatefulRedisConnection<String, String> conn = connectionPool.getConnection()) {
             return func.apply(conn.sync());
         }
     }
