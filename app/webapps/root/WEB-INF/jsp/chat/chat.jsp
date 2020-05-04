@@ -108,10 +108,6 @@
 
         socket.onmessage = function (event) {
             if (typeof event.data === "string") {
-                if (event.data === "--heartbeat-pong--") {
-                    heartbeatPing();
-                    return;
-                }
                 let chatMessage = deserialize(event.data);
                 handleMessage(chatMessage);
             }
@@ -133,7 +129,10 @@
         }
         this.heartbeatTimer = setTimeout(function() {
             if (socket) {
-                socket.send("--heartbeat-ping--");
+                let chatMessage = {
+                    heartBeat: "--heartbeat-ping--"
+                };
+                socket.send(serialize(chatMessage));
                 heartbeatTimer = null;
                 heartbeatPing();
             }
@@ -149,6 +148,12 @@
             let payload = chatMessage[val];
             if (payload) {
                 switch (val) {
+                    case "heartBeat":
+                        if (payload === "--heartbeat-pong--") {
+                            heartbeatPing();
+                            alert(payload);
+                        }
+                        break;
                     case "welcomeUser":
                         pendedMessages = [];
                         printRecentConversations(payload.recentConversations);
