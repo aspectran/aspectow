@@ -15,9 +15,15 @@
  */
 package club.textchat.server.model.payload;
 
+import club.textchat.server.model.ChatMessage;
 import com.aspectran.core.util.apon.AbstractParameters;
 import com.aspectran.core.util.apon.ParameterKey;
 import com.aspectran.core.util.apon.ValueType;
+import com.aspectran.core.util.json.JsonWriter;
+
+import javax.websocket.EncodeException;
+import java.io.IOException;
+import java.util.List;
 
 /**
  * Represents the payload of a WebSocket frame to welcome a user.
@@ -27,14 +33,17 @@ import com.aspectran.core.util.apon.ValueType;
 public class WelcomeUserPayload extends AbstractParameters {
 
     private static final ParameterKey username;
+    private static final ParameterKey recentConversations;
 
     private static final ParameterKey[] parameterKeys;
 
     static {
         username = new ParameterKey("username", ValueType.STRING);
+        recentConversations = new ParameterKey("recentConversations", ChatMessage.class, true);
 
         parameterKeys = new ParameterKey[] {
-                username
+                username,
+                recentConversations
         };
     }
 
@@ -44,6 +53,14 @@ public class WelcomeUserPayload extends AbstractParameters {
 
     public void setUsername(String username) {
         putValue(WelcomeUserPayload.username, username);
+    }
+
+    public void setRecentConversations(List<ChatMessage> messages) {
+        if (messages != null) {
+            for (ChatMessage message : messages) {
+                putValue(recentConversations, message);
+            }
+        }
     }
 
 }

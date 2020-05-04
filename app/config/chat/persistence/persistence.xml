@@ -8,7 +8,7 @@
             <item>
                 <bean class="club.textchat.persistence.RedisConnectionPoolConfig">
                     <properties>
-                        <item name="uri">redis://140.238.17.52:6379/1</item>
+                        <item name="uri">%{redis.uri}/1</item>
                     </properties>
                 </bean>
             </item>
@@ -24,7 +24,7 @@
     <bean class="club.textchat.persistence.ChatMessagePersistence">
         <arguments>
             <item>#{redisConnectionPool-1}</item>
-            <item valueType="int">10</item>
+            <item valueType="int">100</item>
         </arguments>
     </bean>
 

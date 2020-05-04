@@ -11,6 +11,20 @@
         |
     </description>
 
+    <!-- 개발환경 -->
+    <environment profile="dev">
+        <properties>
+            <item name="redis.uri" value="%{classpath:redis-dev.properties^uri}"/>
+        </properties>
+    </environment>
+
+    <!-- 운영환경 -->
+    <environment profile="prod">
+        <properties>
+            <item name="redis.uri" value="%{classpath:redis-prod.properties^uri}"/>
+        </properties>
+    </environment>
+
     <bean id="basePath" class="com.aspectran.core.support.BasePathFactoryBean"/>
     <bean id="currentEnvironment" class="com.aspectran.core.support.CurrentEnvironmentFactoryBean"/>
     <bean id="currentTranslet" class="com.aspectran.core.support.CurrentTransletFactoryBean" scope="request"/>

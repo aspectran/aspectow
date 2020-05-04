@@ -98,16 +98,19 @@ public abstract class ChatService extends InstantActivitySupport {
         session.getUserProperties().put("username", username);
     }
 
-    private void welcomeUser(Session session, String username) {
+    private void welcomeUser(Session session, String username) throws Exception {
         WelcomeUserPayload payload = new WelcomeUserPayload();
         payload.setUsername(username);
-        session.getAsyncRemote().sendObject(new ChatMessage(payload));
+        payload.setRecentConversations(chatMessagePersistence.getRecentConversations());
+        ChatMessage message = new ChatMessage(payload);
+        broadcast(session, message);
     }
 
     private void duplicatedUser(Session session, String username) {
         DuplicatedUserPayload payload = new DuplicatedUserPayload();
         payload.setUsername(username);
-        session.getAsyncRemote().sendObject(new ChatMessage(payload));
+        ChatMessage message = new ChatMessage(payload);
+        broadcast(session, message);
     }
 
     private void leaveUser(String username) throws Exception {
@@ -119,29 +122,36 @@ public abstract class ChatService extends InstantActivitySupport {
     private void broadcastUserConnected(Session session, String username) throws Exception {
         BroadcastConnectedUserPayload payload = new BroadcastConnectedUserPayload();
         payload.setUsername(username);
-        broadcast(new ChatMessage(payload), session);
+        ChatMessage message = new ChatMessage(payload);
+        chatMessagePersistence.save(message);
+        broadcast(message, session);
     }
 
     private void broadcastUserDisconnected(String username) throws Exception {
         BroadcastDisconnectedUserPayload payload = new BroadcastDisconnectedUserPayload();
         payload.setUsername(username);
-        broadcast(new ChatMessage(payload));
+        ChatMessage message = new ChatMessage(payload);
+        chatMessagePersistence.save(message);
+        broadcast(message);
     }
 
     private void broadcastTextMessage(Session session, String username, String text) throws Exception {
         BroadcastTextMessagePayload payload = new BroadcastTextMessagePayload();
         payload.setContent(text);
         payload.setUsername(username);
-        broadcast(new ChatMessage(payload), session);
+        ChatMessage message = new ChatMessage(payload);
+        chatMessagePersistence.save(message);
+        broadcast(message, session);
     }
 
-    private void broadcastAvailableUsers() throws Exception {
+    private void broadcastAvailableUsers() {
         BroadcastAvailableUsersPayload payload = new BroadcastAvailableUsersPayload();
         payload.setUsernames(sessions.keySet());
-        broadcast(new ChatMessage(payload));
+        ChatMessage message = new ChatMessage(payload);
+        broadcast(message);
     }
 
-    private void broadcast(ChatMessage message) throws Exception {
+    private void broadcast(ChatMessage message) {
         synchronized (sessions) {
             for (Session session : sessions.values()) {
                 broadcast(session, message);
@@ -149,7 +159,7 @@ public abstract class ChatService extends InstantActivitySupport {
         }
     }
 
-    private void broadcast(ChatMessage message, Session ignoredSession) throws Exception {
+    private void broadcast(ChatMessage message, Session ignoredSession) {
         synchronized (sessions) {
             for (Session session : sessions.values()) {
                 if (!session.getId().equals(ignoredSession.getId())) {
@@ -159,10 +169,9 @@ public abstract class ChatService extends InstantActivitySupport {
         }
     }
 
-    private void broadcast(Session session, ChatMessage message) throws Exception {
+    private void broadcast(Session session, ChatMessage message) {
         if (session.isOpen()) {
             session.getAsyncRemote().sendObject(message);
-            chatMessagePersistence.push(message);
         }
     }
 

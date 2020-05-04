@@ -1,36 +1,37 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
-<div class="wrap row">
-    <div class="header columns">
-        <h2>Chat <span id="totalPeople"></span></h2>
-        <a class="leave" onclick="leaveRoom();">Leave</a>
-    </div>
-    <div class="sidebar columns medium-4 large-3 hide-for-small-only">
-        <div id="contacts"></div>
-    </div>
-    <div class="main columns small-12 medium-8 large-9">
-        <form id="sign-in" method="post" onsubmit="return false;">
-            <h3>Only one chat room!</h3>
-            <h4>If no one chats for a minute, the chat room will close.<br/>
-                So shall we start chatting?<br/>
-                Our chat is not recorded anywhere.</h4>
-            <h4>Please enter your username.</h4>
-            <div class="input-group">
-                <input class="input-group-field" type="text" id="username" maxlength="30" placeholder="Username" autocomplete="off" autofocus/>
-                <div class="input-group-button">
-                    <button type="submit" class="button" onclick="executeCaptcha()">Join</button>
+<div class="wrap grid-container">
+    <div class="grid-x grid-padding-x">
+        <div class="header cell">
+            <h2>Chat <span id="totalPeople"></span></h2>
+            <a class="leave" onclick="leaveRoom();">Leave</a>
+        </div>
+        <div class="sidebar cell medium-4 large-3 hide-for-small-only">
+            <div id="contacts"></div>
+        </div>
+        <div class="main cell small-12 medium-8 large-9">
+            <form id="sign-in" method="post" onsubmit="return false;">
+                <h3>Only one chat room!</h3>
+                <h4>If no one chats for a minute, the chat room will close.<br/>
+                    So shall we start chatting?</h4>
+                <h4>Please enter your username.</h4>
+                <div class="input-group">
+                    <input class="input-group-field" type="text" id="username" maxlength="30" placeholder="Username" autocomplete="off" autofocus/>
+                    <div class="input-group-button">
+                        <button type="submit" class="button" onclick="executeCaptcha()">Join</button>
+                    </div>
                 </div>
-            </div>
-            <div id="inline-badge"></div>
-        </form>
-        <div id="messages"></div>
-        <form id="chat-controls">
-            <div class="input-group">
-                <input class="input-group-field" type="text" id="message" autocomplete="off" placeholder="Type a message..."/>
-                <div class="input-group-button">
-                    <button type="submit" class="button">Send</button>
+                <div id="inline-badge"></div>
+            </form>
+            <div id="conversations"></div>
+            <form id="chat-controls">
+                <div class="input-group">
+                    <input class="input-group-field" type="text" id="message" autocomplete="off" placeholder="Type a message..."/>
+                    <div class="input-group-button">
+                        <button type="submit" class="button">Send</button>
+                    </div>
                 </div>
-            </div>
-        </form>
+            </form>
+        </div>
     </div>
 </div>
 <script src="https://www.google.com/recaptcha/api.js?render=explicit&onload=loadCaptcha"></script>
@@ -60,6 +61,7 @@
 <script>
     var socket;
     var currentUser;
+    var pendedMessages;
 
     $(function() {
         $("form#chat-controls").submit(function() {
@@ -76,7 +78,7 @@
         $("#username").val("");
         if (currentUser) {
             $("#sign-in").hide();
-            $("#messages").show();
+            $("#conversations").show();
             $("#chat-controls").show();
             $("a.leave").show();
             $("#message").focus();
@@ -99,42 +101,13 @@
                     username: currentUser
                 }
             };
-            socket.send(JSON.stringify(chatMessage));
+            socket.send(serialize(chatMessage));
         };
 
         socket.onmessage = function (event) {
             if (typeof event.data === "string") {
-                var chatMessage = JSON.parse(event.data);
-                Object.getOwnPropertyNames(chatMessage).forEach(function(val, idx, array) {
-                    var payload = chatMessage[val];
-                    if (payload) {
-                        switch (val) {
-                            case "welcomeUser":
-                                displayConnectedUserMessage(payload.username);
-                                break;
-                            case "duplicatedUser":
-                                socket.close();
-                                alert("Your username is already in use. Please enter a different username.");
-                                location.reload();
-                                break;
-                            case "broadcastTextMessage":
-                                displayMessage(payload.username, payload.content);
-                                break;
-                            case "broadcastConnectedUser":
-                                displayConnectedUserMessage(payload.username);
-                                break;
-                            case "broadcastDisconnectedUser":
-                                displayDisconnectedUserMessage(payload.username);
-                                break;
-                            case "broadcastAvailableUsers":
-                                cleanAvailableUsers();
-                                for (var i = 0; i < payload.usernames.length; i++) {
-                                    addAvailableUsers(payload.usernames[i]);
-                                }
-                                break;
-                        }
-                    }
-                });
+                var chatMessage = deserialize(event.data);
+                handleMessage(chatMessage);
             }
         };
 
@@ -144,12 +117,51 @@
 
         socket.onerror = function (event) {
             console.error("WebSocket error observed:", event);
-            displayErrorMessage('Could not connect to WebSocket server. Please refresh this page to try again!');
+            printError('Could not connect to WebSocket server. Please refresh this page to try again!');
         };
     }
 
-    function leaveRoom() {
-        socket.close();
+    function handleMessage(chatMessage) {
+        if (pendedMessages) {
+            pendedMessages.push(chatMessage);
+            return;
+        }
+        Object.getOwnPropertyNames(chatMessage).forEach(function(val, idx, array) {
+            var payload = chatMessage[val];
+            if (payload) {
+                switch (val) {
+                    case "welcomeUser":
+                        pendedMessages = [];
+                        printRecentConversations(payload.recentConversations);
+                        printWelcomeMessage(payload.username);
+                        while (pendedMessages && pendedMessages.length > 0) {
+                            handleMessage(pendedMessages.pop());
+                        }
+                        pendedMessages = null;
+                        break;
+                    case "duplicatedUser":
+                        socket.close();
+                        alert("Your username is already in use. Please enter a different username.");
+                        location.reload();
+                        break;
+                    case "broadcastTextMessage":
+                        printMessage(payload.username, payload.content);
+                        break;
+                    case "broadcastConnectedUser":
+                        printJoinMessage(payload.username);
+                        break;
+                    case "broadcastDisconnectedUser":
+                        printLeaveMessage(payload.username);
+                        break;
+                    case "broadcastAvailableUsers":
+                        cleanAvailableUsers();
+                        for (var i = 0; i < payload.usernames.length; i++) {
+                            addAvailableUsers(payload.usernames[i]);
+                        }
+                        break;
+                }
+            }
+        });
     }
 
     function sendMessage() {
@@ -162,42 +174,14 @@
                     content: text
                 }
             };
-            socket.send(JSON.stringify(chatMessage));
-            displayMessage(currentUser, text);
+            socket.send(serialize(chatMessage));
+            printMessage(currentUser, text);
             $("#message").val('').focus();
         }
     }
 
-    function displayMessage(username, text) {
-        var sentByCurrentUer = (currentUser === username);
-        var message = $("<div/>").addClass(sentByCurrentUer === true ? "message sent" : "message received");
-        message.data("sender", username);
-
-        var sender = $("<span/>").addClass("sender");
-        sender.text(sentByCurrentUer === true ? "You" : username);
-        sender.appendTo(message);
-
-        var content = $("<span/>").addClass("content").text(text);
-        content.appendTo(message);
-
-        var lastMessage = $("#messages .message").last();
-        if (lastMessage.length && lastMessage.data("sender") === username) {
-            message.addClass("same-sender-previous-message");
-        }
-
-        $("#messages").append(message);
-        $("#messages").animate({scrollTop: $("#messages").prop("scrollHeight")});
-    }
-
-    function displayConnectedUserMessage(username) {
-        var sentByCurrentUer = currentUser === username;
-        var text = (sentByCurrentUer === true ? "Welcome <strong>" + username + "</strong>" : "<strong>" + username + "</strong> joined the chat");
-        displayEventMessage(text);
-    }
-
-    function displayDisconnectedUserMessage(username) {
-        var text = "<strong>" + username + "</strong> left the chat";
-        displayEventMessage(text);
+    function leaveRoom() {
+        socket.close();
     }
 
     function addAvailableUsers(username) {
@@ -221,17 +205,90 @@
         $("#totalPeople").text("");
     }
 
-    function displayEventMessage(text) {
-        var div = $("<div/>").addClass("message event");
-        $("<p/>").addClass("content").html(text).appendTo(div);
-        $("#messages").append(div);
-        $("#messages").animate({scrollTop: $("#messages").prop("scrollHeight")});
+    function printWelcomeMessage(username, animatable) {
+        var text = "Welcome <strong>" + username + "</strong>";
+        printEvent(text, animatable);
     }
 
-    function displayErrorMessage(text) {
+    function printJoinMessage(username, animatable) {
+        var text = "<strong>" + username + "</strong> joined the chat";
+        printEvent(text, animatable);
+    }
+
+    function printLeaveMessage(username, animatable) {
+        var text = "<strong>" + username + "</strong> left the chat";
+        printEvent(text, animatable);
+    }
+    
+    function printMessage(username, text, animatable) {
+        var sentByCurrentUer = (currentUser === username);
+        var message = $("<div/>").addClass(sentByCurrentUer === true ? "message sent" : "message received");
+        message.data("sender", username);
+
+        var sender = $("<span/>").addClass("sender");
+        sender.text(sentByCurrentUer === true ? "You" : username);
+        sender.appendTo(message);
+
+        var content = $("<span/>").addClass("content").text(text);
+        content.appendTo(message);
+
+        var lastMessage = $("#conversations .message").last();
+        if (lastMessage.length && lastMessage.data("sender") === username) {
+            message.addClass("same-sender-previous-message");
+        }
+
+        $("#conversations").append(message);
+        if (animatable !== false) {
+            $("#conversations").animate({scrollTop: $("#conversations").prop("scrollHeight")});
+        }
+    }
+
+    function printEvent(text, animatable) {
+        var div = $("<div/>").addClass("message event");
+        $("<p/>").addClass("content").html(text).appendTo(div);
+        $("#conversations").append(div);
+        if (animatable !== false) {
+            $("#conversations").animate({scrollTop: $("#conversations").prop("scrollHeight")});
+        }
+    }
+
+    function printError(text, animatable) {
         var div = $("<div/>").addClass("message event error");
         $("<p/>").addClass("content").html(text).appendTo(div);
-        $("#messages").append(div);
-        $("#messages").animate({scrollTop: $("#messages").prop("scrollHeight")});
+        $("#conversations").append(div);
+        if (animatable !== false) {
+            $("#conversations").animate({scrollTop: $("#conversations").prop("scrollHeight")});
+        }
+    }
+
+    function printRecentConversations(chatMessages) {
+        for (var i in chatMessages) {
+            var chatMessage = chatMessages[i];
+            Object.getOwnPropertyNames(chatMessage).forEach(function(val, idx, array) {
+                var payload = chatMessage[val];
+                if (payload) {
+                    switch (val) {
+                        case "broadcastTextMessage":
+                            printMessage(payload.username, payload.content, false);
+                            break;
+                        case "broadcastConnectedUser":
+                            printJoinMessage(payload.username, false);
+                            break;
+                        case "broadcastDisconnectedUser":
+                            printLeaveMessage(payload.username, false);
+                            break;
+                    }
+                }
+            });
+        }
+        $("#conversations").animate({scrollTop: $("#conversations").prop("scrollHeight")});
+    }
+
+    function serialize(json) {
+        return JSON.stringify(json);
+    }
+
+    function deserialize(str) {
+        return JSON.parse(str);
     }
 </script>

@@ -8,9 +8,10 @@
     <meta name="google" content="notranslate">
     <title>${empty page.title ? "Text Chat Club" : page.title}</title>
     <meta name="description" content="${empty page.description ? "Online Chat Rooms For Everyone" : page.description}" />
-    <link rel="stylesheet" type="text/css" href="/assets/css/base.css?20191015" />
-    <link rel="stylesheet" type="text/css" href="/assets/css/textchat.css?20191016-2" />
+    <link rel="stylesheet" type="text/css" href="/assets/css/aspectran.css?20200505" />
+    <link rel="stylesheet" type="text/css" href="/assets/css/textchat.css?20200505" />
     <link href="https://fonts.googleapis.com/css?family=Raleway:500,500i,700" rel="stylesheet">
+    <script src="/assets/js/modernizr-custom.js"></script>
     <script src="/assets/js/jquery.min.js"></script>
     <!-- Global site tag (gtag.js) - Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=UA-150079188-1"></script>

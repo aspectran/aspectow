@@ -28,22 +28,22 @@ public class AbstractPersistence {
         }
     }
 
-    public long lpush(String key, Parameters value) throws Exception {
+    public long rpush(String key, Parameters value) throws Exception {
         return sync(c -> c.rpush(key, value.toString()));
     }
 
-    public void lpush(String key, Parameters value, int limit) throws Exception {
+    public void rpush(String key, Parameters value, int limit) throws Exception {
         sync(c -> {
-            long len = c.lpush(key, value.toString());
+            long len = c.rpush(key, value.toString());
             if (len > limit) {
-                c.rpop(key);
+                c.ltrim(key, -limit, -1);
             }
             return null;
         });
     }
 
     public List<String> lrange(String key, int limit) throws Exception {
-        return sync(c -> c.lrange(key, 0, limit));
+        return sync(c -> c.lrange(key, 0, limit - 1));
     }
 
 }

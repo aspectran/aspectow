@@ -18,23 +18,23 @@ body {
     background: #4c7483;
     height: 100vh;
 }
-.columns.header {
+.cell.header {
     background-color: #35505B;
     padding: 0 20px;
     color: #fff;
     height: 50px;
 }
-.columns.header h2 {
+.cell.header h2 {
     float: left;
     font-size: 24px;
     line-height: 50px;
 }
-.columns.header a {
+.cell.header a {
     float: right;
     line-height: 50px;
     display: none;
 }
-.columns.sidebar {
+.cell.sidebar {
     position: relative;
     padding: 15px;
     background-color: #bbedfe;
@@ -43,7 +43,7 @@ body {
     box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
     overflow: auto;
 }
-.columns.main {
+.cell.main {
     background-color: #f5f5f5;
     min-height: calc(100vh - 50px);
     max-height: calc(100vh - 50px);
@@ -78,7 +78,7 @@ body {
     line-height: 30px;
     vertical-align: super;
 }
-#messages {
+#conversations {
     min-height: calc(100vh - 116px);
     max-height: calc(100vh - 116px);
     margin-bottom: 10px;
@@ -86,62 +86,62 @@ body {
     overflow-y: auto;
     display: none;
 }
-#messages .message {
+#conversations .message {
     margin-bottom: 3px;
 }
-#messages .message .content {
+#conversations .message .content {
     border-radius: 20px;
     padding: 8px 16px;
     margin: 0;
     display: table;
 }
-#messages .message.event .content {
+#conversations .message.event .content {
     background-color: #bbedfe;
     padding: 7px 20px;
     border-radius: 6px;
     width: 100%;
     text-align: center;
 }
-#messages .message.event .content strong {
+#conversations .message.event .content strong {
     font-weight: bold;
 }
-#messages .message.event.error .content {
+#conversations .message.event.error .content {
     background-color: palevioletred;
     color: yellow;
 }
-#messages .message.received {
+#conversations .message.received {
     left: 0;
     text-align: left;
 }
-#messages .message.received .content {
+#conversations .message.received .content {
     background-color: #72baec8a;
     border-radius: 0 20px 20px;
 }
-#messages .message.received .sender {
+#conversations .message.received .sender {
     font-weight: bold;
 }
-#messages .message.sent {
+#conversations .message.sent {
     right: 0;
     text-align: right;
 }
-#messages .message.sent .content {
+#conversations .message.sent .content {
     background-color: #fbe2ae;
     margin-left: auto;
     margin-right: 0;
     text-align: right;
     border-radius: 20px 0 20px 20px;
 }
-#messages .message.sent .sender {
+#conversations .message.sent .sender {
     font-weight: bold;
 }
 #chat-controls {
     padding: 0 12px;
     display: none;
 }
-#messages .message.sent.same-sender-previous-message .sender,
-#messages .message.received.same-sender-previous-message .sender {
+#conversations .message.sent.same-sender-previous-message .sender,
+#conversations .message.received.same-sender-previous-message .sender {
     display: none;
 }
-#messages .message:not(.same-sender-previous-message) {
+#conversations .message:not(.same-sender-previous-message) {
     margin-top: 10px;
 }
