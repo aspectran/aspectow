@@ -27,9 +27,7 @@ body {
 }
 .header {
     background-color: #35505B;
-    padding: 0 15px;
     color: #fff;
-    height: 50px;
     position: relative;
 }
 .header .left {

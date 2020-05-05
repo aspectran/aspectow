@@ -1,12 +1,12 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <div class="wrap grid-y grid-frame">
-    <div class="header grid-container cell header cell-block-container">
+    <div class="header grid-container grid-padding-x cell header cell-block-container">
         <div class="left">
-            <h2>Text Chat Club</h2>
+            <h2><i class="fi-results-demographics"></i> Text Chat Club</h2>
             <span id="totalPeople" class="badge primary hidden"></span>
         </div>
         <div class="right">
-            <button type="button" class="button leave" onclick="leaveRoom();">Leave</button>
+            <button type="button" class="button leave" onclick="leaveRoom();"><i class="fi-x-circle"></i> Leave</button>
         </div>
     </div>
     <div class="shadow-wrap grid-container cell auto cell-block-container">
