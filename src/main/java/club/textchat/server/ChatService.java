@@ -53,12 +53,18 @@ public abstract class ChatService extends InstantActivitySupport {
                     String username = getUsername(session);
                     String username2 = payload.getUsername();
                     if (username == null || !username.equals(username2)) {
-                        abort(session);
+                        abort(session, "abnormal");
                         return;
                     }
                     Session session2 = sessions.get(username);
                     if (session2 != null) {
-                        abort(session2);
+                        String httpSessionId = getHttpSessionId(session);
+                        String httpSessionId2 = getHttpSessionId(session2);
+                        if (httpSessionId == null || !httpSessionId.equals(httpSessionId2)) {
+                            abort(session, "exists");
+                            return;
+                        }
+                        abort(session2, "rejoin");
                         welcome(session, username, true);
                     } else {
                         welcome(session, username, false);
@@ -102,9 +108,7 @@ public abstract class ChatService extends InstantActivitySupport {
 
     private void welcome(Session session, String username, boolean rejoin) {
         sessions.put(username, session);
-        if (!rejoin) {
-            usernamesPersistence.setByJoin(username, getHttpSessionId(session));
-        }
+        usernamesPersistence.setByJoin(username, getHttpSessionId(session));
         WelcomeUserPayload payload = new WelcomeUserPayload();
         payload.setUsername(username);
         payload.setRecentConversations(conversationsPersistence.getRecentConversations());
@@ -115,24 +119,22 @@ public abstract class ChatService extends InstantActivitySupport {
 
     private void leave(Session session) {
         String username = getUsername(session);
-        if (username != null) {
-            if (sessions.remove(username, session)) {
-                usernamesPersistence.setByLeave(username, getHttpSessionId(session));
-                broadcastUserDisconnected(username);
-                broadcastAvailableUsers();
-            }
+        if (username != null && sessions.remove(username, session)) {
+            usernamesPersistence.setByLeave(username, getHttpSessionId(session));
+            broadcastUserDisconnected(username);
+            broadcastAvailableUsers();
         }
     }
 
-    private void abort(Session session) {
+    private void abort(Session session, String cause) {
         String username = getUsername(session);
         if (username != null) {
-            if (sessions.remove(username, session)) {
-                AbnormalAccessPayload payload = new AbnormalAccessPayload();
-                ChatMessage message = new ChatMessage(payload);
-                broadcast(session, message);
-            }
+            sessions.remove(username, session);
         }
+        AbnormalAccessPayload payload = new AbnormalAccessPayload();
+        payload.setCause(cause);
+        ChatMessage message = new ChatMessage(payload);
+        broadcast(session, message);
     }
 
     private void broadcastUserConnected(Session session, String username, String prevUsername) {

@@ -38,10 +38,10 @@
 </div>
 <script>
     const currentUser = "${user.username}";
-    let pendedMessages;
-    let heartbeatTimer;
     let socket;
-    let abnormal;
+    let heartbeatTimer;
+    let pendedMessages;
+    let aborted;
 
     $(function() {
         if (!currentUser) {
@@ -89,7 +89,7 @@
         };
 
         socket.onclose = function(event) {
-            if (abnormal) {
+            if (aborted) {
                 location.href = "/";
             } else {
                 location.reload();
@@ -159,8 +159,16 @@
                         pendedMessages = null;
                         break;
                     case "abnormalAccess":
-                        abnormal = true;
-                        alert("Abnormal access detected.");
+                        aborted = true;
+                        switch (payload.cause) {
+                            case "exists":
+                                alert("Username already in use.");
+                                break;
+                            case "rejoin":
+                                break;
+                            default:
+                                alert("Abnormal access detected.");
+                        }
                         leaveRoom();
                         break;
                 }
