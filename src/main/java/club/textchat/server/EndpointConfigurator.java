@@ -18,11 +18,12 @@ public class EndpointConfigurator extends AspectranConfigurator {
         super.modifyHandshake(config, request, response);
         HttpSession httpSession = (HttpSession)request.getHttpSession();
         if (httpSession != null) {
-            String httpSessionId = httpSession.getId();
             UserInfo userInfo = (UserInfo)httpSession.getAttribute(UserManager.USER_INFO_SESSION_KEY);
-            config.getUserProperties().put("httpSessionId", httpSessionId);
-            config.getUserProperties().put("username", userInfo.getUsername());
-            config.getUserProperties().put("prevUsername", userInfo.getPrevUsername());
+            if (userInfo != null) {
+                config.getUserProperties().put("username", userInfo.getUsername());
+                config.getUserProperties().put("prevUsername", userInfo.getPrevUsername());
+                config.getUserProperties().put("httpSessionId", httpSession.getId());
+            }
         }
     }
 

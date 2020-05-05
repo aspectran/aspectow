@@ -18,7 +18,7 @@
     <bean class="club.textchat.persistence.UsernamesPersistence">
         <arguments>
             <item>#{redisConnectionPool-1}</item>
-            <item valueType="int">1800</item>
+            <item valueType="int">600</item>
         </arguments>
     </bean>
 

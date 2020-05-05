@@ -41,6 +41,7 @@
     let pendedMessages;
     let heartbeatTimer;
     let socket;
+    let abnormal;
 
     $(function() {
         if (!currentUser) {
@@ -88,7 +89,11 @@
         };
 
         socket.onclose = function(event) {
-            location.reload();
+            if (abnormal) {
+                location.href = "/";
+            } else {
+                location.reload();
+            }
         };
 
         socket.onerror = function(event) {
@@ -145,18 +150,17 @@
                     case "welcomeUser":
                         pendedMessages = [];
                         printRecentConversations(payload.recentConversations);
-                        printWelcomeMessage(payload.username);
+                        if (!payload.rejoin) {
+                            printWelcomeMessage(payload.username);
+                        }
                         while (pendedMessages && pendedMessages.length > 0) {
                             handleMessage(pendedMessages.pop());
                         }
                         pendedMessages = null;
                         break;
-                    case "duplicatedUser":
-                        alert("Your username is already in use. Please enter a different username.");
-                        leaveRoom();
-                        break;
-                    case "abnormalUser":
-                        alert("Unknown username.");
+                    case "abnormalAccess":
+                        abnormal = true;
+                        alert("Abnormal access detected.");
                         leaveRoom();
                         break;
                 }

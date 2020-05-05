@@ -24,26 +24,26 @@ import com.aspectran.core.util.apon.ValueType;
  *
  * <p>Created: 2019/10/09</p>
  */
-public class AbnormalUserPayload extends AbstractParameters {
+public class AbnormalAccessPayload extends AbstractParameters {
 
-    private static final ParameterKey username;
+    private static final ParameterKey cause;
 
     private static final ParameterKey[] parameterKeys;
 
     static {
-        username = new ParameterKey("username", ValueType.STRING);
+        cause = new ParameterKey("cause", ValueType.STRING);
 
         parameterKeys = new ParameterKey[] {
-                username
+                cause
         };
     }
 
-    public AbnormalUserPayload() {
+    public AbnormalAccessPayload() {
         super(parameterKeys);
     }
 
-    public void setUsername(String username) {
-        putValue(AbnormalUserPayload.username, username);
+    public void setCause(String cause) {
+        putValue(AbnormalAccessPayload.cause, cause);
     }
 
 }

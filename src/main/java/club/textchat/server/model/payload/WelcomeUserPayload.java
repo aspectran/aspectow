@@ -34,16 +34,19 @@ public class WelcomeUserPayload extends AbstractParameters {
 
     private static final ParameterKey username;
     private static final ParameterKey recentConversations;
+    private static final ParameterKey rejoin;
 
     private static final ParameterKey[] parameterKeys;
 
     static {
         username = new ParameterKey("username", ValueType.STRING);
         recentConversations = new ParameterKey("recentConversations", ChatMessage.class, true);
+        rejoin = new ParameterKey("rejoin", ValueType.BOOLEAN);
 
         parameterKeys = new ParameterKey[] {
                 username,
-                recentConversations
+                recentConversations,
+                rejoin
         };
     }
 
@@ -61,6 +64,10 @@ public class WelcomeUserPayload extends AbstractParameters {
                 putValue(recentConversations, message);
             }
         }
+    }
+
+    public void setRejoin(boolean rejoin) {
+        putValue(WelcomeUserPayload.rejoin, rejoin);
     }
 
 }

@@ -3,12 +3,11 @@ package club.textchat.server;
 import club.textchat.persistence.ConversationsPersistence;
 import club.textchat.persistence.UsernamesPersistence;
 import club.textchat.server.model.ChatMessage;
-import club.textchat.server.model.payload.AbnormalUserPayload;
+import club.textchat.server.model.payload.AbnormalAccessPayload;
 import club.textchat.server.model.payload.BroadcastAvailableUsersPayload;
 import club.textchat.server.model.payload.BroadcastConnectedUserPayload;
 import club.textchat.server.model.payload.BroadcastDisconnectedUserPayload;
 import club.textchat.server.model.payload.BroadcastTextMessagePayload;
-import club.textchat.server.model.payload.DuplicatedUserPayload;
 import club.textchat.server.model.payload.SendTextMessagePayload;
 import club.textchat.server.model.payload.WelcomeUserPayload;
 import com.aspectran.core.activity.InstantActivitySupport;
@@ -27,7 +26,7 @@ public abstract class ChatService extends InstantActivitySupport {
 
     private static final Logger logger = LoggerFactory.getLogger(ChatServer.class);
 
-    private static final Map<String, Session> sessions = new ConcurrentHashMap<>();
+    private final Map<String, Session> sessions = new ConcurrentHashMap<>();
 
     private final UsernamesPersistence usernamesPersistence;
 
@@ -54,36 +53,35 @@ public abstract class ChatService extends InstantActivitySupport {
                     String username = getUsername(session);
                     String username2 = payload.getUsername();
                     if (username == null || !username.equals(username2)) {
-                        abnormalUser(session, username2);
+                        abort(session);
                         return;
                     }
-                    if (sessions.containsKey(username)) {
-                        duplicatedUser(session, username);
-                        return;
+                    Session session2 = sessions.get(username);
+                    if (session2 != null) {
+                        abort(session2);
+                        welcome(session, username, true);
+                    } else {
+                        welcome(session, username, false);
+                        String prevUsername = getPrevUsername(session);
+                        broadcastUserConnected(session, username, username.equals(prevUsername) ? null : prevUsername);
                     }
-                    welcomeUser(session, username);
-                    String prevUsername = getPrevUsername(session);
-                    broadcastUserConnected(session, username, username.equals(prevUsername) ? null : prevUsername);
                     broadcastAvailableUsers();
                     break;
                 case LEAVE:
-                    leaveUser(session);
+                    leave(session);
                     break;
             }
         }
     }
 
     protected void close(Session session, CloseReason reason) {
-        leaveUser(session);
+        leave(session);
     }
 
     protected void error(Session session, Throwable error) {
         logger.error("Error in websocket session: " + session.getId(), error);
         try {
-            String username = getUsername(session);
-            if (username != null) {
-                leaveUser(session);
-            }
+            leave(session);
             session.close(new CloseReason(CloseReason.CloseCodes.UNEXPECTED_CONDITION, null));
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -102,38 +100,39 @@ public abstract class ChatService extends InstantActivitySupport {
         return (String)session.getUserProperties().get("httpSessionId");
     }
 
-    private void welcomeUser(Session session, String username) {
+    private void welcome(Session session, String username, boolean rejoin) {
         sessions.put(username, session);
-        usernamesPersistence.setByJoin(username, getHttpSessionId(session));
+        if (!rejoin) {
+            usernamesPersistence.setByJoin(username, getHttpSessionId(session));
+        }
         WelcomeUserPayload payload = new WelcomeUserPayload();
         payload.setUsername(username);
         payload.setRecentConversations(conversationsPersistence.getRecentConversations());
+        payload.setRejoin(rejoin);
         ChatMessage message = new ChatMessage(payload);
         broadcast(session, message);
     }
 
-    private void leaveUser(Session session) {
+    private void leave(Session session) {
         String username = getUsername(session);
         if (username != null) {
-            sessions.remove(username);
-            usernamesPersistence.setByLeave(username, getHttpSessionId(session));
-            broadcastUserDisconnected(username);
-            broadcastAvailableUsers();
+            if (sessions.remove(username, session)) {
+                usernamesPersistence.setByLeave(username, getHttpSessionId(session));
+                broadcastUserDisconnected(username);
+                broadcastAvailableUsers();
+            }
         }
     }
 
-    private void duplicatedUser(Session session, String username) {
-        DuplicatedUserPayload payload = new DuplicatedUserPayload();
-        payload.setUsername(username);
-        ChatMessage message = new ChatMessage(payload);
-        broadcast(session, message);
-    }
-
-    private void abnormalUser(Session session, String username) {
-        AbnormalUserPayload payload = new AbnormalUserPayload();
-        payload.setUsername(username);
-        ChatMessage message = new ChatMessage(payload);
-        broadcast(session, message);
+    private void abort(Session session) {
+        String username = getUsername(session);
+        if (username != null) {
+            if (sessions.remove(username, session)) {
+                AbnormalAccessPayload payload = new AbnormalAccessPayload();
+                ChatMessage message = new ChatMessage(payload);
+                broadcast(session, message);
+            }
+        }
     }
 
     private void broadcastUserConnected(Session session, String username, String prevUsername) {

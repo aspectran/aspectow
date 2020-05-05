@@ -15,17 +15,15 @@
  */
 package club.textchat.server.model;
 
-import club.textchat.server.model.payload.AbnormalUserPayload;
+import club.textchat.server.model.payload.AbnormalAccessPayload;
 import club.textchat.server.model.payload.BroadcastAvailableUsersPayload;
 import club.textchat.server.model.payload.BroadcastConnectedUserPayload;
 import club.textchat.server.model.payload.BroadcastDisconnectedUserPayload;
 import club.textchat.server.model.payload.BroadcastTextMessagePayload;
-import club.textchat.server.model.payload.DuplicatedUserPayload;
 import club.textchat.server.model.payload.SendTextMessagePayload;
 import club.textchat.server.model.payload.WelcomeUserPayload;
 import com.aspectran.core.util.apon.AbstractParameters;
 import com.aspectran.core.util.apon.ParameterKey;
-import com.aspectran.core.util.apon.ParameterValue;
 import com.aspectran.core.util.apon.ValueType;
 
 /**
@@ -40,8 +38,7 @@ public class ChatMessage extends AbstractParameters {
 
     private static final ParameterKey heartBeat;
     private static final ParameterKey welcomeUser;
-    private static final ParameterKey duplicatedUser;
-    private static final ParameterKey abnormalUser;
+    private static final ParameterKey abnormalAccess;
     private static final ParameterKey broadcastAvailableUsers;
     private static final ParameterKey broadcastConnectedUser;
     private static final ParameterKey broadcastDisconnectedUser;
@@ -53,8 +50,7 @@ public class ChatMessage extends AbstractParameters {
     static {
         heartBeat = new ParameterKey("heartBeat", ValueType.STRING);
         welcomeUser = new ParameterKey("welcomeUser", WelcomeUserPayload.class);
-        duplicatedUser = new ParameterKey("duplicatedUser", DuplicatedUserPayload.class);
-        abnormalUser = new ParameterKey("abnormalUser", AbnormalUserPayload.class);
+        abnormalAccess = new ParameterKey("abnormalAccess", AbnormalAccessPayload.class);
         broadcastAvailableUsers = new ParameterKey("broadcastAvailableUsers", BroadcastAvailableUsersPayload.class);
         broadcastConnectedUser = new ParameterKey("broadcastConnectedUser", BroadcastConnectedUserPayload.class);
         broadcastDisconnectedUser = new ParameterKey("broadcastDisconnectedUser", BroadcastDisconnectedUserPayload.class);
@@ -64,8 +60,7 @@ public class ChatMessage extends AbstractParameters {
         parameterKeys = new ParameterKey[] {
                 heartBeat,
                 welcomeUser,
-                duplicatedUser,
-                abnormalUser,
+                abnormalAccess,
                 broadcastAvailableUsers,
                 broadcastConnectedUser,
                 broadcastDisconnectedUser,
@@ -83,14 +78,9 @@ public class ChatMessage extends AbstractParameters {
         putValue(welcomeUser, welcomeUserPayload);
     }
 
-    public ChatMessage(DuplicatedUserPayload duplicatedUserPayload) {
+    public ChatMessage(AbnormalAccessPayload abnormalAccessPayload) {
         this();
-        putValue(duplicatedUser, duplicatedUserPayload);
-    }
-
-    public ChatMessage(AbnormalUserPayload abnormalUserPayload) {
-        this();
-        putValue(abnormalUser, abnormalUserPayload);
+        putValue(abnormalAccess, abnormalAccessPayload);
     }
 
     public ChatMessage(BroadcastAvailableUsersPayload broadcastAvailableUsersPayload) {
