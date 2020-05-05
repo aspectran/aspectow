@@ -1,36 +1,50 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
-<div class="wrap grid-container">
-    <div class="grid-x grid-padding-x">
-        <div class="header cell">
-            <h2>Text Chat Club <span id="totalPeople"></span></h2>
-            <a class="leave" onclick="leaveRoom();">Leave</a>
+<div class="wrap grid-y grid-frame">
+    <div class="header grid-container cell header cell-block-container">
+        <div class="left">
+            <h2>Text Chat Club</h2>
+            <span id="totalPeople" class="badge primary hidden"></span>
         </div>
-        <div class="sidebar cell medium-4 large-3 hide-for-small-only">
-            <div id="contacts"></div>
+        <div class="right">
+            <button type="button" class="button leave" onclick="leaveRoom();">Leave</button>
         </div>
-        <div class="main cell small-12 medium-8 large-9">
-            <form id="sign-in" method="post" onsubmit="return false;">
-                <h3>Only one chat room!</h3>
-                <h4>If no one chats for a minute, the chat room will close.<br/>
-                    So shall we start chatting?</h4>
-                <h4>Please enter your username.</h4>
-                <div class="input-group">
-                    <input class="input-group-field" type="text" id="username" maxlength="30" placeholder="Username" autocomplete="off" autofocus/>
-                    <div class="input-group-button">
-                        <button type="submit" class="button" onclick="executeCaptcha()">Join</button>
+    </div>
+    <div class="shadow-wrap grid-container cell auto cell-block-container">
+        <div class="grid-x grid-padding-y full-height">
+            <div class="sidebar cell medium-4 large-3 cell-block-y hide-for-small-only">
+                <div id="contacts"></div>
+            </div>
+            <div class="cell auto cell-block-y">
+                <form id="sign-in" method="post" onsubmit="return false;">
+                    <h3>Only one chat room!</h3>
+                    <h4>Chat with anyone you want, about anything you want, free.</h4>
+                    <h4>Please enter your username.</h4>
+                    <div class="input-group">
+                        <input class="input-group-field" type="text" id="username" maxlength="30" placeholder="Username" autocomplete="off" autofocus/>
+                        <div class="input-group-button">
+                            <button type="submit" class="button">Join</button>
+                        </div>
                     </div>
-                </div>
-                <div id="inline-badge"></div>
-            </form>
-            <div id="conversations"></div>
-            <form id="chat-controls">
-                <div class="input-group">
-                    <input class="input-group-field" type="text" id="message" autocomplete="off" placeholder="Type a message..."/>
-                    <div class="input-group-button">
-                        <button type="submit" class="button">Send</button>
+                    <div id="inline-badge"></div>
+                </form>
+                <div id="conversations" class="full-height"></div>
+            </div>
+        </div>
+    </div>
+    <div class="footer shadow-wrap grid-container cell">
+        <div class="grid-x grid-padding-y full-height">
+            <div class="sidebar cell small-12 medium-4 large-3 cell-block-y hide-for-small-only">
+            </div>
+            <div class="cell auto cell-block-y">
+                <form id="chat-controls">
+                    <div class="input-group">
+                        <input class="input-group-field" type="text" id="message" autocomplete="off" placeholder="Type a message..."/>
+                        <div class="input-group-button">
+                            <button type="submit" class="button">Send</button>
+                        </div>
                     </div>
-                </div>
-            </form>
+                </form>
+            </div>
         </div>
     </div>
 </div>
@@ -65,6 +79,15 @@
     let heartbeatTimer;
 
     $(function() {
+        $("form#sign-in").submit(function() {
+            let username = $("#username").val().trim();
+            if (!username) {
+                return false;
+            }
+            $("#username").val(username);
+            executeCaptcha();
+            return false;
+        });
         $("form#chat-controls").submit(function() {
             sendMessage();
             return false;
@@ -81,7 +104,7 @@
             $("#sign-in").hide();
             $("#conversations").show();
             $("#chat-controls").show();
-            $("a.leave").show();
+            $("button.leave").show();
             $("#message").focus();
             openSocket();
         }
@@ -90,6 +113,7 @@
     function openSocket() {
         if (socket) {
             socket.close();
+            socket = null;
         }
         let url = new URL('/chat?' + recaptchaResponse, location.href);
         url.protocol = url.protocol.replace('https:', 'wss:');
@@ -106,18 +130,18 @@
             heartbeatPing();
         };
 
-        socket.onmessage = function (event) {
+        socket.onmessage = function(event) {
             if (typeof event.data === "string") {
                 let chatMessage = deserialize(event.data);
                 handleMessage(chatMessage);
             }
         };
 
-        socket.onclose = function (event) {
+        socket.onclose = function(event) {
             location.reload();
         };
 
-        socket.onerror = function (event) {
+        socket.onerror = function(event) {
             console.error("WebSocket error observed:", event);
             printError('Could not connect to WebSocket server. Please refresh this page to try again!');
         };
@@ -221,11 +245,11 @@
     }
 
     function updateTotalPeople() {
-        $("#totalPeople").text("(" + $("#contacts .contact").length + ")");
+        $("#totalPeople").text($("#contacts .contact").length).removeClass("hidden");
     }
 
     function clearTotalPeople() {
-        $("#totalPeople").text("");
+        $("#totalPeople").text("").addClass("hidden");
     }
 
     function printWelcomeMessage(username, animatable) {

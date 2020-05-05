@@ -16,39 +16,59 @@ body:before {
 }
 body {
     background: #4c7483;
-    height: 100vh;
 }
-.cell.header {
+.full-height {
+    height: 100%
+}
+.shadow-wrap {
+    background-color: #f5f5f5;
+    padding: 0;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+}
+.header {
     background-color: #35505B;
-    padding: 0 20px;
+    padding: 0 15px;
     color: #fff;
     height: 50px;
+    position: relative;
 }
-.cell.header h2 {
+.header .left {
     float: left;
+}
+.header .left h2 {
     font-size: 24px;
     line-height: 50px;
+    display: inline;
 }
-.cell.header a {
-    float: right;
-    line-height: 50px;
+.header .left .badge {
+    font-size: 20px;
+    margin: 6px;
+    padding: 2px;
+    min-width: 35px;
+}
+.header .left .badge.hidden {
     display: none;
 }
-.cell.sidebar {
+.header .right {
+    position: absolute;
+    right: 15px;
+    bottom: 0;
+}
+.header .right button {
+    margin: 0;
+    border-radius: 6px 6px 0 0;
+    color: #fff;
+}
+.header .right button.leave {
+    display: none;
+    background-color: #e85757;
+}
+.sidebar {
     position: relative;
     padding: 15px;
     background-color: #bbedfe;
-    min-height: calc(100vh - 50px);
-    max-height: calc(100vh - 50px);
     box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
     overflow: auto;
-}
-.cell.main {
-    background-color: #f5f5f5;
-    min-height: calc(100vh - 50px);
-    max-height: calc(100vh - 50px);
-    padding: 0;
-    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
 }
 #sign-in {
     padding: 20px;
@@ -79,15 +99,14 @@ body {
     vertical-align: super;
 }
 #conversations {
-    min-height: calc(100vh - 116px);
-    max-height: calc(100vh - 116px);
-    margin-bottom: 10px;
-    padding: 0 12px;
+    padding: 0 15px;
     overflow-y: auto;
+    /*min-height: calc(100vh - 129px);*/
+    /*max-height: calc(100vh - 129px);*/
     display: none;
 }
 #conversations .message {
-    margin-bottom: 3px;
+    margin-bottom: 5px;
 }
 #conversations .message .content {
     border-radius: 20px;
@@ -96,11 +115,12 @@ body {
     display: table;
 }
 #conversations .message.event .content {
-    background-color: #bbedfe;
     padding: 7px 20px;
     border-radius: 6px;
     width: 100%;
     text-align: center;
+    background-color: #ececec;
+    box-shadow: 0 2px 4px 0 rgba(175, 173, 173, 0.19), 0 2px 2px 0 rgba(125, 124, 124, 0.19);
 }
 #conversations .message.event .content strong {
     font-weight: bold;
@@ -134,9 +154,18 @@ body {
 #conversations .message.sent .sender {
     font-weight: bold;
 }
+.footer {
+    background-color: #f5f5f5;
+    padding: 0;
+}
+.footer .sidebar {
+}
 #chat-controls {
-    padding: 0 12px;
+    padding: 0 15px;
     display: none;
+}
+#chat-controls .input-group {
+    margin: 0;
 }
 #conversations .message.sent.same-sender-previous-message .sender,
 #conversations .message.received.same-sender-previous-message .sender {
