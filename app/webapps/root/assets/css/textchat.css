@@ -42,9 +42,10 @@ body {
 }
 .header .left .badge {
     font-size: 20px;
-    margin: 6px;
-    padding: 2px;
-    min-width: 35px;
+    margin: 0 6px;
+    padding: 4px;
+    min-width: 34px;
+    line-height: 26px;
 }
 .header .left .badge.hidden {
     display: none;
@@ -101,8 +102,6 @@ body {
 #conversations {
     padding: 0 15px;
     overflow-y: auto;
-    /*min-height: calc(100vh - 129px);*/
-    /*max-height: calc(100vh - 129px);*/
     display: none;
 }
 #conversations .message {
