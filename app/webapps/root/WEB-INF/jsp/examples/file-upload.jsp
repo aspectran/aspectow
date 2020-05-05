@@ -161,7 +161,7 @@
         .on('click', function() {
             var $this = $(this);
             var fileKey = $this.data("file-key");
-            if(fileKey) {
+            if (fileKey) {
                 $.ajax({
                     url: url + "/" + fileKey,
                     type: 'delete',
