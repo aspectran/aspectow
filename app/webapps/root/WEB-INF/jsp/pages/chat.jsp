@@ -15,18 +15,6 @@
                 <div id="contacts"></div>
             </div>
             <div class="cell auto cell-block-y">
-                <form id="sign-in" method="post" onsubmit="return false;">
-                    <h3>Only one chat room!</h3>
-                    <h4>Chat with anyone you want, about anything you want, free.</h4>
-                    <h4>Please enter your username.</h4>
-                    <div class="input-group">
-                        <input class="input-group-field" type="text" id="username" maxlength="30" placeholder="Username" autocomplete="off" autofocus/>
-                        <div class="input-group-button">
-                            <button type="submit" class="button">Join</button>
-                        </div>
-                    </div>
-                    <div id="inline-badge"></div>
-                </form>
                 <div id="conversations" class="full-height"></div>
             </div>
         </div>
@@ -48,78 +36,40 @@
         </div>
     </div>
 </div>
-<script src="https://www.google.com/recaptcha/api.js?render=explicit&onload=loadCaptcha"></script>
 <script>
-    let clientId;
-    let recaptchaResponse;
-    function loadCaptcha() {
-        grecaptcha.ready(function() {
-            clientId = grecaptcha.render('inline-badge', {
-                'sitekey': '6Ldt0r0UAAAAAP4ejDGFZLB0S-zDzWL3ZkB49FvN',
-                'badge': 'inline',
-                'size': 'invisible'
-            });
-        });
-    }
-    function executeCaptcha() {
-        grecaptcha.ready(function() {
-            grecaptcha.execute(clientId, {
-                action: 'sign_in'
-            }).then(function(token) {
-                recaptchaResponse = token;
-                startChat();
-            });
-        });
-    }
-</script>
-<script>
-    let socket;
-    let currentUser;
+    const currentUser = "${user.username}";
     let pendedMessages;
     let heartbeatTimer;
+    let socket;
 
     $(function() {
-        $("form#sign-in").submit(function() {
-            let username = $("#username").val().trim();
-            if (!username) {
-                return false;
-            }
-            $("#username").val(username);
-            executeCaptcha();
-            return false;
-        });
+        if (!currentUser) {
+            location.href = "/";
+        }
+
         $("form#chat-controls").submit(function() {
             sendMessage();
             return false;
         });
-    });
 
-    function startChat() {
-        if (!recaptchaResponse) {
-            return;
-        }
-        currentUser = $("#username").val().trim();
-        $("#username").val("");
-        if (currentUser) {
-            $("#sign-in").hide();
-            $("#conversations").show();
-            $("#chat-controls").show();
-            $("button.leave").show();
-            $("#message").focus();
-            openSocket();
-        }
-    }
+        $("#conversations").show();
+        $("#chat-controls").show();
+        $("button.leave").show();
+        $("#message").focus();
+
+        openSocket();
+    });
 
     function openSocket() {
         if (socket) {
             socket.close();
             socket = null;
         }
-        let url = new URL('/chat?' + recaptchaResponse, location.href);
+        let url = new URL('/chat', location.href);
         url.protocol = url.protocol.replace('https:', 'wss:');
         url.protocol = url.protocol.replace('http:', 'ws:');
         socket = new WebSocket(url.href);
-        socket.onopen = function (event) {
+        socket.onopen = function(event) {
             let chatMessage = {
                 sendTextMessage: {
                     type: 'JOIN',
@@ -177,6 +127,21 @@
                             heartbeatPing();
                         }
                         break;
+                    case "broadcastTextMessage":
+                        printMessage(payload.username, payload.content);
+                        break;
+                    case "broadcastConnectedUser":
+                        printJoinMessage(payload.username, payload.prevUsername);
+                        break;
+                    case "broadcastDisconnectedUser":
+                        printLeaveMessage(payload.username);
+                        break;
+                    case "broadcastAvailableUsers":
+                        cleanAvailableUsers();
+                        for (let i = 0; i < payload.usernames.length; i++) {
+                            addAvailableUsers(payload.usernames[i]);
+                        }
+                        break;
                     case "welcomeUser":
                         pendedMessages = [];
                         printRecentConversations(payload.recentConversations);
@@ -187,24 +152,12 @@
                         pendedMessages = null;
                         break;
                     case "duplicatedUser":
-                        socket.close();
                         alert("Your username is already in use. Please enter a different username.");
-                        location.reload();
+                        leaveRoom();
                         break;
-                    case "broadcastTextMessage":
-                        printMessage(payload.username, payload.content);
-                        break;
-                    case "broadcastConnectedUser":
-                        printJoinMessage(payload.username);
-                        break;
-                    case "broadcastDisconnectedUser":
-                        printLeaveMessage(payload.username);
-                        break;
-                    case "broadcastAvailableUsers":
-                        cleanAvailableUsers();
-                        for (let i = 0; i < payload.usernames.length; i++) {
-                            addAvailableUsers(payload.usernames[i]);
-                        }
+                    case "abnormalUser":
+                        alert("Unknown username.");
+                        leaveRoom();
                         break;
                 }
             }
@@ -228,7 +181,10 @@
     }
 
     function leaveRoom() {
+        socket.onclose = null;
         socket.close();
+        socket = null;
+        location.href = "/";
     }
 
     function addAvailableUsers(username) {
@@ -257,8 +213,11 @@
         printEvent(text, animatable);
     }
 
-    function printJoinMessage(username, animatable) {
+    function printJoinMessage(username, prevUsername, animatable) {
         let text = "<strong>" + username + "</strong> joined the chat";
+        if (prevUsername) {
+            text += " (Previous username: " + prevUsername + ")"
+        }
         printEvent(text, animatable);
     }
 
@@ -319,7 +278,7 @@
                             printMessage(payload.username, payload.content, false);
                             break;
                         case "broadcastConnectedUser":
-                            printJoinMessage(payload.username, false);
+                            printJoinMessage(payload.username, payload.prevUsername, false);
                             break;
                         case "broadcastDisconnectedUser":
                             printLeaveMessage(payload.username, false);

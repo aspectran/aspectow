@@ -15,13 +15,20 @@
         </arguments>
     </bean>
 
-    <bean class="club.textchat.persistence.ChatRoomPersistence">
+    <bean class="club.textchat.persistence.UsernamesPersistence">
+        <arguments>
+            <item>#{redisConnectionPool-1}</item>
+            <item valueType="int">1800</item>
+        </arguments>
+    </bean>
+
+    <bean class="club.textchat.persistence.RoomsPersistence">
         <arguments>
             <item>#{redisConnectionPool-1}</item>
         </arguments>
     </bean>
 
-    <bean class="club.textchat.persistence.ChatMessagePersistence">
+    <bean class="club.textchat.persistence.ConversationsPersistence">
         <arguments>
             <item>#{redisConnectionPool-1}</item>
             <item valueType="int">100</item>

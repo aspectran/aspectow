@@ -1,7 +1,9 @@
 package club.textchat.server;
 
-import club.textchat.persistence.ChatMessagePersistence;
+import club.textchat.persistence.ConversationsPersistence;
+import club.textchat.persistence.UsernamesPersistence;
 import club.textchat.server.model.ChatMessage;
+import club.textchat.server.model.payload.AbnormalUserPayload;
 import club.textchat.server.model.payload.BroadcastAvailableUsersPayload;
 import club.textchat.server.model.payload.BroadcastConnectedUserPayload;
 import club.textchat.server.model.payload.BroadcastDisconnectedUserPayload;
@@ -27,13 +29,16 @@ public abstract class ChatService extends InstantActivitySupport {
 
     private static final Map<String, Session> sessions = new ConcurrentHashMap<>();
 
-    private final ChatMessagePersistence chatMessagePersistence;
+    private final UsernamesPersistence usernamesPersistence;
 
-    protected ChatService(ChatMessagePersistence chatMessagePersistence) {
-        this.chatMessagePersistence = chatMessagePersistence;
+    private final ConversationsPersistence conversationsPersistence;
+
+    protected ChatService(UsernamesPersistence usernamesPersistence, ConversationsPersistence conversationsPersistence) {
+        this.usernamesPersistence = usernamesPersistence;
+        this.conversationsPersistence = conversationsPersistence;
     }
 
-    protected void handle(Session session, ChatMessage chatMessage) throws Exception {
+    protected void handle(Session session, ChatMessage chatMessage) {
         if (chatMessage.heartBeatPing()) {
             chatMessage.heartBeatPong();
             broadcast(session, chatMessage);
@@ -41,41 +46,35 @@ public abstract class ChatService extends InstantActivitySupport {
         }
         SendTextMessagePayload payload = chatMessage.getSendTextMessagePayload();
         if (payload != null) {
-            String username = getUsername(session);
             switch (payload.getType()) {
                 case CHAT:
-                    if (username != null) {
-                        broadcastTextMessage(session, username, payload.getContent());
-                    }
+                    broadcastTextMessage(session, payload.getContent());
                     break;
                 case JOIN:
-                    if (username == null) {
-                        username = payload.getUsername();
-                        if (sessions.containsKey(username)) {
-                            duplicatedUser(session, username);
-                            return;
-                        }
-                        setUsername(session, username);
-                        sessions.put(username, session);
-                        welcomeUser(session, username);
-                        broadcastUserConnected(session, username);
-                        broadcastAvailableUsers();
+                    String username = getUsername(session);
+                    String username2 = payload.getUsername();
+                    if (username == null || !username.equals(username2)) {
+                        abnormalUser(session, username2);
+                        return;
                     }
+                    if (sessions.containsKey(username)) {
+                        duplicatedUser(session, username);
+                        return;
+                    }
+                    welcomeUser(session, username);
+                    String prevUsername = getPrevUsername(session);
+                    broadcastUserConnected(session, username, username.equals(prevUsername) ? null : prevUsername);
+                    broadcastAvailableUsers();
                     break;
                 case LEAVE:
-                    if (username != null) {
-                        leaveUser(username);
-                    }
+                    leaveUser(session);
                     break;
             }
         }
     }
 
-    protected void close(Session session, CloseReason reason) throws Exception {
-        String username = getUsername(session);
-        if (username != null) {
-            leaveUser(username);
-        }
+    protected void close(Session session, CloseReason reason) {
+        leaveUser(session);
     }
 
     protected void error(Session session, Throwable error) {
@@ -83,7 +82,7 @@ public abstract class ChatService extends InstantActivitySupport {
         try {
             String username = getUsername(session);
             if (username != null) {
-                leaveUser(username);
+                leaveUser(session);
             }
             session.close(new CloseReason(CloseReason.CloseCodes.UNEXPECTED_CONDITION, null));
         } catch (Exception e) {
@@ -92,23 +91,35 @@ public abstract class ChatService extends InstantActivitySupport {
     }
 
     private String getUsername(Session session) {
-        if (session.getUserProperties().get("username") != null) {
-            return session.getUserProperties().get("username").toString();
-        } else {
-            return null;
-        }
+        return (String)session.getUserProperties().get("username");
     }
 
-    private void setUsername(Session session, String username) {
-        session.getUserProperties().put("username", username);
+    private String getPrevUsername(Session session) {
+        return (String)session.getUserProperties().get("prevUsername");
     }
 
-    private void welcomeUser(Session session, String username) throws Exception {
+    private String getHttpSessionId(Session session) {
+        return (String)session.getUserProperties().get("httpSessionId");
+    }
+
+    private void welcomeUser(Session session, String username) {
+        sessions.put(username, session);
+        usernamesPersistence.setByJoin(username, getHttpSessionId(session));
         WelcomeUserPayload payload = new WelcomeUserPayload();
         payload.setUsername(username);
-        payload.setRecentConversations(chatMessagePersistence.getRecentConversations());
+        payload.setRecentConversations(conversationsPersistence.getRecentConversations());
         ChatMessage message = new ChatMessage(payload);
         broadcast(session, message);
+    }
+
+    private void leaveUser(Session session) {
+        String username = getUsername(session);
+        if (username != null) {
+            sessions.remove(username);
+            usernamesPersistence.setByLeave(username, getHttpSessionId(session));
+            broadcastUserDisconnected(username);
+            broadcastAvailableUsers();
+        }
     }
 
     private void duplicatedUser(Session session, String username) {
@@ -118,35 +129,40 @@ public abstract class ChatService extends InstantActivitySupport {
         broadcast(session, message);
     }
 
-    private void leaveUser(String username) throws Exception {
-        sessions.remove(username);
-        broadcastUserDisconnected(username);
-        broadcastAvailableUsers();
-    }
-
-    private void broadcastUserConnected(Session session, String username) throws Exception {
-        BroadcastConnectedUserPayload payload = new BroadcastConnectedUserPayload();
+    private void abnormalUser(Session session, String username) {
+        AbnormalUserPayload payload = new AbnormalUserPayload();
         payload.setUsername(username);
         ChatMessage message = new ChatMessage(payload);
-        chatMessagePersistence.save(message);
+        broadcast(session, message);
+    }
+
+    private void broadcastUserConnected(Session session, String username, String prevUsername) {
+        BroadcastConnectedUserPayload payload = new BroadcastConnectedUserPayload();
+        payload.setUsername(username);
+        payload.setPrevUsername(prevUsername);
+        ChatMessage message = new ChatMessage(payload);
+        conversationsPersistence.save(message);
         broadcast(message, session);
     }
 
-    private void broadcastUserDisconnected(String username) throws Exception {
+    private void broadcastUserDisconnected(String username) {
         BroadcastDisconnectedUserPayload payload = new BroadcastDisconnectedUserPayload();
         payload.setUsername(username);
         ChatMessage message = new ChatMessage(payload);
-        chatMessagePersistence.save(message);
+        conversationsPersistence.save(message);
         broadcast(message);
     }
 
-    private void broadcastTextMessage(Session session, String username, String text) throws Exception {
-        BroadcastTextMessagePayload payload = new BroadcastTextMessagePayload();
-        payload.setContent(text);
-        payload.setUsername(username);
-        ChatMessage message = new ChatMessage(payload);
-        chatMessagePersistence.save(message);
-        broadcast(message, session);
+    private void broadcastTextMessage(Session session, String text) {
+        String username = getUsername(session);
+        if (username != null) {
+            BroadcastTextMessagePayload payload = new BroadcastTextMessagePayload();
+            payload.setContent(text);
+            payload.setUsername(username);
+            ChatMessage message = new ChatMessage(payload);
+            conversationsPersistence.save(message);
+            broadcast(message, session);
+        }
     }
 
     private void broadcastAvailableUsers() {

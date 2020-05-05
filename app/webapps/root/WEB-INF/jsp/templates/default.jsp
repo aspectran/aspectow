@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
     <meta name="google" content="notranslate">
-    <title>${empty page.title ? "Text Chat Club" : page.title}</title>
+    <title>Text Chat Club<c:if test="${not empty page.title}"> - ${page.title}</c:if></title>
     <meta name="description" content="${empty page.description ? "Online Chat Rooms For Everyone" : page.description}" />
     <link rel="stylesheet" type="text/css" href="/assets/css/aspectran.css?20200505" />
     <link rel="stylesheet" type="text/css" href="/assets/css/textchat.css?20200505" />

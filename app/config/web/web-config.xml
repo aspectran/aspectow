@@ -34,6 +34,6 @@
     </aspect>
 
     <append file="/config/web/common/xss-prevent.xml"/>
-    <append file="/config/web/chat/chat.xml"/>
+    <append file="/config/web/pages/pages.xml"/>
 
 </aspectran>

@@ -15,16 +15,17 @@
  */
 package club.textchat.server;
 
-import club.textchat.persistence.ChatMessagePersistence;
-import club.textchat.recaptcha.ReCaptchaVerifier;
+import club.textchat.persistence.ConversationsPersistence;
+import club.textchat.persistence.UsernamesPersistence;
 import club.textchat.server.codec.ChatMessageDecoder;
 import club.textchat.server.codec.ChatMessageEncoder;
 import club.textchat.server.model.ChatMessage;
 import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Component;
-import com.aspectran.web.socket.jsr356.AspectranConfigurator;
+import com.aspectran.core.util.StringUtils;
 
 import javax.websocket.CloseReason;
+import javax.websocket.EndpointConfig;
 import javax.websocket.OnClose;
 import javax.websocket.OnError;
 import javax.websocket.OnMessage;
@@ -43,33 +44,33 @@ import java.io.IOException;
         value = "/chat",
         encoders = ChatMessageEncoder.class,
         decoders = ChatMessageDecoder.class,
-        configurator = AspectranConfigurator.class
+        configurator = EndpointConfigurator.class
 )
 public class ChatServer extends ChatService {
 
     @Autowired
-    public ChatServer(ChatMessagePersistence chatMessagePersistence) {
-        super(chatMessagePersistence);
+    public ChatServer(UsernamesPersistence usernamesPersistence, ConversationsPersistence conversationsPersistence) {
+        super(usernamesPersistence, conversationsPersistence);
     }
 
     @OnOpen
-    public void onOpen(Session session) throws IOException {
-        String recaptchaResponse = session.getQueryString();
-        boolean success = ReCaptchaVerifier.verifySuccess(recaptchaResponse);
-        if (!success) {
-            String reason = "reCAPTCHA verification failed";
+    public void onOpen(Session session, EndpointConfig config) throws IOException {
+        String httpSessionId = (String)config.getUserProperties().get("httpSessionId");
+        String username = (String)config.getUserProperties().get("username");
+        if (StringUtils.isEmpty(httpSessionId) || StringUtils.isEmpty(username)) {
+            String reason = "User authentication failed";
             session.close(new CloseReason(CloseReason.CloseCodes.CANNOT_ACCEPT, reason));
             throw new IOException(reason);
         }
     }
 
     @OnMessage
-    public void onMessage(Session session, ChatMessage chatMessage) throws Exception {
+    public void onMessage(Session session, ChatMessage chatMessage) {
         handle(session, chatMessage);
     }
 
     @OnClose
-    public void onClose(Session session, CloseReason reason) throws Exception {
+    public void onClose(Session session, CloseReason reason) {
         close(session, reason);
     }
 

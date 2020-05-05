@@ -83,7 +83,8 @@ body {
 #sign-in .input-group {
     max-width: 500px;
 }
-#sign-in input {
+#sign-in .form-error {
+    font-size: 1em;
 }
 #contacts .contact .status {
     background-color: #13CF13;
@@ -117,7 +118,6 @@ body {
     width: 100%;
     text-align: center;
     background-color: #ececec;
-    box-shadow: 0 2px 4px 0 rgba(175, 173, 173, 0.19), 0 2px 2px 0 rgba(125, 124, 124, 0.19);
 }
 #conversations .message.event .content strong {
     font-weight: bold;

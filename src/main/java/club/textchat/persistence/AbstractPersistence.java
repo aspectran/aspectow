@@ -18,17 +18,31 @@ public class AbstractPersistence {
         this.connectionPool = connectionPool;
     }
 
-    <R> R sync(Function<RedisCommands<String, String>, R> func) throws Exception {
+    <R> R sync(Function<RedisCommands<String, String>, R> func) {
         try (StatefulRedisConnection<String, String> conn = connectionPool.getConnection()) {
             return func.apply(conn.sync());
+        } catch (Exception e) {
+            throw new PersistenceException("Data manipulation failure with Redis", e);
         }
     }
 
-    public long rpush(String key, Parameters value) throws Exception {
+    public String get(String key) {
+        return sync(c -> c.get(key));
+    }
+
+    public void set(String key, String value) {
+        sync(c -> c.set(key, value));
+    }
+
+    public void setex(String key, String value, int timeout) {
+        sync(c -> c.setex(key, timeout, value));
+    }
+
+    public long rpush(String key, Parameters value) {
         return sync(c -> c.rpush(key, value.toString()));
     }
 
-    public void rpush(String key, Parameters value, int limit) throws Exception {
+    public void rpush(String key, Parameters value, int limit) {
         sync(c -> {
             long len = c.rpush(key, value.toString());
             if (len > limit) {
@@ -38,7 +52,7 @@ public class AbstractPersistence {
         });
     }
 
-    public List<String> lrange(String key, int limit) throws Exception {
+    public List<String> lrange(String key, int limit) {
         return sync(c -> c.lrange(key, 0, limit - 1));
     }
 

@@ -20,37 +20,30 @@ import com.aspectran.core.util.apon.ParameterKey;
 import com.aspectran.core.util.apon.ValueType;
 
 /**
- * Represents the payload of a WebSocket frame to broadcast details of a user who has connected to the chat.
+ * Represents the payload of a WebSocket frame to welcome a user.
  *
  * <p>Created: 2019/10/09</p>
  */
-public class BroadcastConnectedUserPayload extends AbstractParameters {
+public class AbnormalUserPayload extends AbstractParameters {
 
     private static final ParameterKey username;
-    private static final ParameterKey prevUsername;
 
     private static final ParameterKey[] parameterKeys;
 
     static {
         username = new ParameterKey("username", ValueType.STRING);
-        prevUsername = new ParameterKey("prevUsername", ValueType.STRING);
 
         parameterKeys = new ParameterKey[] {
-                username,
-                prevUsername
+                username
         };
     }
 
-    public BroadcastConnectedUserPayload() {
+    public AbnormalUserPayload() {
         super(parameterKeys);
     }
 
     public void setUsername(String username) {
-        putValue(BroadcastConnectedUserPayload.username, username);
-    }
-
-    public void setPrevUsername(String prevUsername) {
-        putValue(BroadcastConnectedUserPayload.prevUsername, prevUsername);
+        putValue(AbnormalUserPayload.username, username);
     }
 
 }

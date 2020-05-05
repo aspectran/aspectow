@@ -15,6 +15,7 @@
  */
 package club.textchat.server.model;
 
+import club.textchat.server.model.payload.AbnormalUserPayload;
 import club.textchat.server.model.payload.BroadcastAvailableUsersPayload;
 import club.textchat.server.model.payload.BroadcastConnectedUserPayload;
 import club.textchat.server.model.payload.BroadcastDisconnectedUserPayload;
@@ -40,6 +41,7 @@ public class ChatMessage extends AbstractParameters {
     private static final ParameterKey heartBeat;
     private static final ParameterKey welcomeUser;
     private static final ParameterKey duplicatedUser;
+    private static final ParameterKey abnormalUser;
     private static final ParameterKey broadcastAvailableUsers;
     private static final ParameterKey broadcastConnectedUser;
     private static final ParameterKey broadcastDisconnectedUser;
@@ -52,6 +54,7 @@ public class ChatMessage extends AbstractParameters {
         heartBeat = new ParameterKey("heartBeat", ValueType.STRING);
         welcomeUser = new ParameterKey("welcomeUser", WelcomeUserPayload.class);
         duplicatedUser = new ParameterKey("duplicatedUser", DuplicatedUserPayload.class);
+        abnormalUser = new ParameterKey("abnormalUser", AbnormalUserPayload.class);
         broadcastAvailableUsers = new ParameterKey("broadcastAvailableUsers", BroadcastAvailableUsersPayload.class);
         broadcastConnectedUser = new ParameterKey("broadcastConnectedUser", BroadcastConnectedUserPayload.class);
         broadcastDisconnectedUser = new ParameterKey("broadcastDisconnectedUser", BroadcastDisconnectedUserPayload.class);
@@ -62,6 +65,7 @@ public class ChatMessage extends AbstractParameters {
                 heartBeat,
                 welcomeUser,
                 duplicatedUser,
+                abnormalUser,
                 broadcastAvailableUsers,
                 broadcastConnectedUser,
                 broadcastDisconnectedUser,
@@ -82,6 +86,11 @@ public class ChatMessage extends AbstractParameters {
     public ChatMessage(DuplicatedUserPayload duplicatedUserPayload) {
         this();
         putValue(duplicatedUser, duplicatedUserPayload);
+    }
+
+    public ChatMessage(AbnormalUserPayload abnormalUserPayload) {
+        this();
+        putValue(abnormalUser, abnormalUserPayload);
     }
 
     public ChatMessage(BroadcastAvailableUsersPayload broadcastAvailableUsersPayload) {

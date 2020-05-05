@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE aspectran PUBLIC "-//ASPECTRAN//DTD Aspectran Configuration 6.0//EN"
+        "http://aspectran.github.io/dtd/aspectran-6.dtd">
+<aspectran>
+
+    <translet name="/">
+        <echo id="page">
+            <item name="title">Robby</item>
+            <item name="description">Chat with anyone you want, about anything you want, free.</item>
+            <item name="include">pages/robby</item>
+        </echo>
+        <dispatch name="templates/default"/>
+    </translet>
+
+    <translet name="/chat/">
+        <echo id="page">
+            <item name="title">Chat Room</item>
+            <item name="description">Chat with anyone you want, about anything you want, free.</item>
+            <item name="include">pages/chat</item>
+        </echo>
+        <dispatch name="templates/default"/>
+    </translet>
+
+</aspectran>
