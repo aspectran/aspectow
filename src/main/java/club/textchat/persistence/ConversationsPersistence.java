@@ -31,7 +31,7 @@ public class ConversationsPersistence extends AbstractPersistence {
         List<String> list = lrange(KEY_PREFIX + roomId, maxSaveMessages);
         List<ChatMessage> result = new ArrayList<>(list.size());
         for (String str : list) {
-            ChatMessage message = null;
+            ChatMessage message;
             try {
                 message = AponReader.parse(str, ChatMessage.class);
                 result.add(message);

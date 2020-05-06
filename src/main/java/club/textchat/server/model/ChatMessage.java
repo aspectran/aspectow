@@ -17,9 +17,9 @@ package club.textchat.server.model;
 
 import club.textchat.server.model.payload.AbnormalAccessPayload;
 import club.textchat.server.model.payload.BroadcastJoinedUsersPayload;
+import club.textchat.server.model.payload.BroadcastMessagePayload;
 import club.textchat.server.model.payload.BroadcastUserJoinedPayload;
 import club.textchat.server.model.payload.BroadcastUserLeavedPayload;
-import club.textchat.server.model.payload.BroadcastMessagePayload;
 import club.textchat.server.model.payload.SendMessagePayload;
 import club.textchat.server.model.payload.WelcomeUserPayload;
 import com.aspectran.core.util.apon.AbstractParameters;
