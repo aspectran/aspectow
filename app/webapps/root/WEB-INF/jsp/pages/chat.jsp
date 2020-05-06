@@ -2,16 +2,18 @@
 <div class="wrap grid-y grid-frame">
     <div class="header grid-container grid-padding-x cell header cell-block-container">
         <div class="left">
-            <h2><i class="fi-results-demographics"></i> Text Chat Club</h2>
-            <span id="totalPeople" class="badge primary hidden"></span>
+            <button type="button" class="button">
+                <i class="fi-results-demographics"></i>
+                <span id="totalPeople"></span></button>
+            <h2>Chat</h2>
         </div>
         <div class="right">
-            <button type="button" class="button leave" onclick="leaveRoom();"><i class="fi-x-circle"></i> Leave</button>
+            <button type="button" class="button leave"><i class="fi-power"></i> Leave</button>
         </div>
     </div>
     <div class="shadow-wrap grid-container cell auto cell-block-container">
         <div class="grid-x grid-padding-y full-height">
-            <div class="sidebar cell medium-4 large-3 cell-block-y hide-for-small-only">
+            <div id="contacts-wrap" class="sidebar cell medium-4 large-3 cell-block-y hide-for-small-only">
                 <div id="contacts"></div>
             </div>
             <div class="cell auto cell-block-y">
@@ -49,13 +51,20 @@
         }
 
         $("form#chat-controls").submit(function() {
+            if (!$("#contacts-wrap").hasClass("hide-for-small-only")) {
+                $("#contacts-wrap").addClass("hide-for-small-only");
+            }
             sendMessage();
             return false;
         });
-
-        $("#conversations").show();
-        $("#chat-controls").show();
-        $("button.leave").show();
+        $(".header .left button").click(function() {
+            $(".sidebar").toggle()
+            $("#contacts-wrap").toggleClass("hide-for-small-only");
+            $("#message").focus();
+        })
+        $("button.leave").click(function() {
+            leaveRoom();
+        });
         $("#message").focus();
 
         openSocket();
@@ -72,7 +81,7 @@
         socket = new WebSocket(url.href);
         socket.onopen = function(event) {
             let chatMessage = {
-                sendTextMessage: {
+                sendMessage: {
                     type: 'JOIN',
                     username: currentUser
                 }
@@ -132,20 +141,23 @@
                             heartbeatPing();
                         }
                         break;
-                    case "broadcastTextMessage":
+                    case "broadcastMessage":
                         printMessage(payload.username, payload.content);
                         break;
-                    case "broadcastConnectedUser":
+                    case "broadcastUserJoined":
+                        addUser(payload.username);
                         printJoinMessage(payload.username, payload.prevUsername);
                         break;
-                    case "broadcastDisconnectedUser":
+                    case "broadcastUserLeaved":
+                        removeUser(payload.username);
                         printLeaveMessage(payload.username);
                         break;
-                    case "broadcastAvailableUsers":
-                        cleanAvailableUsers();
+                    case "broadcastJoinedUsers":
+                        clearUsers();
                         for (let i = 0; i < payload.usernames.length; i++) {
-                            addAvailableUsers(payload.usernames[i]);
+                            addUser(payload.usernames[i]);
                         }
+                        thatsMe(currentUser);
                         break;
                     case "welcomeUser":
                         pendedMessages = [];
@@ -180,7 +192,7 @@
         let text = $("#message").val().trim();
         if (text) {
             let chatMessage = {
-                sendTextMessage: {
+                sendMessage: {
                     type: 'CHAT',
                     username: currentUser,
                     content: text
@@ -199,25 +211,43 @@
         location.href = "/";
     }
 
-    function addAvailableUsers(username) {
-        let contact = $("<div/>").addClass("contact");
+    function addUser(username) {
+        let contact = $("<div/>").addClass("contact").data("username", username);
         let status = $("<div/>").addClass("status");
-        let name = $("<span/>").addClass("name").text(username);
-        contact.append(status).append(name).appendTo($("#contacts"));
+        let badge = $("<i class='badge fi-record'/>");
+        let name = $("<div/>").addClass("name").text(username);
+        contact.append(status.append(badge)).append(name).appendTo($("#contacts"));
         updateTotalPeople();
     }
 
-    function cleanAvailableUsers() {
+    function removeUser(username) {
+        findUser(username).remove();
+        updateTotalPeople();
+    }
+
+    function thatsMe(username) {
+        findUser(username).addClass("me");
+        updateTotalPeople();
+    }
+
+    function findUser(username) {
+        return $("#contacts .contact")
+            .filter(function() {
+                return $(this).data("username") === username;
+            });
+    }
+
+    function clearUsers() {
         $("#contacts").empty();
         clearTotalPeople();
     }
 
     function updateTotalPeople() {
-        $("#totalPeople").text($("#contacts .contact").length).removeClass("hidden");
+        $("#totalPeople").text($("#contacts .contact").length);
     }
 
     function clearTotalPeople() {
-        $("#totalPeople").text("").addClass("hidden");
+        $("#totalPeople").text("");
     }
 
     function printWelcomeMessage(username, animatable) {
@@ -286,13 +316,13 @@
                 let payload = chatMessage[val];
                 if (payload) {
                     switch (val) {
-                        case "broadcastTextMessage":
+                        case "broadcastMessage":
                             printMessage(payload.username, payload.content, false);
                             break;
-                        case "broadcastConnectedUser":
+                        case "broadcastUserJoined":
                             printJoinMessage(payload.username, payload.prevUsername, false);
                             break;
-                        case "broadcastDisconnectedUser":
+                        case "broadcastUserLeaved":
                             printLeaveMessage(payload.username, false);
                             break;
                     }

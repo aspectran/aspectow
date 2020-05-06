@@ -4,11 +4,11 @@ import club.textchat.persistence.ConversationsPersistence;
 import club.textchat.persistence.UsernamesPersistence;
 import club.textchat.server.model.ChatMessage;
 import club.textchat.server.model.payload.AbnormalAccessPayload;
-import club.textchat.server.model.payload.BroadcastAvailableUsersPayload;
-import club.textchat.server.model.payload.BroadcastConnectedUserPayload;
-import club.textchat.server.model.payload.BroadcastDisconnectedUserPayload;
-import club.textchat.server.model.payload.BroadcastTextMessagePayload;
-import club.textchat.server.model.payload.SendTextMessagePayload;
+import club.textchat.server.model.payload.BroadcastJoinedUsersPayload;
+import club.textchat.server.model.payload.BroadcastUserJoinedPayload;
+import club.textchat.server.model.payload.BroadcastUserLeavedPayload;
+import club.textchat.server.model.payload.BroadcastMessagePayload;
+import club.textchat.server.model.payload.SendMessagePayload;
 import club.textchat.server.model.payload.WelcomeUserPayload;
 import com.aspectran.core.activity.InstantActivitySupport;
 import com.aspectran.core.util.logging.Logger;
@@ -25,6 +25,12 @@ import java.util.concurrent.ConcurrentHashMap;
 public abstract class ChatService extends InstantActivitySupport {
 
     private static final Logger logger = LoggerFactory.getLogger(ChatServer.class);
+
+    public static final String USERNAME_PROP = "username";
+
+    public static final String PREV_USERNAME_PROP = "prevUsername";
+
+    public static final String HTTP_SESSION_ID = "httpSessionId";
 
     private final Map<String, Session> sessions = new ConcurrentHashMap<>();
 
@@ -43,11 +49,11 @@ public abstract class ChatService extends InstantActivitySupport {
             broadcast(session, chatMessage);
             return;
         }
-        SendTextMessagePayload payload = chatMessage.getSendTextMessagePayload();
+        SendMessagePayload payload = chatMessage.getSendMessagePayload();
         if (payload != null) {
             switch (payload.getType()) {
                 case CHAT:
-                    broadcastTextMessage(session, payload.getContent());
+                    broadcastMessage(session, payload.getContent());
                     break;
                 case JOIN:
                     String username = getUsername(session);
@@ -69,9 +75,9 @@ public abstract class ChatService extends InstantActivitySupport {
                     } else {
                         welcome(session, username, false);
                         String prevUsername = getPrevUsername(session);
-                        broadcastUserConnected(session, username, username.equals(prevUsername) ? null : prevUsername);
+                        broadcastUserJoined(session, username, username.equals(prevUsername) ? null : prevUsername);
                     }
-                    broadcastAvailableUsers();
+                    broadcastJoinedUsers();
                     break;
                 case LEAVE:
                     leave(session);
@@ -87,7 +93,7 @@ public abstract class ChatService extends InstantActivitySupport {
     protected void error(Session session, Throwable error) {
         logger.error("Error in websocket session: " + session.getId(), error);
         try {
-            leave(session);
+            abort(session, "abnormal:" + error.getMessage());
             session.close(new CloseReason(CloseReason.CloseCodes.UNEXPECTED_CONDITION, null));
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -95,15 +101,15 @@ public abstract class ChatService extends InstantActivitySupport {
     }
 
     private String getUsername(Session session) {
-        return (String)session.getUserProperties().get("username");
+        return (String)session.getUserProperties().get(USERNAME_PROP);
     }
 
     private String getPrevUsername(Session session) {
-        return (String)session.getUserProperties().get("prevUsername");
+        return (String)session.getUserProperties().get(PREV_USERNAME_PROP);
     }
 
     private String getHttpSessionId(Session session) {
-        return (String)session.getUserProperties().get("httpSessionId");
+        return (String)session.getUserProperties().get(HTTP_SESSION_ID);
     }
 
     private void welcome(Session session, String username, boolean rejoin) {
@@ -117,19 +123,10 @@ public abstract class ChatService extends InstantActivitySupport {
         broadcast(session, message);
     }
 
-    private void leave(Session session) {
+    private void abort(Session session, String cause) {
         String username = getUsername(session);
         if (username != null && sessions.remove(username, session)) {
             usernamesPersistence.setByLeave(username, getHttpSessionId(session));
-            broadcastUserDisconnected(username);
-            broadcastAvailableUsers();
-        }
-    }
-
-    private void abort(Session session, String cause) {
-        String username = getUsername(session);
-        if (username != null) {
-            sessions.remove(username, session);
         }
         AbnormalAccessPayload payload = new AbnormalAccessPayload();
         payload.setCause(cause);
@@ -137,8 +134,16 @@ public abstract class ChatService extends InstantActivitySupport {
         broadcast(session, message);
     }
 
-    private void broadcastUserConnected(Session session, String username, String prevUsername) {
-        BroadcastConnectedUserPayload payload = new BroadcastConnectedUserPayload();
+    private void leave(Session session) {
+        String username = getUsername(session);
+        if (username != null && sessions.remove(username, session)) {
+            usernamesPersistence.setByLeave(username, getHttpSessionId(session));
+            broadcastUserLeaved(username);
+        }
+    }
+
+    private void broadcastUserJoined(Session session, String username, String prevUsername) {
+        BroadcastUserJoinedPayload payload = new BroadcastUserJoinedPayload();
         payload.setUsername(username);
         payload.setPrevUsername(prevUsername);
         ChatMessage message = new ChatMessage(payload);
@@ -146,18 +151,18 @@ public abstract class ChatService extends InstantActivitySupport {
         broadcast(message, session);
     }
 
-    private void broadcastUserDisconnected(String username) {
-        BroadcastDisconnectedUserPayload payload = new BroadcastDisconnectedUserPayload();
+    private void broadcastUserLeaved(String username) {
+        BroadcastUserLeavedPayload payload = new BroadcastUserLeavedPayload();
         payload.setUsername(username);
         ChatMessage message = new ChatMessage(payload);
         conversationsPersistence.save(message);
         broadcast(message);
     }
 
-    private void broadcastTextMessage(Session session, String text) {
+    private void broadcastMessage(Session session, String text) {
         String username = getUsername(session);
         if (username != null) {
-            BroadcastTextMessagePayload payload = new BroadcastTextMessagePayload();
+            BroadcastMessagePayload payload = new BroadcastMessagePayload();
             payload.setContent(text);
             payload.setUsername(username);
             ChatMessage message = new ChatMessage(payload);
@@ -166,8 +171,8 @@ public abstract class ChatService extends InstantActivitySupport {
         }
     }
 
-    private void broadcastAvailableUsers() {
-        BroadcastAvailableUsersPayload payload = new BroadcastAvailableUsersPayload();
+    private void broadcastJoinedUsers() {
+        BroadcastJoinedUsersPayload payload = new BroadcastJoinedUsersPayload();
         payload.setUsernames(sessions.keySet());
         ChatMessage message = new ChatMessage(payload);
         broadcast(message);

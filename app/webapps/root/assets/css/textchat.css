@@ -29,6 +29,7 @@ body {
     background-color: #35505B;
     color: #fff;
     position: relative;
+    height: 50px !important;
 }
 .header .left {
     float: left;
@@ -37,6 +38,7 @@ body {
     font-size: 24px;
     line-height: 50px;
     display: inline;
+    margin: 0;
 }
 .header .left .badge {
     font-size: 20px;
@@ -45,21 +47,33 @@ body {
     min-width: 34px;
     line-height: 26px;
 }
-.header .left .badge.hidden {
-    display: none;
+.header .left button {
+    margin: 0 6px 0 0;
+    border-radius: 6px;
+    color: #fff;
+    vertical-align: baseline;
+    height: 30px;
+    font-size: 24px;
+    padding: 0 6px;
+    line-height: 30px;
+    background-color: #13cf91
+}
+.header .left button span {
+    font-size: .8em;
+    vertical-align: top;
+    margin: 0 4px;
 }
 .header .right {
     position: absolute;
     right: 15px;
-    bottom: 0;
+    bottom: -4px;
 }
 .header .right button {
     margin: 0;
-    border-radius: 6px 6px 0 0;
+    border-radius: 50% 50% 6px 6px;
     color: #fff;
 }
 .header .right button.leave {
-    display: none;
     background-color: #e85757;
 }
 .sidebar {
@@ -86,22 +100,41 @@ body {
 #sign-in .form-error {
     font-size: 1em;
 }
+#contacts .contact {
+    margin: 0 -5px 5px;
+    padding: 5px;
+    position: relative;
+    border-radius: 8px;
+}
+#contacts .contact.me {
+    background-color: #95d6f6;
+}
+#contacts .contact:hover {
+    background-color: #30b1f1;
+    cursor: pointer;
+}
 #contacts .contact .status {
-    background-color: #13CF13;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    display: inline-block;
-    margin-right: 10px;
+    padding-right: 8px;
+    position: absolute;
+    top: 2px;
+    left: 5px;
+    height: 24px;
+}
+#contacts .contact .status .badge {
+    color: #fff;
+    vertical-align: baseline;
+}
+#contacts .contact.me .status .badge {
+    color: #fabc03;
 }
 #contacts .contact .name {
-    line-height: 30px;
-    vertical-align: super;
+    line-height: 1.1;
+    padding-left: 30px;
+    display: inline-block;
 }
 #conversations {
     padding: 0 15px;
     overflow-y: auto;
-    display: none;
 }
 #conversations .message {
     margin-bottom: 5px;
@@ -159,7 +192,6 @@ body {
 }
 #chat-controls {
     padding: 0 15px;
-    display: none;
 }
 #chat-controls .input-group {
     margin: 0;

@@ -9,7 +9,7 @@ import javax.websocket.HandshakeResponse;
 import javax.websocket.server.HandshakeRequest;
 import javax.websocket.server.ServerEndpointConfig;
 
-public class EndpointConfigurator extends AspectranConfigurator {
+public class ChatServerConfigurator extends AspectranConfigurator {
 
     @Override
     public void modifyHandshake(ServerEndpointConfig config,
@@ -20,9 +20,9 @@ public class EndpointConfigurator extends AspectranConfigurator {
         if (httpSession != null) {
             UserInfo userInfo = (UserInfo)httpSession.getAttribute(UserManager.USER_INFO_SESSION_KEY);
             if (userInfo != null) {
-                config.getUserProperties().put("username", userInfo.getUsername());
-                config.getUserProperties().put("prevUsername", userInfo.getPrevUsername());
-                config.getUserProperties().put("httpSessionId", httpSession.getId());
+                config.getUserProperties().put(ChatService.USERNAME_PROP, userInfo.getUsername());
+                config.getUserProperties().put(ChatService.PREV_USERNAME_PROP, userInfo.getPrevUsername());
+                config.getUserProperties().put(ChatService.HTTP_SESSION_ID, httpSession.getId());
             }
         }
     }

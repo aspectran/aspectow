@@ -20,37 +20,50 @@ import com.aspectran.core.util.apon.ParameterKey;
 import com.aspectran.core.util.apon.ValueType;
 
 /**
- * Represents the payload of a WebSocket frame to broadcast a text message.
+ * Payload with details of a message sent by the client.
  *
  * <p>Created: 2019/10/09</p>
  */
-public class BroadcastTextMessagePayload extends AbstractParameters {
+public class SendMessagePayload extends AbstractParameters {
 
+    private static final ParameterKey type;
     private static final ParameterKey username;
     private static final ParameterKey content;
 
     private static final ParameterKey[] parameterKeys;
 
     static {
+        type = new ParameterKey("type", ValueType.STRING);
         username = new ParameterKey("username", ValueType.STRING);
         content = new ParameterKey("content", ValueType.TEXT);
 
         parameterKeys = new ParameterKey[] {
+                type,
                 username,
                 content
         };
     }
 
-    public BroadcastTextMessagePayload() {
+    public enum MessageType {
+        CHAT,
+        JOIN,
+        LEAVE
+    }
+
+    public SendMessagePayload() {
         super(parameterKeys);
     }
 
-    public void setUsername(String username) {
-        putValue(BroadcastTextMessagePayload.username, username);
+    public MessageType getType() {
+        return MessageType.valueOf(getString(type));
     }
 
-    public void setContent(String content) {
-        putValue(BroadcastTextMessagePayload.content, content);
+    public String getUsername() {
+        return getString(username);
+    }
+
+    public String getContent() {
+        return getString(content);
     }
 
 }

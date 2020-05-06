@@ -20,50 +20,37 @@ import com.aspectran.core.util.apon.ParameterKey;
 import com.aspectran.core.util.apon.ValueType;
 
 /**
- * Payload with details of a message sent by the client.
+ * Represents the payload of a WebSocket frame to broadcast details of a user who has connected to the chat.
  *
  * <p>Created: 2019/10/09</p>
  */
-public class SendTextMessagePayload extends AbstractParameters {
+public class BroadcastUserJoinedPayload extends AbstractParameters {
 
-    private static final ParameterKey type;
     private static final ParameterKey username;
-    private static final ParameterKey content;
+    private static final ParameterKey prevUsername;
 
     private static final ParameterKey[] parameterKeys;
 
     static {
-        type = new ParameterKey("type", ValueType.STRING);
         username = new ParameterKey("username", ValueType.STRING);
-        content = new ParameterKey("content", ValueType.TEXT);
+        prevUsername = new ParameterKey("prevUsername", ValueType.STRING);
 
         parameterKeys = new ParameterKey[] {
-                type,
                 username,
-                content
+                prevUsername
         };
     }
 
-    public enum MessageType {
-        CHAT,
-        JOIN,
-        LEAVE
-    }
-
-    public SendTextMessagePayload() {
+    public BroadcastUserJoinedPayload() {
         super(parameterKeys);
     }
 
-    public MessageType getType() {
-        return MessageType.valueOf(getString(type));
+    public void setUsername(String username) {
+        putValue(BroadcastUserJoinedPayload.username, username);
     }
 
-    public String getUsername() {
-        return getString(username);
-    }
-
-    public String getContent() {
-        return getString(content);
+    public void setPrevUsername(String prevUsername) {
+        putValue(BroadcastUserJoinedPayload.prevUsername, prevUsername);
     }
 
 }

@@ -19,38 +19,35 @@ import com.aspectran.core.util.apon.AbstractParameters;
 import com.aspectran.core.util.apon.ParameterKey;
 import com.aspectran.core.util.apon.ValueType;
 
+import java.util.Set;
+
 /**
- * Represents the payload of a WebSocket frame to broadcast details of a user who has connected to the chat.
+ * Represents the payload of a WebSocket frame to broadcast the available users.
  *
  * <p>Created: 2019/10/09</p>
  */
-public class BroadcastConnectedUserPayload extends AbstractParameters {
+public class BroadcastJoinedUsersPayload extends AbstractParameters {
 
-    private static final ParameterKey username;
-    private static final ParameterKey prevUsername;
+    private static final ParameterKey usernames;
 
     private static final ParameterKey[] parameterKeys;
 
     static {
-        username = new ParameterKey("username", ValueType.STRING);
-        prevUsername = new ParameterKey("prevUsername", ValueType.STRING);
+        usernames = new ParameterKey("usernames", ValueType.STRING, true);
 
         parameterKeys = new ParameterKey[] {
-                username,
-                prevUsername
+                usernames
         };
     }
 
-    public BroadcastConnectedUserPayload() {
+    public BroadcastJoinedUsersPayload() {
         super(parameterKeys);
     }
 
-    public void setUsername(String username) {
-        putValue(BroadcastConnectedUserPayload.username, username);
-    }
-
-    public void setPrevUsername(String prevUsername) {
-        putValue(BroadcastConnectedUserPayload.prevUsername, prevUsername);
+    public void setUsernames(Set<String> usernames) {
+        for (String username : usernames) {
+            putValue(BroadcastJoinedUsersPayload.usernames, username);
+        }
     }
 
 }

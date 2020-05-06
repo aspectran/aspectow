@@ -44,7 +44,7 @@ import java.io.IOException;
         value = "/chat",
         encoders = ChatMessageEncoder.class,
         decoders = ChatMessageDecoder.class,
-        configurator = EndpointConfigurator.class
+        configurator = ChatServerConfigurator.class
 )
 public class ChatServer extends ChatService {
 
@@ -55,9 +55,9 @@ public class ChatServer extends ChatService {
 
     @OnOpen
     public void onOpen(Session session, EndpointConfig config) throws IOException {
-        String httpSessionId = (String)config.getUserProperties().get("httpSessionId");
-        String username = (String)config.getUserProperties().get("username");
-        if (StringUtils.isEmpty(httpSessionId) || StringUtils.isEmpty(username)) {
+        String username = (String)config.getUserProperties().get(ChatService.USERNAME_PROP);
+        String httpSessionId = (String)config.getUserProperties().get(ChatService.HTTP_SESSION_ID);
+        if (StringUtils.isEmpty(username) || StringUtils.isEmpty(httpSessionId)) {
             String reason = "User authentication failed";
             session.close(new CloseReason(CloseReason.CloseCodes.CANNOT_ACCEPT, reason));
             throw new IOException(reason);

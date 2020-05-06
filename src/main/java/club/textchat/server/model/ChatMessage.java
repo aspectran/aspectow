@@ -16,11 +16,11 @@
 package club.textchat.server.model;
 
 import club.textchat.server.model.payload.AbnormalAccessPayload;
-import club.textchat.server.model.payload.BroadcastAvailableUsersPayload;
-import club.textchat.server.model.payload.BroadcastConnectedUserPayload;
-import club.textchat.server.model.payload.BroadcastDisconnectedUserPayload;
-import club.textchat.server.model.payload.BroadcastTextMessagePayload;
-import club.textchat.server.model.payload.SendTextMessagePayload;
+import club.textchat.server.model.payload.BroadcastJoinedUsersPayload;
+import club.textchat.server.model.payload.BroadcastUserJoinedPayload;
+import club.textchat.server.model.payload.BroadcastUserLeavedPayload;
+import club.textchat.server.model.payload.BroadcastMessagePayload;
+import club.textchat.server.model.payload.SendMessagePayload;
 import club.textchat.server.model.payload.WelcomeUserPayload;
 import com.aspectran.core.util.apon.AbstractParameters;
 import com.aspectran.core.util.apon.ParameterKey;
@@ -39,11 +39,11 @@ public class ChatMessage extends AbstractParameters {
     private static final ParameterKey heartBeat;
     private static final ParameterKey welcomeUser;
     private static final ParameterKey abnormalAccess;
-    private static final ParameterKey broadcastAvailableUsers;
-    private static final ParameterKey broadcastConnectedUser;
-    private static final ParameterKey broadcastDisconnectedUser;
-    private static final ParameterKey broadcastTextMessage;
-    private static final ParameterKey sendTextMessage;
+    private static final ParameterKey broadcastJoinedUsers;
+    private static final ParameterKey broadcastUserJoined;
+    private static final ParameterKey broadcastUserLeaved;
+    private static final ParameterKey broadcastMessage;
+    private static final ParameterKey sendMessage;
 
     private static final ParameterKey[] parameterKeys;
 
@@ -51,21 +51,21 @@ public class ChatMessage extends AbstractParameters {
         heartBeat = new ParameterKey("heartBeat", ValueType.STRING);
         welcomeUser = new ParameterKey("welcomeUser", WelcomeUserPayload.class);
         abnormalAccess = new ParameterKey("abnormalAccess", AbnormalAccessPayload.class);
-        broadcastAvailableUsers = new ParameterKey("broadcastAvailableUsers", BroadcastAvailableUsersPayload.class);
-        broadcastConnectedUser = new ParameterKey("broadcastConnectedUser", BroadcastConnectedUserPayload.class);
-        broadcastDisconnectedUser = new ParameterKey("broadcastDisconnectedUser", BroadcastDisconnectedUserPayload.class);
-        broadcastTextMessage = new ParameterKey("broadcastTextMessage", BroadcastTextMessagePayload.class);
-        sendTextMessage = new ParameterKey("sendTextMessage", SendTextMessagePayload.class);
+        broadcastJoinedUsers = new ParameterKey("broadcastJoinedUsers", BroadcastJoinedUsersPayload.class);
+        broadcastUserJoined = new ParameterKey("broadcastUserJoined", BroadcastUserJoinedPayload.class);
+        broadcastUserLeaved = new ParameterKey("broadcastUserLeaved", BroadcastUserLeavedPayload.class);
+        broadcastMessage = new ParameterKey("broadcastMessage", BroadcastMessagePayload.class);
+        sendMessage = new ParameterKey("sendMessage", SendMessagePayload.class);
 
         parameterKeys = new ParameterKey[] {
                 heartBeat,
                 welcomeUser,
                 abnormalAccess,
-                broadcastAvailableUsers,
-                broadcastConnectedUser,
-                broadcastDisconnectedUser,
-                broadcastTextMessage,
-                sendTextMessage
+                broadcastJoinedUsers,
+                broadcastUserJoined,
+                broadcastUserLeaved,
+                broadcastMessage,
+                sendMessage
         };
     }
 
@@ -83,24 +83,24 @@ public class ChatMessage extends AbstractParameters {
         putValue(abnormalAccess, abnormalAccessPayload);
     }
 
-    public ChatMessage(BroadcastAvailableUsersPayload broadcastAvailableUsersPayload) {
+    public ChatMessage(BroadcastJoinedUsersPayload broadcastJoinedUsersPayload) {
         this();
-        putValue(broadcastAvailableUsers, broadcastAvailableUsersPayload);
+        putValue(broadcastJoinedUsers, broadcastJoinedUsersPayload);
     }
 
-    public ChatMessage(BroadcastConnectedUserPayload broadcastConnectedUserPayload) {
+    public ChatMessage(BroadcastUserJoinedPayload broadcastUserJoinedPayload) {
         this();
-        putValue(broadcastConnectedUser, broadcastConnectedUserPayload);
+        putValue(broadcastUserJoined, broadcastUserJoinedPayload);
     }
 
-    public ChatMessage(BroadcastDisconnectedUserPayload broadcastDisconnectedUserPayload) {
+    public ChatMessage(BroadcastUserLeavedPayload broadcastUserLeavedPayload) {
         this();
-        putValue(broadcastDisconnectedUser, broadcastDisconnectedUserPayload);
+        putValue(broadcastUserLeaved, broadcastUserLeavedPayload);
     }
 
-    public ChatMessage(BroadcastTextMessagePayload broadcastTextMessagePayload) {
+    public ChatMessage(BroadcastMessagePayload broadcastMessagePayload) {
         this();
-        putValue(broadcastTextMessage, broadcastTextMessagePayload);
+        putValue(broadcastMessage, broadcastMessagePayload);
     }
 
     public boolean heartBeatPing() {
@@ -112,8 +112,8 @@ public class ChatMessage extends AbstractParameters {
         putValue(heartBeat, HEARTBEAT_PONG_MSG);
     }
 
-    public SendTextMessagePayload getSendTextMessagePayload() {
-        return getParameters(sendTextMessage);
+    public SendMessagePayload getSendMessagePayload() {
+        return getParameters(sendMessage);
     }
 
 }

@@ -22,12 +22,12 @@ public class ConversationsPersistence extends AbstractPersistence {
     }
 
     public void save(ChatMessage message) {
-        String roomId = "1";
+        String roomId = "0";
         rpush(KEY_PREFIX + roomId, message, maxSaveMessages);
     }
 
     public List<ChatMessage> getRecentConversations() {
-        String roomId = "1";
+        String roomId = "0";
         List<String> list = lrange(KEY_PREFIX + roomId, maxSaveMessages);
         List<ChatMessage> result = new ArrayList<>(list.size());
         for (String str : list) {
