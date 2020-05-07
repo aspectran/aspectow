@@ -81,10 +81,39 @@ body {
 }
 .sidebar {
     position: relative;
-    padding: 15px;
+    padding: 0;
     background-color: #bbedfe;
-    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
     overflow: auto;
+}
+.footer .sidebar {
+    overflow: hidden;
+    padding: 0;
+}
+.lobby .sidebar {
+    background-color: #c7eefc;
+}
+.sidebar .user {
+    background-color: #abe8fd;
+}
+.sidebar .user .avatar {
+    background-color: #89d6fc;
+    width: 70px;
+    height: 70px;
+}
+.sidebar .user i {
+    color: #fabc03;
+}
+.sidebar .user ul {
+    list-style-type: none;
+    margin: 6px;
+    overflow: auto;
+}
+.sidebar .user ul li {
+    margin: 0;
+    padding: 0;
+}
+.side-menu {
+
 }
 #sign-in {
     padding: 20px;
@@ -102,6 +131,9 @@ body {
 }
 #sign-in .form-error {
     font-size: 1em;
+}
+#contacts {
+    padding: 15px;
 }
 #contacts .contact {
     padding: 5px;
@@ -190,42 +222,20 @@ body {
 #conversations .message.sent .sender {
     font-weight: bold;
 }
-#conversations .message.sent.same-sender-previous-message .sender,
-#conversations .message.received.same-sender-previous-message .sender {
+#conversations .message.sent.same-sender .sender,
+#conversations .message.received.same-sender .sender {
     display: none;
 }
-#conversations .message:not(.same-sender-previous-message) {
+#conversations .message:not(.same-sender) {
     margin-top: 8px;
+}
+#send-message .input-group {
+    margin: 0;
 }
 .footer {
     padding: 0;
     height: 70px !important;
 }
-.robby .footer {
+.lobby .footer .bottom {
     display: none;
-}
-.footer .sidebar {
-    padding: 0;
-}
-.footer .sidebar .pic {
-    background-color: #95d6f6;
-    width: 70px;
-    height: 70px;
-}
-.footer .sidebar i {
-    color: #fabc03;
-}
-.footer .sidebar ul {
-    list-style-type: none;
-    margin: 6px;
-    overflow: auto;
-}
-.footer .sidebar ul li {
-    margin: 0;
-    padding: 0;
-}
-#send-message {
-}
-#send-message .input-group {
-    margin: 0;
 }

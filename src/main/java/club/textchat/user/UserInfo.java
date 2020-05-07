@@ -14,8 +14,6 @@ public class UserInfo implements Serializable {
 
     private String prevUsername;
 
-    private String roomId;
-
     public int getUserNo() {
         return userNo;
     }
@@ -40,21 +38,12 @@ public class UserInfo implements Serializable {
         this.prevUsername = prevUsername;
     }
 
-    public String getRoomId() {
-        return roomId;
-    }
-
-    public void setRoomId(String roomId) {
-        this.roomId = roomId;
-    }
-
     @Override
     public String toString() {
         ToStringBuilder tsb = new ToStringBuilder();
         tsb.append("userNo", userNo);
         tsb.append("username", username);
         tsb.append("prevUsername", prevUsername);
-        tsb.append("roomId", roomId);
         return tsb.toString();
     }
 

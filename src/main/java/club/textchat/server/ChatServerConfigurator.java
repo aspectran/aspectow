@@ -8,6 +8,8 @@ import javax.servlet.http.HttpSession;
 import javax.websocket.HandshakeResponse;
 import javax.websocket.server.HandshakeRequest;
 import javax.websocket.server.ServerEndpointConfig;
+import java.util.List;
+import java.util.Map;
 
 public class ChatServerConfigurator extends AspectranConfigurator {
 
@@ -16,13 +18,20 @@ public class ChatServerConfigurator extends AspectranConfigurator {
                                 HandshakeRequest request,
                                 HandshakeResponse response) {
         super.modifyHandshake(config, request, response);
+
+        Map<String, List<String>> map = request.getParameterMap();
+
+
+
         HttpSession httpSession = (HttpSession)request.getHttpSession();
         if (httpSession != null) {
             UserInfo userInfo = (UserInfo)httpSession.getAttribute(UserManager.USER_INFO_SESSION_KEY);
             if (userInfo != null) {
-                config.getUserProperties().put(ChatService.USERNAME_PROP, userInfo.getUsername());
-                config.getUserProperties().put(ChatService.PREV_USERNAME_PROP, userInfo.getPrevUsername());
-                config.getUserProperties().put(ChatService.HTTP_SESSION_ID, httpSession.getId());
+                TalkerInfo talkerInfo = new TalkerInfo();
+                talkerInfo.setUsername(userInfo.getUsername());
+                talkerInfo.setPrevUsername(userInfo.getPrevUsername());
+                talkerInfo.setHttpSessionId(httpSession.getId());
+                config.getUserProperties().put(TalkerInfo.TALKER_INFO_PROP, talkerInfo);
             }
         }
     }

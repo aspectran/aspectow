@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package club.textchat.server.model.payload;
+package club.textchat.server.message.payload;
 
 import com.aspectran.core.util.apon.AbstractParameters;
 import com.aspectran.core.util.apon.ParameterKey;
@@ -24,33 +24,26 @@ import com.aspectran.core.util.apon.ValueType;
  *
  * <p>Created: 2019/10/09</p>
  */
-public class BroadcastUserJoinedPayload extends AbstractParameters {
+public class UserLeftPayload extends AbstractParameters {
 
     private static final ParameterKey username;
-    private static final ParameterKey prevUsername;
 
     private static final ParameterKey[] parameterKeys;
 
     static {
         username = new ParameterKey("username", ValueType.STRING);
-        prevUsername = new ParameterKey("prevUsername", ValueType.STRING);
 
         parameterKeys = new ParameterKey[] {
-                username,
-                prevUsername
+                username
         };
     }
 
-    public BroadcastUserJoinedPayload() {
+    public UserLeftPayload() {
         super(parameterKeys);
     }
 
     public void setUsername(String username) {
-        putValue(BroadcastUserJoinedPayload.username, username);
-    }
-
-    public void setPrevUsername(String prevUsername) {
-        putValue(BroadcastUserJoinedPayload.prevUsername, prevUsername);
+        putValue(UserLeftPayload.username, username);
     }
 
 }

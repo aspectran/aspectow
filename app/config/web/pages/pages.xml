@@ -5,26 +5,40 @@
 
     <translet name="/">
         <echo id="page">
-            <item name="title">Robby</item>
-            <item name="description">Chat with anyone you want, about anything you want, free.</item>
-            <item name="include">pages/robby</item>
+            <item name="include">pages/index</item>
         </echo>
         <dispatch name="templates/default"/>
     </translet>
 
-    <translet name="/chat/">
+    <translet name="/lobby">
         <echo id="page">
-            <item name="title">Chat Room</item>
-            <item name="description">Chat with anyone you want, about anything you want, free.</item>
+            <item name="title">Lobby</item>
+            <item name="include">pages/lobby</item>
+        </echo>
+        <dispatch name="templates/default"/>
+    </translet>
+
+    <translet name="/chat">
+        <echo id="page">
+            <item name="title">Chat room</item>
             <item name="include">pages/chat</item>
         </echo>
         <dispatch name="templates/default"/>
     </translet>
 
-    <translet name="/ping">
-        <transform type="text" contentType="text/plain">
-            <template>pong</template>
-        </transform>
-    </translet>
+    <aspect id="checkUserAuthenticatedAspect" order="1">
+        <joinpoint>
+            pointcut: {
+                +: /**
+                -: /
+                -: /guest/signin
+            }
+        </joinpoint>
+        <advice bean="userManager">
+            <before>
+                <invoke method="checkUserAuthenticated"/>
+            </before>
+        </advice>
+    </aspect>
 
 </aspectran>

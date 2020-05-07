@@ -16,19 +16,16 @@ public class UsernamesPersistence extends AbstractPersistence {
         this.expiryPeriodInSeconds = expiryPeriodInSeconds;
     }
 
+    @Override
     public String get(String username) {
-        return super.get(KEY_PREFIX + makeQualified(username));
+        return super.get(KEY_PREFIX + qualify(username));
     }
 
-    public void setByJoin(String username, String httpSessionId) {
-        super.set(KEY_PREFIX + makeQualified(username), httpSessionId);
+    public void put(String username, String httpSessionId) {
+        super.setex(KEY_PREFIX + qualify(username), httpSessionId, expiryPeriodInSeconds);
     }
 
-    public void setByLeave(String username, String httpSessionId) {
-        super.setex(KEY_PREFIX + makeQualified(username), httpSessionId, expiryPeriodInSeconds);
-    }
-
-    private String makeQualified(String username) {
+    private String qualify(String username) {
         return username;
     }
 

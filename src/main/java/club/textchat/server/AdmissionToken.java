@@ -13,57 +13,47 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package club.textchat.server.model.payload;
+package club.textchat.server;
 
 import com.aspectran.core.util.apon.AbstractParameters;
 import com.aspectran.core.util.apon.ParameterKey;
 import com.aspectran.core.util.apon.ValueType;
 
-/**
- * Payload with details of a message sent by the client.
- *
- * <p>Created: 2019/10/09</p>
- */
-public class SendMessagePayload extends AbstractParameters {
+public class AdmissionToken extends AbstractParameters {
 
-    private static final ParameterKey type;
     private static final ParameterKey username;
-    private static final ParameterKey content;
+    private static final ParameterKey roomId;
 
     private static final ParameterKey[] parameterKeys;
 
     static {
-        type = new ParameterKey("type", ValueType.STRING);
         username = new ParameterKey("username", ValueType.STRING);
-        content = new ParameterKey("content", ValueType.TEXT);
+        roomId = new ParameterKey("roomId", ValueType.STRING);
 
         parameterKeys = new ParameterKey[] {
-                type,
                 username,
-                content
+                roomId
         };
     }
 
-    public enum MessageType {
-        CHAT,
-        JOIN,
-        LEAVE
-    }
-
-    public SendMessagePayload() {
+    public AdmissionToken() {
         super(parameterKeys);
     }
 
-    public MessageType getType() {
-        return MessageType.valueOf(getString(type));
-    }
-
     public String getUsername() {
-        return getString(username);
+        return getString(AdmissionToken.username);
     }
 
-    public String getContent() {
-        return getString(content);
+    public void setUsername(String username) {
+        putValue(AdmissionToken.username, username);
+    }
+
+    public String getRoomId() {
+        return getString(AdmissionToken.roomId);
+    }
+
+    public void setRoomId(String roomId) {
+        putValue(AdmissionToken.roomId, roomId);
     }
 
 }

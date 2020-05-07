@@ -22,7 +22,7 @@
         </arguments>
     </bean>
 
-    <bean class="club.textchat.persistence.RoomsPersistence">
+    <bean class="club.textchat.persistence.TalkersPersistence">
         <arguments>
             <item>#{redisConnectionPool-1}</item>
         </arguments>

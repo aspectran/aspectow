@@ -5,6 +5,7 @@ import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.sync.RedisCommands;
 
 import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
 
 /**
@@ -26,25 +27,29 @@ public class AbstractPersistence {
         }
     }
 
-    public String get(String key) {
+    protected String get(String key) {
         return sync(c -> c.get(key));
     }
 
-    public void set(String key, String value) {
+    protected void set(String key, String value) {
         sync(c -> c.set(key, value));
     }
 
-    public void setex(String key, String value, int timeout) {
+    protected void setex(String key, String value, int timeout) {
         sync(c -> c.setex(key, timeout, value));
     }
 
-    public long rpush(String key, Parameters value) {
-        return sync(c -> c.rpush(key, value.toString()));
+    protected long rpush(String key, String value) {
+        return sync(c -> c.rpush(key, value));
     }
 
-    public void rpush(String key, Parameters value, int limit) {
+    protected long rpush(String key, Parameters value) {
+        return rpush(key, value.toString());
+    }
+
+    protected void rpush(String key, Parameters value, int limit) {
         sync(c -> {
-            long len = c.rpush(key, value.toString());
+            long len = rpush(key, value);
             if (len > limit) {
                 c.ltrim(key, -limit, -1);
             }
@@ -52,8 +57,24 @@ public class AbstractPersistence {
         });
     }
 
-    public List<String> lrange(String key, int limit) {
+    protected List<String> lrange(String key) {
+        return sync(c -> c.lrange(key, 0, -1));
+    }
+
+    protected List<String> lrange(String key, int limit) {
         return sync(c -> c.lrange(key, -limit, -1));
+    }
+
+    protected long sadd(String key, String value) {
+        return sync(c -> c.sadd(key, value));
+    }
+
+    protected long srem(String key, String value) {
+        return sync(c -> c.srem(key, value));
+    }
+
+    protected Set<String> smembers(String key) {
+        return sync(c -> c.smembers(key));
     }
 
 }

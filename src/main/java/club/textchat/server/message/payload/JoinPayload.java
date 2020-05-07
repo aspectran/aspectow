@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package club.textchat.server.model.payload;
+package club.textchat.server.message.payload;
 
-import club.textchat.server.model.ChatMessage;
+import club.textchat.server.message.ChatMessage;
 import com.aspectran.core.util.apon.AbstractParameters;
 import com.aspectran.core.util.apon.ParameterKey;
 import com.aspectran.core.util.apon.ValueType;
@@ -27,7 +27,7 @@ import java.util.List;
  *
  * <p>Created: 2019/10/09</p>
  */
-public class WelcomeUserPayload extends AbstractParameters {
+public class JoinPayload extends AbstractParameters {
 
     private static final ParameterKey username;
     private static final ParameterKey recentConversations;
@@ -47,12 +47,12 @@ public class WelcomeUserPayload extends AbstractParameters {
         };
     }
 
-    public WelcomeUserPayload() {
+    public JoinPayload() {
         super(parameterKeys);
     }
 
     public void setUsername(String username) {
-        putValue(WelcomeUserPayload.username, username);
+        putValue(JoinPayload.username, username);
     }
 
     public void setRecentConversations(List<ChatMessage> messages) {
@@ -64,7 +64,7 @@ public class WelcomeUserPayload extends AbstractParameters {
     }
 
     public void setRejoin(boolean rejoin) {
-        putValue(WelcomeUserPayload.rejoin, rejoin);
+        putValue(JoinPayload.rejoin, rejoin);
     }
 
 }

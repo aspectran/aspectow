@@ -1,6 +1,6 @@
 package club.textchat.persistence;
 
-import club.textchat.server.model.ChatMessage;
+import club.textchat.server.message.ChatMessage;
 import com.aspectran.core.util.apon.AponReader;
 
 import java.io.IOException;
@@ -21,13 +21,11 @@ public class ConversationsPersistence extends AbstractPersistence {
         this.maxSaveMessages = maxSaveMessages;
     }
 
-    public void save(ChatMessage message) {
-        String roomId = "0";
+    public void put(String roomId, ChatMessage message) {
         rpush(KEY_PREFIX + roomId, message, maxSaveMessages);
     }
 
-    public List<ChatMessage> getRecentConversations() {
-        String roomId = "0";
+    public List<ChatMessage> getRecentConversations(String roomId) {
         List<String> list = lrange(KEY_PREFIX + roomId, maxSaveMessages);
         List<ChatMessage> result = new ArrayList<>(list.size());
         for (String str : list) {

@@ -13,37 +13,44 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package club.textchat.server.model.payload;
+package club.textchat.server.message.payload;
 
 import com.aspectran.core.util.apon.AbstractParameters;
 import com.aspectran.core.util.apon.ParameterKey;
 import com.aspectran.core.util.apon.ValueType;
 
 /**
- * Represents the payload of a WebSocket frame to broadcast details of a user who has connected to the chat.
+ * Represents the payload of a WebSocket frame to broadcast a text message.
  *
  * <p>Created: 2019/10/09</p>
  */
-public class BroadcastUserLeftPayload extends AbstractParameters {
+public class BroadcastPayload extends AbstractParameters {
 
     private static final ParameterKey username;
+    private static final ParameterKey content;
 
     private static final ParameterKey[] parameterKeys;
 
     static {
         username = new ParameterKey("username", ValueType.STRING);
+        content = new ParameterKey("content", ValueType.TEXT);
 
         parameterKeys = new ParameterKey[] {
-                username
+                username,
+                content
         };
     }
 
-    public BroadcastUserLeftPayload() {
+    public BroadcastPayload() {
         super(parameterKeys);
     }
 
     public void setUsername(String username) {
-        putValue(BroadcastUserLeftPayload.username, username);
+        putValue(BroadcastPayload.username, username);
+    }
+
+    public void setContent(String content) {
+        putValue(BroadcastPayload.content, content);
     }
 
 }

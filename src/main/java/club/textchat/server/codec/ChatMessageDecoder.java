@@ -15,7 +15,7 @@
  */
 package club.textchat.server.codec;
 
-import club.textchat.server.model.ChatMessage;
+import club.textchat.server.message.ChatMessage;
 import com.aspectran.core.util.apon.JsonToApon;
 
 import javax.websocket.DecodeException;

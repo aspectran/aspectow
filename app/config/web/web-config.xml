@@ -36,4 +36,10 @@
     <append file="/config/web/common/xss-prevent.xml"/>
     <append file="/config/web/pages/pages.xml"/>
 
+    <translet name="/ping">
+        <transform type="text" contentType="text/plain">
+            <template>pong</template>
+        </transform>
+    </translet>
+
 </aspectran>

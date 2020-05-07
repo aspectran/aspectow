@@ -1,6 +1,6 @@
 system: {
     properties: {
-        aspectran.encryption.password: <TextChat00!@#>
+        aspectran.encryption.password: <@TextChat!>
     }
 }
 context: {

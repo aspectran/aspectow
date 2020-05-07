@@ -16,13 +16,15 @@
 package club.textchat.server;
 
 import club.textchat.persistence.ConversationsPersistence;
+import club.textchat.persistence.TalkersPersistence;
 import club.textchat.persistence.UsernamesPersistence;
 import club.textchat.server.codec.ChatMessageDecoder;
 import club.textchat.server.codec.ChatMessageEncoder;
-import club.textchat.server.model.ChatMessage;
+import club.textchat.server.message.ChatMessage;
 import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Component;
-import com.aspectran.core.util.StringUtils;
+import com.aspectran.core.util.security.InvalidPBTokenException;
+import com.aspectran.core.util.security.TimeLimitedPBTokenIssuer;
 
 import javax.websocket.CloseReason;
 import javax.websocket.EndpointConfig;
@@ -31,6 +33,7 @@ import javax.websocket.OnError;
 import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
+import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
 
@@ -41,27 +44,40 @@ import java.io.IOException;
  */
 @Component
 @ServerEndpoint(
-        value = "/chat",
+        value = "/chat/{admissionToken}",
         encoders = ChatMessageEncoder.class,
         decoders = ChatMessageDecoder.class,
         configurator = ChatServerConfigurator.class
 )
-public class ChatServer extends ChatService {
+public class ChatServer extends ChatHandler {
 
     @Autowired
-    public ChatServer(UsernamesPersistence usernamesPersistence, ConversationsPersistence conversationsPersistence) {
-        super(usernamesPersistence, conversationsPersistence);
+    public ChatServer(UsernamesPersistence usernamesPersistence,
+                      TalkersPersistence talkersPersistence,
+                      ConversationsPersistence conversationsPersistence) {
+        super(usernamesPersistence, talkersPersistence, conversationsPersistence);
     }
 
     @OnOpen
-    public void onOpen(Session session, EndpointConfig config) throws IOException {
-        String username = (String)config.getUserProperties().get(ChatService.USERNAME_PROP);
-        String httpSessionId = (String)config.getUserProperties().get(ChatService.HTTP_SESSION_ID);
-        if (StringUtils.isEmpty(username) || StringUtils.isEmpty(httpSessionId)) {
+    public void onOpen(@PathParam("admissionToken") String encryptedAdmissionToken,
+                       Session session, EndpointConfig config) throws IOException {
+        AdmissionToken admissionToken;
+        try {
+            admissionToken = TimeLimitedPBTokenIssuer.getPayload(encryptedAdmissionToken, AdmissionToken.class);
+        } catch (InvalidPBTokenException e) {
+            String reason = "Access denied due to invalid admission token";
+            session.close(new CloseReason(CloseReason.CloseCodes.CANNOT_ACCEPT, reason));
+            throw new IOException(reason);
+        }
+
+        TalkerInfo talkerInfo = (TalkerInfo)config.getUserProperties().get(TalkerInfo.TALKER_INFO_PROP);
+        if (talkerInfo == null || !talkerInfo.getUsername().equals(admissionToken.getUsername())) {
             String reason = "User authentication failed";
             session.close(new CloseReason(CloseReason.CloseCodes.CANNOT_ACCEPT, reason));
             throw new IOException(reason);
         }
+
+        talkerInfo.setRoomId(admissionToken.getRoomId());
     }
 
     @OnMessage

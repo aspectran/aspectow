@@ -48,13 +48,14 @@ public class UserAction {
 
         String httpSessionId = usernamesPersistence.get(username);
         if (httpSessionId != null) {
-            String sessionId = userManager.getSessionId();
-            if (!httpSessionId.equals(sessionId)) {
+            if (!httpSessionId.equals(userManager.getSessionId())) {
                 return new DefaultRestResponse()
                         .setData("result", -2)
                         .ok();
             }
         }
+
+        usernamesPersistence.put(username, userManager.getSessionId());
 
         UserInfo userInfo = new UserInfo();
         userInfo.setUsername(username);

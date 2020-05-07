@@ -13,41 +13,56 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package club.textchat.server.model.payload;
+package club.textchat.server.message.payload;
 
 import com.aspectran.core.util.apon.AbstractParameters;
 import com.aspectran.core.util.apon.ParameterKey;
 import com.aspectran.core.util.apon.ValueType;
 
-import java.util.Set;
-
 /**
- * Represents the payload of a WebSocket frame to broadcast the available users.
+ * Payload with details of a message sent by the client.
  *
  * <p>Created: 2019/10/09</p>
  */
-public class BroadcastJoinedUsersPayload extends AbstractParameters {
+public class MessagePayload extends AbstractParameters {
 
-    private static final ParameterKey usernames;
+    private static final ParameterKey type;
+    private static final ParameterKey username;
+    private static final ParameterKey content;
 
     private static final ParameterKey[] parameterKeys;
 
     static {
-        usernames = new ParameterKey("usernames", ValueType.STRING, true);
+        type = new ParameterKey("type", ValueType.STRING);
+        username = new ParameterKey("username", ValueType.STRING);
+        content = new ParameterKey("content", ValueType.TEXT);
 
         parameterKeys = new ParameterKey[] {
-                usernames
+                type,
+                username,
+                content
         };
     }
 
-    public BroadcastJoinedUsersPayload() {
+    public enum MessageType {
+        CHAT,
+        JOIN
+    }
+
+    public MessagePayload() {
         super(parameterKeys);
     }
 
-    public void setUsernames(Set<String> usernames) {
-        for (String username : usernames) {
-            putValue(BroadcastJoinedUsersPayload.usernames, username);
-        }
+    public MessageType getType() {
+        return MessageType.valueOf(getString(type));
+    }
+
+    public String getUsername() {
+        return getString(username);
+    }
+
+    public String getContent() {
+        return getString(content);
     }
 
 }
