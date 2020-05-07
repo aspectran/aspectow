@@ -11,7 +11,7 @@
     </div>
     <div class="body shadow cell auto cell-block-container">
         <div class="grid-x grid-padding-x grid-padding-y full-height">
-            <div id="contacts-wrap" class="sidebar cell medium-4 large-3 cell-block-y hide-for-small-only">
+            <div id="contacts-wrap" class="sidebar cell medium-4 large-3 cell-block-y show-for-medium">
                 <div id="contacts"></div>
             </div>
             <div class="cell auto cell-block-y">
@@ -35,7 +35,7 @@
     </div>
     <div class="footer shadow cell">
         <div class="grid-x grid-padding-x grid-padding-y full-height">
-            <div class="sidebar cell small-12 medium-4 large-3 cell-block-y hide-for-small-only">
+            <div class="sidebar cell medium-4 large-3 cell-block-y show-for-medium">
             </div>
             <div class="cell auto cell-block-y">
             </div>

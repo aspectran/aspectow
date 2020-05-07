@@ -18,7 +18,7 @@ body {
     background: #35505b;
 }
 .grid-frame > .cell {
-    max-width: 1200px;
+    max-width: 1280px;
     margin: 0 auto;
 }
 .grid-frame > .shadow.cell {
@@ -186,13 +186,31 @@ body {
     font-weight: bold;
 }
 .footer {
-    background-color: #f5f5f5;
     padding: 0;
-}
-.footer .sidebar {
+    height: 70px !important;
 }
 .robby .footer {
     display: none;
+}
+.footer .sidebar {
+    padding: 0;
+}
+.footer .sidebar .pic {
+    background-color: #95d6f6;
+    width: 70px;
+    height: 70px;
+}
+.footer .sidebar i {
+    color: #fabc03;
+}
+.footer .sidebar ul {
+    list-style-type: none;
+    margin: 6px;
+    overflow: auto;
+}
+.footer .sidebar ul li {
+    margin: 0;
+    padding: 0;
 }
 #send-message {
 }
