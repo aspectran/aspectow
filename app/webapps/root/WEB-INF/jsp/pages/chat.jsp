@@ -2,13 +2,13 @@
 <div class="wrap grid-y grid-frame">
     <div class="header grid-container grid-padding-x cell header cell-block-container">
         <div class="left">
-            <button type="button" class="button">
+            <button type="button" class="button" title="People">
                 <i class="fi-results-demographics"></i>
                 <span id="totalPeople"></span></button>
             <h2>Chat</h2>
         </div>
         <div class="right">
-            <button type="button" class="button leave"><i class="fi-power"></i> Leave</button>
+            <button type="button" class="button leave" title="Leave the chat room"><i class="fi-power"></i></button>
         </div>
     </div>
     <div class="shadow-wrap grid-container cell auto cell-block-container">
@@ -37,6 +37,17 @@
             </div>
         </div>
     </div>
+</div>
+<div id="connection-lost" class="reveal" data-reveal>
+    <h1>Connection lost</h1>
+    <p class="lead">You have lost connection with the server.</p>
+    <div class="button-group align-right">
+        <a class="success button" href="/">Home</a>
+        <a class="warning button" href="">Reload this page</a>
+    </div>
+    <button class="close-button" data-close aria-label="Close modal" type="button">
+        <span aria-hidden="true">&times;</span>
+    </button>
 </div>
 <script>
     const currentUser = "${user.username}";
@@ -103,7 +114,13 @@
             if (aborted) {
                 location.href = "/";
             } else {
-                location.reload();
+                $.ajax('/ping')
+                    .done(function() {
+                        location.reload();
+                    })
+                    .fail(function() {
+                        $('#connection-lost').foundation('open');
+                    });
             }
         };
 
@@ -150,7 +167,7 @@
                         addUser(payload.username);
                         printJoinMessage(payload.username, payload.prevUsername);
                         break;
-                    case "broadcastUserLeaved":
+                    case "broadcastUserLeft":
                         removeUser(payload.username);
                         printLeaveMessage(payload.username);
                         break;
@@ -324,7 +341,7 @@
                         case "broadcastUserJoined":
                             printJoinMessage(payload.username, payload.prevUsername, false);
                             break;
-                        case "broadcastUserLeaved":
+                        case "broadcastUserLeft":
                             printLeaveMessage(payload.username, false);
                             break;
                     }

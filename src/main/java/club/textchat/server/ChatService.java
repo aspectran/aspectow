@@ -7,7 +7,7 @@ import club.textchat.server.model.payload.AbnormalAccessPayload;
 import club.textchat.server.model.payload.BroadcastJoinedUsersPayload;
 import club.textchat.server.model.payload.BroadcastMessagePayload;
 import club.textchat.server.model.payload.BroadcastUserJoinedPayload;
-import club.textchat.server.model.payload.BroadcastUserLeavedPayload;
+import club.textchat.server.model.payload.BroadcastUserLeftPayload;
 import club.textchat.server.model.payload.SendMessagePayload;
 import club.textchat.server.model.payload.WelcomeUserPayload;
 import com.aspectran.core.activity.InstantActivitySupport;
@@ -138,7 +138,7 @@ public abstract class ChatService extends InstantActivitySupport {
         String username = getUsername(session);
         if (username != null && sessions.remove(username, session)) {
             usernamesPersistence.setByLeave(username, getHttpSessionId(session));
-            broadcastUserLeaved(username);
+            broadcastUserLeft(username);
         }
     }
 
@@ -151,8 +151,8 @@ public abstract class ChatService extends InstantActivitySupport {
         broadcast(message, session);
     }
 
-    private void broadcastUserLeaved(String username) {
-        BroadcastUserLeavedPayload payload = new BroadcastUserLeavedPayload();
+    private void broadcastUserLeft(String username) {
+        BroadcastUserLeftPayload payload = new BroadcastUserLeftPayload();
         payload.setUsername(username);
         ChatMessage message = new ChatMessage(payload);
         conversationsPersistence.save(message);

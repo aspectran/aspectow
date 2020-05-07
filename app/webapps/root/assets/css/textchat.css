@@ -75,6 +75,12 @@ body {
 }
 .header .right button.leave {
     background-color: #e85757;
+    font-size: 20px;
+    padding: 12px;
+    height: 46px;
+}
+.header .right button.leave:hover {
+    background-color: #e73737;
 }
 .sidebar {
     position: relative;
@@ -92,7 +98,7 @@ body {
 }
 #sign-in h4 {
     margin-bottom: 20px;
-    color: #555555;
+    color: #555;
 }
 #sign-in .input-group {
     max-width: 500px;

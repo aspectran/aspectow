@@ -24,7 +24,7 @@ import com.aspectran.core.util.apon.ValueType;
  *
  * <p>Created: 2019/10/09</p>
  */
-public class BroadcastUserLeavedPayload extends AbstractParameters {
+public class BroadcastUserLeftPayload extends AbstractParameters {
 
     private static final ParameterKey username;
 
@@ -38,12 +38,12 @@ public class BroadcastUserLeavedPayload extends AbstractParameters {
         };
     }
 
-    public BroadcastUserLeavedPayload() {
+    public BroadcastUserLeftPayload() {
         super(parameterKeys);
     }
 
     public void setUsername(String username) {
-        putValue(BroadcastUserLeavedPayload.username, username);
+        putValue(BroadcastUserLeftPayload.username, username);
     }
 
 }

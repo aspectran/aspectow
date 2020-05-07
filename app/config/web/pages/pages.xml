@@ -21,4 +21,10 @@
         <dispatch name="templates/default"/>
     </translet>
 
+    <translet name="/ping">
+        <transform type="text" contentType="text/plain">
+            <template>pong</template>
+        </transform>
+    </translet>
+
 </aspectran>

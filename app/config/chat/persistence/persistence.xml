@@ -31,7 +31,7 @@
     <bean class="club.textchat.persistence.ConversationsPersistence">
         <arguments>
             <item>#{redisConnectionPool-1}</item>
-            <item valueType="int">100</item>
+            <item valueType="int">30</item>
         </arguments>
     </bean>
 

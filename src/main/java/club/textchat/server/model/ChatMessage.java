@@ -19,7 +19,7 @@ import club.textchat.server.model.payload.AbnormalAccessPayload;
 import club.textchat.server.model.payload.BroadcastJoinedUsersPayload;
 import club.textchat.server.model.payload.BroadcastMessagePayload;
 import club.textchat.server.model.payload.BroadcastUserJoinedPayload;
-import club.textchat.server.model.payload.BroadcastUserLeavedPayload;
+import club.textchat.server.model.payload.BroadcastUserLeftPayload;
 import club.textchat.server.model.payload.SendMessagePayload;
 import club.textchat.server.model.payload.WelcomeUserPayload;
 import com.aspectran.core.util.apon.AbstractParameters;
@@ -41,7 +41,7 @@ public class ChatMessage extends AbstractParameters {
     private static final ParameterKey abnormalAccess;
     private static final ParameterKey broadcastJoinedUsers;
     private static final ParameterKey broadcastUserJoined;
-    private static final ParameterKey broadcastUserLeaved;
+    private static final ParameterKey broadcastUserLeft;
     private static final ParameterKey broadcastMessage;
     private static final ParameterKey sendMessage;
 
@@ -53,7 +53,7 @@ public class ChatMessage extends AbstractParameters {
         abnormalAccess = new ParameterKey("abnormalAccess", AbnormalAccessPayload.class);
         broadcastJoinedUsers = new ParameterKey("broadcastJoinedUsers", BroadcastJoinedUsersPayload.class);
         broadcastUserJoined = new ParameterKey("broadcastUserJoined", BroadcastUserJoinedPayload.class);
-        broadcastUserLeaved = new ParameterKey("broadcastUserLeaved", BroadcastUserLeavedPayload.class);
+        broadcastUserLeft = new ParameterKey("broadcastUserLeft", BroadcastUserLeftPayload.class);
         broadcastMessage = new ParameterKey("broadcastMessage", BroadcastMessagePayload.class);
         sendMessage = new ParameterKey("sendMessage", SendMessagePayload.class);
 
@@ -63,7 +63,7 @@ public class ChatMessage extends AbstractParameters {
                 abnormalAccess,
                 broadcastJoinedUsers,
                 broadcastUserJoined,
-                broadcastUserLeaved,
+                broadcastUserLeft,
                 broadcastMessage,
                 sendMessage
         };
@@ -93,9 +93,9 @@ public class ChatMessage extends AbstractParameters {
         putValue(broadcastUserJoined, broadcastUserJoinedPayload);
     }
 
-    public ChatMessage(BroadcastUserLeavedPayload broadcastUserLeavedPayload) {
+    public ChatMessage(BroadcastUserLeftPayload broadcastUserLeftPayload) {
         this();
-        putValue(broadcastUserLeaved, broadcastUserLeavedPayload);
+        putValue(broadcastUserLeft, broadcastUserLeftPayload);
     }
 
     public ChatMessage(BroadcastMessagePayload broadcastMessagePayload) {

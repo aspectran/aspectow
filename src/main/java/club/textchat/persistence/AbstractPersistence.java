@@ -53,7 +53,7 @@ public class AbstractPersistence {
     }
 
     public List<String> lrange(String key, int limit) {
-        return sync(c -> c.lrange(key, 0, limit - 1));
+        return sync(c -> c.lrange(key, -limit, -1));
     }
 
 }
