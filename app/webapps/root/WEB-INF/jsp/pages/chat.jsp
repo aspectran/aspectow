@@ -70,7 +70,7 @@
             sendMessage();
             return false;
         });
-        $(".header .left button").click(function() {
+        $(".header button.people").click(function() {
             $(".sidebar").toggle()
             $("#contacts-wrap").toggleClass("hide-for-small-only");
             if ($("#contacts-wrap").hasClass("hide-for-small-only") || !$("#contacts-wrap").is(":visible")) {
