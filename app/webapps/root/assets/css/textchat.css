@@ -138,13 +138,18 @@ body {
     overflow-y: auto;
 }
 #conversations .message {
-    margin-bottom: 5px;
+    margin-top: 4px;
+    margin-bottom: 4px;
 }
 #conversations .message .content {
     border-radius: 20px;
     padding: 8px 16px;
     margin: 0;
     display: table;
+}
+#conversations .message.event {
+    margin-top: 0;
+    margin-bottom: 8px;
 }
 #conversations .message.event .content {
     padding: 7px 20px;
@@ -185,6 +190,13 @@ body {
 #conversations .message.sent .sender {
     font-weight: bold;
 }
+#conversations .message.sent.same-sender-previous-message .sender,
+#conversations .message.received.same-sender-previous-message .sender {
+    display: none;
+}
+#conversations .message:not(.same-sender-previous-message) {
+    margin-top: 8px;
+}
 .footer {
     padding: 0;
     height: 70px !important;
@@ -216,11 +228,4 @@ body {
 }
 #send-message .input-group {
     margin: 0;
-}
-#conversations .message.sent.same-sender-previous-message .sender,
-#conversations .message.received.same-sender-previous-message .sender {
-    display: none;
-}
-#conversations .message:not(.same-sender-previous-message) {
-    margin-top: 10px;
 }

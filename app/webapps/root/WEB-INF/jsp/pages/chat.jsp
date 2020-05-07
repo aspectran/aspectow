@@ -14,12 +14,12 @@
         </div>
     </div>
     <div class="body shadow cell auto cell-block-container">
-        <div class="grid-x grid-padding-x grid-padding-y full-height">
+        <div class="grid-x full-height">
             <div id="contacts-wrap" class="sidebar cell medium-4 large-3 cell-block-y show-for-medium">
                 <div id="contacts"></div>
             </div>
             <div class="cell auto cell-block-y">
-                <div id="conversations" class="full-height"></div>
+                <div id="conversations" class="grid-container full-height"></div>
             </div>
         </div>
     </div>
