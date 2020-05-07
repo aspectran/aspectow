@@ -15,72 +15,69 @@ body:before {
     box-shadow: 0 4px 8px 0 rgba(255, 255, 255, 0.2), 0 60px 120px 0 rgba(255, 255, 255, 0.19);
 }
 body {
-    background: #4c7483;
+    background: #35505b;
 }
-.full-height {
-    height: 100%
+.grid-frame > .cell {
+    max-width: 1200px;
+    margin: 0 auto;
 }
-.shadow-wrap {
-    background-color: #f5f5f5;
-    padding: 0;
+.grid-frame > .shadow.cell {
+    background-color: #fff;
     box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
 }
+.header .grid-x {
+    min-height: 50px;
+}
+.full-height {
+    height: 100%;
+}
 .header {
-    background-color: #35505B;
-    color: #fff;
     position: relative;
-    height: 50px !important;
+    background-color: #35505b;
+    color: #fff;
 }
-.header .left {
-    float: left;
-}
-.header .left h2 {
+.header h2 {
     font-size: 24px;
-    line-height: 50px;
+    line-height: 1;
     display: inline;
     margin: 0;
 }
-.header .left .badge {
+.header .badge {
     font-size: 20px;
     margin: 0 6px;
     padding: 4px;
     min-width: 34px;
     line-height: 26px;
 }
-.header .left button {
-    margin: 0 6px 0 0;
+.header button {
+    margin: 0;
     border-radius: 6px;
-    color: #fff;
     vertical-align: baseline;
     height: 30px;
     font-size: 24px;
     padding: 0 6px;
     line-height: 30px;
-    background-color: #13cf91
 }
-.header .left button span {
+.header button.people {
+    margin: 0 6px 0 0;
+    color: #fff;
+    background-color: #13cfcf;
+    min-width: 65px;
+    text-align: left;
+}
+.header button.people span {
     font-size: .8em;
     vertical-align: top;
     margin: 0 4px;
 }
-.header .right {
-    position: absolute;
-    right: 15px;
-    bottom: -4px;
-}
-.header .right button {
-    margin: 0;
-    border-radius: 50% 50% 6px 6px;
-    color: #fff;
-}
-.header .right button.leave {
+.header button.leave {
     background-color: #e85757;
-    font-size: 20px;
-    padding: 12px;
-    height: 46px;
 }
-.header .right button.leave:hover {
+.header button.leave:hover {
     background-color: #e73737;
+}
+.body {
+    background-color: #fff;
 }
 .sidebar {
     position: relative;
@@ -107,7 +104,6 @@ body {
     font-size: 1em;
 }
 #contacts .contact {
-    margin: 0 -5px 5px;
     padding: 5px;
     position: relative;
     border-radius: 8px;
@@ -139,7 +135,6 @@ body {
     display: inline-block;
 }
 #conversations {
-    padding: 0 15px;
     overflow-y: auto;
 }
 #conversations .message {
@@ -196,10 +191,12 @@ body {
 }
 .footer .sidebar {
 }
-#chat-controls {
-    padding: 0 15px;
+.robby .footer {
+    display: none;
 }
-#chat-controls .input-group {
+#send-message {
+}
+#send-message .input-group {
     margin: 0;
 }
 #conversations .message.sent.same-sender-previous-message .sender,

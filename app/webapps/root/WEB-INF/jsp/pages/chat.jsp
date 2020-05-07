@@ -1,18 +1,20 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
-<div class="wrap grid-y grid-frame">
-    <div class="header grid-container grid-padding-x cell header cell-block-container">
-        <div class="left">
-            <button type="button" class="button" title="People">
-                <i class="fi-results-demographics"></i>
-                <span id="totalPeople"></span></button>
-            <h2>Chat</h2>
-        </div>
-        <div class="right">
-            <button type="button" class="button leave" title="Leave the chat room"><i class="fi-power"></i></button>
+<div class="grid-y grid-frame">
+    <div class="header cell cell-block-container">
+        <div class="grid-x grid-padding-x">
+            <div class="cell auto align-self-middle">
+                <button type="button" class="button people" title="People">
+                    <i class="fi-results-demographics"></i>
+                    <span id="totalPeople">0</span></button>
+                <h2>Chat</h2>
+            </div>
+            <div class="cell shrink align-self-middle text-right">
+                <button type="button" class="button leave" title="Leave the chat room"><i class="fi-power"></i></button>
+            </div>
         </div>
     </div>
-    <div class="shadow-wrap grid-container cell auto cell-block-container">
-        <div class="grid-x grid-padding-y full-height">
+    <div class="body shadow cell auto cell-block-container">
+        <div class="grid-x grid-padding-x grid-padding-y full-height">
             <div id="contacts-wrap" class="sidebar cell medium-4 large-3 cell-block-y hide-for-small-only">
                 <div id="contacts"></div>
             </div>
@@ -21,12 +23,12 @@
             </div>
         </div>
     </div>
-    <div class="footer shadow-wrap grid-container cell">
-        <div class="grid-x grid-padding-y full-height">
+    <div class="footer shadow cell">
+        <div class="grid-x grid-padding-x grid-padding-y full-height">
             <div class="sidebar cell small-12 medium-4 large-3 cell-block-y hide-for-small-only">
             </div>
             <div class="cell auto cell-block-y">
-                <form id="chat-controls">
+                <form id="send-message">
                     <div class="input-group">
                         <input class="input-group-field" type="text" id="message" autocomplete="off" placeholder="Type a message..."/>
                         <div class="input-group-button">
@@ -61,7 +63,7 @@
             location.href = "/";
         }
 
-        $("form#chat-controls").submit(function() {
+        $("form#send-message").submit(function() {
             if (!$("#contacts-wrap").hasClass("hide-for-small-only")) {
                 $("#contacts-wrap").addClass("hide-for-small-only");
             }

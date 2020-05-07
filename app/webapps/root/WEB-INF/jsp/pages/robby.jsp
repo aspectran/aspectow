@@ -1,15 +1,17 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
-<div class="wrap grid-y grid-frame">
-    <div class="header grid-container grid-padding-x cell header cell-block-container">
-        <div class="left">
-            <h2><i class="fi-results-demographics"></i> Text Chat Club</h2>
-        </div>
-        <div class="right">
+<div class="robby grid-y grid-frame">
+    <div class="header cell cell-block-container">
+        <div class="grid-x grid-padding-x">
+            <div class="cell auto align-self-middle">
+                <h2><i class="fi-results-demographics"></i> Text Chat Club</h2>
+            </div>
+            <div class="cell shrink align-self-middle text-right">
+            </div>
         </div>
     </div>
-    <div class="shadow-wrap grid-container cell auto cell-block-container">
-        <div class="grid-x grid-padding-y full-height">
-            <div class="sidebar cell medium-4 large-3 cell-block-y hide-for-small-only">
+    <div class="body shadow cell auto cell-block-container">
+        <div class="grid-x grid-padding-x grid-padding-y full-height">
+            <div id="contacts-wrap" class="sidebar cell medium-4 large-3 cell-block-y hide-for-small-only">
                 <div id="contacts"></div>
             </div>
             <div class="cell auto cell-block-y">
@@ -31,8 +33,8 @@
             </div>
         </div>
     </div>
-    <div class="footer shadow-wrap grid-container cell">
-        <div class="grid-x grid-padding-y full-height">
+    <div class="footer shadow cell">
+        <div class="grid-x grid-padding-x grid-padding-y full-height">
             <div class="sidebar cell small-12 medium-4 large-3 cell-block-y hide-for-small-only">
             </div>
             <div class="cell auto cell-block-y">
