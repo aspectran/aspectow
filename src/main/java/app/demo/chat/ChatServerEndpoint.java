@@ -25,8 +25,8 @@ import app.demo.chat.model.payload.BroadcastTextMessagePayload;
 import app.demo.chat.model.payload.DuplicatedUserPayload;
 import app.demo.chat.model.payload.SendTextMessagePayload;
 import app.demo.chat.model.payload.WelcomeUserPayload;
+import com.aspectran.core.activity.InstantActivitySupport;
 import com.aspectran.core.component.bean.annotation.Component;
-import com.aspectran.web.socket.jsr356.ActivityContextAwareEndpoint;
 import com.aspectran.web.socket.jsr356.AspectranConfigurator;
 
 import javax.websocket.CloseReason;
@@ -52,7 +52,7 @@ import java.util.concurrent.ConcurrentHashMap;
         decoders = ChatMessageDecoder.class,
         configurator = AspectranConfigurator.class
 )
-public class ChatServerEndpoint extends ActivityContextAwareEndpoint {
+public class ChatServerEndpoint extends InstantActivitySupport {
 
     private static final Map<String, Session> sessions = new ConcurrentHashMap<>();
 
