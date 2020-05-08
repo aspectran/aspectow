@@ -62,15 +62,6 @@ shell: {
         com.aspectran.shell.command.builtins.QuitCommand
     ]
     session: {
-        workerName: node0
-        maxSessions: 999
-        maxIdleSeconds: 1800
-        evictionIdleSeconds: 900
-        scavengingIntervalSeconds: 600
-        removeUnloadableSessions: true
-        fileStore: {
-            storeDir: /temp/sessions/shell
-        }
         enabled: true
     }
     workingDir: /work
@@ -96,6 +87,9 @@ daemon: {
         com.aspectran.daemon.command.builtins.RestartCommand
         com.aspectran.daemon.command.builtins.QuitCommand
     ]
+    session: {
+        enabled: true
+    }
     exposals: {
         -: /**
     }
