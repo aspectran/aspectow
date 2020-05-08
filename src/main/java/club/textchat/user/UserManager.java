@@ -1,92 +1,178 @@
 package club.textchat.user;
 
+import club.textchat.persistence.UsernamesPersistence;
+import com.aspectran.core.activity.InstantActivitySupport;
 import com.aspectran.core.activity.Translet;
 import com.aspectran.core.adapter.SessionAdapter;
+import com.aspectran.core.component.bean.ablility.InitializableBean;
+import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.AvoidAdvice;
 import com.aspectran.core.component.bean.annotation.Bean;
 import com.aspectran.core.component.bean.annotation.Component;
-import com.aspectran.core.component.bean.aware.ActivityContextAware;
-import com.aspectran.core.context.ActivityContext;
+import com.aspectran.core.component.session.Session;
+import com.aspectran.core.component.session.SessionListener;
+import com.aspectran.core.component.session.SessionListenerRegistration;
+import com.aspectran.core.lang.NonNull;
 
+import javax.servlet.annotation.WebListener;
 import java.util.HashMap;
 
 @Component
 @Bean("userManager")
 @AvoidAdvice
-public class UserManager implements ActivityContextAware {
+public class UserManager extends InstantActivitySupport implements InitializableBean {
 
     /**
      * The key used to store the UserInfo
      */
     public static final String USER_INFO_SESSION_KEY = "user";
 
-    public static final String PREV_USERNAME = "_prev_username_";
+    public static final String PREV_USERNAME = "--prev-username--";
 
-    public static final String EXPIRED_TIME = "_expired_time_";
+    public static final String EXPIRED_TIME = "--expired-time--";
 
-    private ActivityContext activityContext;
+    private final UsernamesPersistence usernamesPersistence;
 
-    public void save(UserInfo userInfo) {
-        String prevUsername = getSessionAdapter().getAttribute(PREV_USERNAME);
+    @Autowired
+    public UserManager(UsernamesPersistence usernamesPersistence) {
+        this.usernamesPersistence = usernamesPersistence;
+    }
+
+    public void saveUserInfo(UserInfo userInfo) {
+        SessionAdapter sessionAdapter = getSessionAdapter();
+        String prevUsername = sessionAdapter.getAttribute(PREV_USERNAME);
         if (prevUsername != null && !prevUsername.equals(userInfo.getUsername())) {
             userInfo.setPrevUsername(prevUsername);
         }
-        getSessionAdapter().setAttribute(USER_INFO_SESSION_KEY, userInfo);
-        getSessionAdapter().setAttribute(PREV_USERNAME, userInfo.getUsername());
+        sessionAdapter.setAttribute(USER_INFO_SESSION_KEY, userInfo);
+        sessionAdapter.setAttribute(PREV_USERNAME, userInfo.getUsername());
     }
 
-    public void remove() {
-        UserInfo userInfo = getUserInfo();
-        getSessionAdapter().removeAttribute(USER_INFO_SESSION_KEY);
+    public void removeUserInfo() {
+        SessionAdapter sessionAdapter = getSessionAdapter();
+        UserInfo userInfo = sessionAdapter.getAttribute(USER_INFO_SESSION_KEY);
         if (userInfo != null) {
-            getSessionAdapter().setAttribute(PREV_USERNAME, userInfo.getUsername());
-            getSessionAdapter().setAttribute(EXPIRED_TIME, System.currentTimeMillis());
+            sessionAdapter.removeAttribute(USER_INFO_SESSION_KEY);
+            sessionAdapter.setAttribute(PREV_USERNAME, userInfo.getUsername());
+            sessionAdapter.setAttribute(EXPIRED_TIME, System.currentTimeMillis());
         }
     }
 
     public void checkUserAuthenticated() {
-        Translet translet = activityContext.getCurrentActivity().getTranslet();
+        Translet translet = getCurrentActivity().getTranslet();
         if (translet == null) {
             throw new UnsupportedOperationException("There is no translet in " +
-                    activityContext.getCurrentActivity());
+                    getCurrentActivity());
         }
-        UserInfo userInfo = getUserInfo();
-        if (userInfo == null) {
+        try {
+            getUserInfo();
+        } catch (LoginRequiredException e) {
             translet.redirect("/", new HashMap<String, String>() {{
                 put("referrer", translet.getRequestName());
             }});
         }
     }
 
+    public boolean isAnotherUser(String username) {
+        String httpSessionId = usernamesPersistence.get(username);
+        if (httpSessionId != null) {
+            if (!httpSessionId.equals(getSessionId())) {
+                return true;
+            }
+        }
+        //TODO 토커 체크
+        return false;
+    }
+
+    @NonNull
     public UserInfo getUserInfo() {
         try {
-            return getSessionAdapter().getAttribute(USER_INFO_SESSION_KEY);
+            UserInfo userInfo = getSessionAdapter().getAttribute(USER_INFO_SESSION_KEY);
+            if (userInfo == null) {
+                throw new LoginRequiredException();
+            }
+            return userInfo;
         } catch (ClassCastException e) {
             // Exception that can occur if the UserInfo class changes during development.
             getSessionAdapter().invalidate();
-            return null;
+            throw new RuntimeException(e);
         }
     }
 
+    @NonNull
     public String getSessionId() {
         return getSessionAdapter().getId();
     }
 
     private SessionAdapter getSessionAdapter() {
-        if (activityContext == null) {
-            throw new IllegalArgumentException("ActivityContext is not injected");
-        }
-        SessionAdapter sessionAdapter = activityContext.getCurrentActivity().getSessionAdapter();
+        SessionAdapter sessionAdapter = getCurrentActivity().getSessionAdapter();
         if (sessionAdapter == null) {
             throw new UnsupportedOperationException("There is no SessionAdapter in " +
-                    activityContext.getCurrentActivity());
+                    getCurrentActivity());
         }
         return sessionAdapter;
     }
 
     @Override
-    public void setActivityContext(ActivityContext activityContext) {
-        this.activityContext = activityContext;
+    public void initialize() throws Exception {
+        SessionListenerRegistration sessionListenerRegistration = getBeanRegistry().getBean(SessionListenerRegistration.class);
+        if (sessionListenerRegistration == null) {
+            throw new IllegalStateException("Bean for SessionListenerRegistration must be defined");
+        }
+        sessionListenerRegistration.register(new UserInfoUnboundListener(usernamesPersistence));
+    }
+
+    @WebListener
+    public static class UserInfoUnboundListener implements SessionListener {
+
+        private final UsernamesPersistence usernamesPersistence;
+
+        public UserInfoUnboundListener(UsernamesPersistence usernamesPersistence) {
+            this.usernamesPersistence = usernamesPersistence;
+        }
+
+        public void sessionDestroyed(Session session) {
+            abandonUsername(session);
+        }
+
+        public void attributeAdded(Session session, String name, Object value) {
+            acquireUsername(name, value, session.getId());
+        }
+
+        @Override
+        public void attributeUpdated(Session session, String name, Object newValue, Object oldValue) {
+            if (oldValue != null && oldValue != newValue) {
+                abandonUsername(name, oldValue, session.getId());
+            }
+            acquireUsername(name, newValue, session.getId());
+        }
+
+        @Override
+        public void attributeRemoved(Session session, String name, Object oldValue) {
+            abandonUsername(name, oldValue, session.getId());
+        }
+
+        private void acquireUsername(String name, Object value, String sessionId) {
+            if (USER_INFO_SESSION_KEY.equals(name)) {
+                UserInfo userInfo = (UserInfo)value;
+                usernamesPersistence.acquire(userInfo.getUsername(), sessionId);
+            }
+        }
+
+        private void abandonUsername(String name, Object value, String sessionId) {
+            if (USER_INFO_SESSION_KEY.equals(name)) {
+                UserInfo userInfo = (UserInfo)value;
+                usernamesPersistence.abandon(userInfo.getUsername(), sessionId);
+            }
+        }
+
+        private void abandonUsername(Session session) {
+            UserInfo userInfo = session.getAttribute(USER_INFO_SESSION_KEY);
+            if (userInfo != null) {
+                usernamesPersistence.abandon(userInfo.getUsername(), session.getId());
+            }
+        }
+
     }
 
 }

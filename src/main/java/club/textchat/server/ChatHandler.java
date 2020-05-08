@@ -111,7 +111,7 @@ public abstract class ChatHandler extends InstantActivitySupport {
                 replaced = true;
             }
             talkersPersistence.put(talkerInfo.getRoomId(), talkerInfo.getUsername());
-            usernamesPersistence.put(talkerInfo.getUsername(), talkerInfo.getHttpSessionId());
+            usernamesPersistence.acquire(talkerInfo.getUsername(), talkerInfo.getHttpSessionId());
             JoinPayload payload = new JoinPayload();
             payload.setUsername(talkerInfo.getUsername());
             payload.setRecentConversations(conversationsPersistence.getRecentConversations(talkerInfo.getRoomId()));
@@ -125,6 +125,7 @@ public abstract class ChatHandler extends InstantActivitySupport {
     private void abort(Session session, TalkerInfo talkerInfo, String cause) {
         if (talkers.remove(talkerInfo, session)) {
             talkersPersistence.remove(talkerInfo.getRoomId(), talkerInfo.getUsername());
+            usernamesPersistence.abandonIfNotExist(talkerInfo.getUsername(), talkerInfo.getHttpSessionId());
         }
         AbortPayload payload = new AbortPayload();
         payload.setCause(cause);
@@ -136,6 +137,7 @@ public abstract class ChatHandler extends InstantActivitySupport {
         TalkerInfo talkerInfo = getTalkerInfo(session);
         if (talkers.remove(talkerInfo, session)) {
             talkersPersistence.remove(talkerInfo.getRoomId(), talkerInfo.getUsername());
+            usernamesPersistence.abandonIfNotExist(talkerInfo.getUsername(), talkerInfo.getHttpSessionId());
             broadcastUserLeft(talkerInfo);
         }
     }

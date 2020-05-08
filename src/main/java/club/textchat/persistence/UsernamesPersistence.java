@@ -21,8 +21,16 @@ public class UsernamesPersistence extends AbstractPersistence {
         return super.get(KEY_PREFIX + qualify(username));
     }
 
-    public void put(String username, String httpSessionId) {
-        super.setex(KEY_PREFIX + qualify(username), httpSessionId, expiryPeriodInSeconds);
+    public void acquire(String username, String httpSessionId) {
+        set(KEY_PREFIX + qualify(username), httpSessionId);
+    }
+
+    public void abandon(String username, String httpSessionId) {
+        setex(KEY_PREFIX + qualify(username), httpSessionId, expiryPeriodInSeconds);
+    }
+
+    public void abandonIfNotExist(String username, String httpSessionId) {
+        setexIfNotExist(KEY_PREFIX + qualify(username), httpSessionId, expiryPeriodInSeconds);
     }
 
     private String qualify(String username) {

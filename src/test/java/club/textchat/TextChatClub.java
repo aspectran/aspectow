@@ -26,7 +26,7 @@ import java.io.IOException;
 /**
  * Main entry point for the application.
  */
-public class TextChat {
+public class TextChatClub {
 
     public static void main(String[] args) {
         try {

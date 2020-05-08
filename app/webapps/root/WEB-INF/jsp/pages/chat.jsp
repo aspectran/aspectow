@@ -6,7 +6,7 @@
                 <button type="button" class="button people" title="People">
                     <i class="fi-results-demographics"></i>
                     <span id="totalPeople">0</span></button>
-                <h2>Chat</h2>
+                <h2>${page.roomName}</h2>
             </div>
             <div class="cell shrink align-self-middle text-right">
                 <button type="button" class="button leave" title="Leave the chat room"><i class="fi-power"></i></button>
@@ -16,7 +16,7 @@
     <div class="body shadow cell auto cell-block-container">
         <div class="grid-x full-height">
             <div class="sidebar cell medium-4 large-3 cell-block-y show-for-medium">
-                <div id="contacts"></div>
+                <ul id="contacts"></ul>
             </div>
             <div class="cell auto cell-block-y">
                 <div id="conversations" class="grid-container full-height"></div>
@@ -24,7 +24,7 @@
         </div>
     </div>
     <div class="footer shadow cell">
-        <div class="grid-x grid-padding-x grid-padding-y full-height">
+        <div class="grid-x grid-padding-x grid-padding-y">
             <div class="sidebar cell medium-4 large-3 cell-block-y show-for-medium">
                 <%@ include file="includes/footer-sidebar-user.jsp" %>
             </div>

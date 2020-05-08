@@ -45,10 +45,6 @@ public class ChatAction {
         UserInfo userInfo = userManager.getUserInfo();
         String username = userInfo.getUsername();
 
-        Parameters params = new VariableParameters();
-        params.putValue("username", username);
-        params.putValue("roomId", roomId);
-
         AdmissionToken admissionToken = new AdmissionToken();
         admissionToken.setUsername(username);
         admissionToken.setRoomId(roomId);
@@ -58,6 +54,7 @@ public class ChatAction {
         Map<String, String> map = new HashMap<>();
         map.put("include", "pages/chat");
         map.put("username", username);
+        map.put("roomName", roomId);
         map.put("admissionToken", encryptedAdmissionToken);
         return map;
     }

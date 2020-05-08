@@ -39,6 +39,15 @@ public class AbstractPersistence {
         sync(c -> c.setex(key, timeout, value));
     }
 
+    protected void setexIfNotExist(String key, String value, int timeout) {
+        sync(c -> {
+            if (c.get(key) == null) {
+                c.setex(key, timeout, value);
+            }
+            return null;
+        });
+    }
+
     protected long rpush(String key, String value) {
         return sync(c -> c.rpush(key, value));
     }

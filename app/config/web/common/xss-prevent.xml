@@ -3,7 +3,7 @@
         "http://aspectran.github.io/dtd/aspectran-6.dtd">
 <aspectran>
 
-    <bean id="xssPreventionFilter" class="club.textchat.common.filter.XSSPreventionFilter">
+    <bean id="xssPreventionFilter" class="club.textchat.common.filter.XSSPreventionFilter" important="true">
         <description>
             <![CDATA[
             // Avoid anything between script tags

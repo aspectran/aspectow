@@ -179,8 +179,8 @@ function leaveRoom() {
 }
 
 function addUser(username) {
-    let contact = $("<div/>").addClass("contact").data("username", username);
-    let status = $("<div/>").addClass("status");
+    let contact = $("<li/>").addClass("contact").data("username", username);
+    let status = $("<div/>").addClass("status badge");
     let badge = $("<i class='badge fi-record'/>");
     let name = $("<div/>").addClass("name").text(username);
     contact.append(status.append(badge)).append(name).appendTo($("#contacts"));
