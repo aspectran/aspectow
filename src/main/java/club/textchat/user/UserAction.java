@@ -1,6 +1,5 @@
 package club.textchat.user;
 
-import club.textchat.persistence.UsernamesPersistence;
 import club.textchat.recaptcha.ReCaptchaVerifier;
 import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Bean;
@@ -13,15 +12,8 @@ import com.aspectran.core.util.logging.Logger;
 import com.aspectran.core.util.logging.LoggerFactory;
 import com.aspectran.web.activity.response.DefaultRestResponse;
 import com.aspectran.web.activity.response.RestResponse;
-import io.undertow.server.session.Session;
-import io.undertow.server.session.SessionListener;
-import io.undertow.websockets.core.WebSocketChannel;
-import io.undertow.websockets.core.WebSockets;
 
-import javax.websocket.CloseReason;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 @Component
 @Bean("userAction")
@@ -31,13 +23,9 @@ public class UserAction {
 
     private final UserManager userManager;
 
-    private final UsernamesPersistence usernamesPersistence;
-
     @Autowired
-    public UserAction(UserManager userManager,
-                      UsernamesPersistence usernamesPersistence) {
+    public UserAction(UserManager userManager) {
         this.userManager = userManager;
-        this.usernamesPersistence = usernamesPersistence;
     }
 
     @RequestToPost("/guest/signin")

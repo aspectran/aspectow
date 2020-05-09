@@ -23,8 +23,11 @@ import club.textchat.server.message.payload.MessagePayload;
 import club.textchat.server.message.payload.UserJoinedPayload;
 import club.textchat.server.message.payload.UserLeftPayload;
 import com.aspectran.core.util.apon.AbstractParameters;
+import com.aspectran.core.util.apon.AponReader;
 import com.aspectran.core.util.apon.ParameterKey;
 import com.aspectran.core.util.apon.ValueType;
+
+import java.io.IOException;
 
 /**
  * The Chat Message.
@@ -36,41 +39,46 @@ public class ChatMessage extends AbstractParameters {
     private static final String HEARTBEAT_PING_MSG = "--ping--";
     private static final String HEARTBEAT_PONG_MSG = "--pong--";
 
-    private static final ParameterKey heartBeat;
     private static final ParameterKey join;
     private static final ParameterKey joinedUsers;
     private static final ParameterKey userJoined;
     private static final ParameterKey userLeft;
     private static final ParameterKey message;
     private static final ParameterKey broadcast;
+    private static final ParameterKey heartBeat;
     private static final ParameterKey abort;
 
     private static final ParameterKey[] parameterKeys;
 
     static {
-        heartBeat = new ParameterKey("heartBeat", ValueType.STRING);
         join = new ParameterKey("join", JoinPayload.class);
         joinedUsers = new ParameterKey("joinedUsers", JoinedUsersPayload.class);
         userJoined = new ParameterKey("userJoined", UserJoinedPayload.class);
         userLeft = new ParameterKey("userLeft", UserLeftPayload.class);
         message = new ParameterKey("message", MessagePayload.class);
         broadcast = new ParameterKey("broadcast", BroadcastPayload.class);
+        heartBeat = new ParameterKey("heartBeat", ValueType.STRING);
         abort = new ParameterKey("abort", AbortPayload.class);
 
         parameterKeys = new ParameterKey[] {
-                heartBeat,
                 join,
                 joinedUsers,
                 userJoined,
                 userLeft,
                 message,
                 broadcast,
+                heartBeat,
                 abort
         };
     }
 
     public ChatMessage() {
         super(parameterKeys);
+    }
+
+    public ChatMessage(String text) throws IOException {
+        this();
+        AponReader.parse(text, this);
     }
 
     public ChatMessage(JoinPayload joinPayload) {
@@ -112,8 +120,20 @@ public class ChatMessage extends AbstractParameters {
         putValue(heartBeat, HEARTBEAT_PONG_MSG);
     }
 
+    public UserJoinedPayload getUserJoinedPayload() {
+        return getParameters(userJoined);
+    }
+
+    public UserLeftPayload getUserLeftPayload() {
+        return getParameters(userLeft);
+    }
+
     public MessagePayload getMessagePayload() {
         return getParameters(message);
+    }
+
+    public BroadcastPayload getBroadcastPayload() {
+        return getParameters(broadcast);
     }
 
 }

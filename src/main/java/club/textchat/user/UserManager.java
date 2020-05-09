@@ -61,7 +61,7 @@ public class UserManager extends InstantActivitySupport implements Initializable
     public void checkUserAuthenticated() {
         Translet translet = getCurrentActivity().getTranslet();
         if (translet == null) {
-            throw new UnsupportedOperationException("There is no translet in " +
+            throw new UnsupportedOperationException("No such translet in " +
                     getCurrentActivity());
         }
         try {
@@ -107,7 +107,7 @@ public class UserManager extends InstantActivitySupport implements Initializable
     private SessionAdapter getSessionAdapter() {
         SessionAdapter sessionAdapter = getCurrentActivity().getSessionAdapter();
         if (sessionAdapter == null) {
-            throw new UnsupportedOperationException("There is no SessionAdapter in " +
+            throw new UnsupportedOperationException("No such SessionAdapter in " +
                     getCurrentActivity());
         }
         return sessionAdapter;

@@ -3,7 +3,7 @@
         "http://aspectran.github.io/dtd/aspectran-6.dtd">
 <aspectran>
 
-    <bean id="redisConnectionPool-1" class="club.textchat.persistence.RedisConnectionPool">
+    <bean id="redisConnectionPool" class="club.textchat.persistence.RedisConnectionPool">
         <arguments>
             <item>
                 <bean class="club.textchat.persistence.RedisConnectionPoolConfig">
@@ -17,20 +17,20 @@
 
     <bean class="club.textchat.persistence.UsernamesPersistence">
         <arguments>
-            <item>#{redisConnectionPool-1}</item>
+            <item>#{redisConnectionPool}</item>
             <item valueType="int">10</item>
         </arguments>
     </bean>
 
     <bean class="club.textchat.persistence.TalkersPersistence">
         <arguments>
-            <item>#{redisConnectionPool-1}</item>
+            <item>#{redisConnectionPool}</item>
         </arguments>
     </bean>
 
     <bean class="club.textchat.persistence.ConversationsPersistence">
         <arguments>
-            <item>#{redisConnectionPool-1}</item>
+            <item>#{redisConnectionPool}</item>
             <item valueType="int">30</item>
         </arguments>
     </bean>

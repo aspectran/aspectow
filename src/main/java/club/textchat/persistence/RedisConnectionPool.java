@@ -17,9 +17,11 @@ package club.textchat.persistence;
 
 import com.aspectran.core.component.bean.ablility.DisposableBean;
 import com.aspectran.core.component.bean.ablility.InitializableBean;
+import com.aspectran.core.util.Assert;
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.RedisURI;
 import io.lettuce.core.api.StatefulRedisConnection;
+import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
 import io.lettuce.core.support.ConnectionPoolSupport;
 import org.apache.commons.pool2.impl.GenericObjectPool;
 
@@ -42,10 +44,14 @@ public class RedisConnectionPool implements ConnectionPool, InitializableBean, D
 
     @Override
     public StatefulRedisConnection<String, String> getConnection() throws Exception {
-        if (pool == null) {
-            throw new IllegalStateException("RedisConnectionPool is not initialized");
-        }
+        Assert.state(pool != null, "No RedisConnectionPool configured");
         return pool.borrowObject();
+    }
+
+    @Override
+    public StatefulRedisPubSubConnection<String, String> getPubSubConnection() {
+        Assert.state(client != null, "No RedisClient configured");
+        return client.connectPubSub();
     }
 
     @Override

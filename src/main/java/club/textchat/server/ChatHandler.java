@@ -152,46 +152,39 @@ public abstract class ChatHandler extends InstantActivitySupport {
 
     private void broadcastUserJoined(TalkerInfo talkerInfo) {
         UserJoinedPayload payload = new UserJoinedPayload();
+        payload.setRoomId(talkerInfo.getRoomId());
         payload.setUsername(talkerInfo.getUsername());
         payload.setPrevUsername(talkerInfo.getPrevUsername());
         ChatMessage message = new ChatMessage(payload);
         conversationsPersistence.put(talkerInfo.getRoomId(), message);
-        broadcast(message, talkerInfo);
+        //broadcast(message, talkerInfo.getRoomId(), talkerInfo.getUsername());
     }
 
     private void broadcastUserLeft(TalkerInfo talkerInfo) {
         UserLeftPayload payload = new UserLeftPayload();
+        payload.setRoomId(talkerInfo.getRoomId());
         payload.setUsername(talkerInfo.getUsername());
         ChatMessage message = new ChatMessage(payload);
         conversationsPersistence.put(talkerInfo.getRoomId(), message);
-        broadcast(message, talkerInfo.getRoomId());
+        //broadcast(message, talkerInfo.getRoomId(), null);
     }
 
-    private void broadcastMessage(TalkerInfo talkerInfo, String text) {
+    private void broadcastMessage(TalkerInfo talkerInfo, String content) {
         BroadcastPayload payload = new BroadcastPayload();
-        payload.setContent(text);
+        payload.setRoomId(talkerInfo.getRoomId());
+        payload.setContent(content);
         payload.setUsername(talkerInfo.getUsername());
         ChatMessage message = new ChatMessage(payload);
         conversationsPersistence.put(talkerInfo.getRoomId(), message);
-        broadcast(message, talkerInfo);
+        //broadcast(message, talkerInfo.getRoomId(), talkerInfo.getUsername());
     }
 
-    private void broadcast(ChatMessage message, String roomId) {
+    public void broadcast(ChatMessage message, String roomId, String excluded) {
         for (Map.Entry<TalkerInfo, Session> entry : talkers.entrySet()) {
             TalkerInfo talkerInfo = entry.getKey();
             Session session = entry.getValue();
-            if (talkerInfo.getRoomId().equals(roomId)) {
-                send(session, message);
-            }
-        }
-    }
-
-    private void broadcast(ChatMessage message, TalkerInfo ignoredTalkerInfo) {
-        for (Map.Entry<TalkerInfo, Session> entry : talkers.entrySet()) {
-            TalkerInfo talkerInfo = entry.getKey();
-            Session session = entry.getValue();
-            if (talkerInfo.getRoomId().equals(ignoredTalkerInfo.getRoomId()) &&
-                    !talkerInfo.getUsername().equals(ignoredTalkerInfo.getUsername())) {
+            if (talkerInfo.getRoomId().equals(roomId) &&
+                    (excluded == null || !excluded.equals(talkerInfo.getUsername()))) {
                 send(session, message);
             }
         }

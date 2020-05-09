@@ -1,6 +1,5 @@
 package club.textchat.chat;
 
-import club.textchat.persistence.UsernamesPersistence;
 import club.textchat.server.AdmissionToken;
 import club.textchat.user.UserInfo;
 import club.textchat.user.UserManager;
@@ -11,12 +10,7 @@ import com.aspectran.core.component.bean.annotation.Component;
 import com.aspectran.core.component.bean.annotation.Dispatch;
 import com.aspectran.core.component.bean.annotation.Request;
 import com.aspectran.core.component.bean.annotation.Required;
-import com.aspectran.core.util.apon.Parameters;
-import com.aspectran.core.util.apon.VariableParameters;
-import com.aspectran.core.util.logging.Logger;
-import com.aspectran.core.util.logging.LoggerFactory;
 import com.aspectran.core.util.security.TimeLimitedPBTokenIssuer;
-import com.aspectran.daemon.AbstractDaemon;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -25,17 +19,11 @@ import java.util.Map;
 @Bean("chatAction")
 public class ChatAction {
 
-    private static final Logger logger = LoggerFactory.getLogger(ChatAction.class);
-
     private final UserManager userManager;
 
-    private final UsernamesPersistence usernamesPersistence;
-
     @Autowired
-    public ChatAction(UserManager userManager,
-                      UsernamesPersistence usernamesPersistence) {
+    public ChatAction(UserManager userManager) {
         this.userManager = userManager;
-        this.usernamesPersistence = usernamesPersistence;
     }
 
     @Request("/chat/${roomId}")

@@ -60,7 +60,7 @@
     </aspect>
 
     <append file="/config/mybatis/db-tx-config.xml"/>
-    <append file="/config/common/persistence.xml"/>
+    <append file="/config/redis/redis-config.xml"/>
     <append file="/config/server/undertow-config.xml"/>
     <append file="/config/server/undertow-support.xml"/>
     <append file="/config/web/web-config.xml"/>

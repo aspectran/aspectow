@@ -23,6 +23,7 @@ public class ConversationsPersistence extends AbstractPersistence {
 
     public void put(String roomId, ChatMessage message) {
         rpush(KEY_PREFIX + roomId, message, maxSaveMessages);
+        publish(MessageSubscriber.CHANNEL, message.toString());
     }
 
     public List<ChatMessage> getRecentConversations(String roomId) {

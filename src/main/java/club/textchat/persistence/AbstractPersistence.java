@@ -34,6 +34,10 @@ public class AbstractPersistence {
         }
     }
 
+    protected void publish(String channel, String message) {
+        sync(c -> c.publish(channel, message));
+    }
+
     protected String get(String key) {
         return sync(c -> c.get(key));
     }

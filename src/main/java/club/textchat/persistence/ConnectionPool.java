@@ -16,6 +16,7 @@
 package club.textchat.persistence;
 
 import io.lettuce.core.api.StatefulRedisConnection;
+import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
 
 /**
  * <p>Created: 2019/12/23</p>
@@ -23,5 +24,7 @@ import io.lettuce.core.api.StatefulRedisConnection;
 public interface ConnectionPool {
 
     StatefulRedisConnection<String, String> getConnection() throws Exception;
+
+    StatefulRedisPubSubConnection<String, String> getPubSubConnection() throws Exception;
 
 }

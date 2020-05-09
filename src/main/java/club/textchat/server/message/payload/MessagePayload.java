@@ -35,7 +35,7 @@ public class MessagePayload extends AbstractParameters {
     static {
         type = new ParameterKey("type", ValueType.STRING);
         username = new ParameterKey("username", ValueType.STRING);
-        content = new ParameterKey("content", ValueType.TEXT);
+        content = new ParameterKey("content", ValueType.STRING);
 
         parameterKeys = new ParameterKey[] {
                 type,

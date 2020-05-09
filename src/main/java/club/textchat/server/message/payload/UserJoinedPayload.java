@@ -26,16 +26,19 @@ import com.aspectran.core.util.apon.ValueType;
  */
 public class UserJoinedPayload extends AbstractParameters {
 
+    private static final ParameterKey roomId;
     private static final ParameterKey username;
     private static final ParameterKey prevUsername;
 
     private static final ParameterKey[] parameterKeys;
 
     static {
+        roomId = new ParameterKey("roomId", ValueType.STRING);
         username = new ParameterKey("username", ValueType.STRING);
         prevUsername = new ParameterKey("prevUsername", ValueType.STRING);
 
         parameterKeys = new ParameterKey[] {
+                roomId,
                 username,
                 prevUsername
         };
@@ -43,6 +46,18 @@ public class UserJoinedPayload extends AbstractParameters {
 
     public UserJoinedPayload() {
         super(parameterKeys);
+    }
+
+    public String getRoomId() {
+        return getString(roomId);
+    }
+
+    public void setRoomId(String roomId) {
+        putValue(UserJoinedPayload.roomId, roomId);
+    }
+
+    public String getUsername() {
+        return getString(username);
     }
 
     public void setUsername(String username) {

@@ -26,20 +26,35 @@ import com.aspectran.core.util.apon.ValueType;
  */
 public class UserLeftPayload extends AbstractParameters {
 
+    private static final ParameterKey roomId;
     private static final ParameterKey username;
 
     private static final ParameterKey[] parameterKeys;
 
     static {
+        roomId = new ParameterKey("roomId", ValueType.STRING);
         username = new ParameterKey("username", ValueType.STRING);
 
         parameterKeys = new ParameterKey[] {
+                roomId,
                 username
         };
     }
 
     public UserLeftPayload() {
         super(parameterKeys);
+    }
+
+    public String getRoomId() {
+        return getString(roomId);
+    }
+
+    public void setRoomId(String roomId) {
+        putValue(UserLeftPayload.roomId, roomId);
+    }
+
+    public String getUsername() {
+        return getString(username);
     }
 
     public void setUsername(String username) {
