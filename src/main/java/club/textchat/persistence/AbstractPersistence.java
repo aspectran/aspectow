@@ -1,12 +1,16 @@
 package club.textchat.persistence;
 
+import com.aspectran.core.component.session.SessionData;
 import com.aspectran.core.util.apon.Parameters;
 import io.lettuce.core.RedisConnectionException;
+import io.lettuce.core.ScanArgs;
+import io.lettuce.core.ScanIterator;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.sync.RedisCommands;
 
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
@@ -85,16 +89,35 @@ public class AbstractPersistence {
         return sync(c -> c.lrange(key, -limit, -1));
     }
 
-    protected long sadd(String key, String value) {
-        return sync(c -> c.sadd(key, value));
+    protected long sadd(String key, String member) {
+        return sync(c -> c.sadd(key, member));
     }
 
-    protected long srem(String key, String value) {
-        return sync(c -> c.srem(key, value));
+    protected long srem(String key, String member) {
+        return sync(c -> c.srem(key, member));
     }
 
     protected Set<String> smembers(String key) {
         return sync(c -> c.smembers(key));
+    }
+
+    protected boolean sismember(String key, String member) {
+        return sync(c -> c.sismember(key, member));
+    }
+
+    protected boolean smismember(String keyPattern, String member) {
+        return sync(c -> {
+            boolean exists = false;
+            ScanIterator<String> scanIterator = ScanIterator.scan(c, ScanArgs.Builder.matches(keyPattern));
+            while (scanIterator.hasNext()) {
+                String key = scanIterator.next();
+                exists = c.sismember(key, member);
+                if (exists) {
+                    break;
+                }
+            }
+            return exists;
+        });
     }
 
 }

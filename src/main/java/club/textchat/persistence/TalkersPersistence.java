@@ -25,4 +25,8 @@ public class TalkersPersistence extends AbstractPersistence {
         return smembers(KEY_PREFIX + roomId);
     }
 
+    public boolean isTalker(String username) {
+        return smismember(KEY_PREFIX + "*", username);
+    }
+
 }

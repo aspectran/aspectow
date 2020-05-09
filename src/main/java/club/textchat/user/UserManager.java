@@ -1,5 +1,6 @@
 package club.textchat.user;
 
+import club.textchat.persistence.TalkersPersistence;
 import club.textchat.persistence.UsernamesPersistence;
 import com.aspectran.core.activity.InstantActivitySupport;
 import com.aspectran.core.activity.Translet;
@@ -33,9 +34,12 @@ public class UserManager extends InstantActivitySupport implements Initializable
 
     private final UsernamesPersistence usernamesPersistence;
 
+    private final TalkersPersistence talkersPersistence;
+
     @Autowired
-    public UserManager(UsernamesPersistence usernamesPersistence) {
+    public UserManager(UsernamesPersistence usernamesPersistence, TalkersPersistence talkersPersistence) {
         this.usernamesPersistence = usernamesPersistence;
+        this.talkersPersistence = talkersPersistence;
     }
 
     public void saveUserInfo(UserInfo userInfo) {
@@ -76,12 +80,9 @@ public class UserManager extends InstantActivitySupport implements Initializable
     public boolean isAnotherUser(String username) {
         String httpSessionId = usernamesPersistence.get(username);
         if (httpSessionId != null) {
-            if (!httpSessionId.equals(getSessionId())) {
-                return true;
-            }
+            return !httpSessionId.equals(getSessionId());
         }
-        //TODO 토커 체크
-        return false;
+        return talkersPersistence.isTalker(username);
     }
 
     @NonNull
