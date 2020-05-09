@@ -1,6 +1,7 @@
 package club.textchat.persistence;
 
 import com.aspectran.core.util.apon.Parameters;
+import io.lettuce.core.RedisConnectionException;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.sync.RedisCommands;
 
@@ -19,11 +20,17 @@ public class AbstractPersistence {
         this.connectionPool = connectionPool;
     }
 
-    <R> R sync(Function<RedisCommands<String, String>, R> func) {
-        try (StatefulRedisConnection<String, String> conn = connectionPool.getConnection()) {
-            return func.apply(conn.sync());
+    private StatefulRedisConnection<String, String> getConnection() {
+        try {
+            return connectionPool.getConnection();
         } catch (Exception e) {
-            throw new PersistenceException("Data manipulation failure with Redis", e);
+            throw RedisConnectionException.create(e);
+        }
+    }
+
+    <R> R sync(Function<RedisCommands<String, String>, R> func) {
+        try (StatefulRedisConnection<String, String> conn = getConnection()) {
+            return func.apply(conn.sync());
         }
     }
 
