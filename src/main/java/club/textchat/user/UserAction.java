@@ -5,6 +5,8 @@ import club.textchat.recaptcha.ReCaptchaVerifier;
 import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Bean;
 import com.aspectran.core.component.bean.annotation.Component;
+import com.aspectran.core.component.bean.annotation.Redirect;
+import com.aspectran.core.component.bean.annotation.Request;
 import com.aspectran.core.component.bean.annotation.RequestToPost;
 import com.aspectran.core.component.bean.annotation.Required;
 import com.aspectran.core.util.logging.Logger;
@@ -66,6 +68,12 @@ public class UserAction {
         return new DefaultRestResponse()
                 .setData("result", 0)
                 .ok();
+    }
+
+    @Request("/signout")
+    @Redirect("/")
+    public void signout() {
+        userManager.removeUserInfo();
     }
 
 }

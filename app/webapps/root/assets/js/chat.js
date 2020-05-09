@@ -73,7 +73,7 @@ function openSocket() {
 
     socket.onerror = function(event) {
         console.error("WebSocket error observed:", event);
-        printError('Could not connect to WebSocket server. Please refresh this page to try again!');
+        printError('Could not connect to server. Please refresh this page.');
     };
 }
 
@@ -81,7 +81,7 @@ function heartbeatPing() {
     if (heartbeatTimer) {
         clearTimeout(heartbeatTimer);
     }
-    this.heartbeatTimer = setTimeout(function() {
+    heartbeatTimer = setTimeout(function() {
         if (socket) {
             let chatMessage = {
                 heartBeat: "--heartbeat-ping--"

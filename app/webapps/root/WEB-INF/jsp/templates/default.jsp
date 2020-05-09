@@ -13,6 +13,7 @@
     <link href="https://fonts.googleapis.com/css?family=Raleway:500,500i,700" rel="stylesheet">
     <script src="/assets/js/modernizr-custom.js"></script>
     <script src="/assets/js/jquery.min.js"></script>
+    <script src="/assets/js/textchat.js"></script>
     <!-- Global site tag (gtag.js) - Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=UA-150079188-1"></script>
     <script>

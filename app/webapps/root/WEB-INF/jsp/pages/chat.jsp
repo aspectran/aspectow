@@ -4,12 +4,12 @@
         <div class="grid-x grid-padding-x">
             <div class="cell auto align-self-middle">
                 <button type="button" class="button people" title="People">
-                    <i class="fi-results-demographics"></i>
+                    <i class="iconfont fi-results-demographics"></i>
                     <span id="totalPeople">0</span></button>
                 <h2>${page.roomName}</h2>
             </div>
             <div class="cell shrink align-self-middle text-right">
-                <button type="button" class="button leave" title="Leave the chat room"><i class="fi-power"></i></button>
+                <button type="button" class="button leave" title="Leave the chat room"><i class="iconfont fi-power"></i></button>
             </div>
         </div>
     </div>

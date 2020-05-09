@@ -6,6 +6,7 @@
                 <h2><i class="fi-results-demographics"></i> Text Chat Club</h2>
             </div>
             <div class="cell shrink align-self-middle text-right">
+                <button type="button" class="button signout" title="Sign out">Sign out</button>
             </div>
         </div>
     </div>
