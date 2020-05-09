@@ -2,6 +2,7 @@ package club.textchat.server;
 
 import com.aspectran.core.lang.NonNull;
 import com.aspectran.core.lang.Nullable;
+import com.aspectran.core.util.ToStringBuilder;
 
 import java.io.Serializable;
 import java.util.Objects;
@@ -79,6 +80,16 @@ public class TalkerInfo implements Serializable {
         result = prime * result + (roomId != null ? roomId.hashCode() : 0);
         result = prime * result + (username != null ? username.hashCode() : 0);
         return result;
+    }
+
+    @Override
+    public String toString() {
+        ToStringBuilder tsb = new ToStringBuilder();
+        tsb.append("roomId", roomId);
+        tsb.append("username", username);
+        tsb.append("prevUsername", prevUsername);
+        tsb.append("httpSessionId", httpSessionId);
+        return tsb.toString();
     }
 
 }

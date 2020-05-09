@@ -23,6 +23,8 @@ import club.textchat.server.codec.ChatMessageEncoder;
 import club.textchat.server.message.ChatMessage;
 import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Component;
+import com.aspectran.core.util.logging.Logger;
+import com.aspectran.core.util.logging.LoggerFactory;
 import com.aspectran.core.util.security.InvalidPBTokenException;
 import com.aspectran.core.util.security.TimeLimitedPBTokenIssuer;
 
@@ -51,6 +53,8 @@ import java.io.IOException;
 )
 public class ChatServer extends ChatHandler {
 
+    private static final Logger logger = LoggerFactory.getLogger(ChatHandler.class);
+
     @Autowired
     public ChatServer(UsernamesPersistence usernamesPersistence,
                       TalkersPersistence talkersPersistence,
@@ -78,6 +82,9 @@ public class ChatServer extends ChatHandler {
         }
 
         talkerInfo.setRoomId(admissionToken.getRoomId());
+        if (logger.isDebugEnabled()) {
+            logger.debug("Talker " + talkerInfo);
+        }
     }
 
     @OnMessage

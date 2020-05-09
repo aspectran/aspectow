@@ -6,7 +6,7 @@
                 <button type="button" class="button people" title="People">
                     <i class="iconfont fi-results-demographics"></i>
                     <span id="totalPeople">0</span></button>
-                <h2>${page.roomName}</h2>
+                <h2>Room ${page.roomName}</h2>
             </div>
             <div class="cell shrink align-self-middle text-right">
                 <button type="button" class="button leave" title="Leave the chat room"><i class="iconfont fi-power"></i></button>

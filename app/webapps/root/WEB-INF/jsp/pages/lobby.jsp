@@ -49,12 +49,6 @@
                                 <p>It has an easy to override visual style, and is appropriately subdued.</p>
                             </div>
                         </div>
-                        <div class="cell card room" data-room-id="2">
-                            <div class="card-section">
-                                <a href="/chat/6"><h4>Room 6</h4></a>
-                                <p>It has an easy to override visual style, and is appropriately subdued.</p>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>
