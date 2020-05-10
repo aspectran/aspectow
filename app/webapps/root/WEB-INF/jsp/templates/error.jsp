@@ -26,7 +26,6 @@
                 <div class="sidebar cell medium-4 large-3 cell-block-y show-for-medium">
                 </div>
                 <div class="cell auto cell-block-y">
-
                 </div>
             </div>
         </div>
@@ -34,7 +33,7 @@
     <div class="reveal" aria-labelledby="ooops" data-reveal data-close-on-click="false" data-close-on-esc="false">
         <h1 id="ooops">Ooops!</h1>
         <p class="lead">An unexpected error has occurred.</p>
-        <p>${page.cause.message}</p>
+        <p></p>
         <div class="button-group align-right">
             <a class="alert button" href="/lobby">Ok</a>
         </div>
