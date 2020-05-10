@@ -1,6 +1,5 @@
 package club.textchat.persistence;
 
-import com.aspectran.core.component.session.SessionData;
 import com.aspectran.core.util.apon.Parameters;
 import io.lettuce.core.RedisConnectionException;
 import io.lettuce.core.ScanArgs;
@@ -10,7 +9,6 @@ import io.lettuce.core.api.sync.RedisCommands;
 
 import java.util.List;
 import java.util.Set;
-import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**

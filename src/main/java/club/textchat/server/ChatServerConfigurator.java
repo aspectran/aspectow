@@ -8,8 +8,6 @@ import javax.servlet.http.HttpSession;
 import javax.websocket.HandshakeResponse;
 import javax.websocket.server.HandshakeRequest;
 import javax.websocket.server.ServerEndpointConfig;
-import java.util.List;
-import java.util.Map;
 
 public class ChatServerConfigurator extends AspectranConfigurator {
 

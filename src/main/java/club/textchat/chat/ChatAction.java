@@ -8,8 +8,10 @@ import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Bean;
 import com.aspectran.core.component.bean.annotation.Component;
 import com.aspectran.core.component.bean.annotation.Dispatch;
+import com.aspectran.core.component.bean.annotation.Qualifier;
 import com.aspectran.core.component.bean.annotation.Request;
 import com.aspectran.core.component.bean.annotation.Required;
+import com.aspectran.core.util.PBEncryptionUtils;
 import com.aspectran.core.util.security.TimeLimitedPBTokenIssuer;
 
 import java.util.HashMap;
@@ -29,7 +31,9 @@ public class ChatAction {
     @Request("/chat/${roomId}")
     @Dispatch("templates/default")
     @Action("page")
-    public Map<String, String> joinChat(@Required String roomId) {
+    public Map<String, String> joinChat(@Required @Qualifier("roomId") String encryptedRoomId) {
+        String roomId = PBEncryptionUtils.decrypt(encryptedRoomId);
+
         UserInfo userInfo = userManager.getUserInfo();
         String username = userInfo.getUsername();
 

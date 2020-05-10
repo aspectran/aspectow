@@ -23,7 +23,6 @@ import club.textchat.server.codec.ChatMessageEncoder;
 import club.textchat.server.message.ChatMessage;
 import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Component;
-import com.aspectran.core.util.StringUtils;
 import com.aspectran.core.util.logging.Logger;
 import com.aspectran.core.util.logging.LoggerFactory;
 import com.aspectran.core.util.security.InvalidPBTokenException;
