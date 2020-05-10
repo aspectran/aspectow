@@ -83,7 +83,7 @@ public class ChatServer extends ChatHandler {
 
         talkerInfo.setRoomId(admissionToken.getRoomId());
         if (logger.isDebugEnabled()) {
-            logger.debug("Talker " + talkerInfo);
+            logger.debug("Created talker " + talkerInfo);
         }
     }
 

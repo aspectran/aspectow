@@ -41,7 +41,7 @@
         </div>
     </div>
 </div>
-<div id="connection-lost" class="reveal" data-reveal>
+<div id="connection-lost" class="reveal" data-reveal data-close-on-click="false" data-close-on-esc="false">
     <h1>Connection lost</h1>
     <p class="lead">You have lost connection with the server.</p>
     <div class="button-group align-right">
@@ -52,7 +52,7 @@
         <span aria-hidden="true">&times;</span>
     </button>
 </div>
-<div id="chatroom-rejoined" class="reveal" data-reveal>
+<div id="chatroom-rejoined" class="reveal" data-reveal data-close-on-click="false" data-close-on-esc="false">
     <h1>Alert</h1>
     <p class="lead">You leave this chat room because you reconnected through a different route.</p>
     <p>Note: Duplicate participation in the same chat room is prohibited.</p>
