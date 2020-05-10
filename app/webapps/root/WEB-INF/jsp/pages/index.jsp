@@ -16,7 +16,7 @@
             </div>
             <div class="cell auto cell-block-y">
                 <form id="sign-in" method="post">
-                    <h3>Only one chat room!</h3>
+                    <h3>Only five chat rooms!</h3>
                     <h4>Chat with anyone you want, about anything you want, free.</h4>
                     <h4>Please enter your username.</h4>
                     <div class="input-group">
