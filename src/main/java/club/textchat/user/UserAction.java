@@ -31,6 +31,8 @@ public class UserAction {
     @RequestToPost("/guest/signin")
     public RestResponse signin(@Required String username,
                                @Required String recaptchaResponse) {
+        username = UsernameUtils.nomalize(username);
+
         boolean success = false;
         try {
             success = ReCaptchaVerifier.verifySuccess(recaptchaResponse);

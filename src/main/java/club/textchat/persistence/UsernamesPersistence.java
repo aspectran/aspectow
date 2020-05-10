@@ -9,6 +9,8 @@ public class UsernamesPersistence extends AbstractPersistence {
 
     private static final String KEY_PREFIX = "unames:";
 
+    private static final String NORMALIZATION_PATTERN = "[\\s`~!@#$%^&*()_|+\\-=?;:'\",.<>\\{\\}\\[\\]\\\\\\/]";
+
     private final int expiryPeriodInSeconds;
 
     public UsernamesPersistence(RedisConnectionPool connectionPool, int expiryPeriodInSeconds) {
@@ -18,23 +20,23 @@ public class UsernamesPersistence extends AbstractPersistence {
 
     @Override
     public String get(String username) {
-        return super.get(KEY_PREFIX + qualify(username));
+        return super.get(KEY_PREFIX + normalize(username));
     }
 
     public void acquire(String username, String httpSessionId) {
-        set(KEY_PREFIX + qualify(username), httpSessionId);
+        set(KEY_PREFIX + normalize(username), httpSessionId);
     }
 
     public void abandon(String username, String httpSessionId) {
-        setex(KEY_PREFIX + qualify(username), httpSessionId, expiryPeriodInSeconds);
+        setex(KEY_PREFIX + normalize(username), httpSessionId, expiryPeriodInSeconds);
     }
 
     public void abandonIfNotExist(String username, String httpSessionId) {
-        setexIfNotExist(KEY_PREFIX + qualify(username), httpSessionId, expiryPeriodInSeconds);
+        setexIfNotExist(KEY_PREFIX + normalize(username), httpSessionId, expiryPeriodInSeconds);
     }
 
-    private String qualify(String username) {
-        return username;
+    private String normalize(String username) {
+        return username.replaceAll(NORMALIZATION_PATTERN,"");
     }
 
 }
