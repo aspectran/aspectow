@@ -157,7 +157,6 @@ public abstract class ChatHandler extends InstantActivitySupport {
         payload.setPrevUsername(talkerInfo.getPrevUsername());
         ChatMessage message = new ChatMessage(payload);
         conversationsPersistence.put(talkerInfo.getRoomId(), message);
-        //broadcast(message, talkerInfo.getRoomId(), talkerInfo.getUsername());
     }
 
     private void broadcastUserLeft(TalkerInfo talkerInfo) {
@@ -166,7 +165,6 @@ public abstract class ChatHandler extends InstantActivitySupport {
         payload.setUsername(talkerInfo.getUsername());
         ChatMessage message = new ChatMessage(payload);
         conversationsPersistence.put(talkerInfo.getRoomId(), message);
-        //broadcast(message, talkerInfo.getRoomId(), null);
     }
 
     private void broadcastMessage(TalkerInfo talkerInfo, String content) {
@@ -176,7 +174,6 @@ public abstract class ChatHandler extends InstantActivitySupport {
         payload.setUsername(talkerInfo.getUsername());
         ChatMessage message = new ChatMessage(payload);
         conversationsPersistence.put(talkerInfo.getRoomId(), message);
-        //broadcast(message, talkerInfo.getRoomId(), talkerInfo.getUsername());
     }
 
     public void broadcast(ChatMessage message, String roomId, String excluded) {

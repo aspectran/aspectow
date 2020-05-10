@@ -36,8 +36,8 @@ import java.io.IOException;
  */
 public class ChatMessage extends AbstractParameters {
 
-    private static final String HEARTBEAT_PING_MSG = "--ping--";
-    private static final String HEARTBEAT_PONG_MSG = "--pong--";
+    private static final String HEARTBEAT_PING_MSG = "-ping-";
+    private static final String HEARTBEAT_PONG_MSG = "-pong-";
 
     private static final ParameterKey join;
     private static final ParameterKey joinedUsers;

@@ -7,7 +7,7 @@ package club.textchat.persistence;
  */
 public class UsernamesPersistence extends AbstractPersistence {
 
-    private static final String KEY_PREFIX = "usernames:";
+    private static final String KEY_PREFIX = "unames:";
 
     private final int expiryPeriodInSeconds;
 

@@ -84,7 +84,7 @@ function heartbeatPing() {
     heartbeatTimer = setTimeout(function() {
         if (socket) {
             let chatMessage = {
-                heartBeat: "--heartbeat-ping--"
+                heartBeat: "-ping-"
             };
             socket.send(serialize(chatMessage));
             heartbeatTimer = null;

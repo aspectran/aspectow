@@ -43,7 +43,7 @@ public class ChatAction {
         map.put("include", "pages/chat");
         map.put("username", username);
         map.put("roomName", roomId);
-        map.put("admissionToken", encryptedAdmissionToken);
+        map.put("token", encryptedAdmissionToken);
         return map;
     }
 

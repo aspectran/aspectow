@@ -23,6 +23,7 @@ import club.textchat.server.codec.ChatMessageEncoder;
 import club.textchat.server.message.ChatMessage;
 import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Component;
+import com.aspectran.core.util.StringUtils;
 import com.aspectran.core.util.logging.Logger;
 import com.aspectran.core.util.logging.LoggerFactory;
 import com.aspectran.core.util.security.InvalidPBTokenException;
@@ -46,7 +47,7 @@ import java.io.IOException;
  */
 @Component
 @ServerEndpoint(
-        value = "/chat/{admissionToken}",
+        value = "/chat/{token}",
         encoders = ChatMessageEncoder.class,
         decoders = ChatMessageDecoder.class,
         configurator = ChatServerConfigurator.class
@@ -63,12 +64,13 @@ public class ChatServer extends ChatHandler {
     }
 
     @OnOpen
-    public void onOpen(@PathParam("admissionToken") String encryptedAdmissionToken,
+    public void onOpen(@PathParam("token") String encryptedToken,
                        Session session, EndpointConfig config) throws IOException {
         AdmissionToken admissionToken;
         try {
-            admissionToken = TimeLimitedPBTokenIssuer.getPayload(encryptedAdmissionToken, AdmissionToken.class);
+            admissionToken = TimeLimitedPBTokenIssuer.getPayload(encryptedToken, AdmissionToken.class);
         } catch (InvalidPBTokenException e) {
+            logger.warn(e);
             String reason = "Access denied due to invalid admission token";
             session.close(new CloseReason(CloseReason.CloseCodes.CANNOT_ACCEPT, reason));
             throw new IOException(reason);

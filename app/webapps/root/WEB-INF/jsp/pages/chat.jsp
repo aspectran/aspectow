@@ -48,9 +48,6 @@
         <a class="success button" href="/">Home</a>
         <a class="warning button" href="">Reload this page</a>
     </div>
-    <button class="close-button" data-close aria-label="Close modal" type="button">
-        <span aria-hidden="true">&times;</span>
-    </button>
 </div>
 <div id="chatroom-rejoined" class="reveal" data-reveal data-close-on-click="false" data-close-on-esc="false">
     <h1>Alert</h1>
@@ -59,12 +56,9 @@
     <div class="button-group align-right">
         <a class="success button" href="/lobby">Ok</a>
     </div>
-    <button class="close-button" data-close aria-label="Close modal" type="button">
-        <span aria-hidden="true">&times;</span>
-    </button>
 </div>
 <script src="/assets/js/chat.js"></script>
 <script>
     const currentUser = "${page.username}";
-    const admissionToken = "${page.admissionToken}";
+    const admissionToken = "${page.token}";
 </script>

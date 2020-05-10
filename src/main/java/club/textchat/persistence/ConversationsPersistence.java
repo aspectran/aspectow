@@ -12,7 +12,7 @@ import java.util.List;
  */
 public class ConversationsPersistence extends AbstractPersistence {
 
-    private static final String KEY_PREFIX = "conversations:";
+    private static final String KEY_PREFIX = "convos:";
 
     private final int maxSaveMessages;
 

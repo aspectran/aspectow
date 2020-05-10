@@ -18,11 +18,6 @@ public class ChatServerConfigurator extends AspectranConfigurator {
                                 HandshakeRequest request,
                                 HandshakeResponse response) {
         super.modifyHandshake(config, request, response);
-
-        Map<String, List<String>> map = request.getParameterMap();
-
-
-
         HttpSession httpSession = (HttpSession)request.getHttpSession();
         if (httpSession != null) {
             UserInfo userInfo = (UserInfo)httpSession.getAttribute(UserManager.USER_INFO_SESSION_KEY);
