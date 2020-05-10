@@ -37,17 +37,31 @@
         </settings>
     </aspect>
 
-    <aspect id="checkUserAuthenticatedAspect" order="1">
+    <aspect id="signedInCheckAspect" order="1">
         <joinpoint>
             pointcut: {
                 +: /**
                 -: /
-                -: /guest/signin
+                -: /*/signin
             }
         </joinpoint>
         <advice bean="userManager">
             <before>
-                <invoke method="checkUserAuthenticated"/>
+                <invoke method="checkSignedIn"/>
+            </before>
+        </advice>
+    </aspect>
+
+    <aspect id="alreadySignedInCheckAspect" order="1">
+        <joinpoint>
+            pointcut: {
+                +: /
+                +: /*/signin
+            }
+        </joinpoint>
+        <advice bean="userManager">
+            <before>
+                <invoke method="checkAlreadySignedIn"/>
             </before>
         </advice>
     </aspect>

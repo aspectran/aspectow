@@ -62,11 +62,10 @@ public class UserManager extends InstantActivitySupport implements Initializable
         }
     }
 
-    public void checkUserAuthenticated() {
+    public void checkSignedIn() {
         Translet translet = getCurrentActivity().getTranslet();
         if (translet == null) {
-            throw new UnsupportedOperationException("No such translet in " +
-                    getCurrentActivity());
+            throw new IllegalStateException("No such translet in " + getCurrentActivity());
         }
         try {
             getUserInfo();
@@ -74,6 +73,19 @@ public class UserManager extends InstantActivitySupport implements Initializable
             translet.redirect("/", new HashMap<String, String>() {{
                 put("referrer", translet.getRequestName());
             }});
+        }
+    }
+
+    public void checkAlreadySignedIn() {
+        Translet translet = getCurrentActivity().getTranslet();
+        if (translet == null) {
+            throw new IllegalStateException("No such translet in " + getCurrentActivity());
+        }
+        try {
+            getUserInfo();
+            translet.redirect("/lobby");
+        } catch (LoginRequiredException e) {
+            // ignore
         }
     }
 
