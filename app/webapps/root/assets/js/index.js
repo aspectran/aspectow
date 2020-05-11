@@ -38,6 +38,7 @@ function signIn() {
                         $("#username").select().focus();
                         break;
                     default:
+                        console.error(data);
                         alert("Unexpected error occurred.");
                 }
             },

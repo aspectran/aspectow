@@ -56,9 +56,7 @@ public class RedisConnectionPool implements ConnectionPool, InitializableBean, D
 
     @Override
     public void initialize() {
-        if (client != null) {
-            throw new IllegalStateException("RedisConnectionPool is already initialized");
-        }
+        Assert.state(client == null, "RedisConnectionPool is already initialized");
         RedisURI redisURI = poolConfig.getRedisURI();
         if (redisURI == null) {
             throw new IllegalArgumentException("redisURI must not be null");

@@ -10,9 +10,8 @@
         </description>
         <exception>
             <thrown>
-                <echo id="page">
-                    <item name="cause">#{currentTranslet^rootCauseOfRaisedException}</item>
-                    <item name="poweredBy">#{class:com.aspectran.core.util.Aspectran^poweredBy}</item>
+                <echo id="error">
+                    <item name="cause">Details of internal system errors are not disclosed.</item>
                 </echo>
                 <transform type="text">
                     <template style="apon">
@@ -21,6 +20,11 @@
                         |-----------------------------------------------------------
                         |An unexpected error has occurred.
                         |
+                    </template>
+                </transform>
+                <transform type="json">
+                    <template style="apon">
+                        |null
                     </template>
                 </transform>
                 <dispatch name="templates/error" contentType="text/html" default="true"/>

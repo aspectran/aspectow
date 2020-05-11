@@ -8,12 +8,14 @@ import com.aspectran.core.component.bean.annotation.Redirect;
 import com.aspectran.core.component.bean.annotation.Request;
 import com.aspectran.core.component.bean.annotation.RequestToPost;
 import com.aspectran.core.component.bean.annotation.Required;
+import com.aspectran.core.component.bean.annotation.Transform;
+import com.aspectran.core.context.rule.type.TransformType;
 import com.aspectran.core.util.logging.Logger;
 import com.aspectran.core.util.logging.LoggerFactory;
-import com.aspectran.web.activity.response.DefaultRestResponse;
-import com.aspectran.web.activity.response.RestResponse;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.Map;
 
 @Component
 @Bean("userAction")
@@ -29,7 +31,8 @@ public class UserAction {
     }
 
     @RequestToPost("/guest/signin")
-    public RestResponse signin(@Required String username,
+    @Transform(TransformType.JSON)
+    public Map<String, Integer> signin(@Required String username,
                                @Required String recaptchaResponse) {
         username = UsernameUtils.nomalize(username);
 
@@ -39,25 +42,20 @@ public class UserAction {
         } catch (IOException e) {
             logger.warn("reCAPTCHA verification failed", e);
         }
+
         if (!success) {
-            return new DefaultRestResponse()
-                    .setData("result", -1)
-                    .ok();
+            return Collections.singletonMap("result", -1);
         }
 
         if (userManager.isAnotherUser(username)) {
-            return new DefaultRestResponse()
-                    .setData("result", -2)
-                    .ok();
+            return Collections.singletonMap("result", -2);
         }
 
         UserInfo userInfo = new UserInfo();
         userInfo.setUsername(username);
         userManager.saveUserInfo(userInfo);
 
-        return new DefaultRestResponse()
-                .setData("result", 0)
-                .ok();
+        return Collections.singletonMap("result", 0);
     }
 
     @Request("/signout")
