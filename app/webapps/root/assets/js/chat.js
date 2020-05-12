@@ -12,7 +12,7 @@ $(function() {
         if (!$("#contacts-wrap").hasClass("show-for-medium")) {
             $("#contacts-wrap").addClass("show-for-medium");
         }
-        $(this).find("button.send").focus();
+        $("#for-automata-clear").focus();
         sendMessage();
         return false;
     });
