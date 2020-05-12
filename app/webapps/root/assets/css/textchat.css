@@ -15,9 +15,7 @@ body {
     background: #7b878c;
 }
 .grid-y.grid-frame {
-    /*noinspection CssOverwrittenProperties*/
-    height: 100vh; /* Use vh as a fallback for browsers that do not support Custom Properties */
-    /*noinspection CssUnresolvedCustomProperty,CssOverwrittenProperties*/
+    /*noinspection CssUnresolvedCustomProperty*/
     height: calc(var(--vh, 1vh) * 100);
 }
 .grid-y.grid-frame > .cell {
@@ -94,7 +92,7 @@ input#for-automata-clear {
 }
 .body {
     background-color: #fff;
-    border-radius: 6px 6px 0 0;
+    border-radius: 10px 10px 0 0;
 }
 .sidebar {
     position: relative;
@@ -103,7 +101,7 @@ input#for-automata-clear {
     overflow: auto;
 }
 .body .sidebar {
-    border-radius: 6px 0 0 0;
+    border-radius: 10px 0 0 0;
 }
 .footer .sidebar {
     overflow: hidden;
