@@ -238,22 +238,19 @@ function printLeaveMessage(username, animatable) {
 
 function printMessage(username, text, animatable) {
     let sentByCurrentUer = (currentUser === username);
-    let message = $("<div/>").addClass(sentByCurrentUer === true ? "message sent" : "message received");
-    message.data("sender", username);
-
-    let sender = $("<span/>").addClass("sender");
-    sender.text(sentByCurrentUer === true ? "You" : username);
-    sender.appendTo(message);
-
-    let content = $("<span/>").addClass("content").text(text);
-    content.appendTo(message);
-
+    let sender = $("<span class='username'/>")
+        .text(sentByCurrentUer === true ? "You" : username);
+    let content = $("<span class='content'/>").text(text);
     let lastMessage = $("#conversations .message").last();
-    if (lastMessage.length && lastMessage.data("sender") === username) {
-        message.addClass("same-sender");
+    if (lastMessage.length && lastMessage.data("username") === username) {
+        lastMessage.append(content);
+    } else {
+        let message = $("<div/>")
+            .addClass(sentByCurrentUer === true ? "message sent" : "message received")
+            .data("username", username)
+            .append(sender).append(content);
+        $("#conversations").append(message);
     }
-
-    $("#conversations").append(message);
     if (animatable !== false) {
         $("#conversations").animate({scrollTop: $("#conversations").prop("scrollHeight")});
     }

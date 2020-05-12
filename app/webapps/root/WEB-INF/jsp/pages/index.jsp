@@ -63,7 +63,7 @@
 </div>
 <script src="https://www.google.com/recaptcha/api.js?render=explicit&onload=loadCaptcha"></script>
 <script src="/assets/js/recaptcha.js"></script>
-<script src="/assets/js/index.js"></script>
+<script src="/assets/js/index.jsv0.1"></script>
 <script>
     const currentUser = "${user.username}";
 </script>

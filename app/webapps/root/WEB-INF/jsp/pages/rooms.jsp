@@ -55,7 +55,7 @@
         </div>
     </div>
 </div>
-<script src="/assets/js/rooms.js"></script>
+<script src="/assets/js/rooms.jsv0.1"></script>
 <script>
     const currentUser = "${user.username}";
 </script>
