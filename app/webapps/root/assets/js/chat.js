@@ -165,9 +165,9 @@ function sendMessage() {
                 content: text
             }
         };
+        $("#message").val('').focus();
         socket.send(serialize(chatMessage));
         printMessage(currentUser, text);
-        $("#message").val('').focus();
     }
 }
 
