@@ -165,7 +165,7 @@ function sendMessage() {
                 content: text
             }
         };
-        $("#message").val('');
+        $("#message").val('-');
         socket.send(serialize(chatMessage));
         printMessage(currentUser, text);
         $("#message").focus();
