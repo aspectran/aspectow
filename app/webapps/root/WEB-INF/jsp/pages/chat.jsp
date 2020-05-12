@@ -57,7 +57,7 @@
         <a class="success button" href="/lobby">Ok</a>
     </div>
 </div>
-<script src="/assets/js/chat.js"></script>
+<script src="/assets/js/chat.js?1"></script>
 <script>
     const currentUser = "${page.username}";
     const admissionToken = "${page.token}";
