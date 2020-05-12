@@ -32,7 +32,7 @@
                 <form id="send-message">
                     <div class="input-group">
                         <input id="message" class="input-group-field" type="text" autocomplete="off" placeholder="Type a message..."/>
-                        <input id="for-automata-clear" type="text" style="display:contents;width:0;height:0;padding:0;margin:0;"/>
+                        <input id="for-automata-clear" type="text" style="width:0;height:0;padding:0;margin:0;"/>
                         <div class="input-group-button">
                             <button type="submit" class="button send">Send</button>
                         </div>
