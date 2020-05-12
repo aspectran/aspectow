@@ -9,7 +9,7 @@
 <link rel="stylesheet" type="text/css" href="/assets/css/textchat.css?20200505" />
 <link href="https://fonts.googleapis.com/css?family=Raleway:500,500i,700" rel="stylesheet">
 <script src="/assets/js/modernizr-custom.js"></script>
-<script src="/assets/js/jquery.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
 <script src="/assets/js/foundation.min.js"></script>
 <script src="/assets/js/textchat.js"></script>
 <!-- Global site tag (gtag.js) - Google Analytics -->

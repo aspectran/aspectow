@@ -31,7 +31,7 @@
             <div class="bottom cell auto cell-block-y">
                 <form id="send-message">
                     <div class="input-group">
-                        <input class="input-group-field" type="text" id="message" autocomplete="off" placeholder="Type a message..."/>
+                        <input id="message" class="input-group-field" type="text" autocomplete="off" placeholder="Type a message..."/>
                         <div class="input-group-button">
                             <button type="submit" class="button">Send</button>
                         </div>
@@ -45,7 +45,7 @@
     <h1>Connection lost</h1>
     <p class="lead">You have lost connection with the server.</p>
     <div class="button-group align-right">
-        <a class="success button" href="/">Home</a>
+        <a class="success button" href="/lobby">Home</a>
         <a class="warning button" href="">Reload this page</a>
     </div>
 </div>
