@@ -12,6 +12,7 @@ $(function() {
         if (!$("#contacts-wrap").hasClass("show-for-medium")) {
             $("#contacts-wrap").addClass("show-for-medium");
         }
+        $(this).find("button").focus();
         sendMessage();
         return false;
     });
