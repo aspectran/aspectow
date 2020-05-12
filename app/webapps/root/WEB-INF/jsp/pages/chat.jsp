@@ -58,7 +58,7 @@
         <a class="success button" href="/rooms">Ok</a>
     </div>
 </div>
-<script src="/assets/js/chat.js?5"></script>
+<script src="/assets/js/chat.js?v0.5"></script>
 <script>
     const currentUser = "${page.username}";
     const admissionToken = "${page.token}";

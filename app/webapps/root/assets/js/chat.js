@@ -16,14 +16,13 @@ $(function() {
         sendMessage();
         return false;
     });
-    $(".header button.people").click(function() {
-        $(".sidebar").toggle()
-        $(".sidebar").toggleClass("show-for-medium");
+    $(".header button.people").on("click", function() {
+        $(".sidebar").toggle().toggleClass("show-for-medium");
         if ($(".sidebar").hasClass("show-for-medium") || !$(".sidebar").is(":visible")) {
             $("#message").focus();
         }
     })
-    $("button.leave").click(function() {
+    $("button.leave").on("click", function() {
         leaveRoom();
     });
     $("#message").focus();
