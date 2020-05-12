@@ -33,7 +33,7 @@
                     <div class="input-group">
                         <input id="message" class="input-group-field" type="text" autocomplete="off" placeholder="Type a message..."/>
                         <div class="input-group-button">
-                            <button type="submit" class="button">Send</button>
+                            <button type="submit" class="button send">Send</button>
                         </div>
                     </div>
                 </form>
