@@ -1,7 +1,7 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <div class="grid-y grid-frame">
     <div class="header cell cell-block-container">
-        <div class="grid-x grid-padding-x">
+        <div class="grid-x">
             <div class="cell auto align-self-middle">
                 <button type="button" class="button people" title="People">
                     <i class="iconfont fi-results-demographics"></i>
@@ -28,11 +28,11 @@
             <div class="sidebar cell medium-4 large-3 cell-block-y show-for-medium">
                 <%@ include file="includes/footer-sidebar-user.jsp" %>
             </div>
-            <div class="bottom cell auto cell-block-y">
+            <div class="message-box cell auto cell-block-y">
                 <form id="send-message">
                     <div class="input-group">
                         <input id="message" class="input-group-field" type="text" autocomplete="off" placeholder="Type a message..."/>
-                        <input id="for-automata-clear" type="text" style="width:0;height:0;padding:0;margin:0;border:none;"/>
+                        <input id="for-automata-clear" type="text"/>
                         <div class="input-group-button">
                             <button type="submit" class="button send">Send</button>
                         </div>

@@ -1,7 +1,7 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <div class="rooms grid-y grid-frame">
     <div class="header cell cell-block-container">
-        <div class="grid-x grid-padding-x">
+        <div class="grid-x">
             <div class="cell auto align-self-middle">
                 <h2><i class="fi-results-demographics"></i> Text Chat Club</h2>
             </div>

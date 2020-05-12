@@ -5,13 +5,20 @@
 <meta name="google" content="notranslate">
 <title>Text Chat Club<c:if test="${not empty page.title}"> - ${page.title}</c:if></title>
 <meta name="description" content="${empty page.description ? "Chat with anyone you want, about anything you want, free." : page.description}" />
-<link rel="stylesheet" type="text/css" href="/assets/css/aspectran.css?20200505" />
-<link rel="stylesheet" type="text/css" href="/assets/css/textchat.css?20200505" />
+<link rel="stylesheet" type="text/css" href="/assets/css/aspectran.css?v1" />
+<link rel="stylesheet" type="text/css" href="/assets/css/textchat.css?v10" />
 <link href="https://fonts.googleapis.com/css?family=Raleway:500,500i,700" rel="stylesheet">
 <script src="/assets/js/modernizr-custom.js"></script>
 <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
 <script src="/assets/js/foundation.min.js"></script>
 <script src="/assets/js/textchat.js"></script>
+<script>
+    /* Set a custom property that contains the height value of the viewport */
+    document.documentElement.style.setProperty("--vh", (window.innerHeight * 0.01) + "px");
+    window.addEventListener("resize", function() {
+        document.documentElement.style.setProperty("--vh", (window.innerHeight * 0.01) + "px");
+    });
+</script>
 <!-- Global site tag (gtag.js) - Google Analytics -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=UA-150079188-1"></script>
 <script>
