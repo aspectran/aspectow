@@ -28,7 +28,7 @@ function signIn() {
             success: function(data) {
                 switch (data.result) {
                     case 0:
-                        location.href = "/lobby";
+                        location.href = "/rooms";
                         break;
                     case -1:
                         alert("reCAPTCHA verification failed");

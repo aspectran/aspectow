@@ -30,12 +30,12 @@
             </div>
         </div>
     </div>
-    <div class="reveal" aria-labelledby="ooops" data-reveal data-close-on-click="false" data-close-on-esc="false">
-        <h1 id="ooops">Ooops!</h1>
+    <div class="reveal" aria-labelledby="oops" data-reveal data-close-on-click="false" data-close-on-esc="false">
+        <h1 id="oops">Oops!</h1>
         <p class="lead">An unexpected error has occurred.</p>
         <p></p>
         <div class="button-group align-right">
-            <a class="alert button" href="/lobby">Ok</a>
+            <a class="alert button" href="/rooms">Ok</a>
         </div>
     </div>
 </body>

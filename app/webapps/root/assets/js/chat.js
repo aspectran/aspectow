@@ -60,7 +60,7 @@ function openSocket() {
 
     socket.onclose = function(event) {
         if (aborted) {
-            location.href = "/lobby";
+            location.href = "/rooms";
         } else {
             $.ajax('/ping')
                 .done(function() {
@@ -177,7 +177,7 @@ function leaveRoom() {
     socket.onclose = null;
     socket.close();
     socket = null;
-    location.href = "/lobby";
+    location.href = "/rooms";
 }
 
 function addUser(username) {

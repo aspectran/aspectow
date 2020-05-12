@@ -10,18 +10,10 @@
         <dispatch name="templates/default"/>
     </translet>
 
-    <translet name="/lobby">
+    <translet name="/rooms">
         <echo id="page">
             <item name="title">Lobby</item>
-            <item name="include">pages/lobby</item>
-        </echo>
-        <dispatch name="templates/default"/>
-    </translet>
-
-    <translet name="/chat">
-        <echo id="page">
-            <item name="title">Chat room</item>
-            <item name="include">pages/chat</item>
+            <item name="include">pages/rooms</item>
         </echo>
         <dispatch name="templates/default"/>
     </translet>

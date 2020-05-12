@@ -94,7 +94,7 @@ body {
     overflow: hidden;
     padding: 0;
 }
-.lobby .sidebar {
+.rooms .sidebar {
     background-color: #c7eefc;
 }
 .sidebar .user {
@@ -239,6 +239,6 @@ body {
 .footer {
     padding: 0;
 }
-.lobby .footer .bottom {
+.rooms .footer .bottom {
     display: none;
 }

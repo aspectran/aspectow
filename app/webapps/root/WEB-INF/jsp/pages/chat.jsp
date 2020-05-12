@@ -46,7 +46,7 @@
     <h1>Connection lost</h1>
     <p class="lead">You have lost connection with the server.</p>
     <div class="button-group align-right">
-        <a class="success button" href="/lobby">Home</a>
+        <a class="success button" href="/rooms">Home</a>
         <a class="warning button" href="">Reload this page</a>
     </div>
 </div>
@@ -55,7 +55,7 @@
     <p class="lead">You leave this chat room because you reconnected through a different route.</p>
     <p>Note: Duplicate participation in the same chat room is prohibited.</p>
     <div class="button-group align-right">
-        <a class="success button" href="/lobby">Ok</a>
+        <a class="success button" href="/rooms">Ok</a>
     </div>
 </div>
 <script src="/assets/js/chat.js?5"></script>

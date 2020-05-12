@@ -28,7 +28,7 @@ public class ChatAction {
         this.userManager = userManager;
     }
 
-    @Request("/chat/${roomId}")
+    @Request("/rooms/${roomId}")
     @Dispatch("templates/default")
     @Action("page")
     public Map<String, String> joinChat(@Required @Qualifier("roomId") String encryptedRoomId) {

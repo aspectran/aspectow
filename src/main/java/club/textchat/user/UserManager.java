@@ -83,7 +83,7 @@ public class UserManager extends InstantActivitySupport implements Initializable
         }
         try {
             getUserInfo();
-            translet.redirect("/lobby");
+            translet.redirect("/rooms");
         } catch (LoginRequiredException e) {
             // ignore
         }
