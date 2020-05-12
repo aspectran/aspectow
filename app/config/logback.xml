@@ -20,7 +20,7 @@
         <appender-ref ref="APP-OUT"/>
     </logger>
     <logger name="club.textchat" level="debug" additivity="false">
-        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="APP-OUT"/>
     </logger>
     <root level="info">
         <appender-ref ref="APP-OUT"/>
