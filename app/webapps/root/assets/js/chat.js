@@ -165,9 +165,10 @@ function sendMessage() {
                 content: text
             }
         };
-        $("#message").val('').focus();
+        $("#message").val('');
         socket.send(serialize(chatMessage));
         printMessage(currentUser, text);
+        $("#message").focus();
     }
 }
 
