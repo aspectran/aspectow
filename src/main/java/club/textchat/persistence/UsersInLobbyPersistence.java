@@ -11,7 +11,7 @@ import club.textchat.user.UsernameUtils;
  */
 public class UsersInLobbyPersistence extends AbstractPersistence {
 
-    private static final String KEY_PREFIX = "nonconvo:";
+    private static final String KEY_PREFIX = "inlobby:";
 
     private final int expiryPeriodInSeconds;
 
