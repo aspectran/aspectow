@@ -1,6 +1,5 @@
 package club.textchat.persistence;
 
-import com.aspectran.core.util.apon.Parameters;
 import io.lettuce.core.RedisConnectionException;
 import io.lettuce.core.ScanArgs;
 import io.lettuce.core.ScanIterator;
@@ -48,6 +47,10 @@ public class AbstractPersistence {
         sync(c -> c.set(key, value));
     }
 
+    protected long del(String key) {
+        return sync(c -> c.del(key));
+    }
+
     protected void setex(String key, String value, int timeout) {
         sync(c -> c.setex(key, timeout, value));
     }
@@ -65,11 +68,7 @@ public class AbstractPersistence {
         return sync(c -> c.rpush(key, value));
     }
 
-    protected long rpush(String key, Parameters value) {
-        return rpush(key, value.toString());
-    }
-
-    protected void rpush(String key, Parameters value, int limit) {
+    protected void rpush(String key, String value, int limit) {
         sync(c -> {
             long len = rpush(key, value);
             if (len > limit) {

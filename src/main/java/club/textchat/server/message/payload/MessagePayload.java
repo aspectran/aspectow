@@ -27,6 +27,7 @@ import com.aspectran.core.util.apon.ValueType;
 public class MessagePayload extends AbstractParameters {
 
     private static final ParameterKey type;
+    private static final ParameterKey userNo;
     private static final ParameterKey username;
     private static final ParameterKey content;
 
@@ -34,11 +35,13 @@ public class MessagePayload extends AbstractParameters {
 
     static {
         type = new ParameterKey("type", ValueType.STRING);
+        userNo = new ParameterKey("userNo", ValueType.LONG);
         username = new ParameterKey("username", ValueType.STRING);
         content = new ParameterKey("content", ValueType.STRING);
 
         parameterKeys = new ParameterKey[] {
                 type,
+                userNo,
                 username,
                 content
         };
@@ -55,6 +58,10 @@ public class MessagePayload extends AbstractParameters {
 
     public MessageType getType() {
         return MessageType.valueOf(getString(type));
+    }
+
+    public long getUserNo() {
+        return getLong(userNo);
     }
 
     public String getUsername() {

@@ -19,7 +19,7 @@
                 <ul id="contacts"></ul>
             </div>
             <div class="cell auto cell-block-y">
-                <div id="conversations" class="grid-container full-height"></div>
+                <div id="convos" class="grid-container full-height"></div>
             </div>
         </div>
     </div>
@@ -58,8 +58,9 @@
         <a class="success button" href="/rooms">Ok</a>
     </div>
 </div>
-<script src="/assets/js/chat.js?v0.6"></script>
+<script src="/assets/js/chat.js?v0.7"></script>
 <script>
-    const currentUser = "${page.username}";
+    const currentUserNo = Number("${page.userNo}");
+    const currentUsername = "${page.username}";
     const admissionToken = "${page.token}";
 </script>

@@ -35,17 +35,18 @@ public class ChatAction {
         String roomId = PBEncryptionUtils.decrypt(encryptedRoomId);
 
         UserInfo userInfo = userManager.getUserInfo();
-        String username = userInfo.getUsername();
 
         AdmissionToken admissionToken = new AdmissionToken();
-        admissionToken.setUsername(username);
+        admissionToken.setUserNo(userInfo.getUserNo());
+        admissionToken.setUsername(userInfo.getUsername());
         admissionToken.setRoomId(roomId);
 
         String encryptedAdmissionToken = TimeLimitedPBTokenIssuer.getToken(admissionToken);
 
         Map<String, String> map = new HashMap<>();
         map.put("include", "pages/chat");
-        map.put("username", username);
+        map.put("userNo", Long.toString(userInfo.getUserNo()));
+        map.put("username", userInfo.getUsername());
         map.put("roomName", roomId);
         map.put("token", encryptedAdmissionToken);
         return map;

@@ -26,28 +26,28 @@ import java.util.Set;
  *
  * <p>Created: 2019/10/09</p>
  */
-public class JoinedUsersPayload extends AbstractParameters {
+public class ChatersPayload extends AbstractParameters {
 
-    private static final ParameterKey usernames;
+    private static final ParameterKey chaters;
 
     private static final ParameterKey[] parameterKeys;
 
     static {
-        usernames = new ParameterKey("usernames", ValueType.STRING, true);
+        chaters = new ParameterKey("chaters", ValueType.STRING, true);
 
         parameterKeys = new ParameterKey[] {
-                usernames
+                chaters
         };
     }
 
-    public JoinedUsersPayload() {
+    public ChatersPayload() {
         super(parameterKeys);
     }
 
-    public void setUsernames(Set<String> usernames) {
-        if (usernames != null) {
-            for (String username : usernames) {
-                putValue(JoinedUsersPayload.usernames, username);
+    public void setChaters(Set<String> chaters) {
+        if (chaters != null) {
+            for (String username : chaters) {
+                putValue(ChatersPayload.chaters, username);
             }
         }
     }

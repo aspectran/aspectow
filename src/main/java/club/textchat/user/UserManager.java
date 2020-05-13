@@ -1,7 +1,7 @@
 package club.textchat.user;
 
-import club.textchat.persistence.TalkersPersistence;
-import club.textchat.persistence.UsernamesPersistence;
+import club.textchat.persistence.UsersInConvoPersistence;
+import club.textchat.persistence.UsersInLobbyPersistence;
 import com.aspectran.core.activity.InstantActivitySupport;
 import com.aspectran.core.activity.Translet;
 import com.aspectran.core.adapter.SessionAdapter;
@@ -15,7 +15,6 @@ import com.aspectran.core.component.session.SessionListener;
 import com.aspectran.core.component.session.SessionListenerRegistration;
 import com.aspectran.core.lang.NonNull;
 
-import javax.servlet.annotation.WebListener;
 import java.util.HashMap;
 
 @Component
@@ -28,18 +27,19 @@ public class UserManager extends InstantActivitySupport implements Initializable
      */
     public static final String USER_INFO_SESSION_KEY = "user";
 
-    public static final String PREV_USERNAME = "--prev-username--";
+    public static final String PREV_USERNAME = "-prev-uname-";
 
-    public static final String EXPIRED_TIME = "--expired-time--";
+    public static final String EXPIRED_TIME = "-expired-tm-";
 
-    private final UsernamesPersistence usernamesPersistence;
+    private final UsersInLobbyPersistence usersInLobbyPersistence;
 
-    private final TalkersPersistence talkersPersistence;
+    private final UsersInConvoPersistence usersInConvoPersistence;
 
     @Autowired
-    public UserManager(UsernamesPersistence usernamesPersistence, TalkersPersistence talkersPersistence) {
-        this.usernamesPersistence = usernamesPersistence;
-        this.talkersPersistence = talkersPersistence;
+    public UserManager(UsersInLobbyPersistence usersInLobbyPersistence,
+                       UsersInConvoPersistence usersInConvoPersistence) {
+        this.usersInLobbyPersistence = usersInLobbyPersistence;
+        this.usersInConvoPersistence = usersInConvoPersistence;
     }
 
     public void saveUserInfo(UserInfo userInfo) {
@@ -89,12 +89,11 @@ public class UserManager extends InstantActivitySupport implements Initializable
         }
     }
 
-    public boolean isAnotherUser(String username) {
-        String httpSessionId = usernamesPersistence.get(username);
-        if (httpSessionId != null) {
-            return !httpSessionId.equals(getSessionId());
-        }
-        return talkersPersistence.isTalker(username);
+    public boolean isInUseUsername(String username) {
+        String httpSessionId = usersInLobbyPersistence.get(username);
+        String httpSessionId2 = usersInConvoPersistence.get(username);
+        return (httpSessionId != null && !httpSessionId.equals(getSessionId())) ||
+                (httpSessionId2 != null && !httpSessionId2.equals(getSessionId()));
     }
 
     @NonNull
@@ -132,16 +131,15 @@ public class UserManager extends InstantActivitySupport implements Initializable
         if (sessionListenerRegistration == null) {
             throw new IllegalStateException("Bean for SessionListenerRegistration must be defined");
         }
-        sessionListenerRegistration.register(new UserInfoUnboundListener(usernamesPersistence));
+        sessionListenerRegistration.register(new UserInfoUnboundListener(usersInLobbyPersistence));
     }
 
-    @WebListener
     public static class UserInfoUnboundListener implements SessionListener {
 
-        private final UsernamesPersistence usernamesPersistence;
+        private final UsersInLobbyPersistence usersInLobbyPersistence;
 
-        public UserInfoUnboundListener(UsernamesPersistence usernamesPersistence) {
-            this.usernamesPersistence = usernamesPersistence;
+        public UserInfoUnboundListener(UsersInLobbyPersistence usersInLobbyPersistence) {
+            this.usersInLobbyPersistence = usersInLobbyPersistence;
         }
 
         public void sessionDestroyed(Session session) {
@@ -168,21 +166,21 @@ public class UserManager extends InstantActivitySupport implements Initializable
         private void acquireUsername(String name, Object value, String sessionId) {
             if (USER_INFO_SESSION_KEY.equals(name)) {
                 UserInfo userInfo = (UserInfo)value;
-                usernamesPersistence.acquire(userInfo.getUsername(), sessionId);
+                usersInLobbyPersistence.put(userInfo.getUsername(), sessionId);
             }
         }
 
         private void abandonUsername(String name, Object value, String sessionId) {
             if (USER_INFO_SESSION_KEY.equals(name)) {
                 UserInfo userInfo = (UserInfo)value;
-                usernamesPersistence.abandon(userInfo.getUsername(), sessionId);
+                usersInLobbyPersistence.abandon(userInfo.getUsername(), sessionId);
             }
         }
 
         private void abandonUsername(Session session) {
             UserInfo userInfo = session.getAttribute(USER_INFO_SESSION_KEY);
             if (userInfo != null) {
-                usernamesPersistence.abandon(userInfo.getUsername(), session.getId());
+                usersInLobbyPersistence.abandon(userInfo.getUsername(), session.getId());
             }
         }
 

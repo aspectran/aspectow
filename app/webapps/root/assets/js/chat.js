@@ -4,7 +4,7 @@ let pendedMessages;
 let aborted;
 
 $(function() {
-    if (!currentUser || !admissionToken) {
+    if (!currentUserNo || !currentUsername || !admissionToken) {
         location.href = "/";
     }
 
@@ -43,7 +43,8 @@ function openSocket() {
         let chatMessage = {
             message: {
                 type: 'JOIN',
-                username: currentUser
+                userNo: currentUserNo,
+                username: currentUsername
             }
         };
         socket.send(serialize(chatMessage));
@@ -108,32 +109,29 @@ function handleMessage(chatMessage) {
                     }
                     break;
                 case "broadcast":
-                    printMessage(payload.username, payload.content);
+                    printMessage(payload);
                     break;
                 case "userJoined":
-                    addUser(payload.username);
-                    printJoinMessage(payload.username, payload.prevUsername);
+                    addChater(payload.userNo, payload.username);
+                    printJoinMessage(payload);
                     break;
                 case "userLeft":
-                    removeUser(payload.username);
-                    printLeaveMessage(payload.username);
+                    removeChater(payload.userNo);
+                    printLeaveMessage(payload);
                     break;
                 case "join":
-                    console.log(payload);
                     pendedMessages = [];
-                    printRecentConversations(payload.recentConversations);
-                    printWelcomeMessage(payload.username);
+                    printRecentConvos(payload.recentConvos);
+                    printWelcomeMessage(payload);
                     while (pendedMessages && pendedMessages.length > 0) {
                         handleMessage(pendedMessages.pop());
                     }
                     pendedMessages = null;
                     break;
-                case "joinedUsers":
+                case "chaters":
                     clearUsers();
-                    for (let i = 0; i < payload.usernames.length; i++) {
-                        addUser(payload.usernames[i]);
-                    }
-                    thatsMe(currentUser);
+                    setChaters(payload);
+                    thatsMe(currentUserNo);
                     break;
                 case "abort":
                     aborted = true;
@@ -158,16 +156,18 @@ function handleMessage(chatMessage) {
 function sendMessage() {
     let text = $("#message").val().trim();
     if (text) {
+        let message = {
+            type: 'CHAT',
+            userNo: currentUserNo,
+            username: currentUsername,
+            content: text
+        }
         let chatMessage = {
-            message: {
-                type: 'CHAT',
-                username: currentUser,
-                content: text
-            }
+            message: message
         };
         $("#message").val('');
         socket.send(serialize(chatMessage));
-        printMessage(currentUser, text);
+        printMessage(message, text);
         $("#message").focus();
     }
 }
@@ -179,30 +179,46 @@ function leaveRoom() {
     location.href = "/rooms";
 }
 
-function addUser(username) {
-    let contact = $("<li/>").addClass("contact").data("username", username);
+function setChaters(payload) {
+    if (payload.chaters) {
+        for (let i in payload.chaters) {
+            let str = payload.chaters[i];
+            let index = str.indexOf(':');
+            if (index > -1) {
+                let userNo = Number(str.substring(0, index));
+                let username = str.substring(index + 1);
+                addChater(userNo, username);
+            }
+        }
+    }
+}
+
+function addChater(userNo, username) {
+    let contact = $("<li class='contact'/>")
+        .data("user-no", userNo)
+        .data("username", username);
     let status = $("<div/>").addClass("status badge");
     let badge = $("<i class='badge fi-record'/>");
-    let name = $("<div/>").addClass("name").text(username);
+    let name = $("<div class='name'/>").text(username);
     contact.append(status.append(badge)).append(name).appendTo($("#contacts"));
     updateTotalPeople();
 }
 
-function removeUser(username) {
-    findUser(username).remove();
+function removeChater(userNo) {
+    findUser(userNo).remove();
     updateTotalPeople();
 }
 
-function thatsMe(username) {
-    findUser(username).addClass("me");
-    updateTotalPeople();
-}
-
-function findUser(username) {
+function findUser(userNo) {
     return $("#contacts .contact")
         .filter(function() {
-            return $(this).data("username") === username;
+            return ($(this).data("user-no") === userNo);
         });
+}
+
+function thatsMe(userNo) {
+    findUser(userNo).addClass("me");
+    updateTotalPeople();
 }
 
 function clearUsers() {
@@ -218,63 +234,64 @@ function clearTotalPeople() {
     $("#totalPeople").text("");
 }
 
-function printWelcomeMessage(username, animatable) {
-    let text = "Welcome <strong>" + username + "</strong>";
+function printWelcomeMessage(payload, animatable) {
+    let text = "Welcome <strong>" + payload.username + "</strong>";
     printEvent(text, animatable);
 }
 
-function printJoinMessage(username, prevUsername, animatable) {
-    let text = "<strong>" + username + "</strong> joined the chat";
-    if (prevUsername) {
-        text += " (Previous username: " + prevUsername + ")"
+function printJoinMessage(payload, animatable) {
+    let text = "<strong>" + payload.username + "</strong> joined the chat";
+    if (payload.prevUsername) {
+        text += " (Previous username: " + payload.prevUsername + ")"
     }
     printEvent(text, animatable);
 }
 
-function printLeaveMessage(username, animatable) {
-    let text = "<strong>" + username + "</strong> left the chat";
+function printLeaveMessage(payload, animatable) {
+    let text = "<strong>" + payload.username + "</strong> left the chat";
     printEvent(text, animatable);
 }
 
-function printMessage(username, text, animatable) {
-    let sentByCurrentUer = (currentUser === username);
+function printMessage(payload, animatable) {
+    let myself = (currentUserNo === payload.userNo);
     let sender = $("<span class='username'/>")
-        .text(sentByCurrentUer === true ? "You" : username);
-    let content = $("<span class='content'/>").text(text);
-    let lastMessage = $("#conversations .message").last();
-    if (lastMessage.length && lastMessage.data("username") === username) {
+        .text(myself ? "You" : payload.username);
+    let content = $("<span class='content'/>").text(payload.content);
+    let lastMessage = $("#convos .message").last();
+    if (lastMessage.length && lastMessage.data("user-no") === payload.userNo) {
         lastMessage.append(content);
     } else {
         let message = $("<div/>")
-            .addClass(sentByCurrentUer === true ? "message sent" : "message received")
-            .data("username", username)
+            .addClass(myself ? "message sent" : "message received")
+            .data("user-no", payload.userNo)
+            .data("username", payload.username)
             .append(sender).append(content);
-        $("#conversations").append(message);
+        $("#convos").append(message);
     }
     if (animatable !== false) {
-        $("#conversations").animate({scrollTop: $("#conversations").prop("scrollHeight")});
+        $("#convos").animate({scrollTop: $("#convos").prop("scrollHeight")});
     }
 }
 
 function printEvent(text, animatable) {
     let div = $("<div/>").addClass("message event");
     $("<p/>").addClass("content").html(text).appendTo(div);
-    $("#conversations").append(div);
+    $("#convos").append(div);
     if (animatable !== false) {
-        $("#conversations").animate({scrollTop: $("#conversations").prop("scrollHeight")});
+        $("#convos").animate({scrollTop: $("#convos").prop("scrollHeight")});
     }
 }
 
 function printError(text, animatable) {
     let div = $("<div/>").addClass("message event error");
     $("<p/>").addClass("content").html(text).appendTo(div);
-    $("#conversations").append(div);
+    $("#convos").append(div);
     if (animatable !== false) {
-        $("#conversations").animate({scrollTop: $("#conversations").prop("scrollHeight")});
+        $("#convos").animate({scrollTop: $("#convos").prop("scrollHeight")});
     }
 }
 
-function printRecentConversations(chatMessages) {
+function printRecentConvos(chatMessages) {
     for (let i in chatMessages) {
         let chatMessage = chatMessages[i];
         Object.getOwnPropertyNames(chatMessage).forEach(function(val, idx, array) {
@@ -282,19 +299,19 @@ function printRecentConversations(chatMessages) {
             if (payload) {
                 switch (val) {
                     case "broadcast":
-                        printMessage(payload.username, payload.content, false);
+                        printMessage(payload, false);
                         break;
                     case "userJoined":
-                        printJoinMessage(payload.username, payload.prevUsername, false);
+                        printJoinMessage(payload, false);
                         break;
                     case "userLeft":
-                        printLeaveMessage(payload.username, false);
+                        printLeaveMessage(payload, false);
                         break;
                 }
             }
         });
     }
-    $("#conversations").animate({scrollTop: $("#conversations").prop("scrollHeight")});
+    $("#convos").animate({scrollTop: $("#convos").prop("scrollHeight")});
 }
 
 function serialize(json) {

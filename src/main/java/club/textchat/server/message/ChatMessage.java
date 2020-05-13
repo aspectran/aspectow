@@ -18,7 +18,7 @@ package club.textchat.server.message;
 import club.textchat.server.message.payload.AbortPayload;
 import club.textchat.server.message.payload.BroadcastPayload;
 import club.textchat.server.message.payload.JoinPayload;
-import club.textchat.server.message.payload.JoinedUsersPayload;
+import club.textchat.server.message.payload.ChatersPayload;
 import club.textchat.server.message.payload.MessagePayload;
 import club.textchat.server.message.payload.UserJoinedPayload;
 import club.textchat.server.message.payload.UserLeftPayload;
@@ -40,7 +40,7 @@ public class ChatMessage extends AbstractParameters {
     private static final String HEARTBEAT_PONG_MSG = "-pong-";
 
     private static final ParameterKey join;
-    private static final ParameterKey joinedUsers;
+    private static final ParameterKey chaters;
     private static final ParameterKey userJoined;
     private static final ParameterKey userLeft;
     private static final ParameterKey message;
@@ -52,7 +52,7 @@ public class ChatMessage extends AbstractParameters {
 
     static {
         join = new ParameterKey("join", JoinPayload.class);
-        joinedUsers = new ParameterKey("joinedUsers", JoinedUsersPayload.class);
+        chaters = new ParameterKey("chaters", ChatersPayload.class);
         userJoined = new ParameterKey("userJoined", UserJoinedPayload.class);
         userLeft = new ParameterKey("userLeft", UserLeftPayload.class);
         message = new ParameterKey("message", MessagePayload.class);
@@ -62,7 +62,7 @@ public class ChatMessage extends AbstractParameters {
 
         parameterKeys = new ParameterKey[] {
                 join,
-                joinedUsers,
+                chaters,
                 userJoined,
                 userLeft,
                 message,
@@ -91,9 +91,9 @@ public class ChatMessage extends AbstractParameters {
         putValue(abort, abortPayload);
     }
 
-    public ChatMessage(JoinedUsersPayload joinedUsersPayload) {
+    public ChatMessage(ChatersPayload chatersPayload) {
         this();
-        putValue(joinedUsers, joinedUsersPayload);
+        putValue(chaters, chatersPayload);
     }
 
     public ChatMessage(UserJoinedPayload userJoinedPayload) {

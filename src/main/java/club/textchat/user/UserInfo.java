@@ -8,17 +8,17 @@ public class UserInfo implements Serializable {
 
     private static final long serialVersionUID = -2434622566554519523L;
 
-    private int userNo;
+    private long userNo;
 
     private String username;
 
     private String prevUsername;
 
-    public int getUserNo() {
+    public long getUserNo() {
         return userNo;
     }
 
-    public void setUserNo(int userNo) {
+    public void setUserNo(long userNo) {
         this.userNo = userNo;
     }
 

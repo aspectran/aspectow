@@ -15,22 +15,26 @@
  */
 package club.textchat.server;
 
+import club.textchat.server.message.payload.BroadcastPayload;
 import com.aspectran.core.util.apon.AbstractParameters;
 import com.aspectran.core.util.apon.ParameterKey;
 import com.aspectran.core.util.apon.ValueType;
 
 public class AdmissionToken extends AbstractParameters {
 
+    private static final ParameterKey userNo;
     private static final ParameterKey username;
     private static final ParameterKey roomId;
 
     private static final ParameterKey[] parameterKeys;
 
     static {
+        userNo = new ParameterKey("userNo", ValueType.LONG);
         username = new ParameterKey("username", ValueType.STRING);
         roomId = new ParameterKey("roomId", ValueType.STRING);
 
         parameterKeys = new ParameterKey[] {
+                userNo,
                 username,
                 roomId
         };
@@ -38,6 +42,14 @@ public class AdmissionToken extends AbstractParameters {
 
     public AdmissionToken() {
         super(parameterKeys);
+    }
+
+    public long getUserNo() {
+        return getLong(userNo);
+    }
+
+    public void setUserNo(long userNo) {
+        putValue(AdmissionToken.userNo, userNo);
     }
 
     public String getUsername() {

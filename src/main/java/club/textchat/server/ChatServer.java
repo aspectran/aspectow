@@ -15,9 +15,10 @@
  */
 package club.textchat.server;
 
-import club.textchat.persistence.ConversationsPersistence;
-import club.textchat.persistence.TalkersPersistence;
-import club.textchat.persistence.UsernamesPersistence;
+import club.textchat.persistence.ChatersPersistence;
+import club.textchat.persistence.ConvosPersistence;
+import club.textchat.persistence.UsersInConvoPersistence;
+import club.textchat.persistence.UsersInLobbyPersistence;
 import club.textchat.server.codec.ChatMessageDecoder;
 import club.textchat.server.codec.ChatMessageEncoder;
 import club.textchat.server.message.ChatMessage;
@@ -56,10 +57,11 @@ public class ChatServer extends ChatHandler {
     private static final Logger logger = LoggerFactory.getLogger(ChatHandler.class);
 
     @Autowired
-    public ChatServer(UsernamesPersistence usernamesPersistence,
-                      TalkersPersistence talkersPersistence,
-                      ConversationsPersistence conversationsPersistence) {
-        super(usernamesPersistence, talkersPersistence, conversationsPersistence);
+    public ChatServer(UsersInLobbyPersistence usersInLobbyPersistence,
+                      UsersInConvoPersistence usersInConvoPersistence,
+                      ChatersPersistence chatersPersistence,
+                      ConvosPersistence convosPersistence) {
+        super(usersInLobbyPersistence, usersInConvoPersistence, chatersPersistence, convosPersistence);
     }
 
     @OnOpen
@@ -75,16 +77,17 @@ public class ChatServer extends ChatHandler {
             throw new IOException(reason);
         }
 
-        TalkerInfo talkerInfo = (TalkerInfo)config.getUserProperties().get(TalkerInfo.TALKER_INFO_PROP);
-        if (talkerInfo == null || !talkerInfo.getUsername().equals(admissionToken.getUsername())) {
+        ChaterInfo chaterInfo = (ChaterInfo)config.getUserProperties().get(ChaterInfo.CHATER_INFO_PROP);
+        if (chaterInfo == null || chaterInfo.getUserNo() != admissionToken.getUserNo() ||
+                !chaterInfo.getUsername().equals(admissionToken.getUsername())) {
             String reason = "User authentication failed";
             session.close(new CloseReason(CloseReason.CloseCodes.CANNOT_ACCEPT, reason));
             throw new IOException(reason);
         }
 
-        talkerInfo.setRoomId(admissionToken.getRoomId());
+        chaterInfo.setRoomId(admissionToken.getRoomId());
         if (logger.isDebugEnabled()) {
-            logger.debug("Created talker " + talkerInfo);
+            logger.debug("Created chater " + chaterInfo);
         }
     }
 

@@ -20,11 +20,9 @@ public class ChatServerConfigurator extends AspectranConfigurator {
         if (httpSession != null) {
             UserInfo userInfo = (UserInfo)httpSession.getAttribute(UserManager.USER_INFO_SESSION_KEY);
             if (userInfo != null) {
-                TalkerInfo talkerInfo = new TalkerInfo();
-                talkerInfo.setUsername(userInfo.getUsername());
-                talkerInfo.setPrevUsername(userInfo.getPrevUsername());
-                talkerInfo.setHttpSessionId(httpSession.getId());
-                config.getUserProperties().put(TalkerInfo.TALKER_INFO_PROP, talkerInfo);
+                ChaterInfo chaterInfo = new ChaterInfo(userInfo);
+                chaterInfo.setHttpSessionId(httpSession.getId());
+                config.getUserProperties().put(ChaterInfo.CHATER_INFO_PROP, chaterInfo);
             }
         }
     }

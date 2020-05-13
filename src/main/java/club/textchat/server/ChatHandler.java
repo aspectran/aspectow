@@ -1,13 +1,14 @@
 package club.textchat.server;
 
-import club.textchat.persistence.ConversationsPersistence;
-import club.textchat.persistence.TalkersPersistence;
-import club.textchat.persistence.UsernamesPersistence;
+import club.textchat.persistence.ChatersPersistence;
+import club.textchat.persistence.ConvosPersistence;
+import club.textchat.persistence.UsersInConvoPersistence;
+import club.textchat.persistence.UsersInLobbyPersistence;
 import club.textchat.server.message.ChatMessage;
 import club.textchat.server.message.payload.AbortPayload;
 import club.textchat.server.message.payload.BroadcastPayload;
+import club.textchat.server.message.payload.ChatersPayload;
 import club.textchat.server.message.payload.JoinPayload;
-import club.textchat.server.message.payload.JoinedUsersPayload;
 import club.textchat.server.message.payload.MessagePayload;
 import club.textchat.server.message.payload.UserJoinedPayload;
 import club.textchat.server.message.payload.UserLeftPayload;
@@ -29,20 +30,24 @@ public abstract class ChatHandler extends InstantActivitySupport {
 
     private static final Logger logger = LoggerFactory.getLogger(ChatServer.class);
 
-    private final Map<TalkerInfo, Session> talkers = new ConcurrentHashMap<>();
+    private final Map<ChaterInfo, Session> chaters = new ConcurrentHashMap<>();
 
-    private final UsernamesPersistence usernamesPersistence;
+    private final UsersInLobbyPersistence usersInLobbyPersistence;
 
-    private final TalkersPersistence talkersPersistence;
+    private final UsersInConvoPersistence usersInConvoPersistence;
 
-    private final ConversationsPersistence conversationsPersistence;
+    private final ChatersPersistence chatersPersistence;
 
-    protected ChatHandler(UsernamesPersistence usernamesPersistence,
-                          TalkersPersistence talkersPersistence,
-                          ConversationsPersistence conversationsPersistence) {
-        this.usernamesPersistence = usernamesPersistence;
-        this.talkersPersistence = talkersPersistence;
-        this.conversationsPersistence = conversationsPersistence;
+    private final ConvosPersistence convosPersistence;
+
+    protected ChatHandler(UsersInLobbyPersistence usersInLobbyPersistence,
+                          UsersInConvoPersistence usersInConvoPersistence,
+                          ChatersPersistence chatersPersistence,
+                          ConvosPersistence convosPersistence) {
+        this.usersInLobbyPersistence = usersInLobbyPersistence;
+        this.usersInConvoPersistence = usersInConvoPersistence;
+        this.chatersPersistence = chatersPersistence;
+        this.convosPersistence = convosPersistence;
     }
 
     protected void handle(Session session, ChatMessage chatMessage) {
@@ -53,38 +58,38 @@ public abstract class ChatHandler extends InstantActivitySupport {
         }
         MessagePayload payload = chatMessage.getMessagePayload();
         if (payload != null) {
-            TalkerInfo talkerInfo = getTalkerInfo(session);
+            ChaterInfo chaterInfo = getChaterInfo(session);
             switch (payload.getType()) {
                 case CHAT:
-                    broadcastMessage(talkerInfo, payload.getContent());
+                    broadcastMessage(chaterInfo, payload.getContent());
                     break;
                 case JOIN:
-                    String username = talkerInfo.getUsername();
+                    String username = chaterInfo.getUsername();
                     String username2 = payload.getUsername();
                     if (!username.equals(username2)) {
-                        abort(session, talkerInfo, "abnormal");
+                        abort(session, chaterInfo, "abnormal");
                         return;
                     }
-                    if (existsTalker(talkerInfo)) {
-                        if (!checkSameUser(talkerInfo)) {
-                            abort(session, talkerInfo, "exists");
+                    if (existsChater(chaterInfo)) {
+                        if (!checkSameUser(chaterInfo)) {
+                            abort(session, chaterInfo, "exists");
                             return;
                         }
-                        Session session2 = talkers.get(talkerInfo);
+                        Session session2 = chaters.get(chaterInfo);
                         if (session2 != null) {
-                            abort(session2, talkerInfo, "rejoin");
+                            abort(session2, chaterInfo, "rejoin");
                         }
-                        if (!join(session, talkerInfo, true)) {
-                            broadcastUserJoined(talkerInfo);
+                        if (!join(session, chaterInfo, true)) {
+                            broadcastUserJoined(chaterInfo);
                         }
                     } else {
-                        join(session, talkerInfo, false);
-                        broadcastUserJoined(talkerInfo);
+                        join(session, chaterInfo, false);
+                        broadcastUserJoined(chaterInfo);
                     }
-                    sendJoinedUsers(session, talkerInfo);
+                    sendJoinedUsers(session, chaterInfo);
                     break;
                 default:
-                    abort(session, talkerInfo, "abnormal");
+                    abort(session, chaterInfo, "abnormal");
             }
         }
     }
@@ -96,25 +101,25 @@ public abstract class ChatHandler extends InstantActivitySupport {
     protected void error(Session session, Throwable error) {
         logger.error("Error in websocket session: " + session.getId(), error);
         try {
-            TalkerInfo talkerInfo = getTalkerInfo(session);
-            abort(session, talkerInfo, "abnormal:" + error.getMessage());
+            ChaterInfo chaterInfo = getChaterInfo(session);
+            abort(session, chaterInfo, "abnormal:" + error.getMessage());
             session.close(new CloseReason(CloseReason.CloseCodes.UNEXPECTED_CONDITION, null));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    private boolean join(Session session, TalkerInfo talkerInfo, boolean rejoin) {
+    private boolean join(Session session, ChaterInfo chaterInfo, boolean rejoin) {
         boolean replaced = false;
         if (session.isOpen()) {
-            if (talkers.put(talkerInfo, session) != null) {
+            if (chaters.put(chaterInfo, session) != null) {
                 replaced = true;
             }
-            talkersPersistence.put(talkerInfo.getRoomId(), talkerInfo.getUsername());
-            usernamesPersistence.acquire(talkerInfo.getUsername(), talkerInfo.getHttpSessionId());
+            chatersPersistence.put(chaterInfo);
+            usersInConvoPersistence.put(chaterInfo.getUsername(), chaterInfo.getHttpSessionId());
             JoinPayload payload = new JoinPayload();
-            payload.setUsername(talkerInfo.getUsername());
-            payload.setRecentConversations(conversationsPersistence.getRecentConversations(talkerInfo.getRoomId()));
+            payload.setUsername(chaterInfo.getUsername());
+            payload.setRecentConvos(convosPersistence.getRecentConvos(chaterInfo.getRoomId()));
             payload.setRejoin(rejoin);
             ChatMessage message = new ChatMessage(payload);
             send(session, message);
@@ -122,10 +127,11 @@ public abstract class ChatHandler extends InstantActivitySupport {
         return replaced;
     }
 
-    private void abort(Session session, TalkerInfo talkerInfo, String cause) {
-        if (talkers.remove(talkerInfo, session)) {
-            talkersPersistence.remove(talkerInfo.getRoomId(), talkerInfo.getUsername());
-            usernamesPersistence.abandonIfNotExist(talkerInfo.getUsername(), talkerInfo.getHttpSessionId());
+    private void abort(Session session, ChaterInfo chaterInfo, String cause) {
+        if (chaters.remove(chaterInfo, session)) {
+            chatersPersistence.remove(chaterInfo);
+            usersInLobbyPersistence.tryAbandon(chaterInfo.getUsername(), chaterInfo.getHttpSessionId());
+            usersInConvoPersistence.remove(chaterInfo.getUsername());
         }
         AbortPayload payload = new AbortPayload();
         payload.setCause(cause);
@@ -134,54 +140,58 @@ public abstract class ChatHandler extends InstantActivitySupport {
     }
 
     private void leave(Session session) {
-        TalkerInfo talkerInfo = getTalkerInfo(session);
-        if (talkers.remove(talkerInfo, session)) {
-            talkersPersistence.remove(talkerInfo.getRoomId(), talkerInfo.getUsername());
-            usernamesPersistence.abandonIfNotExist(talkerInfo.getUsername(), talkerInfo.getHttpSessionId());
-            broadcastUserLeft(talkerInfo);
+        ChaterInfo chaterInfo = getChaterInfo(session);
+        if (chaters.remove(chaterInfo, session)) {
+            chatersPersistence.remove(chaterInfo);
+            usersInLobbyPersistence.tryAbandon(chaterInfo.getUsername(), chaterInfo.getHttpSessionId());
+            usersInConvoPersistence.remove(chaterInfo.getUsername());
+            broadcastUserLeft(chaterInfo);
         }
     }
 
-    private void sendJoinedUsers(Session session, TalkerInfo talkerInfo) {
-        Set<String> usernames = talkersPersistence.getUsernames(talkerInfo.getRoomId());
-        JoinedUsersPayload payload = new JoinedUsersPayload();
-        payload.setUsernames(usernames);
+    private void sendJoinedUsers(Session session, ChaterInfo chaterInfo) {
+        Set<String> chaters = chatersPersistence.getChaters(chaterInfo.getRoomId());
+        ChatersPayload payload = new ChatersPayload();
+        payload.setChaters(chaters);
         ChatMessage message = new ChatMessage(payload);
         send(session, message);
     }
 
-    private void broadcastUserJoined(TalkerInfo talkerInfo) {
+    private void broadcastUserJoined(ChaterInfo chaterInfo) {
         UserJoinedPayload payload = new UserJoinedPayload();
-        payload.setRoomId(talkerInfo.getRoomId());
-        payload.setUsername(talkerInfo.getUsername());
-        payload.setPrevUsername(talkerInfo.getPrevUsername());
+        payload.setRoomId(chaterInfo.getRoomId());
+        payload.setUserNo(chaterInfo.getUserNo());
+        payload.setUsername(chaterInfo.getUsername());
+        payload.setPrevUsername(chaterInfo.getPrevUsername());
         ChatMessage message = new ChatMessage(payload);
-        conversationsPersistence.put(talkerInfo.getRoomId(), message);
+        convosPersistence.put(chaterInfo.getRoomId(), message);
     }
 
-    private void broadcastUserLeft(TalkerInfo talkerInfo) {
+    private void broadcastUserLeft(ChaterInfo chaterInfo) {
         UserLeftPayload payload = new UserLeftPayload();
-        payload.setRoomId(talkerInfo.getRoomId());
-        payload.setUsername(talkerInfo.getUsername());
+        payload.setRoomId(chaterInfo.getRoomId());
+        payload.setUserNo(chaterInfo.getUserNo());
+        payload.setUsername(chaterInfo.getUsername());
         ChatMessage message = new ChatMessage(payload);
-        conversationsPersistence.put(talkerInfo.getRoomId(), message);
+        convosPersistence.put(chaterInfo.getRoomId(), message);
     }
 
-    private void broadcastMessage(TalkerInfo talkerInfo, String content) {
+    private void broadcastMessage(ChaterInfo chaterInfo, String content) {
         BroadcastPayload payload = new BroadcastPayload();
-        payload.setRoomId(talkerInfo.getRoomId());
+        payload.setRoomId(chaterInfo.getRoomId());
+        payload.setUserNo(chaterInfo.getUserNo());
+        payload.setUsername(chaterInfo.getUsername());
         payload.setContent(content);
-        payload.setUsername(talkerInfo.getUsername());
         ChatMessage message = new ChatMessage(payload);
-        conversationsPersistence.put(talkerInfo.getRoomId(), message);
+        convosPersistence.put(chaterInfo.getRoomId(), message);
     }
 
-    public void broadcast(ChatMessage message, String roomId, String excluded) {
-        for (Map.Entry<TalkerInfo, Session> entry : talkers.entrySet()) {
-            TalkerInfo talkerInfo = entry.getKey();
+    public void broadcast(ChatMessage message, String roomId, final long excludedUserNo) {
+        for (Map.Entry<ChaterInfo, Session> entry : chaters.entrySet()) {
+            ChaterInfo chaterInfo = entry.getKey();
             Session session = entry.getValue();
-            if (talkerInfo.getRoomId().equals(roomId) &&
-                    (excluded == null || !excluded.equals(talkerInfo.getUsername()))) {
+            if (chaterInfo.getRoomId().equals(roomId) &&
+                    (excludedUserNo == 0L || excludedUserNo != chaterInfo.getUserNo())) {
                 send(session, message);
             }
         }
@@ -194,28 +204,27 @@ public abstract class ChatHandler extends InstantActivitySupport {
     }
 
     @NonNull
-    private TalkerInfo getTalkerInfo(Session session) {
-        return (TalkerInfo)session.getUserProperties().get(TalkerInfo.TALKER_INFO_PROP);
+    private ChaterInfo getChaterInfo(Session session) {
+        return (ChaterInfo)session.getUserProperties().get(ChaterInfo.CHATER_INFO_PROP);
     }
 
-    private boolean existsTalker(TalkerInfo talkerInfo) {
-        if (talkers.containsKey(talkerInfo)) {
+    private boolean existsChater(ChaterInfo chaterInfo) {
+        if (chaters.containsKey(chaterInfo)) {
             return true;
         }
-        Set<String> usernames = talkersPersistence.getUsernames(talkerInfo.getRoomId());
-        return (usernames != null && usernames.contains(talkerInfo.getUsername()));
+        return chatersPersistence.isChater(chaterInfo);
     }
 
-    private boolean checkSameUser(TalkerInfo talkerInfo) {
-        Session session = talkers.get(talkerInfo);
+    private boolean checkSameUser(ChaterInfo chaterInfo) {
+        Session session = chaters.get(chaterInfo);
         String httpSessionId;
         if (session != null && session.isOpen()) {
-            TalkerInfo talkerInfo2 = getTalkerInfo(session);
-            httpSessionId = talkerInfo2.getHttpSessionId();
+            ChaterInfo chaterInfo2 = getChaterInfo(session);
+            httpSessionId = chaterInfo2.getHttpSessionId();
         } else {
-            httpSessionId = usernamesPersistence.get(talkerInfo.getUsername());
+            httpSessionId = usersInLobbyPersistence.get(chaterInfo.getUsername());
         }
-        return (httpSessionId != null && httpSessionId.equals(talkerInfo.getHttpSessionId()));
+        return (httpSessionId != null && httpSessionId.equals(chaterInfo.getHttpSessionId()));
     }
 
 }

@@ -189,25 +189,26 @@ input#for-automata-clear {
     padding-left: 8px;
     display: inline-block;
 }
-#conversations {
+#convos {
     height: 100%;
     overflow-y: auto;
+    padding-top: 15px;
 }
-#conversations .message {
+#convos .message {
     margin-top: 4px;
     margin-bottom: 5px;
     overflow: auto;
 }
-#conversations .message .content {
+#convos .message .content {
     border-radius: 20px;
     padding: 6px 16px;
     margin: 0 0 2px;
 }
-#conversations .message.event {
+#convos .message.event {
     margin-top: 0;
     margin-bottom: 6px;
 }
-#conversations .message.event .content {
+#convos .message.event .content {
     margin: 0;
     padding: 3px 16px;
     border-radius: 6px;
@@ -216,37 +217,37 @@ input#for-automata-clear {
     background-color: #f1f1f1;
     color: #333;
 }
-#conversations .message.event .content strong {
+#convos .message.event .content strong {
     font-weight: bold;
 }
-#conversations .message.event.error .content {
+#convos .message.event.error .content {
     background-color: palevioletred;
     color: yellow;
 }
-#conversations .message.received {
+#convos .message.received {
     left: 0;
 }
-#conversations .message.received .content {
+#convos .message.received .content {
     clear: both;
     float: left;
     background-color: #72baec8a;
     border-radius: 0 20px 20px;
 }
-#conversations .message.received .username {
+#convos .message.received .username {
     float: left;
     font-weight: bold;
 }
-#conversations .message.sent .content {
+#convos .message.sent .content {
     clear: both;
     float: right;
     background-color: #fbe2ae;
     border-radius: 20px 0 20px 20px;
 }
-#conversations .message.sent .username {
+#convos .message.sent .username {
     float: right;
     font-weight: bold;
 }
-#conversations .message.coupled .username {
+#convos .message.coupled .username {
     display: none;
 }
 .message-box .input-group {

@@ -1,5 +1,6 @@
 package club.textchat.user;
 
+import club.textchat.common.mybatis.SimpleSqlSession;
 import club.textchat.recaptcha.ReCaptchaVerifier;
 import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Bean;
@@ -25,16 +26,20 @@ public class UserAction {
 
     private final UserManager userManager;
 
+    private final SimpleSqlSession sqlSession;
+
     @Autowired
-    public UserAction(UserManager userManager) {
+    public UserAction(UserManager userManager,
+                      SimpleSqlSession sqlSession) {
         this.userManager = userManager;
+        this.sqlSession = sqlSession;
     }
 
     @RequestToPost("/guest/signin")
     @Transform(TransformType.JSON)
     public Map<String, Integer> signin(@Required String username,
-                               @Required String recaptchaResponse) {
-        username = UsernameUtils.nomalize(username);
+                                       @Required String recaptchaResponse) {
+        username = UsernameUtils.normalize(username);
 
         boolean success = false;
         try {
@@ -47,12 +52,19 @@ public class UserAction {
             return Collections.singletonMap("result", -1);
         }
 
-        if (userManager.isAnotherUser(username)) {
+        if (userManager.isInUseUsername(username)) {
             return Collections.singletonMap("result", -2);
         }
 
         UserInfo userInfo = new UserInfo();
         userInfo.setUsername(username);
+
+        sqlSession.insert("users.insertLoginHist", userInfo);
+        if (userInfo.getUserNo() <= 0) {
+            return Collections.singletonMap("result", -3);
+        }
+        userInfo.setUserNo(-userInfo.getUserNo());
+
         userManager.saveUserInfo(userInfo);
 
         return Collections.singletonMap("result", 0);

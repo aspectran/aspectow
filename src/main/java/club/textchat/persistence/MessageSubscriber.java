@@ -54,17 +54,17 @@ public class MessageSubscriber extends RedisPubSubAdapter<String, String> implem
         }
         BroadcastPayload broadcastPayload = chatMessage.getBroadcastPayload();
         if (broadcastPayload != null) {
-            chatHandler.broadcast(chatMessage, broadcastPayload.getRoomId(), broadcastPayload.getUsername());
+            chatHandler.broadcast(chatMessage, broadcastPayload.getRoomId(), broadcastPayload.getUserNo());
             return;
         }
         UserJoinedPayload userJoinedPayload = chatMessage.getUserJoinedPayload();
         if (userJoinedPayload != null) {
-            chatHandler.broadcast(chatMessage, userJoinedPayload.getRoomId(), userJoinedPayload.getUsername());
+            chatHandler.broadcast(chatMessage, userJoinedPayload.getRoomId(), userJoinedPayload.getUserNo());
             return;
         }
         UserLeftPayload userLeftPayload = chatMessage.getUserLeftPayload();
         if (userLeftPayload != null) {
-            chatHandler.broadcast(chatMessage, userLeftPayload.getRoomId(), null); // talker already left
+            chatHandler.broadcast(chatMessage, userLeftPayload.getRoomId(), 0L); // talker already left
         }
     }
 

@@ -10,24 +10,25 @@ import java.util.List;
 /**
  * <p>Created: 2020/05/03</p>
  */
-public class ConversationsPersistence extends AbstractPersistence {
+public class ConvosPersistence extends AbstractPersistence {
 
     private static final String KEY_PREFIX = "convos:";
 
     private final int maxSaveMessages;
 
-    public ConversationsPersistence(RedisConnectionPool connectionPool, int maxSaveMessages) {
+    public ConvosPersistence(RedisConnectionPool connectionPool, int maxSaveMessages) {
         super(connectionPool);
         this.maxSaveMessages = maxSaveMessages;
     }
 
     public void put(String roomId, ChatMessage message) {
-        rpush(KEY_PREFIX + roomId, message, maxSaveMessages);
-        publish(MessageSubscriber.CHANNEL, message.toString());
+        String value = message.toString();
+        rpush(makeKey(roomId), value, maxSaveMessages);
+        publish(MessageSubscriber.CHANNEL, value);
     }
 
-    public List<ChatMessage> getRecentConversations(String roomId) {
-        List<String> list = lrange(KEY_PREFIX + roomId, maxSaveMessages);
+    public List<ChatMessage> getRecentConvos(String roomId) {
+        List<String> list = lrange(makeKey(roomId), maxSaveMessages);
         List<ChatMessage> result = new ArrayList<>(list.size());
         for (String str : list) {
             ChatMessage message;
@@ -39,6 +40,10 @@ public class ConversationsPersistence extends AbstractPersistence {
             }
         }
         return result;
+    }
+
+    private String makeKey(String roomId) {
+        return KEY_PREFIX + roomId;
     }
 
 }

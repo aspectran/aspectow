@@ -30,19 +30,19 @@ import java.util.List;
 public class JoinPayload extends AbstractParameters {
 
     private static final ParameterKey username;
-    private static final ParameterKey recentConversations;
+    private static final ParameterKey recentConvos;
     private static final ParameterKey rejoin;
 
     private static final ParameterKey[] parameterKeys;
 
     static {
         username = new ParameterKey("username", ValueType.STRING);
-        recentConversations = new ParameterKey("recentConversations", ChatMessage.class, true);
+        recentConvos = new ParameterKey("recentConvos", ChatMessage.class, true);
         rejoin = new ParameterKey("rejoin", ValueType.BOOLEAN);
 
         parameterKeys = new ParameterKey[] {
                 username,
-                recentConversations,
+                recentConvos,
                 rejoin
         };
     }
@@ -55,10 +55,10 @@ public class JoinPayload extends AbstractParameters {
         putValue(JoinPayload.username, username);
     }
 
-    public void setRecentConversations(List<ChatMessage> messages) {
+    public void setRecentConvos(List<ChatMessage> messages) {
         if (messages != null) {
             for (ChatMessage message : messages) {
-                putValue(recentConversations, message);
+                putValue(recentConvos, message);
             }
         }
     }

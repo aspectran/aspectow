@@ -1,5 +1,6 @@
 package club.textchat.server;
 
+import club.textchat.user.UserInfo;
 import com.aspectran.core.lang.NonNull;
 import com.aspectran.core.lang.Nullable;
 import com.aspectran.core.util.ToStringBuilder;
@@ -10,19 +11,21 @@ import java.util.Objects;
 /**
  * <p>Created: 2020/05/07</p>
  */
-public class TalkerInfo implements Serializable {
+public class ChaterInfo extends UserInfo implements Serializable {
 
     private static final long serialVersionUID = 6164395040844520357L;
 
-    public static final String TALKER_INFO_PROP = "talkerInfo";
+    public static final String CHATER_INFO_PROP = "chaterInfo";
 
     private String roomId;
 
-    private String username;
-
-    private String prevUsername;
-
     private String httpSessionId;
+
+    public ChaterInfo(@NonNull UserInfo userInfo) {
+        setUserNo(userInfo.getUserNo());
+        setUsername(userInfo.getUsername());
+        setPrevUsername(userInfo.getPrevUsername());
+    }
 
     @NonNull
     public String getRoomId() {
@@ -33,22 +36,14 @@ public class TalkerInfo implements Serializable {
         this.roomId = roomId;
     }
 
-    @NonNull
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
+    @Override
     @Nullable
     public String getPrevUsername() {
-        return (username != null && username.equals(prevUsername) ? null : prevUsername);
-    }
-
-    public void setPrevUsername(String prevUsername) {
-        this.prevUsername = prevUsername;
+        if (getUsername() != null && getUsername().equals(super.getPrevUsername())) {
+            return null;
+        } else {
+            return super.getPrevUsername();
+        }
     }
 
     @NonNull
@@ -65,12 +60,12 @@ public class TalkerInfo implements Serializable {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof TalkerInfo)) {
+        if (!(o instanceof ChaterInfo)) {
             return false;
         }
-        TalkerInfo talkerInfo = (TalkerInfo)o;
-        return (Objects.equals(roomId, talkerInfo.getRoomId()) &&
-                Objects.equals(username, talkerInfo.getUsername()));
+        ChaterInfo chaterInfo = (ChaterInfo)o;
+        return (getUserNo() == chaterInfo.getUserNo() &&
+                Objects.equals(roomId, chaterInfo.getRoomId()));
     }
 
     @Override
@@ -78,7 +73,7 @@ public class TalkerInfo implements Serializable {
         final int prime = 31;
         int result = 7;
         result = prime * result + (roomId != null ? roomId.hashCode() : 0);
-        result = prime * result + (username != null ? username.hashCode() : 0);
+        result = prime * result + Long.hashCode(getUserNo());
         return result;
     }
 
@@ -86,8 +81,9 @@ public class TalkerInfo implements Serializable {
     public String toString() {
         ToStringBuilder tsb = new ToStringBuilder();
         tsb.append("roomId", roomId);
-        tsb.append("username", username);
-        tsb.append("prevUsername", prevUsername);
+        tsb.append("userNo", getUserNo());
+        tsb.append("username", getUsername());
+        tsb.append("prevUsername", getPrevUsername());
         tsb.append("httpSessionId", httpSessionId);
         return tsb.toString();
     }
