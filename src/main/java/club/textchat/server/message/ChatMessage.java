@@ -17,8 +17,8 @@ package club.textchat.server.message;
 
 import club.textchat.server.message.payload.AbortPayload;
 import club.textchat.server.message.payload.BroadcastPayload;
-import club.textchat.server.message.payload.JoinPayload;
 import club.textchat.server.message.payload.ChatersPayload;
+import club.textchat.server.message.payload.JoinPayload;
 import club.textchat.server.message.payload.MessagePayload;
 import club.textchat.server.message.payload.UserJoinedPayload;
 import club.textchat.server.message.payload.UserLeftPayload;

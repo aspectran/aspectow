@@ -15,7 +15,6 @@
  */
 package club.textchat.server;
 
-import club.textchat.server.message.payload.BroadcastPayload;
 import com.aspectran.core.util.apon.AbstractParameters;
 import com.aspectran.core.util.apon.ParameterKey;
 import com.aspectran.core.util.apon.ValueType;
