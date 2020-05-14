@@ -13,18 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package club.textchat.persistence;
+package club.textchat.redis.persistence;
 
-import io.lettuce.core.api.StatefulRedisConnection;
-import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
+public class PersistenceException extends RuntimeException {
 
-/**
- * <p>Created: 2019/12/23</p>
- */
-public interface ConnectionPool {
+    private static final long serialVersionUID = -1988211653704030943L;
 
-    StatefulRedisConnection<String, String> getConnection() throws Exception;
-
-    StatefulRedisPubSubConnection<String, String> getPubSubConnection() throws Exception;
+    public PersistenceException(String msg, Throwable cause) {
+        super(msg, cause);
+    }
 
 }

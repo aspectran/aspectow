@@ -1,5 +1,6 @@
-package club.textchat.persistence;
+package club.textchat.redis.persistence;
 
+import club.textchat.redis.ConnectionPool;
 import io.lettuce.core.RedisConnectionException;
 import io.lettuce.core.ScanArgs;
 import io.lettuce.core.ScanIterator;

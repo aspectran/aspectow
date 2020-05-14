@@ -60,6 +60,7 @@
 </div>
 <script src="/assets/js/chat.js?v0.7"></script>
 <script>
+    const chatServerType = "general";
     const currentUserNo = Number("${page.userNo}");
     const currentUsername = "${page.username}";
     const admissionToken = "${page.token}";

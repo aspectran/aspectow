@@ -1,7 +1,7 @@
 package club.textchat.user;
 
-import club.textchat.persistence.InConvoUsersPersistence;
-import club.textchat.persistence.SignedInUsersPersistence;
+import club.textchat.redis.persistence.InConvoUsersPersistence;
+import club.textchat.redis.persistence.SignedInUsersPersistence;
 import com.aspectran.core.activity.InstantActivitySupport;
 import com.aspectran.core.activity.Translet;
 import com.aspectran.core.adapter.SessionAdapter;

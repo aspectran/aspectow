@@ -1,7 +1,8 @@
-package club.textchat.persistence;
+package club.textchat.redis.pubsub;
 
+import club.textchat.redis.RedisConnectionPool;
 import club.textchat.server.ChatHandler;
-import club.textchat.server.ChatServer;
+import club.textchat.server.RandomChatHandler;
 import club.textchat.server.message.ChatMessage;
 import club.textchat.server.message.payload.BroadcastPayload;
 import club.textchat.server.message.payload.UserJoinedPayload;
@@ -23,21 +24,22 @@ import java.io.IOException;
  * <p>Created: 2020/05/10</p>
  */
 @Component
-@Bean("messageSubscriber")
-public class MessageSubscriber extends RedisPubSubAdapter<String, String> implements InitializableBean, DisposableBean {
+@Bean
+public class RandomMessageSubscriber extends RedisPubSubAdapter<String, String>
+        implements InitializableBean, DisposableBean {
 
-    private static final Logger logger = LoggerFactory.getLogger(MessageSubscriber.class);
+    private static final Logger logger = LoggerFactory.getLogger(RandomMessageSubscriber.class);
 
-    public static final String CHANNEL = "message";
+    public static final String CHANNEL = "chat:random";
 
     private final StatefulRedisPubSubConnection<String, String> connection;
 
     private final ChatHandler chatHandler;
 
     @Autowired
-    public MessageSubscriber(RedisConnectionPool connectionPool, ChatServer chatServer) {
+    public RandomMessageSubscriber(RedisConnectionPool connectionPool, RandomChatHandler chatHandler) {
         this.connection = connectionPool.getPubSubConnection();
-        this.chatHandler = chatServer;
+        this.chatHandler = chatHandler;
     }
 
     @Override

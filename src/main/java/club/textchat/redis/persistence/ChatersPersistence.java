@@ -1,5 +1,6 @@
-package club.textchat.persistence;
+package club.textchat.redis.persistence;
 
+import club.textchat.redis.RedisConnectionPool;
 import club.textchat.server.ChaterInfo;
 
 import java.util.Set;
@@ -49,7 +50,7 @@ public class ChatersPersistence extends AbstractPersistence {
         return KEY_PREFIX + roomId;
     }
 
-    private String makeValue(ChaterInfo chaterInfo) {
+    public static String makeValue(ChaterInfo chaterInfo) {
         return chaterInfo.getUserNo() + VALUE_SEPARATOR + chaterInfo.getUsername();
     }
 

@@ -21,6 +21,7 @@ import com.aspectran.core.util.apon.ParameterKey;
 import com.aspectran.core.util.apon.ValueType;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * Represents the payload of a WebSocket frame to welcome a user.
@@ -30,19 +31,22 @@ import java.util.List;
 public class JoinPayload extends AbstractParameters {
 
     private static final ParameterKey username;
-    private static final ParameterKey recentConvos;
+    private static final ParameterKey chaters;
+    private static final ParameterKey recentConvo;
     private static final ParameterKey rejoin;
 
     private static final ParameterKey[] parameterKeys;
 
     static {
         username = new ParameterKey("username", ValueType.STRING);
-        recentConvos = new ParameterKey("recentConvos", ChatMessage.class, true);
+        chaters = new ParameterKey("chaters", ValueType.STRING, true);
+        recentConvo = new ParameterKey("recentConvo", ChatMessage.class, true);
         rejoin = new ParameterKey("rejoin", ValueType.BOOLEAN);
 
         parameterKeys = new ParameterKey[] {
                 username,
-                recentConvos,
+                chaters,
+                recentConvo,
                 rejoin
         };
     }
@@ -55,10 +59,18 @@ public class JoinPayload extends AbstractParameters {
         putValue(JoinPayload.username, username);
     }
 
-    public void setRecentConvos(List<ChatMessage> messages) {
+    public void setChaters(Set<String> chaters) {
+        if (chaters != null) {
+            for (String username : chaters) {
+                putValue(JoinPayload.chaters, username);
+            }
+        }
+    }
+
+    public void setRecentConvo(List<ChatMessage> messages) {
         if (messages != null) {
             for (ChatMessage message : messages) {
-                putValue(recentConvos, message);
+                putValue(recentConvo, message);
             }
         }
     }

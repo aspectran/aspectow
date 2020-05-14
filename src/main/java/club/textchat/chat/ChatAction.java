@@ -46,9 +46,9 @@ public class ChatAction {
 
         Map<String, String> map = new HashMap<>();
         if (RANDOM_CHATROOM_ID.equals(roomId)) {
-            map.put("include", "pages/random");
+            map.put("include", "pages/chat-random");
         } else {
-            map.put("include", "pages/chat");
+            map.put("include", "pages/chat-general");
         }
         map.put("userNo", Long.toString(userInfo.getUserNo()));
         map.put("username", userInfo.getUsername());

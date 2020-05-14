@@ -1,5 +1,6 @@
-package club.textchat.persistence;
+package club.textchat.redis.persistence;
 
+import club.textchat.redis.RedisConnectionPool;
 import club.textchat.user.UsernameUtils;
 
 /**

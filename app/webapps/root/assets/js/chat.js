@@ -4,7 +4,7 @@ let pendedMessages;
 let aborted;
 
 $(function() {
-    if (!currentUserNo || !currentUsername || !admissionToken) {
+    if (!chatServerType || !currentUserNo || !currentUsername || !admissionToken) {
         location.href = "/rooms";
     }
 
@@ -35,7 +35,7 @@ function openSocket() {
         socket.close();
         socket = null;
     }
-    let url = new URL('/chat/' + admissionToken, location.href);
+    let url = new URL('/chat/' + chatServerType + '/' + admissionToken, location.href);
     url.protocol = url.protocol.replace('https:', 'wss:');
     url.protocol = url.protocol.replace('http:', 'ws:');
     socket = new WebSocket(url.href);
@@ -121,17 +121,13 @@ function handleMessage(chatMessage) {
                     break;
                 case "join":
                     pendedMessages = [];
-                    printRecentConvos(payload.recentConvos);
+                    setChaters(payload.chaters);
+                    printRecentConvos(payload.recentConvo);
                     printWelcomeMessage(payload);
                     while (pendedMessages && pendedMessages.length > 0) {
                         handleMessage(pendedMessages.pop());
                     }
                     pendedMessages = null;
-                    break;
-                case "chaters":
-                    clearUsers();
-                    setChaters(payload);
-                    thatsMe(currentUserNo);
                     break;
                 case "abort":
                     aborted = true;
@@ -179,10 +175,10 @@ function leaveRoom() {
     location.href = "/rooms";
 }
 
-function setChaters(payload) {
-    if (payload.chaters) {
-        for (let i in payload.chaters) {
-            let str = payload.chaters[i];
+function setChaters(chaters) {
+    if (chaters) {
+        for (let i in chaters) {
+            let str = chaters[i];
             let index = str.indexOf(':');
             if (index > -1) {
                 let userNo = Number(str.substring(0, index));
@@ -190,6 +186,8 @@ function setChaters(payload) {
                 addChater(userNo, username);
             }
         }
+        updateTotalPeople();
+        findUser(currentUserNo).addClass("me");
     }
 }
 
@@ -214,11 +212,6 @@ function findUser(userNo) {
         .filter(function() {
             return ($(this).data("user-no") === userNo);
         });
-}
-
-function thatsMe(userNo) {
-    findUser(userNo).addClass("me");
-    updateTotalPeople();
 }
 
 function clearUsers() {
