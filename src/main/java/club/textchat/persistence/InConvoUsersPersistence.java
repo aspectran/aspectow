@@ -9,11 +9,11 @@ import club.textchat.user.UsernameUtils;
  *
  * <p>Created: 2020/05/03</p>
  */
-public class UsersInConvoPersistence extends AbstractPersistence {
+public class InConvoUsersPersistence extends AbstractPersistence {
 
     private static final String KEY_PREFIX = "inconvo:";
 
-    public UsersInConvoPersistence(RedisConnectionPool connectionPool) {
+    public InConvoUsersPersistence(RedisConnectionPool connectionPool) {
         super(connectionPool);
     }
 

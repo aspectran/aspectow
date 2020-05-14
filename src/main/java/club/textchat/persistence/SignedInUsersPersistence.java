@@ -5,17 +5,17 @@ import club.textchat.user.UsernameUtils;
 /**
  * Persistence for names of users who are not in conversation yet.
  *
- * nonconvo:condense(username) = httpSessionId
+ * signed:condense(username) = httpSessionId
  *
  * <p>Created: 2020/05/03</p>
  */
-public class UsersInLobbyPersistence extends AbstractPersistence {
+public class SignedInUsersPersistence extends AbstractPersistence {
 
-    private static final String KEY_PREFIX = "inlobby:";
+    private static final String KEY_PREFIX = "signed:";
 
     private final int expiryPeriodInSeconds;
 
-    public UsersInLobbyPersistence(RedisConnectionPool connectionPool, int expiryPeriodInSeconds) {
+    public SignedInUsersPersistence(RedisConnectionPool connectionPool, int expiryPeriodInSeconds) {
         super(connectionPool);
         this.expiryPeriodInSeconds = expiryPeriodInSeconds;
     }

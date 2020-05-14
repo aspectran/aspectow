@@ -17,8 +17,8 @@ package club.textchat.server;
 
 import club.textchat.persistence.ChatersPersistence;
 import club.textchat.persistence.ConvosPersistence;
-import club.textchat.persistence.UsersInConvoPersistence;
-import club.textchat.persistence.UsersInLobbyPersistence;
+import club.textchat.persistence.InConvoUsersPersistence;
+import club.textchat.persistence.SignedInUsersPersistence;
 import club.textchat.server.codec.ChatMessageDecoder;
 import club.textchat.server.codec.ChatMessageEncoder;
 import club.textchat.server.message.ChatMessage;
@@ -57,11 +57,11 @@ public class ChatServer extends ChatHandler {
     private static final Logger logger = LoggerFactory.getLogger(ChatHandler.class);
 
     @Autowired
-    public ChatServer(UsersInLobbyPersistence usersInLobbyPersistence,
-                      UsersInConvoPersistence usersInConvoPersistence,
+    public ChatServer(SignedInUsersPersistence signedInUsersPersistence,
+                      InConvoUsersPersistence inConvoUsersPersistence,
                       ChatersPersistence chatersPersistence,
                       ConvosPersistence convosPersistence) {
-        super(usersInLobbyPersistence, usersInConvoPersistence, chatersPersistence, convosPersistence);
+        super(signedInUsersPersistence, inConvoUsersPersistence, chatersPersistence, convosPersistence);
     }
 
     @OnOpen

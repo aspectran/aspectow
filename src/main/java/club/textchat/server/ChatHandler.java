@@ -2,8 +2,8 @@ package club.textchat.server;
 
 import club.textchat.persistence.ChatersPersistence;
 import club.textchat.persistence.ConvosPersistence;
-import club.textchat.persistence.UsersInConvoPersistence;
-import club.textchat.persistence.UsersInLobbyPersistence;
+import club.textchat.persistence.InConvoUsersPersistence;
+import club.textchat.persistence.SignedInUsersPersistence;
 import club.textchat.server.message.ChatMessage;
 import club.textchat.server.message.payload.AbortPayload;
 import club.textchat.server.message.payload.BroadcastPayload;
@@ -32,20 +32,20 @@ public abstract class ChatHandler extends InstantActivitySupport {
 
     private final Map<ChaterInfo, Session> chaters = new ConcurrentHashMap<>();
 
-    private final UsersInLobbyPersistence usersInLobbyPersistence;
+    private final SignedInUsersPersistence signedInUsersPersistence;
 
-    private final UsersInConvoPersistence usersInConvoPersistence;
+    private final InConvoUsersPersistence inConvoUsersPersistence;
 
     private final ChatersPersistence chatersPersistence;
 
     private final ConvosPersistence convosPersistence;
 
-    protected ChatHandler(UsersInLobbyPersistence usersInLobbyPersistence,
-                          UsersInConvoPersistence usersInConvoPersistence,
+    protected ChatHandler(SignedInUsersPersistence signedInUsersPersistence,
+                          InConvoUsersPersistence inConvoUsersPersistence,
                           ChatersPersistence chatersPersistence,
                           ConvosPersistence convosPersistence) {
-        this.usersInLobbyPersistence = usersInLobbyPersistence;
-        this.usersInConvoPersistence = usersInConvoPersistence;
+        this.signedInUsersPersistence = signedInUsersPersistence;
+        this.inConvoUsersPersistence = inConvoUsersPersistence;
         this.chatersPersistence = chatersPersistence;
         this.convosPersistence = convosPersistence;
     }
@@ -116,7 +116,7 @@ public abstract class ChatHandler extends InstantActivitySupport {
                 replaced = true;
             }
             chatersPersistence.put(chaterInfo);
-            usersInConvoPersistence.put(chaterInfo.getUsername(), chaterInfo.getHttpSessionId());
+            inConvoUsersPersistence.put(chaterInfo.getUsername(), chaterInfo.getHttpSessionId());
             JoinPayload payload = new JoinPayload();
             payload.setUsername(chaterInfo.getUsername());
             payload.setRecentConvos(convosPersistence.getRecentConvos(chaterInfo.getRoomId()));
@@ -130,8 +130,8 @@ public abstract class ChatHandler extends InstantActivitySupport {
     private void abort(Session session, ChaterInfo chaterInfo, String cause) {
         if (chaters.remove(chaterInfo, session)) {
             chatersPersistence.remove(chaterInfo);
-            usersInLobbyPersistence.tryAbandon(chaterInfo.getUsername(), chaterInfo.getHttpSessionId());
-            usersInConvoPersistence.remove(chaterInfo.getUsername());
+            signedInUsersPersistence.tryAbandon(chaterInfo.getUsername(), chaterInfo.getHttpSessionId());
+            inConvoUsersPersistence.remove(chaterInfo.getUsername());
         }
         AbortPayload payload = new AbortPayload();
         payload.setCause(cause);
@@ -143,8 +143,8 @@ public abstract class ChatHandler extends InstantActivitySupport {
         ChaterInfo chaterInfo = getChaterInfo(session);
         if (chaters.remove(chaterInfo, session)) {
             chatersPersistence.remove(chaterInfo);
-            usersInLobbyPersistence.tryAbandon(chaterInfo.getUsername(), chaterInfo.getHttpSessionId());
-            usersInConvoPersistence.remove(chaterInfo.getUsername());
+            signedInUsersPersistence.tryAbandon(chaterInfo.getUsername(), chaterInfo.getHttpSessionId());
+            inConvoUsersPersistence.remove(chaterInfo.getUsername());
             broadcastUserLeft(chaterInfo);
         }
     }
@@ -222,7 +222,7 @@ public abstract class ChatHandler extends InstantActivitySupport {
             ChaterInfo chaterInfo2 = getChaterInfo(session);
             httpSessionId = chaterInfo2.getHttpSessionId();
         } else {
-            httpSessionId = usersInLobbyPersistence.get(chaterInfo.getUsername());
+            httpSessionId = signedInUsersPersistence.get(chaterInfo.getUsername());
         }
         return (httpSessionId != null && httpSessionId.equals(chaterInfo.getHttpSessionId()));
     }

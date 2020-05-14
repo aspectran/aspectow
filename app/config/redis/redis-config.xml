@@ -15,14 +15,14 @@
         </arguments>
     </bean>
 
-    <bean class="club.textchat.persistence.UsersInLobbyPersistence">
+    <bean class="club.textchat.persistence.SignedInUsersPersistence">
         <arguments>
             <item>#{redisConnectionPool}</item>
             <item valueType="int">10</item>
         </arguments>
     </bean>
 
-    <bean class="club.textchat.persistence.UsersInConvoPersistence">
+    <bean class="club.textchat.persistence.InConvoUsersPersistence">
         <arguments>
             <item>#{redisConnectionPool}</item>
         </arguments>

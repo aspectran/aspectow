@@ -23,11 +23,12 @@
                             <div class="input-group">
                                 <input class="input-group-field" type="text" id="username" maxlength="30" placeholder="Username" autocomplete="off" autofocus/>
                                 <div class="input-group-button">
-                                    <button type="submit" class="button" title="Sign in">Chat as guest</button>
+                                    <button type="submit" class="button" title="Sign in">Sign in</button>
                                 </div>
                             </div>
                             <p class="form-error already-in-use">
-                                Your username is already in use. Please enter a different username.
+                                Your username is already in use or a similar name already exists.<br/>
+                                Please enter a different username.
                             </p>
                             <div id="inline-badge"></div>
                         </form>

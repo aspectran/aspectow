@@ -21,29 +21,35 @@
                     <div class="grid-x grid-margin-x grid-margin-y small-up-1 medium-up-2 large-up-3 t15">
                         <div class="cell card room" data-room-id="0">
                             <div class="card-section">
+                                <a><h4>Random Chat</h4></a>
+                                <p>Chat with random strangers</p>
+                            </div>
+                        </div>
+                        <div class="cell card room" data-room-id="1">
+                            <div class="card-section">
                                 <a href="/rooms/KUpsx-Uw2dweCWaNreqtfw"><h4>Room 1</h4></a>
                                 <p>This row of cards is embedded in an X-Y Block Grid.</p>
                             </div>
                         </div>
-                        <div class="cell card room" data-room-id="1">
+                        <div class="cell card room" data-room-id="2">
                             <div class="card-section">
                                 <a href="/rooms/yqOkZ13kfTArOCYb8Em88w"><h4>Room 2</h4></a>
                                 <p>It has an easy to override visual style, and is appropriately subdued.</p>
                             </div>
                         </div>
-                        <div class="cell card room" data-room-id="2">
+                        <div class="cell card room" data-room-id="3">
                             <div class="card-section">
                                 <a href="/rooms/Mzc-3ShpShu5LUU22Hkn1A"><h4>Room 3</h4></a>
                                 <p>It has an easy to override visual style, and is appropriately subdued.</p>
                             </div>
                         </div>
-                        <div class="cell card room" data-room-id="0">
+                        <div class="cell card room" data-room-id="4">
                             <div class="card-section">
                                 <a href="/rooms/LtjfLstiYBE0UC7kqIZCBw"><h4>Room 4</h4></a>
                                 <p>This row of cards is embedded in an X-Y Block Grid.</p>
                             </div>
                         </div>
-                        <div class="cell card room" data-room-id="1">
+                        <div class="cell card room" data-room-id="5">
                             <div class="card-section">
                                 <a href="/rooms/mSsNxsNBkNh2pUgdrzmwQQ"><h4>Room 5</h4></a>
                                 <p>It has an easy to override visual style, and is appropriately subdued.</p>
