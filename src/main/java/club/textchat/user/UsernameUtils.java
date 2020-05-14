@@ -1,5 +1,7 @@
 package club.textchat.user;
 
+import java.util.regex.Pattern;
+
 /**
  * <p>Created: 2020/05/11</p>
  */
@@ -7,12 +9,15 @@ public class UsernameUtils {
 
     private static final int MAX_USERNAME_LEN = 30;
 
-    private static final String USERNAME_NORMALIZATION_PATTERN = "[\\s,'`\"&/<>\\\\]";
+    private static final Pattern USERNAME_NORMALIZATION_PATTERN = Pattern.compile("[,'`\"#&/<>\\\\]");
 
-    private static final String CONDENSATION_PATTERN = "[\\s`~!@#$%^&*()_|+\\-=?;:'\",.<>\\{\\}\\[\\]\\\\\\/]";
+    private static final Pattern USERNAME_CONDENSATION_PATTERN = Pattern.compile("[\\s`~!@#$%^&*()_|+\\-=?;:'\",.<>\\{\\}\\[\\]\\\\\\/]");
+
+    private static final Pattern SPACE_CONDENSATION_PATTERN = Pattern.compile("\\s{2,}");
 
     public static String normalize(String username) {
-        username = username.replaceAll(USERNAME_NORMALIZATION_PATTERN, " ").trim();
+        username = USERNAME_NORMALIZATION_PATTERN.matcher(username).replaceAll("");
+        username = SPACE_CONDENSATION_PATTERN.matcher(username).replaceAll(" ").trim();
         if (username.length() > MAX_USERNAME_LEN) {
             username = username.substring(0, MAX_USERNAME_LEN);
         }
@@ -20,7 +25,7 @@ public class UsernameUtils {
     }
 
     public static String condense(String username) {
-        return username.replaceAll(CONDENSATION_PATTERN,"");
+        return USERNAME_CONDENSATION_PATTERN.matcher(username).replaceAll("");
     }
 
 }

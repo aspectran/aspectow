@@ -21,6 +21,8 @@ import java.util.Map;
 @Bean("chatAction")
 public class ChatAction {
 
+    private static final String RANDOM_CHATROOM_ID = "0";
+
     private final UserManager userManager;
 
     @Autowired
@@ -33,7 +35,6 @@ public class ChatAction {
     @Action("page")
     public Map<String, String> joinChat(@Required @Qualifier("roomId") String encryptedRoomId) {
         String roomId = PBEncryptionUtils.decrypt(encryptedRoomId);
-
         UserInfo userInfo = userManager.getUserInfo();
 
         AdmissionToken admissionToken = new AdmissionToken();
@@ -44,7 +45,11 @@ public class ChatAction {
         String encryptedAdmissionToken = TimeLimitedPBTokenIssuer.getToken(admissionToken);
 
         Map<String, String> map = new HashMap<>();
-        map.put("include", "pages/chat");
+        if (RANDOM_CHATROOM_ID.equals(roomId)) {
+            map.put("include", "pages/random");
+        } else {
+            map.put("include", "pages/chat");
+        }
         map.put("userNo", Long.toString(userInfo.getUserNo()));
         map.put("username", userInfo.getUsername());
         map.put("roomName", roomId);

@@ -1,5 +1,5 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
-<div class="rooms grid-y grid-frame">
+<div class="lobby grid-y grid-frame">
     <div class="header cell cell-block-container">
         <div class="grid-x">
             <div class="cell auto align-self-middle">
@@ -18,10 +18,10 @@
             </div>
             <div class="cell auto cell-block-y">
                 <div class="grid-container">
-                    <div class="grid-x grid-margin-x grid-margin-y small-up-1 medium-up-2 large-up-3 t15">
-                        <div class="cell card room" data-room-id="0">
+                    <div class="rooms grid-x grid-margin-x grid-margin-y small-up-1 medium-up-2 large-up-3 t15">
+                        <div class="cell card room random" data-room-id="0">
                             <div class="card-section">
-                                <a><h4>Random Chat</h4></a>
+                                <a href="/rooms/UuKRg6d7RJXbC2G_2btRPA"><h4>Random Chat</h4></a>
                                 <p>Chat with random strangers</p>
                             </div>
                         </div>

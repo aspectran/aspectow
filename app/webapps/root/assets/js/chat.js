@@ -5,7 +5,7 @@ let aborted;
 
 $(function() {
     if (!currentUserNo || !currentUsername || !admissionToken) {
-        location.href = "/";
+        location.href = "/rooms";
     }
 
     $("form#send-message").submit(function() {
