@@ -6,7 +6,7 @@
     <div class="header cell cell-block-container">
         <div class="grid-x">
             <div class="cell auto align-self-middle">
-                <h2><i class="fi-results-demographics"></i> Text Chat Club</h2>
+                <h1><i class="fi-results-demographics"></i> Text Chat Club</h1>
             </div>
             <div class="cell shrink align-self-middle text-right">
             </div>

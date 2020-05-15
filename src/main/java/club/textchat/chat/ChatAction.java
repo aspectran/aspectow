@@ -8,7 +8,6 @@ import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Bean;
 import com.aspectran.core.component.bean.annotation.Component;
 import com.aspectran.core.component.bean.annotation.Dispatch;
-import com.aspectran.core.component.bean.annotation.Qualifier;
 import com.aspectran.core.component.bean.annotation.Request;
 import com.aspectran.core.component.bean.annotation.Required;
 import com.aspectran.core.util.PBEncryptionUtils;
@@ -33,11 +32,15 @@ public class ChatAction {
     @Request("/rooms/${roomId}")
     @Dispatch("templates/default")
     @Action("page")
-    public Map<String, String> joinChat(@Required String roomId) {
+    public Map<String, String> startChat(@Required String roomId) {
         if ("random".equals(roomId)) {
             roomId = "0";
         } else {
-            roomId = PBEncryptionUtils.decrypt(roomId);
+            try {
+                roomId = PBEncryptionUtils.decrypt(roomId);
+            } catch (Exception e) {
+                throw new InvalidChatRoomException(roomId, "invalid-room-id");
+            }
         }
 
         UserInfo userInfo = userManager.getUserInfo();

@@ -15,7 +15,7 @@
         <div class="header cell cell-block-container">
             <div class="grid-x">
                 <div class="cell auto align-self-middle">
-                    <h2><i class="fi-results-demographics"></i> Text Chat Club</h2>
+                    <h1><i class="fi-results-demographics"></i> Text Chat Club</h1>
                 </div>
                 <div class="cell shrink align-self-middle text-right">
                 </div>
@@ -32,10 +32,17 @@
     </div>
     <div class="reveal" aria-labelledby="oops" data-reveal data-close-on-click="false" data-close-on-esc="false">
         <h1 id="oops">Oops!</h1>
-        <p class="lead">An unexpected error has occurred.</p>
+        <c:choose>
+            <c:when test="${error.message eq 'invalid-room-id'}">
+                <p>Invalid Chat Room ID: ${error.roomId}</p>
+            </c:when>
+            <c:otherwise>
+                <p class="lead">An unexpected error has occurred.</p>
+            </c:otherwise>
+        </c:choose>
         <p></p>
         <div class="button-group align-right">
-            <a class="alert button" href="/rooms">Ok</a>
+            <a class="alert button" href="/rooms">OK</a>
         </div>
     </div>
 </body>

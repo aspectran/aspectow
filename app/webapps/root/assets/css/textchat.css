@@ -45,14 +45,17 @@ input#for-automata-clear {
     color: #fff;
     padding: 0 10px;
 }
-.header h2 {
-    font-size: 24px;
+.header h1, .header h2 {
+    font-size: 1.5em;
     line-height: 30px;
     margin: 0;
     max-width: 100% !important;
     overflow: hidden !important;
     text-overflow: ellipsis;
     white-space: nowrap !important;
+}
+.header h2 {
+    font-size: 1.3em;
 }
 .header .badge {
     font-size: 20px;

@@ -5,7 +5,7 @@
     <div class="header cell cell-block-container">
         <div class="grid-x">
             <div class="cell auto align-self-middle">
-                <h2><i class="fi-results-demographics"></i> Text Chat Club</h2>
+                <h1><i class="fi-results-demographics"></i> Text Chat Club</h1>
             </div>
             <div class="cell shrink align-self-middle text-right">
                 <button type="button" class="button signout" title="Sign out">Sign out</button>
@@ -30,7 +30,7 @@
                         </div>
                         <div class="cell medium-12 large-8 no-room">
                             <div class="card-section">
-                                <p>Welcome to Text Chat Club.</p>
+                                <h5>Welcome to Text Chat Club.</h5>
                                 You must be 18+ to start random chat with strangers.<br/>
                                 How To Chat With Strangers Safely?<br/>
                                 Don't share any personal information or contacts, don't send any money to strangers.

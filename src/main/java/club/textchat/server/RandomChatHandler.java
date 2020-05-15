@@ -140,7 +140,7 @@ public class RandomChatHandler extends AbstractChatHandler {
         }
     }
 
-    protected void broadcastUserJoined(ChaterInfo chaterInfo, ChaterInfo chaterInfo2) {
+    private void broadcastUserJoined(ChaterInfo chaterInfo, ChaterInfo chaterInfo2) {
         UserJoinedPayload payload = new UserJoinedPayload();
         payload.setUserNo(chaterInfo2.getUserNo());
         payload.setUsername(chaterInfo2.getUsername());
@@ -197,6 +197,7 @@ public class RandomChatHandler extends AbstractChatHandler {
 
     public void setPartner(@NonNull ChaterInfo chaterInfo1, @NonNull ChaterInfo chaterInfo2) {
         randomChaterPersistence.set(chaterInfo1, chaterInfo2);
+        broadcastUserJoined(chaterInfo1, chaterInfo2);
     }
 
     public boolean hasPartner(long userNo) {

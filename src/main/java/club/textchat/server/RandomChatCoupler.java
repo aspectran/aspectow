@@ -12,6 +12,10 @@ public class RandomChatCoupler {
 
     private static final Logger logger = LoggerFactory.getLogger(RandomChatCoupler.class);
 
+    private static final int THREAD_HOLD = 10000;
+
+    private static final int MIN_SLEEP_TIME = 100;
+
     private final ConcurrentLinkedQueue<ChaterInfo> queue = new ConcurrentLinkedQueue<>();
 
     private final RandomChatHandler randomChatHandler;
@@ -47,6 +51,10 @@ public class RandomChatCoupler {
         queue.clear();
     }
 
+    private int interval() {
+        return Math.max(THREAD_HOLD / queue.size(), MIN_SLEEP_TIME);
+    }
+
     private void run() {
         Runnable runnable = () -> {
             active = true;
@@ -64,11 +72,16 @@ public class RandomChatCoupler {
                     if (chaterInfo2 != null) {
                         withdraw(chaterInfo2);
                         randomChatHandler.setPartner(chaterInfo1, chaterInfo2);
-                        randomChatHandler.broadcastUserJoined(chaterInfo1, chaterInfo2);
+                        try {
+                            Thread.sleep(interval());
+                        } catch (InterruptedException ie) {
+                            clear();
+                            break;
+                        }
                     } else {
                         offer(chaterInfo1);
                         try {
-                            Thread.sleep(5000);
+                            Thread.sleep(interval());
                         } catch (InterruptedException ie) {
                             clear();
                             break;
