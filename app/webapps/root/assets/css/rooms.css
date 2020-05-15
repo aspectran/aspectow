@@ -20,9 +20,6 @@
 .rooms .room.random h4 {
     color: #d45472;
 }
-.rooms .card-section p {
-    margin-bottom: .5em;
-}
 .rooms .no-room .card-section {
     padding: 0;
 }
