@@ -25,7 +25,9 @@ $(function() {
     });
     $("#message").focus();
 
-    openSocket();
+    if (autoConnect !== false) {
+        openSocket();
+    }
 });
 
 function openSocket() {
@@ -75,6 +77,19 @@ function openSocket() {
         console.error("WebSocket error observed:", event);
         printError('Could not connect to server. Please refresh this page.');
     };
+}
+
+function closeSocket() {
+    if (socket) {
+        socket.onclose = null;
+        socket.close();
+        socket = null;
+    }
+}
+
+function leaveRoom() {
+    closeSocket();
+    location.href = "/rooms";
 }
 
 function heartbeatPing() {
@@ -166,13 +181,6 @@ function sendMessage() {
         printMessage(message, text);
         $msg.focus();
     }
-}
-
-function leaveRoom() {
-    socket.onclose = null;
-    socket.close();
-    socket = null;
-    location.href = "/rooms";
 }
 
 function setChaters(chaters) {

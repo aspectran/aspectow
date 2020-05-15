@@ -1,12 +1,14 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <link rel="stylesheet" type="text/css" href="/assets/css/chat-public.css?v11" />
+<link rel="stylesheet" type="text/css" href="/assets/css/chat-random.css?v11" />
 <script src="/assets/js/chat-public.js?v0.8"></script>
 <script src="/assets/js/chat-random.js?v0.8"></script>
 <script>
-    const chatServerType = "random";
     const currentUserNo = Number("${page.userNo}");
     const currentUsername = "${page.username}";
     const admissionToken = "${page.token}";
+    const chatServerType = "random";
+    const autoConnect = false;
 </script>
 <div class="grid-y grid-frame random">
     <div class="header cell cell-block-container">
@@ -18,7 +20,7 @@
                 <h2 class="text-truncate">Chat with random strangers</h2>
             </div>
             <div class="cell shrink align-self-middle text-right">
-                <button type="button" class="button leave" title="Leave the chat room"><i class="iconfont fi-power"></i></button>
+                <button type="button" class="button leave" title="Leave this chat room"><i class="iconfont fi-power"></i></button>
             </div>
         </div>
     </div>

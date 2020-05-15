@@ -2,10 +2,11 @@
 <link rel="stylesheet" type="text/css" href="/assets/css/chat-public.css?v11" />
 <script src="/assets/js/chat-public.js?v0.8"></script>
 <script>
-    const chatServerType = "public";
     const currentUserNo = Number("${page.userNo}");
     const currentUsername = "${page.username}";
     const admissionToken = "${page.token}";
+    const chatServerType = "public";
+    const autoConnect = true;
 </script>
 <div class="grid-y grid-frame">
     <div class="header cell cell-block-container">
@@ -17,7 +18,7 @@
                 <h2 class="text-truncate">Room ${page.roomName}</h2>
             </div>
             <div class="cell shrink align-self-middle text-right">
-                <button type="button" class="button leave" title="Leave the chat room"><i class="iconfont fi-power"></i></button>
+                <button type="button" class="button leave" title="Leave this chat room"><i class="iconfont fi-power"></i></button>
             </div>
         </div>
     </div>
