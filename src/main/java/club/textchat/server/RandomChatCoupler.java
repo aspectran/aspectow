@@ -53,18 +53,12 @@ public class RandomChatCoupler {
             ChaterInfo chaterInfo1;
             while ((chaterInfo1 = poll()) != null) {
                 try {
-                    ChaterInfo chaterInfo2 = null;
-                    for (int repeat = 0; repeat < 2; repeat++) {
-                        chaterInfo2 = randomChatHandler.randomChater();
-                        if (chaterInfo2 == null) {
-                            break;
-                        }
+                    ChaterInfo chaterInfo2 = randomChatHandler.randomChater();
+                    if (chaterInfo2 != null) {
                         if (chaterInfo1.getUserNo() == chaterInfo2.getUserNo() ||
                                 randomChatHandler.hasPartner(chaterInfo2.getUserNo()) ||
                                 randomChatHandler.isPastPartner(chaterInfo1.getUserNo(), chaterInfo2.getUserNo())) {
                             chaterInfo2 = null;
-                        } else {
-                            break;
                         }
                     }
                     if (chaterInfo2 != null) {
@@ -74,7 +68,7 @@ public class RandomChatCoupler {
                     } else {
                         offer(chaterInfo1);
                         try {
-                            Thread.sleep(10000);
+                            Thread.sleep(5000);
                         } catch (InterruptedException ie) {
                             clear();
                             break;

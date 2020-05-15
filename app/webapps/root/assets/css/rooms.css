@@ -1,0 +1,38 @@
+.rooms .room {
+    position: relative;
+    border-radius: 10px;
+}
+.rooms .room .card-section {
+    margin: 2px;
+}
+.rooms .room .card-section:hover {
+    border: 2px solid #99ddfc;
+    border-radius: 8px;
+    margin: 0;
+}
+.rooms .room.random {
+    border: 2px solid #d26881;
+    background-color: #fcf5f7;
+}
+.rooms .room.random .card-section:hover {
+    border: 2px solid #d26881;
+}
+.rooms .room.random h4 {
+    color: #d45472;
+}
+.rooms .card-section p {
+    margin-bottom: .5em;
+}
+.rooms .no-room .card-section {
+    padding: 0;
+}
+.rooms .room .button.start {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    border-radius: 8px 0 8px 0;
+    background-color: #08c;
+}
+.rooms .room.random .button.start {
+    background-color: #d26881;
+}

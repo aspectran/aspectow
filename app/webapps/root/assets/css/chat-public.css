@@ -1,0 +1,105 @@
+#contacts {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+#contacts .contact {
+    padding: 8px 8px 8px 12px;
+    position: relative;
+}
+#contacts .contact.me {
+    background-color: #95d6f6;
+}
+#contacts .contact:hover {
+    background-color: #30b1f1;
+    cursor: pointer;
+}
+#contacts .contact .status {
+    display: inline;
+}
+#contacts .contact .status .badge {
+    color: #fff;
+    vertical-align: baseline;
+}
+#contacts .contact.me .status .badge {
+    color: #fabc03;
+}
+#contacts .contact .name {
+    line-height: 1.1;
+    padding-left: 8px;
+    display: inline-block;
+}
+#convo {
+    height: 100%;
+    overflow-y: auto;
+    padding-top: 15px;
+}
+#convo .message {
+    margin-top: 4px;
+    margin-bottom: 5px;
+    overflow: auto;
+}
+#convo .message .content {
+    border-radius: 20px;
+    padding: 6px 16px;
+    margin: 0 0 2px;
+}
+#convo .message.event {
+    margin-top: 0;
+    margin-bottom: 6px;
+}
+#convo .message.event .content {
+    margin: 0;
+    padding: 3px 16px;
+    border-radius: 6px;
+    width: 100%;
+    text-align: center;
+    background-color: #f1f1f1;
+    color: #333;
+}
+#convo .message.event .content strong {
+    font-weight: bold;
+}
+#convo .message.event.error .content {
+    background-color: palevioletred;
+    color: yellow;
+}
+#convo .message.received {
+    left: 0;
+}
+#convo .message.received .content {
+    clear: both;
+    float: left;
+    background-color: #72baec8a;
+    border-radius: 0 20px 20px;
+}
+#convo .message.received .username {
+    float: left;
+    font-weight: bold;
+}
+#convo .message.sent .content {
+    clear: both;
+    float: right;
+    background-color: #fbe2ae;
+    border-radius: 20px 0 20px 20px;
+}
+#convo .message.sent .username {
+    float: right;
+    font-weight: bold;
+}
+#convo .message.coupled .username {
+    display: none;
+}
+.message-box .input-group {
+    margin: 0;
+}
+@media screen and (max-width: 39.9375em) {
+    .message-box {
+        background: #f5f5f5;
+    }
+}
+.message-box button.next {
+    margin-left: 5px;
+    border-radius: 5px !important;
+    background-color: #1b838d;
+}

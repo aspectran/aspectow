@@ -11,7 +11,8 @@
 <script src="/assets/js/modernizr-custom.js"></script>
 <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
 <script src="/assets/js/foundation.min.js"></script>
-<script src="/assets/js/textchat.js"></script>
+<script src="/assets/js/textchat.js?v0.1"></script>
+<script src="/assets/js/util.js?v0.1"></script>
 <script>
     /* Set a custom property that contains the height value of the viewport */
     document.documentElement.style.setProperty("--vh", (window.innerHeight * 0.01) + "px");

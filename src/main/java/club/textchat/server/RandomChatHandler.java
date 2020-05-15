@@ -15,6 +15,7 @@ import club.textchat.server.message.payload.UserLeftPayload;
 import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Bean;
 import com.aspectran.core.component.bean.annotation.Component;
+import com.aspectran.core.lang.NonNull;
 
 import javax.websocket.CloseReason;
 import javax.websocket.Session;
@@ -125,15 +126,17 @@ public class RandomChatHandler extends AbstractChatHandler {
 
     private void leave(Session session, ChaterInfo chaterInfo) {
         randomChatCoupler.withdraw(chaterInfo);
-        randomChaterPersistence.remove(chaterInfo.getUserNo());
         if (chaters.remove(chaterInfo, session)) {
             chatersPersistence.remove(chaterInfo);
             signedInUsersPersistence.tryAbandon(chaterInfo.getUsername(), chaterInfo.getHttpSessionId());
             inConvoUsersPersistence.remove(chaterInfo.getUsername());
             ChaterInfo chaterInfo2 = getPartner(chaterInfo.getUserNo());
             if (chaterInfo2 != null) {
+                randomChaterPersistence.unset(chaterInfo.getUserNo(), chaterInfo2.getUserNo());
+                randomHistoryPersistence.set(chaterInfo.getUserNo(), chaterInfo2.getUserNo());
                 broadcastUserLeft(chaterInfo, chaterInfo2.getUserNo());
             }
+            randomChaterPersistence.remove(chaterInfo.getUserNo());
         }
     }
 
@@ -156,18 +159,6 @@ public class RandomChatHandler extends AbstractChatHandler {
         message.setReceiver(userNo);
         randomConvosPersistence.put(message);
     }
-
-//    private void broadcastUserLeft(ChaterInfo chaterInfo, ChaterInfo chaterInfo2) {
-//        if (chaterInfo2 != null) {
-//            UserLeftPayload payload = new UserLeftPayload();
-//            payload.setUserNo(chaterInfo2.getUserNo());
-//            payload.setUsername(chaterInfo2.getUsername());
-//            ChatMessage message = new ChatMessage(payload);
-//            message.setReceiver(chaterInfo.getUserNo());
-//            broadcast(message);
-//            broadcastUserLeft(chaterInfo, chaterInfo2.getUserNo());
-//        }
-//    }
 
     private void broadcastUserLeft(ChaterInfo chaterInfo, long userNo) {
         UserLeftPayload payload = new UserLeftPayload();
@@ -204,7 +195,7 @@ public class RandomChatHandler extends AbstractChatHandler {
         return randomChaterPersistence.get(userNo);
     }
 
-    public void setPartner(ChaterInfo chaterInfo1, ChaterInfo chaterInfo2) {
+    public void setPartner(@NonNull ChaterInfo chaterInfo1, @NonNull ChaterInfo chaterInfo2) {
         randomChaterPersistence.set(chaterInfo1, chaterInfo2);
     }
 

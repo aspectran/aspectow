@@ -8,7 +8,7 @@ $(function() {
         executeCaptcha();
         return false;
     });
-    $("#username").val(currentUser);
+    $("#username").val(getCookie("username")).select();
 });
 
 function signIn() {
@@ -28,6 +28,7 @@ function signIn() {
             success: function(data) {
                 switch (data.result) {
                     case 0:
+                        setCookie("username", username, 7);
                         location.href = "/rooms";
                         break;
                     case -1:

@@ -1,4 +1,7 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<script src="https://www.google.com/recaptcha/api.js?render=explicit&onload=loadCaptcha"></script>
+<script src="/assets/js/recaptcha.js"></script>
+<script src="/assets/js/index.js?v0.1"></script>
 <div class="intro grid-y grid-frame">
     <div class="header cell cell-block-container">
         <div class="grid-x">
@@ -62,9 +65,3 @@
         </div>
     </div>
 </div>
-<script src="https://www.google.com/recaptcha/api.js?render=explicit&onload=loadCaptcha"></script>
-<script src="/assets/js/recaptcha.js"></script>
-<script src="/assets/js/index.js?v0.1"></script>
-<script>
-    const currentUser = "${user.username}";
-</script>

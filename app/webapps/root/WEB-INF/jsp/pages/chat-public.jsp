@@ -1,4 +1,12 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<link rel="stylesheet" type="text/css" href="/assets/css/chat-public.css?v11" />
+<script src="/assets/js/chat-public.js?v0.8"></script>
+<script>
+    const chatServerType = "public";
+    const currentUserNo = Number("${page.userNo}");
+    const currentUsername = "${page.username}";
+    const admissionToken = "${page.token}";
+</script>
 <div class="grid-y grid-frame">
     <div class="header cell cell-block-container">
         <div class="grid-x">
@@ -19,7 +27,7 @@
                 <ul id="contacts"></ul>
             </div>
             <div class="cell auto cell-block-y">
-                <div id="convos" class="grid-container full-height"></div>
+                <div id="convo" class="grid-container full-height"></div>
             </div>
         </div>
     </div>
@@ -31,7 +39,7 @@
             <div class="message-box cell auto cell-block-y">
                 <form id="send-message">
                     <div class="input-group">
-                        <input id="message" class="input-group-field" type="text" autocomplete="off" placeholder="Type a message..."/>
+                        <input id="message" class="input-group-field" type="text" autocomplete="off" placeholder="Enter your message"/>
                         <input id="for-automata-clear" type="text"/>
                         <div class="input-group-button">
                             <button type="submit" class="button send">Send</button>
@@ -58,10 +66,3 @@
         <a class="success button" href="/rooms">OK</a>
     </div>
 </div>
-<script src="/assets/js/chat-public.js?v0.7"></script>
-<script>
-    const chatServerType = "public";
-    const currentUserNo = Number("${page.userNo}");
-    const currentUsername = "${page.username}";
-    const admissionToken = "${page.token}";
-</script>

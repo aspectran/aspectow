@@ -2,6 +2,7 @@ package club.textchat.redis.persistence;
 
 import club.textchat.redis.RedisConnectionPool;
 import club.textchat.server.ChaterInfo;
+import com.aspectran.core.lang.NonNull;
 
 /**
  * <p>Created: 2020/05/03</p>
@@ -35,14 +36,17 @@ public class RandomChaterPersistence extends AbstractPersistence {
         super.set(makeKey(userNo), NONE);
     }
 
-    public void set(ChaterInfo chaterInfo, ChaterInfo chaterInfo2) {
+    public void set(@NonNull ChaterInfo chaterInfo, @NonNull ChaterInfo chaterInfo2) {
         super.set(makeKey(chaterInfo.getUserNo()), makeValue(chaterInfo2));
         super.set(makeKey(chaterInfo2.getUserNo()), makeValue(chaterInfo));
     }
 
-//    public void unset(long userNo) {
-//        super.setnx(makeKey(userNo), NONE);
-//    }
+    public void unset(long userNo1, long userNo2) {
+        ChaterInfo chaterInfo = get(userNo1);
+        if (chaterInfo != null && chaterInfo.getUserNo() == userNo2) {
+            set(chaterInfo.getUserNo());
+        }
+    }
 
     public void remove(long userNo) {
         del(makeKey(userNo));

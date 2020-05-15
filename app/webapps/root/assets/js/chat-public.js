@@ -4,21 +4,19 @@ let pendedMessages;
 let aborted;
 
 $(function() {
-    if (!chatServerType || !currentUserNo || !currentUsername || !admissionToken) {
-        location.href = "/rooms";
-    }
-
     $("form#send-message").submit(function() {
-        if (!$("#contacts-wrap").hasClass("show-for-medium")) {
-            $("#contacts-wrap").addClass("show-for-medium");
+        let wrap = $("#contacts-wrap");
+        if (!wrap.hasClass("show-for-medium")) {
+            wrap.addClass("show-for-medium");
         }
         $("#for-automata-clear").focus();
         sendMessage();
         return false;
     });
     $(".header button.people").on("click", function() {
-        $(".sidebar").toggle().toggleClass("show-for-medium");
-        if ($(".sidebar").hasClass("show-for-medium") || !$(".sidebar").is(":visible")) {
+        let sidebar = $(".sidebar");
+        sidebar.toggle().toggleClass("show-for-medium");
+        if (sidebar.hasClass("show-for-medium") || !sidebar.is(":visible")) {
             $("#message").focus();
         }
     })
@@ -31,6 +29,9 @@ $(function() {
 });
 
 function openSocket() {
+    if (!chatServerType || !currentUserNo || !currentUsername || !admissionToken) {
+        location.href = "/rooms";
+    }
     if (socket) {
         socket.onclose = null;
         socket.close();
@@ -51,14 +52,12 @@ function openSocket() {
         socket.send(serialize(chatMessage));
         heartbeatPing();
     };
-
     socket.onmessage = function(event) {
         if (typeof event.data === "string") {
             let chatMessage = deserialize(event.data);
             handleMessage(chatMessage);
         }
     };
-
     socket.onclose = function(event) {
         if (aborted) {
             location.href = "/rooms";
@@ -72,7 +71,6 @@ function openSocket() {
                 });
         }
     };
-
     socket.onerror = function(event) {
         console.error("WebSocket error observed:", event);
         printError('Could not connect to server. Please refresh this page.');
@@ -89,7 +87,7 @@ function heartbeatPing() {
                 heartBeat: "-ping-"
             };
             socket.send(serialize(chatMessage));
-            heartbeatTimer = null;
+            // heartbeatTimer = null;
             heartbeatPing();
         }
     }, 57000);
@@ -105,7 +103,7 @@ function handleMessage(chatMessage) {
         if (payload) {
             switch (val) {
                 case "heartBeat":
-                    if (payload === "--pong--") {
+                    if (payload === "-pong-") {
                         heartbeatPing();
                     }
                     break;
@@ -118,12 +116,12 @@ function handleMessage(chatMessage) {
                     break;
                 case "userLeft":
                     removeChater(payload.userNo);
-                    printLeaveMessage(payload);
+                    printLeftMessage(payload);
                     break;
                 case "join":
                     pendedMessages = [];
                     setChaters(payload.chaters);
-                    printRecentConvos(payload.recentConvo);
+                    printRecentConvo(payload.recentConvo);
                     printWelcomeMessage(payload);
                     while (pendedMessages && pendedMessages.length > 0) {
                         handleMessage(pendedMessages.pop());
@@ -151,7 +149,8 @@ function handleMessage(chatMessage) {
 }
 
 function sendMessage() {
-    let text = $("#message").val().trim();
+    let $msg = $("#message");
+    let text = $msg.val().trim();
     if (text) {
         let message = {
             type: 'CHAT',
@@ -162,10 +161,10 @@ function sendMessage() {
         let chatMessage = {
             message: message
         };
-        $("#message").val('');
+        $msg.val('');
         socket.send(serialize(chatMessage));
         printMessage(message, text);
-        $("#message").focus();
+        $msg.focus();
     }
 }
 
@@ -220,6 +219,10 @@ function clearChaters() {
     clearTotalPeople();
 }
 
+function getTotalPeople() {
+    return $("#totalPeople").text();
+}
+
 function updateTotalPeople() {
     $("#totalPeople").text($("#contacts .contact").length);
 }
@@ -229,7 +232,7 @@ function clearTotalPeople() {
 }
 
 function clearConvo() {
-    $("#convos").empty();
+    $("#convo").empty();
 }
 
 function printWelcomeMessage(payload, animatable) {
@@ -238,24 +241,25 @@ function printWelcomeMessage(payload, animatable) {
 }
 
 function printJoinMessage(payload, animatable) {
-    let text = "<strong>" + payload.username + "</strong> joined the chat";
+    let text = "<strong>" + payload.username + "</strong> joined this chat";
     if (payload.prevUsername) {
         text += " (Previous username: " + payload.prevUsername + ")"
     }
     printEvent(text, animatable);
 }
 
-function printLeaveMessage(payload, animatable) {
-    let text = "<strong>" + payload.username + "</strong> left the chat";
+function printLeftMessage(payload, animatable) {
+    let text = "<strong>" + payload.username + "</strong> has left this chat";
     printEvent(text, animatable);
 }
 
 function printMessage(payload, animatable) {
+    let convo = $("#convo");
     let myself = (currentUserNo === payload.userNo);
     let sender = $("<span class='username'/>")
         .text(myself ? "You" : payload.username);
     let content = $("<span class='content'/>").text(payload.content);
-    let lastMessage = $("#convos .message").last();
+    let lastMessage = $("#convo .message").last();
     if (lastMessage.length && lastMessage.data("user-no") === payload.userNo) {
         lastMessage.append(content);
     } else {
@@ -264,32 +268,34 @@ function printMessage(payload, animatable) {
             .data("user-no", payload.userNo)
             .data("username", payload.username)
             .append(sender).append(content);
-        $("#convos").append(message);
+        convo.append(message);
     }
     if (animatable !== false) {
-        $("#convos").animate({scrollTop: $("#convos").prop("scrollHeight")});
+        convo.animate({scrollTop: convo.prop("scrollHeight")});
     }
 }
 
 function printEvent(text, animatable) {
+    let convo = $("#convo");
     let div = $("<div/>").addClass("message event");
     $("<p/>").addClass("content").html(text).appendTo(div);
-    $("#convos").append(div);
+    convo.append(div);
     if (animatable !== false) {
-        $("#convos").animate({scrollTop: $("#convos").prop("scrollHeight")});
+        convo.animate({scrollTop: convo.prop("scrollHeight")});
     }
 }
 
 function printError(text, animatable) {
+    let convo = $("#convo");
     let div = $("<div/>").addClass("message event error");
     $("<p/>").addClass("content").html(text).appendTo(div);
-    $("#convos").append(div);
+    convo.append(div);
     if (animatable !== false) {
-        $("#convos").animate({scrollTop: $("#convos").prop("scrollHeight")});
+        convo.animate({scrollTop: convo.prop("scrollHeight")});
     }
 }
 
-function printRecentConvos(chatMessages) {
+function printRecentConvo(chatMessages) {
     for (let i in chatMessages) {
         let chatMessage = chatMessages[i];
         Object.getOwnPropertyNames(chatMessage).forEach(function(val, idx, array) {
@@ -303,13 +309,14 @@ function printRecentConvos(chatMessages) {
                         printJoinMessage(payload, false);
                         break;
                     case "userLeft":
-                        printLeaveMessage(payload, false);
+                        printLeftMessage(payload, false);
                         break;
                 }
             }
         });
     }
-    $("#convos").animate({scrollTop: $("#convos").prop("scrollHeight")});
+    let convo = $("#convo");
+    convo.animate({scrollTop: convo.prop("scrollHeight")});
 }
 
 function serialize(json) {

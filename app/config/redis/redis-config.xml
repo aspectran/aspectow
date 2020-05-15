@@ -56,7 +56,7 @@
     <bean class="club.textchat.redis.persistence.RandomHistoryPersistence">
         <arguments>
             <item>#{redisConnectionPool}</item>
-            <item valueType="int">30</item>
+            <item valueType="int">10</item>
         </arguments>
     </bean>
 
