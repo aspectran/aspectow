@@ -4,11 +4,9 @@ $(function() {
             $("#contacts-wrap").addClass("show-for-medium");
         }
         $("#for-automata-clear").focus();
-        if (getTotalPeople() <= 1) {
-
-            return false;
+        if (getTotalPeople() > 1) {
+            sendMessage();
         }
-        sendMessage();
         return false;
     });
     $("button.next").on("click", function() {
@@ -18,12 +16,12 @@ $(function() {
     });
 });
 
-function printWelcomeMessage(payload, animatable) {
+function printWelcomeMessage(payload, animatable, container) {
     let text = "<i class='fi-flag'></i> Waiting for stranger ...";
-    printEvent(text, animatable);
+    printEvent(text, animatable, container);
 }
 
-function printJoinMessage(payload, animatable) {
+function printJoinedMessage(payload, animatable, container) {
     let text = "<i class='fi-microphone'></i> Chat started. Feel free to say hello to <strong>" + payload.username + "</strong>.";
-    printEvent(text, animatable);
+    printEvent(text, animatable, container);
 }

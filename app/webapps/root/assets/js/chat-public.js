@@ -112,7 +112,7 @@ function handleMessage(chatMessage) {
                     break;
                 case "userJoined":
                     addChater(payload.userNo, payload.username);
-                    printJoinMessage(payload);
+                    printJoinedMessage(payload);
                     break;
                 case "userLeft":
                     removeChater(payload.userNo);
@@ -240,17 +240,17 @@ function printWelcomeMessage(payload, animatable) {
     printEvent(text, animatable);
 }
 
-function printJoinMessage(payload, animatable) {
+function printJoinedMessage(payload, animatable, container) {
     let text = "<strong>" + payload.username + "</strong> joined this chat";
     if (payload.prevUsername) {
         text += " (Previous username: " + payload.prevUsername + ")"
     }
-    printEvent(text, animatable);
+    printEvent(text, animatable, container);
 }
 
-function printLeftMessage(payload, animatable) {
+function printLeftMessage(payload, animatable, container) {
     let text = "<strong>" + payload.username + "</strong> has left this chat";
-    printEvent(text, animatable);
+    printEvent(text, animatable, container);
 }
 
 function printMessage(payload, animatable) {
@@ -275,11 +275,16 @@ function printMessage(payload, animatable) {
     }
 }
 
-function printEvent(text, animatable) {
+function printEvent(text, animatable, container) {
     let convo = $("#convo");
-    let div = $("<div/>").addClass("message event");
-    $("<p/>").addClass("content").html(text).appendTo(div);
-    convo.append(div);
+    let content = $("<p class='content'/>").addClass("content").html(text);
+    if (container) {
+        container.append(content).addClass("group");
+    } else {
+        $("<div class='message event'/>")
+            .append(content)
+            .appendTo(convo);
+    }
     if (animatable !== false) {
         convo.animate({scrollTop: convo.prop("scrollHeight")});
     }
@@ -296,26 +301,50 @@ function printError(text, animatable) {
 }
 
 function printRecentConvo(chatMessages) {
+    let convo = $("#convo");
+    let prevUserNo = null;
+    let container = null;
     for (let i in chatMessages) {
         let chatMessage = chatMessages[i];
         Object.getOwnPropertyNames(chatMessage).forEach(function(val, idx, array) {
             let payload = chatMessage[val];
             if (payload) {
+                console.log(payload);
                 switch (val) {
                     case "broadcast":
                         printMessage(payload, false);
+                        prevUserNo = null;
                         break;
                     case "userJoined":
-                        printJoinMessage(payload, false);
+                        console.log("userNo : " + prevUserNo + " : " + payload.userNo);
+                        if (prevUserNo === payload.userNo) {
+                            if (!container) {
+                                container = convo.find(".message.event").last();
+                                console.log("container : " + container);
+                            }
+                        } else {
+                            container = null;
+                        }
+                        printJoinedMessage(payload, false, container);
+                        prevUserNo = payload.userNo;
                         break;
                     case "userLeft":
-                        printLeftMessage(payload, false);
+                        console.log("userNo : " + prevUserNo + " : " + payload.userNo);
+                        if (prevUserNo === payload.userNo) {
+                            if (!container) {
+                                container = convo.find(".message.event").last();
+                                console.log("container : " + container);
+                            }
+                        } else {
+                            container = null;
+                        }
+                        printLeftMessage(payload, false, container);
+                        prevUserNo = payload.userNo;
                         break;
                 }
             }
         });
     }
-    let convo = $("#convo");
     convo.animate({scrollTop: convo.prop("scrollHeight")});
 }
 
