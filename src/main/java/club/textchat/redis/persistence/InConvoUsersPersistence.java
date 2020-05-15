@@ -39,7 +39,7 @@ public class InConvoUsersPersistence extends AbstractPersistence {
         return false;
     }
 
-    private String  makeKey(String username) {
+    private String makeKey(String username) {
         return KEY_PREFIX + UsernameUtils.condense(username);
     }
 

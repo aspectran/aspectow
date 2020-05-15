@@ -33,7 +33,7 @@ import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
 
 /**
- * WebSocket endpoint for the chat server.
+ * WebSocket endpoint for the random chat server.
  *
  * <p>Created: 29/09/2019</p>
  */

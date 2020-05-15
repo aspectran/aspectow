@@ -35,6 +35,7 @@
                         <input id="for-automata-clear" type="text"/>
                         <div class="input-group-button">
                             <button type="submit" class="button send">Send</button>
+                            <button type="button" class="button next"><i class="fi-play"></i> Talk to another</button>
                         </div>
                     </div>
                 </form>
@@ -58,7 +59,8 @@
         <a class="success button" href="/rooms">Ok</a>
     </div>
 </div>
-<script src="/assets/js/chat.js?v0.7"></script>
+<script src="/assets/js/chat-public.js?v0.7"></script>
+<script src="/assets/js/chat-random.js?v0.7"></script>
 <script>
     const chatServerType = "random";
     const currentUserNo = Number("${page.userNo}");

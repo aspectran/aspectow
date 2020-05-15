@@ -1,7 +1,7 @@
 package club.textchat.redis.persistence;
 
 import club.textchat.redis.RedisConnectionPool;
-import club.textchat.redis.pubsub.GeneralMessageSubscriber;
+import club.textchat.redis.pubsub.PublicMessageSubscriber;
 import club.textchat.server.message.ChatMessage;
 import com.aspectran.core.util.apon.AponReader;
 
@@ -12,25 +12,23 @@ import java.util.List;
 /**
  * <p>Created: 2020/05/03</p>
  */
-public class GeneralConvosPersistence extends AbstractPersistence implements ConvosPersistence {
+public class PublicConvosPersistence extends AbstractPersistence {
 
     private static final String KEY_PREFIX = "convos:";
 
     private final int maxSaveMessages;
 
-    public GeneralConvosPersistence(RedisConnectionPool connectionPool, int maxSaveMessages) {
+    public PublicConvosPersistence(RedisConnectionPool connectionPool, int maxSaveMessages) {
         super(connectionPool);
         this.maxSaveMessages = maxSaveMessages;
     }
 
-    @Override
     public void put(String roomId, ChatMessage message) {
         String value = message.toString();
         rpush(makeKey(roomId), value, maxSaveMessages);
-        publish(GeneralMessageSubscriber.CHANNEL, value);
+        publish(PublicMessageSubscriber.CHANNEL, value);
     }
 
-    @Override
     public List<ChatMessage> getRecentConvo(String roomId) {
         List<String> list = lrange(makeKey(roomId), maxSaveMessages);
         List<ChatMessage> result = new ArrayList<>(list.size());

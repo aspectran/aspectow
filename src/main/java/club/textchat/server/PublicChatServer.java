@@ -33,23 +33,23 @@ import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
 
 /**
- * WebSocket endpoint for the chat server.
+ * WebSocket endpoint for the public chat server.
  *
  * <p>Created: 29/09/2019</p>
  */
 @Component
 @ServerEndpoint(
-        value = "/chat/general/{token}",
+        value = "/chat/public/{token}",
         encoders = ChatMessageEncoder.class,
         decoders = ChatMessageDecoder.class,
         configurator = ChatServerConfigurator.class
 )
-public class GeneralChatServer {
+public class PublicChatServer {
 
-    private final GeneralChatHandler chatHandler;
+    private final PublicChatHandler chatHandler;
 
     @Autowired
-    public GeneralChatServer(GeneralChatHandler chatHandler) {
+    public PublicChatServer(PublicChatHandler chatHandler) {
         this.chatHandler = chatHandler;
     }
 

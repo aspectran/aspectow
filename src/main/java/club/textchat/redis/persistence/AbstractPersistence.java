@@ -48,6 +48,10 @@ public class AbstractPersistence {
         sync(c -> c.set(key, value));
     }
 
+    protected void setnx(String key, String value) {
+        sync(c -> c.setnx(key, value));
+    }
+
     protected long del(String key) {
         return sync(c -> c.del(key));
     }
@@ -101,6 +105,10 @@ public class AbstractPersistence {
 
     protected boolean sismember(String key, String member) {
         return sync(c -> c.sismember(key, member));
+    }
+
+    protected String srandmember(String key) {
+        return sync(c -> c.srandmember(key));
     }
 
     protected boolean smismember(String keyPattern, String member) {

@@ -34,7 +34,7 @@
         </arguments>
     </bean>
 
-    <bean class="club.textchat.redis.persistence.GeneralConvosPersistence">
+    <bean class="club.textchat.redis.persistence.PublicConvosPersistence">
         <arguments>
             <item>#{redisConnectionPool}</item>
             <item valueType="int">30</item>
@@ -44,6 +44,19 @@
     <bean class="club.textchat.redis.persistence.RandomConvosPersistence">
         <arguments>
             <item>#{redisConnectionPool}</item>
+        </arguments>
+    </bean>
+
+    <bean class="club.textchat.redis.persistence.RandomChaterPersistence">
+        <arguments>
+            <item>#{redisConnectionPool}</item>
+        </arguments>
+    </bean>
+
+    <bean class="club.textchat.redis.persistence.RandomHistoryPersistence">
+        <arguments>
+            <item>#{redisConnectionPool}</item>
+            <item valueType="int">30</item>
         </arguments>
     </bean>
 

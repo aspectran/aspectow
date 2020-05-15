@@ -55,12 +55,12 @@
     <p class="lead">You leave this chat room because you reconnected through a different route.</p>
     <p>Note: Duplicate participation in the same chat room is prohibited.</p>
     <div class="button-group align-right">
-        <a class="success button" href="/rooms">Ok</a>
+        <a class="success button" href="/rooms">OK</a>
     </div>
 </div>
-<script src="/assets/js/chat.js?v0.7"></script>
+<script src="/assets/js/chat-public.js?v0.7"></script>
 <script>
-    const chatServerType = "general";
+    const chatServerType = "public";
     const currentUserNo = Number("${page.userNo}");
     const currentUsername = "${page.username}";
     const admissionToken = "${page.token}";

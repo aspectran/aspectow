@@ -33,8 +33,13 @@ public class ChatAction {
     @Request("/rooms/${roomId}")
     @Dispatch("templates/default")
     @Action("page")
-    public Map<String, String> joinChat(@Required @Qualifier("roomId") String encryptedRoomId) {
-        String roomId = PBEncryptionUtils.decrypt(encryptedRoomId);
+    public Map<String, String> joinChat(@Required String roomId) {
+        if ("random".equals(roomId)) {
+            roomId = "0";
+        } else {
+            roomId = PBEncryptionUtils.decrypt(roomId);
+        }
+
         UserInfo userInfo = userManager.getUserInfo();
 
         AdmissionToken admissionToken = new AdmissionToken();
@@ -48,7 +53,7 @@ public class ChatAction {
         if (RANDOM_CHATROOM_ID.equals(roomId)) {
             map.put("include", "pages/chat-random");
         } else {
-            map.put("include", "pages/chat-general");
+            map.put("include", "pages/chat-public");
         }
         map.put("userNo", Long.toString(userInfo.getUserNo()));
         map.put("username", userInfo.getUsername());

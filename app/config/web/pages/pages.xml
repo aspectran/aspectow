@@ -12,7 +12,6 @@
 
     <translet name="/rooms">
         <echo id="page">
-            <item name="title">Lobby</item>
             <item name="include">pages/rooms</item>
         </echo>
         <dispatch name="templates/default"/>

@@ -1,17 +1,10 @@
 package club.textchat.server;
 
 import club.textchat.redis.persistence.ChatersPersistence;
-import club.textchat.redis.persistence.ConvosPersistence;
 import club.textchat.redis.persistence.InConvoUsersPersistence;
 import club.textchat.redis.persistence.SignedInUsersPersistence;
 import club.textchat.server.message.ChatMessage;
 import club.textchat.server.message.payload.AbortPayload;
-import club.textchat.server.message.payload.BroadcastPayload;
-import club.textchat.server.message.payload.ChatersPayload;
-import club.textchat.server.message.payload.JoinPayload;
-import club.textchat.server.message.payload.MessagePayload;
-import club.textchat.server.message.payload.UserJoinedPayload;
-import club.textchat.server.message.payload.UserLeftPayload;
 import com.aspectran.core.activity.InstantActivitySupport;
 import com.aspectran.core.lang.NonNull;
 import com.aspectran.core.util.logging.Logger;
@@ -24,13 +17,12 @@ import javax.websocket.EndpointConfig;
 import javax.websocket.Session;
 import java.io.IOException;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * <p>Created: 2020/05/03</p>
  */
-public abstract class AbstractChatHandler extends InstantActivitySupport implements ChatHandler {
+public abstract class AbstractChatHandler extends InstantActivitySupport {
 
     private static final Logger logger = LoggerFactory.getLogger(AbstractChatHandler.class);
 
@@ -42,16 +34,12 @@ public abstract class AbstractChatHandler extends InstantActivitySupport impleme
 
     protected final ChatersPersistence chatersPersistence;
 
-    protected final ConvosPersistence convosPersistence;
-
     protected AbstractChatHandler(SignedInUsersPersistence signedInUsersPersistence,
                                   InConvoUsersPersistence inConvoUsersPersistence,
-                                  ChatersPersistence chatersPersistence,
-                                  ConvosPersistence convosPersistence) {
+                                  ChatersPersistence chatersPersistence) {
         this.signedInUsersPersistence = signedInUsersPersistence;
         this.inConvoUsersPersistence = inConvoUsersPersistence;
         this.chatersPersistence = chatersPersistence;
-        this.convosPersistence = convosPersistence;
     }
 
     protected void open(String encryptedToken, Session session, EndpointConfig config) throws IOException {
@@ -79,10 +67,6 @@ public abstract class AbstractChatHandler extends InstantActivitySupport impleme
         }
     }
 
-    protected void close(Session session, CloseReason reason) {
-        leave(session);
-    }
-
     protected void error(Session session, Throwable error) {
         logger.error("Error in websocket session: " + session.getId(), error);
         try {
@@ -91,16 +75,6 @@ public abstract class AbstractChatHandler extends InstantActivitySupport impleme
             session.close(new CloseReason(CloseReason.CloseCodes.UNEXPECTED_CONDITION, null));
         } catch (Exception e) {
             throw new RuntimeException(e);
-        }
-    }
-
-    protected boolean heartBeat(Session session, ChatMessage message) {
-        if (message.heartBeatPing()) {
-            message.heartBeatPong();
-            send(session, message);
-            return true;
-        } else {
-            return false;
         }
     }
 
@@ -116,51 +90,14 @@ public abstract class AbstractChatHandler extends InstantActivitySupport impleme
         send(session, message);
     }
 
-    private void leave(Session session) {
-        ChaterInfo chaterInfo = getChaterInfo(session);
-        if (chaters.remove(chaterInfo, session)) {
-            chatersPersistence.remove(chaterInfo);
-            signedInUsersPersistence.tryAbandon(chaterInfo.getUsername(), chaterInfo.getHttpSessionId());
-            inConvoUsersPersistence.remove(chaterInfo.getUsername());
-            broadcastUserLeft(chaterInfo);
+    protected boolean heartBeat(Session session, ChatMessage message) {
+        if (message.heartBeatPing()) {
+            message.heartBeatPong();
+            send(session, message);
+            return true;
+        } else {
+            return false;
         }
-    }
-
-//    private void sendJoinedUsers(Session session, ChaterInfo chaterInfo) {
-//        Set<String> chaters = chatersPersistence.getChaters(chaterInfo.getRoomId());
-//        ChatersPayload payload = new ChatersPayload();
-//        payload.setChaters(chaters);
-//        ChatMessage message = new ChatMessage(payload);
-//        send(session, message);
-//    }
-
-    protected void broadcastUserJoined(ChaterInfo chaterInfo) {
-        UserJoinedPayload payload = new UserJoinedPayload();
-        payload.setRoomId(chaterInfo.getRoomId());
-        payload.setUserNo(chaterInfo.getUserNo());
-        payload.setUsername(chaterInfo.getUsername());
-        payload.setPrevUsername(chaterInfo.getPrevUsername());
-        ChatMessage message = new ChatMessage(payload);
-        convosPersistence.put(chaterInfo.getRoomId(), message);
-    }
-
-    private void broadcastUserLeft(ChaterInfo chaterInfo) {
-        UserLeftPayload payload = new UserLeftPayload();
-        payload.setRoomId(chaterInfo.getRoomId());
-        payload.setUserNo(chaterInfo.getUserNo());
-        payload.setUsername(chaterInfo.getUsername());
-        ChatMessage message = new ChatMessage(payload);
-        convosPersistence.put(chaterInfo.getRoomId(), message);
-    }
-
-    protected void broadcastMessage(ChaterInfo chaterInfo, String content) {
-        BroadcastPayload payload = new BroadcastPayload();
-        payload.setRoomId(chaterInfo.getRoomId());
-        payload.setUserNo(chaterInfo.getUserNo());
-        payload.setUsername(chaterInfo.getUsername());
-        payload.setContent(content);
-        ChatMessage message = new ChatMessage(payload);
-        convosPersistence.put(chaterInfo.getRoomId(), message);
     }
 
     protected void send(Session session, ChatMessage message) {

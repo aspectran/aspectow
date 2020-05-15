@@ -21,6 +21,11 @@ public class ChaterInfo extends UserInfo implements Serializable {
 
     private String httpSessionId;
 
+    public ChaterInfo(long userNo, String username) {
+        setUserNo(userNo);
+        setUsername(username);
+    }
+
     public ChaterInfo(@NonNull UserInfo userInfo) {
         setUserNo(userInfo.getUserNo());
         setUsername(userInfo.getUsername());

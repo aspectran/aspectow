@@ -32,6 +32,7 @@ $(function() {
 
 function openSocket() {
     if (socket) {
+        socket.onclose = null;
         socket.close();
         socket = null;
     }
@@ -214,7 +215,7 @@ function findUser(userNo) {
         });
 }
 
-function clearUsers() {
+function clearChaters() {
     $("#contacts").empty();
     clearTotalPeople();
 }
@@ -225,6 +226,10 @@ function updateTotalPeople() {
 
 function clearTotalPeople() {
     $("#totalPeople").text("");
+}
+
+function clearConvo() {
+    $("#convos").empty();
 }
 
 function printWelcomeMessage(payload, animatable) {

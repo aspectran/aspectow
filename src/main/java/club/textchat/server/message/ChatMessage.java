@@ -39,6 +39,7 @@ public class ChatMessage extends AbstractParameters {
     private static final String HEARTBEAT_PING_MSG = "-ping-";
     private static final String HEARTBEAT_PONG_MSG = "-pong-";
 
+    private static final ParameterKey receiver;
     private static final ParameterKey join;
     private static final ParameterKey chaters;
     private static final ParameterKey userJoined;
@@ -51,6 +52,7 @@ public class ChatMessage extends AbstractParameters {
     private static final ParameterKey[] parameterKeys;
 
     static {
+        receiver = new ParameterKey("receiver", ValueType.LONG);
         join = new ParameterKey("join", JoinPayload.class);
         chaters = new ParameterKey("chaters", ChatersPayload.class);
         userJoined = new ParameterKey("userJoined", UserJoinedPayload.class);
@@ -61,6 +63,7 @@ public class ChatMessage extends AbstractParameters {
         abort = new ParameterKey("abort", AbortPayload.class);
 
         parameterKeys = new ParameterKey[] {
+                receiver,
                 join,
                 chaters,
                 userJoined,
@@ -109,6 +112,14 @@ public class ChatMessage extends AbstractParameters {
     public ChatMessage(BroadcastPayload broadcastPayload) {
         this();
         putValue(broadcast, broadcastPayload);
+    }
+
+    public long getReceiver() {
+        return getLong(receiver);
+    }
+
+    public void setReceiver(long userNo) {
+        putValue(ChatMessage.receiver, userNo);
     }
 
     public boolean heartBeatPing() {

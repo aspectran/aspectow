@@ -14,6 +14,8 @@ public class ChatersPersistence extends AbstractPersistence {
 
     private static final String VALUE_SEPARATOR = ":";
 
+    private static final String RANDOM_CHATROOM_ID = "0";
+
     public ChatersPersistence(RedisConnectionPool connectionPool) {
         super(connectionPool);
     }
@@ -46,8 +48,23 @@ public class ChatersPersistence extends AbstractPersistence {
         return false;
     }
 
+    public ChaterInfo randomChater() {
+        return randomChater(RANDOM_CHATROOM_ID);
+    }
+
+    public ChaterInfo randomChater(String roomId) {
+        String str = srandmember(makeKey(roomId));
+        int index = str.indexOf(VALUE_SEPARATOR);
+        if (index > -1) {
+            String userNo = str.substring(0, index);
+            String username = str.substring(index + 1);
+            return new ChaterInfo(Long.parseLong(userNo), username);
+        }
+        return null;
+    }
+
     private String makeKey(String roomId) {
-        return KEY_PREFIX + roomId;
+        return KEY_PREFIX + (roomId == null ? RANDOM_CHATROOM_ID : roomId);
     }
 
     public static String makeValue(ChaterInfo chaterInfo) {

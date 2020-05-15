@@ -1,7 +1,6 @@
 package club.textchat.redis.pubsub;
 
 import club.textchat.redis.RedisConnectionPool;
-import club.textchat.server.ChatHandler;
 import club.textchat.server.RandomChatHandler;
 import club.textchat.server.message.ChatMessage;
 import club.textchat.server.message.payload.BroadcastPayload;
@@ -34,7 +33,7 @@ public class RandomMessageSubscriber extends RedisPubSubAdapter<String, String>
 
     private final StatefulRedisPubSubConnection<String, String> connection;
 
-    private final ChatHandler chatHandler;
+    private final RandomChatHandler chatHandler;
 
     @Autowired
     public RandomMessageSubscriber(RedisConnectionPool connectionPool, RandomChatHandler chatHandler) {
@@ -56,17 +55,17 @@ public class RandomMessageSubscriber extends RedisPubSubAdapter<String, String>
         }
         BroadcastPayload broadcastPayload = chatMessage.getBroadcastPayload();
         if (broadcastPayload != null) {
-            chatHandler.broadcast(chatMessage, broadcastPayload.getRoomId(), broadcastPayload.getUserNo());
+            chatHandler.broadcast(chatMessage);
             return;
         }
         UserJoinedPayload userJoinedPayload = chatMessage.getUserJoinedPayload();
         if (userJoinedPayload != null) {
-            chatHandler.broadcast(chatMessage, userJoinedPayload.getRoomId(), userJoinedPayload.getUserNo());
+            chatHandler.broadcast(chatMessage);
             return;
         }
         UserLeftPayload userLeftPayload = chatMessage.getUserLeftPayload();
         if (userLeftPayload != null) {
-            chatHandler.broadcast(chatMessage, userLeftPayload.getRoomId(), 0L); // talker already left
+            chatHandler.broadcast(chatMessage);
         }
     }
 
