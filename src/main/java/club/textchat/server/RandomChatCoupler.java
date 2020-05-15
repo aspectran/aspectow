@@ -73,7 +73,7 @@ public class RandomChatCoupler {
                         withdraw(chaterInfo2);
                         randomChatHandler.setPartner(chaterInfo1, chaterInfo2);
                         try {
-                            Thread.sleep(interval());
+                            Thread.sleep(MIN_SLEEP_TIME);
                         } catch (InterruptedException ie) {
                             clear();
                             break;
