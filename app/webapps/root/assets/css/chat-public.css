@@ -109,6 +109,10 @@
         background: #f5f5f5;
     }
 }
+.message-box .button {
+    padding-left: 7px;
+    padding-right: 7px;
+}
 .message-box button.next {
     margin-left: 5px;
     border-radius: 5px !important;
