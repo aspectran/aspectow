@@ -35,14 +35,12 @@ function startLooking() {
     startTimer = setTimeout(function () {
         $.ajax('/rooms/random/token')
             .done(function(token) {
-                console.log(token);
-                alert(token);
                 if (token) {
                     if (!canceled) {
                         openSocket(token);
                     }
                 } else {
-                    location.reload();
+                    location.href = "/rooms";
                 }
             })
             .fail(function() {

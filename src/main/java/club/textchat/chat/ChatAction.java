@@ -70,9 +70,6 @@ public class ChatAction {
     @Request("/rooms/random/token")
     @Transform(FormatType.JSON)
     public String randomChatToken() {
-        if (true) {
-            throw new RuntimeException("test");
-        }
         UserInfo userInfo = userManager.getUserInfo();
         AdmissionToken admissionToken = new AdmissionToken();
         admissionToken.setUserNo(userInfo.getUserNo());

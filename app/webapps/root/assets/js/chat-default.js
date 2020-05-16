@@ -28,7 +28,9 @@ $(function() {
     });
     readyToType();
     if (autoConnect !== false) {
-        openSocket(admissionToken);
+        setTimeout(function() {
+            openSocket(admissionToken);
+        }, 300);
     }
 });
 
@@ -36,11 +38,7 @@ function openSocket(token) {
     if (!chatServerType || !currentUserNo || !currentUsername || !token) {
         location.href = "/rooms";
     }
-    if (socket) {
-        socket.onclose = null;
-        socket.close();
-        socket = null;
-    }
+    closeSocket();
     let url = new URL('/chat/' + chatServerType + '/' + token, location.href);
     url.protocol = url.protocol.replace('https:', 'wss:');
     url.protocol = url.protocol.replace('http:', 'ws:');
@@ -65,15 +63,21 @@ function openSocket(token) {
     socket.onclose = function(event) {
         if (aborted) {
             location.href = "/rooms";
-        } else {
+            return;
+        }
+        setTimeout(function() {
             $.ajax('/ping')
-                .done(function() {
-                    location.reload();
+                .done(function (result) {
+                    if (result === "pong") {
+                        location.reload();
+                    } else {
+                        location.href = "/rooms";
+                    }
                 })
-                .fail(function() {
+                .fail(function () {
                     $('#connection-lost').foundation('open');
                 });
-        }
+        }, 15);
     };
     socket.onerror = function(event) {
         console.error("WebSocket error observed:", event);
@@ -188,7 +192,7 @@ function sendMessage() {
         };
         $msg.val('');
         socket.send(serialize(chatMessage));
-        printMessage(message, text);
+        printMessage(message);
         $msg.focus();
     }
 }
@@ -258,23 +262,22 @@ function printJoinMessage(payload, restored) {
     printEvent(text, restored);
 }
 
-function printUserJoinedMessage(payload, restored, container) {
-    printUserEvent(payload, "user-joined", restored, container);
+function printUserJoinedMessage(payload, restored) {
+    printUserEvent(payload, "user-joined", restored);
 }
 
-function printUserLeftMessage(payload, restored, container) {
-    printUserEvent(payload, "user-left", restored, container);
+function printUserLeftMessage(payload, restored) {
+    printUserEvent(payload, "user-left", restored);
 }
 
-function printUserEvent(payload, event, restored, container) {
+function printUserEvent(payload, event, restored) {
     let convo = $("#convo");
-    if (!restored) {
-        let last = convo.find(".message.event").last();
-        if (last.length > 0) {
-            let userNo = last.data("user-no");
-            if (payload.userNo === userNo) {
-                container = last;
-            }
+    let last = convo.find(".message").last();
+    let container = null;
+    if (last.length) {
+        let userNo = last.data("user-no");
+        if (last.hasClass("event") && payload.userNo === userNo) {
+            container = last;
         }
     }
     let content = $("<p class='content'/>").addClass(event).data("event", event);
@@ -327,7 +330,6 @@ function printUserEvent(payload, event, restored, container) {
 }
 
 function printMessage(payload, restored) {
-    let convo = $("#convo");
     let myself = (currentUserNo === payload.userNo);
     let sender = $("<span class='username'/>")
         .text(myself ? "You" : payload.username);
@@ -338,9 +340,10 @@ function printMessage(payload, restored) {
         content.append("<span class='datetime'>" +
             datetime.format(hours < 24 ? "LTS" : "L LT") + "</span>");
     }
-    let lastMessage = $("#convo .message").last();
-    if (lastMessage.length && lastMessage.data("user-no") === payload.userNo) {
-        lastMessage.append(content);
+    let convo = $("#convo");
+    let last = convo.find(".message").last();
+    if (last.length && !last.hasClass("event") && last.data("user-no") === payload.userNo) {
+        last.append(content);
     } else {
         let message = $("<div/>")
             .addClass(myself ? "message sent" : "message received")
@@ -349,6 +352,7 @@ function printMessage(payload, restored) {
             .append(sender).append(content);
         convo.append(message);
     }
+    console.log(restored);
     if (!restored) {
         convo.animate({scrollTop: convo.prop("scrollHeight")});
     }
@@ -380,9 +384,6 @@ function printError(text, restored) {
 }
 
 function printRecentConvo(chatMessages) {
-    let convo = $("#convo");
-    let prevUserNo = null;
-    let container = null;
     for (let i in chatMessages) {
         let chatMessage = chatMessages[i];
         Object.getOwnPropertyNames(chatMessage).forEach(function(val, idx, array) {
@@ -391,34 +392,18 @@ function printRecentConvo(chatMessages) {
                 switch (val) {
                     case "broadcast":
                         printMessage(payload, true);
-                        prevUserNo = null;
                         break;
                     case "userJoined":
-                        if (prevUserNo === payload.userNo) {
-                            if (!container) {
-                                container = convo.find(".message.event").last();
-                            }
-                        } else {
-                            container = null;
-                        }
-                        printUserJoinedMessage(payload, true, container);
-                        prevUserNo = payload.userNo;
+                        printUserJoinedMessage(payload, true);
                         break;
                     case "userLeft":
-                        if (prevUserNo === payload.userNo) {
-                            if (!container) {
-                                container = convo.find(".message.event").last();
-                            }
-                        } else {
-                            container = null;
-                        }
-                        printUserLeftMessage(payload, true, container);
-                        prevUserNo = payload.userNo;
+                        printUserLeftMessage(payload, true);
                         break;
                 }
             }
         });
     }
+    let convo = $("#convo");
     convo.animate({scrollTop: convo.prop("scrollHeight")});
 }
 

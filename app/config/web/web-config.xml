@@ -66,12 +66,6 @@
         </advice>
     </aspect>
 
-    <translet name="/ping">
-        <transform format="text" contentType="text/plain">
-            <template>pong</template>
-        </transform>
-    </translet>
-
     <append file="/config/web/common/locale.xml"/>
     <append file="/config/web/common/xss-prevent.xml"/>
     <append file="/config/web/pages/pages.xml"/>

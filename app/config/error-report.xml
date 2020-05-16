@@ -24,7 +24,7 @@
                 </transform>
                 <transform format="text" contentType="application/json">
                     <template style="apon">
-                        |null2
+                        |null
                     </template>
                 </transform>
                 <dispatch name="templates/error" contentType="text/html" default="true"/>
