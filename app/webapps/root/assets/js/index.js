@@ -23,7 +23,8 @@ function signIn() {
             dataType: 'json',
             data: {
                 username: username,
-                recaptchaResponse: recaptchaResponse
+                recaptchaResponse: recaptchaResponse,
+                timeZone: getTimeZone()
             },
             success: function(data) {
                 switch (data.result) {
@@ -47,5 +48,13 @@ function signIn() {
                 alert("An error has occurred making the request: " + error);
             }
         });
+    }
+}
+
+function getTimeZone() {
+    try {
+        return Intl.DateTimeFormat().resolvedOptions().timeZone;
+    } catch (e) {
+        return null;
     }
 }

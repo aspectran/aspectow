@@ -6,6 +6,7 @@ import com.aspectran.core.lang.Nullable;
 import com.aspectran.core.util.ToStringBuilder;
 
 import java.io.Serializable;
+import java.time.ZoneId;
 import java.util.Objects;
 
 /**
@@ -21,6 +22,8 @@ public class ChaterInfo extends UserInfo implements Serializable {
 
     private String httpSessionId;
 
+    private ZoneId zoneId;
+
     public ChaterInfo(long userNo, String username) {
         setUserNo(userNo);
         setUsername(username);
@@ -30,6 +33,7 @@ public class ChaterInfo extends UserInfo implements Serializable {
         setUserNo(userInfo.getUserNo());
         setUsername(userInfo.getUsername());
         setPrevUsername(userInfo.getPrevUsername());
+        setZoneId(userInfo.getTimeZone());
     }
 
     @NonNull
@@ -58,6 +62,22 @@ public class ChaterInfo extends UserInfo implements Serializable {
 
     public void setHttpSessionId(String httpSessionId) {
         this.httpSessionId = httpSessionId;
+    }
+
+    public void setZoneId(String timeZone) {
+        if (timeZone != null) {
+            try {
+                this.zoneId = ZoneId.of(timeZone);
+            } catch (Exception e) {
+                this.zoneId = null;
+            }
+        } else {
+            this.zoneId = null;
+        }
+    }
+
+    public ZoneId getZoneId() {
+        return zoneId;
     }
 
     @Override

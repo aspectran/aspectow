@@ -1,3 +1,6 @@
+.rooms .sidebar {
+    background-color: #c7eefc;
+}
 .rooms .room {
     position: relative;
     border-radius: 10px;

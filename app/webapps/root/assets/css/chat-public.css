@@ -44,7 +44,13 @@
     padding: 6px 16px;
     margin: 0 0 2px;
 }
+#convo .message .content .datetime {
+    font-size: .8em;
+    color: #555;
+    padding-left: 1em;
+}
 #convo .message.event {
+    position: relative;
     margin-top: 0;
     margin-bottom: 6px;
 }
@@ -53,22 +59,48 @@
     padding: 3px 16px;
     border-radius: 6px;
     width: 100%;
-    text-align: center;
     background-color: #f1f1f1;
     color: #333;
+    text-align: center;
 }
-#convo .message.event.group .content {
-    display: none;
+#convo .message.event.group {
+    border-radius: 6px;
 }
 #convo .message.event.group .content:first-child {
-    display: block;
-    border-radius: 6px 6px 0 0;
     padding-bottom: 0;
+    border-radius: 6px 6px 0 0;
 }
 #convo .message.event.group .content:last-child {
-    display: block;
-    border-radius: 0 0 6px 6px;
     padding-top: 0;
+    border-radius: 0 0 6px 6px;
+}
+#convo .message.event.group .content.omitted {
+    display: none;
+    border-radius: 0;
+    font-size: .7em;
+    padding-left: 20px;
+    padding-top: 0;
+    padding-bottom: 0;
+    color: #555;
+}
+#convo .message.event.group .content.omitted:hover {
+    font-size: .9em;
+}
+#convo .message.event .content.user-joined {
+    text-align: left;
+}
+#convo .message.event .content.user-left {
+    text-align: left;
+}
+#convo .message.event .content .datetime {
+    padding-left: 1em;
+}
+#convo .message.event.group .more {
+    position: absolute;
+    top: 3px;
+    right: 0;
+    color: blue;
+    cursor: pointer;
 }
 #convo .message.event .content strong {
     font-weight: bold;

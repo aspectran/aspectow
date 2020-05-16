@@ -15,7 +15,7 @@
     <div class="body shadow cell auto cell-block-container">
         <div class="grid-x full-height">
             <div class="sidebar cell medium-4 large-3 cell-block-y show-for-medium">
-                <%@ include file="includes/footer-sidebar-user.jsp" %>
+                <%@ include file="includes/sidebar-user.jsp" %>
                 <div class="side-menu"></div>
             </div>
             <div class="cell auto cell-block-y">

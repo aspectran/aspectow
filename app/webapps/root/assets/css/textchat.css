@@ -123,16 +123,29 @@ input#for-automata-clear {
     overflow: hidden;
     padding: 0;
 }
-.rooms .sidebar {
-    background-color: #c7eefc;
-}
 .sidebar .user {
+    position: relative;
     background-color: #abe8fd;
+}
+.sidebar .user .shrink {
+    position: relative;
+}
+.sidebar .user .auto {
+    position: relative;
 }
 .sidebar .user .avatar {
     background-color: #89d6fc;
     width: 70px;
     height: 70px;
+}
+.sidebar .user .country {
+    color: #fff;
+    background-color: #4ca9d7;
+    font-size: .8em;
+    position: absolute;
+    top: 0;
+    right: 0;
+    padding: 2px 4px;
 }
 .sidebar .user i {
     color: #fabc03;

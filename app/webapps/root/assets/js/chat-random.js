@@ -15,12 +15,11 @@ $(function() {
         clearConvo();
         startLooking();
     });
-    $("#convo")
-        .on("click", ".message.event .content button.next", function() {
-            startLooking();
-        }).on("click", ".message.event .content button.cancel", function() {
-            stopLooking();
-        });
+    $("#convo").on("click", ".message.event .content button.next", function() {
+        startLooking();
+    }).on("click", ".message.event .content button.cancel", function() {
+        stopLooking();
+    });
 
     startLooking();
 });
@@ -68,19 +67,19 @@ function drawLookingBar(wait) {
     printEvent(text, true);
 }
 
-function printWelcomeMessage(payload, animatable, container) {
+function printJoinMessage(payload, animatable, container) {
     clearConvo();
     drawLookingBar();
 }
 
-function printJoinedMessage(payload, animatable, container) {
+function printUserJoinedMessage(payload, animatable, container) {
     clearConvo();
     let text = "<i class='fi-microphone'></i> Chat started. Feel free to say hello to <strong>" + payload.username + "</strong>.";
     printEvent(text, animatable, container);
     readyToType();
 }
 
-function printLeftMessage(payload, animatable, container) {
+function printUserLeftMessage(payload, animatable, container) {
     let text = "<strong>" + payload.username + "</strong> has left this chat";
     printEvent(text, animatable, container);
     drawLookingBar();

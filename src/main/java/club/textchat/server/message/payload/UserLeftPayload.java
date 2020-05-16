@@ -29,6 +29,7 @@ public class UserLeftPayload extends AbstractParameters {
     private static final ParameterKey roomId;
     private static final ParameterKey userNo;
     private static final ParameterKey username;
+    private static final ParameterKey datetime;
 
     private static final ParameterKey[] parameterKeys;
 
@@ -36,11 +37,13 @@ public class UserLeftPayload extends AbstractParameters {
         roomId = new ParameterKey("roomId", ValueType.STRING);
         userNo = new ParameterKey("userNo", ValueType.LONG);
         username = new ParameterKey("username", ValueType.STRING);
+        datetime = new ParameterKey("datetime", ValueType.STRING);
 
         parameterKeys = new ParameterKey[] {
                 roomId,
                 userNo,
-                username
+                username,
+                datetime
         };
     }
 
@@ -70,6 +73,10 @@ public class UserLeftPayload extends AbstractParameters {
 
     public void setUsername(String username) {
         putValue(UserLeftPayload.username, username);
+    }
+
+    public void setDatetime(String datetime) {
+        putValue(UserLeftPayload.datetime, datetime);
     }
 
 }

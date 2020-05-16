@@ -30,6 +30,7 @@ public class BroadcastPayload extends AbstractParameters {
     private static final ParameterKey userNo;
     private static final ParameterKey username;
     private static final ParameterKey content;
+    private static final ParameterKey datetime;
 
     private static final ParameterKey[] parameterKeys;
 
@@ -38,12 +39,14 @@ public class BroadcastPayload extends AbstractParameters {
         userNo = new ParameterKey("userNo", ValueType.LONG);
         username = new ParameterKey("username", ValueType.STRING);
         content = new ParameterKey("content", ValueType.STRING);
+        datetime = new ParameterKey("datetime", ValueType.STRING);
 
         parameterKeys = new ParameterKey[] {
                 roomId,
                 userNo,
                 username,
-                content
+                content,
+                datetime
         };
     }
 
@@ -77,6 +80,10 @@ public class BroadcastPayload extends AbstractParameters {
 
     public void setContent(String content) {
         putValue(BroadcastPayload.content, content);
+    }
+
+    public void setDatetime(String datetime) {
+        putValue(BroadcastPayload.datetime, datetime);
     }
 
 }

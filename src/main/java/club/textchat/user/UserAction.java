@@ -2,6 +2,7 @@ package club.textchat.user;
 
 import club.textchat.common.mybatis.SimpleSqlSession;
 import club.textchat.recaptcha.ReCaptchaVerifier;
+import com.aspectran.core.activity.Translet;
 import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Bean;
 import com.aspectran.core.component.bean.annotation.Component;
@@ -16,6 +17,7 @@ import com.aspectran.core.util.logging.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.Locale;
 import java.util.Map;
 
 @Component
@@ -37,8 +39,10 @@ public class UserAction {
 
     @RequestToPost("/guest/signin")
     @Transform(TransformType.JSON)
-    public Map<String, Integer> signin(@Required String username,
-                                       @Required String recaptchaResponse) {
+    public Map<String, Integer> signin(Translet translet,
+                                       @Required String username,
+                                       @Required String recaptchaResponse,
+                                       String timeZone) {
         username = UsernameUtils.normalize(username);
 
         boolean success = false;
@@ -58,6 +62,13 @@ public class UserAction {
 
         UserInfo userInfo = new UserInfo();
         userInfo.setUsername(username);
+
+        Locale locale = translet.getRequestAdapter().getLocale();
+        if (locale != null) {
+            userInfo.setLocale(locale.toString());
+            userInfo.setCountry(locale.getCountry());
+        }
+        userInfo.setTimeZone(timeZone);
 
         sqlSession.insert("users.insertLoginHist", userInfo);
         if (userInfo.getUserNo() <= 0) {

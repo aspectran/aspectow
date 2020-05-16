@@ -116,6 +116,7 @@ public class PublicChatHandler extends AbstractChatHandler {
         payload.setUserNo(chaterInfo.getUserNo());
         payload.setUsername(chaterInfo.getUsername());
         payload.setPrevUsername(chaterInfo.getPrevUsername());
+        payload.setDatetime(getCurrentDatetime(chaterInfo));
         ChatMessage message = new ChatMessage(payload);
         publicConvosPersistence.put(chaterInfo.getRoomId(), message);
     }
@@ -125,6 +126,7 @@ public class PublicChatHandler extends AbstractChatHandler {
         payload.setRoomId(chaterInfo.getRoomId());
         payload.setUserNo(chaterInfo.getUserNo());
         payload.setUsername(chaterInfo.getUsername());
+        payload.setDatetime(getCurrentDatetime(chaterInfo));
         ChatMessage message = new ChatMessage(payload);
         publicConvosPersistence.put(chaterInfo.getRoomId(), message);
     }
@@ -135,6 +137,7 @@ public class PublicChatHandler extends AbstractChatHandler {
         payload.setUserNo(chaterInfo.getUserNo());
         payload.setUsername(chaterInfo.getUsername());
         payload.setContent(content);
+        payload.setDatetime(getCurrentDatetime(chaterInfo));
         ChatMessage message = new ChatMessage(payload);
         publicConvosPersistence.put(chaterInfo.getRoomId(), message);
     }

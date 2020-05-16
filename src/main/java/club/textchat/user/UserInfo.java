@@ -14,6 +14,12 @@ public class UserInfo implements Serializable {
 
     private String prevUsername;
 
+    private String country;
+
+    private String locale;
+
+    private String timeZone;
+
     public long getUserNo() {
         return userNo;
     }
@@ -38,12 +44,39 @@ public class UserInfo implements Serializable {
         this.prevUsername = prevUsername;
     }
 
+    public String getCountry() {
+        return country;
+    }
+
+    public void setCountry(String country) {
+        this.country = country;
+    }
+
+    public String getLocale() {
+        return locale;
+    }
+
+    public void setLocale(String locale) {
+        this.locale = locale;
+    }
+
+    public String getTimeZone() {
+        return timeZone;
+    }
+
+    public void setTimeZone(String timeZone) {
+        this.timeZone = timeZone;
+    }
+
     @Override
     public String toString() {
         ToStringBuilder tsb = new ToStringBuilder();
         tsb.append("userNo", userNo);
         tsb.append("username", username);
         tsb.append("prevUsername", prevUsername);
+        tsb.append("country", country);
+        tsb.append("locale", locale);
+        tsb.append("timeZone", timeZone);
         return tsb.toString();
     }
 

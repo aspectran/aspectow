@@ -6,7 +6,7 @@
     <div class="cell auto">
         <ul>
             <li><span class="username">${user.username}</span></li>
-            <li>(Guest)</li>
         </ul>
+        <div class="country">${user.country}</div>
     </div>
 </div>

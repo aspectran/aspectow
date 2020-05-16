@@ -30,6 +30,7 @@ public class UserJoinedPayload extends AbstractParameters {
     private static final ParameterKey userNo;
     private static final ParameterKey username;
     private static final ParameterKey prevUsername;
+    private static final ParameterKey datetime;
 
     private static final ParameterKey[] parameterKeys;
 
@@ -38,12 +39,14 @@ public class UserJoinedPayload extends AbstractParameters {
         userNo = new ParameterKey("userNo", ValueType.LONG);
         username = new ParameterKey("username", ValueType.STRING);
         prevUsername = new ParameterKey("prevUsername", ValueType.STRING);
+        datetime = new ParameterKey("datetime", ValueType.STRING);
 
         parameterKeys = new ParameterKey[] {
                 roomId,
                 userNo,
                 username,
-                prevUsername
+                prevUsername,
+                datetime
         };
     }
 
@@ -77,6 +80,10 @@ public class UserJoinedPayload extends AbstractParameters {
 
     public void setPrevUsername(String prevUsername) {
         putValue(UserJoinedPayload.prevUsername, prevUsername);
+    }
+
+    public void setDatetime(String datetime) {
+        putValue(UserJoinedPayload.datetime, datetime);
     }
 
 }

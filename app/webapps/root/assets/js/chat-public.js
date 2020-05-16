@@ -23,6 +23,9 @@ $(function() {
     $("button.leave").on("click", function() {
         leaveRoom();
     });
+    $("#convo").on("click", ".message.event.group .more", function() {
+        $(this).parent().find(".content.omitted").toggle();
+    });
     readyToType();
     if (autoConnect !== false) {
         openSocket();
@@ -126,17 +129,17 @@ function handleMessage(chatMessage) {
                     break;
                 case "userJoined":
                     addChater(payload.userNo, payload.username);
-                    printJoinedMessage(payload);
+                    printUserJoinedMessage(payload);
                     break;
                 case "userLeft":
                     removeChater(payload.userNo);
-                    printLeftMessage(payload);
+                    printUserLeftMessage(payload);
                     break;
                 case "join":
                     pendedMessages = [];
                     setChaters(payload.chaters);
                     printRecentConvo(payload.recentConvo);
-                    printWelcomeMessage(payload);
+                    printJoinMessage(payload);
                     while (pendedMessages && pendedMessages.length > 0) {
                         handleMessage(pendedMessages.pop());
                     }
@@ -250,22 +253,30 @@ function clearConvo() {
     $("#convo").empty();
 }
 
-function printWelcomeMessage(payload, animatable) {
+function printJoinMessage(payload, animatable) {
     let text = "Welcome <strong>" + payload.username + "</strong>";
     printEvent(text, animatable);
 }
 
-function printJoinedMessage(payload, animatable, container) {
+function printUserJoinedMessage(payload, animatable, container) {
     let text = "<strong>" + payload.username + "</strong> joined this chat";
     if (payload.prevUsername) {
         text += " (Previous username: " + payload.prevUsername + ")"
     }
-    printEvent(text, animatable, container);
+    if (payload.datetime) {
+        text += " <span class='datetime'>" +
+            moment.utc(payload.datetime).local().format("L LT") + "</span>";
+    }
+    printEvent(text, animatable, container, "user-joined");
 }
 
-function printLeftMessage(payload, animatable, container) {
+function printUserLeftMessage(payload, animatable, container) {
     let text = "<strong>" + payload.username + "</strong> has left this chat";
-    printEvent(text, animatable, container);
+    if (payload.datetime) {
+        text += "<span class='datetime'>" +
+            moment.utc(payload.datetime).local().format("L LT") + "</span>";
+    }
+    printEvent(text, animatable, container, "user-left");
 }
 
 function printMessage(payload, animatable) {
@@ -273,7 +284,14 @@ function printMessage(payload, animatable) {
     let myself = (currentUserNo === payload.userNo);
     let sender = $("<span class='username'/>")
         .text(myself ? "You" : payload.username);
-    let content = $("<span class='content'/>").text(payload.content);
+    let content = $("<p class='content'/>").text(payload.content);
+    if (payload.datetime) {
+        let datetime = moment.utc(payload.datetime).local();
+        let hours = moment.duration(moment().diff(datetime)).asHours();
+        content.append("<span class='datetime'>" +
+            datetime.format(hours < 24 ? "LTS" : "L LT") + "</span>");
+    }
+
     let lastMessage = $("#convo .message").last();
     if (lastMessage.length && lastMessage.data("user-no") === payload.userNo) {
         lastMessage.append(content);
@@ -290,11 +308,14 @@ function printMessage(payload, animatable) {
     }
 }
 
-function printEvent(text, animatable, container) {
+function printEvent(text, animatable, container, event) {
     let convo = $("#convo");
-    let content = $("<p class='content'/>").addClass("content").html(text);
+    let content = $("<p class='content'/>").html(text);
+    if (event) {
+        content.addClass(event).data("event", event);
+    }
     if (container) {
-        container.append(content).addClass("group");
+        container.addClass("group").append(content);
     } else {
         $("<div class='message event'/>")
             .append(content)
@@ -331,7 +352,6 @@ function printRecentConvo(chatMessages) {
                         prevUserNo = null;
                         break;
                     case "userJoined":
-                        console.log("userNo : " + prevUserNo + " : " + payload.userNo);
                         if (prevUserNo === payload.userNo) {
                             if (!container) {
                                 container = convo.find(".message.event").last();
@@ -340,11 +360,10 @@ function printRecentConvo(chatMessages) {
                         } else {
                             container = null;
                         }
-                        printJoinedMessage(payload, false, container);
+                        printUserJoinedMessage(payload, false, container);
                         prevUserNo = payload.userNo;
                         break;
                     case "userLeft":
-                        console.log("userNo : " + prevUserNo + " : " + payload.userNo);
                         if (prevUserNo === payload.userNo) {
                             if (!container) {
                                 container = convo.find(".message.event").last();
@@ -353,13 +372,29 @@ function printRecentConvo(chatMessages) {
                         } else {
                             container = null;
                         }
-                        printLeftMessage(payload, false, container);
+                        printUserLeftMessage(payload, false, container);
                         prevUserNo = payload.userNo;
                         break;
                 }
             }
         });
     }
+    convo.find(".message.event.group").filter(function() {
+        let contents = $(this).find(".content");
+        let cnt = contents.length;
+        if (cnt > 1) {
+            contents.addClass("omitted").hide();
+            let first = contents.first();
+            let last = contents.last();
+            if (first.data("event") !== last.data("event")) {
+                first.removeClass("omitted").show();
+                cnt--;
+            }
+            cnt--;
+            last.removeClass("omitted").show();
+            $("<i class='more fi-indent-more'></i>").attr("title", cnt).insertAfter(first);
+        }
+    });
     convo.animate({scrollTop: convo.prop("scrollHeight")});
 }
 

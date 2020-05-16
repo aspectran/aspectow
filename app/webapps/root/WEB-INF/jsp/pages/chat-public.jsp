@@ -35,7 +35,7 @@
     <div class="footer shadow cell">
         <div class="grid-x grid-padding-x grid-padding-y">
             <div class="sidebar cell medium-4 large-3 cell-block-y show-for-medium">
-                <%@ include file="includes/footer-sidebar-user.jsp" %>
+                <%@ include file="includes/sidebar-user.jsp" %>
             </div>
             <div class="message-box cell auto cell-block-y">
                 <form id="send-message">

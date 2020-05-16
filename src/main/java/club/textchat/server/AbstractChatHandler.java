@@ -16,6 +16,8 @@ import javax.websocket.CloseReason;
 import javax.websocket.EndpointConfig;
 import javax.websocket.Session;
 import java.io.IOException;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -25,6 +27,8 @@ import java.util.concurrent.ConcurrentHashMap;
 public abstract class AbstractChatHandler extends InstantActivitySupport {
 
     private static final Logger logger = LoggerFactory.getLogger(AbstractChatHandler.class);
+
+    private static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ");
 
     protected final Map<ChaterInfo, Session> chaters = new ConcurrentHashMap<>();
 
@@ -128,6 +132,14 @@ public abstract class AbstractChatHandler extends InstantActivitySupport {
             httpSessionId = signedInUsersPersistence.get(chaterInfo.getUsername());
         }
         return (httpSessionId != null && httpSessionId.equals(chaterInfo.getHttpSessionId()));
+    }
+
+    protected String getCurrentDatetime(ChaterInfo chaterInfo) {
+        if (chaterInfo.getZoneId() != null) {
+            return dateTimeFormatter.format(ZonedDateTime.now(chaterInfo.getZoneId()));
+        } else {
+            return null;
+        }
     }
 
 }
