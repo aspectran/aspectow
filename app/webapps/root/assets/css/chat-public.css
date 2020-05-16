@@ -63,10 +63,12 @@
 #convo .message.event.group .content:first-child {
     display: block;
     border-radius: 6px 6px 0 0;
+    padding-bottom: 0;
 }
 #convo .message.event.group .content:last-child {
     display: block;
     border-radius: 0 0 6px 6px;
+    padding-top: 0;
 }
 #convo .message.event .content strong {
     font-weight: bold;

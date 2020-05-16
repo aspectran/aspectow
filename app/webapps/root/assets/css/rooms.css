@@ -1,9 +1,11 @@
 .rooms .room {
     position: relative;
     border-radius: 10px;
+    background-color: aliceblue;
 }
 .rooms .room .card-section {
     margin: 2px;
+    padding: .5em;
 }
 .rooms .room .card-section:hover {
     border: 2px solid #99ddfc;
@@ -15,13 +17,18 @@
     background-color: #fcf5f7;
 }
 .rooms .room.random .card-section:hover {
-    border: 2px solid #d26881;
+    margin: 1px;
+    border: 1px solid #f1a5bc;
+    border-radius: 7px;
+}
+.rooms .no-room .card-section {
+    padding: 0;
 }
 .rooms .room.random h4 {
     color: #d45472;
 }
-.rooms .no-room .card-section {
-    padding: 0;
+.rooms .room p {
+    margin-bottom: 1.3em;
 }
 .rooms .room .button.start {
     position: absolute;

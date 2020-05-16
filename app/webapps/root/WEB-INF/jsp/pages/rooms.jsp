@@ -1,7 +1,7 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <link rel="stylesheet" type="text/css" href="/assets/css/rooms.css?v11" />
 <script src="/assets/js/rooms.js?v0.1"></script>
-<div class="lobby grid-y grid-frame">
+<div class="grid-y grid-frame">
     <div class="header cell cell-block-container">
         <div class="grid-x">
             <div class="cell auto align-self-middle">
