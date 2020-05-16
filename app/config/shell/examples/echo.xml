@@ -19,7 +19,7 @@
             <item name="input-2" mandatory="true">${prefix} - 2</item>
             <item name="input-3">${prefix} - 3</item>
         </parameters>
-        <transform type="text" contentType="text/plain">
+        <transform format="text" contentType="text/plain">
             <template engine="token" style="apon">
                 |----------------------------------------------------------
                 |The parameters you entered are:
@@ -50,7 +50,7 @@
         <attributes>
             <item name="input-4">ATTR ${input-4}</item>
         </attributes>
-        <transform type="text" contentType="text/plain">
+        <transform format="text" contentType="text/plain">
             <template engine="token" style="apon">
                 |----------------------------------------------------------
                 |The input parameters and attributes are as follows:

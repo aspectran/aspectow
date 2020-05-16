@@ -9,7 +9,7 @@
 
     <translet name="list">
         <action bean="memoAction" method="getList"/>
-        <transform type="json"/>
+        <transform format="json" contentType=""/>
     </translet>
 
     <translet name="add">
@@ -17,7 +17,7 @@
             <item name="message" mandatory="true"/>
         </parameters>
         <action bean="memoAction" method="addMemo"/>
-        <transform type="json"/>
+        <transform format="json"/>
     </translet>
 
     <translet name="add ${message}">
@@ -29,7 +29,7 @@
                 </item>
             </arguments>
         </action>
-        <transform type="json"/>
+        <transform format="json"/>
     </translet>
 
     <translet name="del">
@@ -37,17 +37,17 @@
             <item name="id" mandatory="true"/>
         </parameters>
         <action bean="memoAction" method="delMemo"/>
-        <transform type="json"/>
+        <transform format="json"/>
     </translet>
 
     <translet name="del ${id}">
         <action bean="memoAction" method="delMemo"/>
-        <transform type="json"/>
+        <transform format="json"/>
     </translet>
 
     <translet name="del-all">
         <action id="affected" bean="memoAction" method="delAllMemo"/>
-        <transform type="text">
+        <transform format="text">
             <template style="apon">
                 |---------------------------------
                 | Total deleted records: @{affected}
@@ -62,7 +62,7 @@
             <item name="message" mandatory="true"/>
         </parameters>
         <action id="affected" bean="memoAction" method="addBulkMemo"/>
-        <transform type="text">
+        <transform format="text">
             <template style="apon">
                 |---------------------------------
                 | Total inserted records: @{affected}
@@ -76,7 +76,7 @@
             <item name="repetitions" value="10" mandatory="true"/>
         </parameters>
         <action id="affected" bean="memoAction" method="addBulkMemo"/>
-        <transform type="text">
+        <transform format="text">
             <template style="apon">
                 |---------------------------------
                 | Total inserted records: @{affected}

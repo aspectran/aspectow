@@ -8,7 +8,7 @@ import com.aspectran.core.component.bean.annotation.RequestToDelete;
 import com.aspectran.core.component.bean.annotation.RequestToGet;
 import com.aspectran.core.component.bean.annotation.RequestToPost;
 import com.aspectran.core.component.bean.annotation.Transform;
-import com.aspectran.core.context.rule.type.TransformType;
+import com.aspectran.core.context.rule.type.FormatType;
 import com.aspectran.core.util.FilenameUtils;
 import com.aspectran.core.util.StringUtils;
 import com.aspectran.core.util.logging.Logger;
@@ -74,7 +74,7 @@ public class SimpleFileUploadAction {
     }
 
     @RequestToPost("/files")
-    @Transform(TransformType.JSON)
+    @Transform(FormatType.JSON)
     @Action("files")
     public List<UploadedFile> upload(Translet translet) throws IOException {
         FileParameter fileParameter = translet.getFileParameter("file");
@@ -126,7 +126,7 @@ public class SimpleFileUploadAction {
     }
 
     @RequestToGet("/files")
-    @Transform(TransformType.JSON)
+    @Transform(FormatType.JSON)
     @Action("files")
     public Collection<UploadedFile> list() {
         return uploadedFiles.values();

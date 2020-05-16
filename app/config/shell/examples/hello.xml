@@ -39,7 +39,7 @@
             |
         </description>
         <action id="helloWorld" bean="helloAction" method="helloWorld"/>
-        <transform type="text"/>
+        <transform format="text"/>
     </translet>
 
     <translet name="hello2">
@@ -52,7 +52,7 @@
             |
         </description>
         <action id="helloWorld" bean="helloAction" method="helloWorld"/>
-        <transform type="text">
+        <transform format="text">
             <template style="apon">
                 |
                 |   {{bg:green}}                         {{reset}}
