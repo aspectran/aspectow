@@ -45,7 +45,7 @@
                         <input id="message" class="input-group-field" type="text" autocomplete="off" placeholder="Enter your message"/>
                         <input id="for-automata-clear" type="text"/>
                         <div class="input-group-button">
-                            <button type="submit" class="button send" title="Send message">Send</button>
+                            <button type="submit" class="button send" title="Send message"><i class="icon-paper-plane"></i></button>
                             <button type="button" class="button next" title="Search for another stranger"><i class="fi-shuffle"></i> Next <i class="fi-torso"></i></button>
                         </div>
                     </div>

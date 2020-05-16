@@ -23,8 +23,7 @@ $(function() {
     $("button.leave").on("click", function() {
         leaveRoom();
     });
-    $("#message").focus();
-
+    readyToType();
     if (autoConnect !== false) {
         openSocket();
     }
@@ -161,6 +160,14 @@ function handleMessage(chatMessage) {
             }
         }
     });
+}
+
+function readyToType(select) {
+    if (select) {
+        $("#message").focus().select();
+    } else {
+        $("#message").focus();
+    }
 }
 
 function sendMessage() {

@@ -11,6 +11,12 @@
     font-size: 6em;
     color: #1b838d;
 }
+.random #convo .message.event .content h3 {
+    color: #1b838d;
+}
+.random #convo .message.event .content h3.wait {
+    color: #777;
+}
 .random .message-box button.next {
     margin-left: 5px;
     border-radius: 5px !important;
