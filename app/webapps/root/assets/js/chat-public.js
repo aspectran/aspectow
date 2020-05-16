@@ -24,7 +24,7 @@ $(function() {
         leaveRoom();
     });
     $("#convo").on("click", ".message.event.group .more", function() {
-        $(this).parent().find(".content.omitted").toggle();
+        $(this).parent().toggleClass("all-visible");
     });
     readyToType();
     if (autoConnect !== false) {
@@ -253,33 +253,80 @@ function clearConvo() {
     $("#convo").empty();
 }
 
-function printJoinMessage(payload, animatable) {
+function printJoinMessage(payload, restored) {
     let text = "Welcome <strong>" + payload.username + "</strong>";
-    printEvent(text, animatable);
+    printEvent(text, restored);
 }
 
-function printUserJoinedMessage(payload, animatable, container) {
-    let text = "<strong>" + payload.username + "</strong> joined this chat";
-    if (payload.prevUsername) {
-        text += " (Previous username: " + payload.prevUsername + ")"
+function printUserJoinedMessage(payload, restored, container) {
+    printUserEvent(payload, "user-joined", restored, container);
+}
+
+function printUserLeftMessage(payload, restored, container) {
+    printUserEvent(payload, "user-left", restored, container);
+}
+
+function printUserEvent(payload, event, restored, container) {
+    let convo = $("#convo");
+    if (!restored) {
+        let last = convo.find(".message.event").last();
+        if (last.length > 0) {
+            let userNo = last.data("user-no");
+            if (payload.userNo === userNo) {
+                container = last;
+            }
+        }
+    }
+    let content = $("<p class='content'/>").addClass(event).data("event", event);
+    content.append("<strong>" + payload.username + "</strong> ");
+    switch (event) {
+        case "user-joined":
+            content.append("joined this chat");
+            break;
+        case "user-left":
+            content.append("has left this chat");
+            break;
+        default:
+            console.error("Unknown user event: " + event);
+            return;
     }
     if (payload.datetime) {
-        text += " <span class='datetime'>" +
-            moment.utc(payload.datetime).local().format("L LT") + "</span>";
+        let datetime = moment.utc(payload.datetime).local().format("L LT");
+        content.append("<span class='datetime'>" + datetime + "</span>");
     }
-    printEvent(text, animatable, container, "user-joined");
+    if (container) {
+        let contents = container.find(".content");
+        if (contents.length >= 30) {
+            contents.first().remove();
+        }
+        container.addClass("group").append(content);
+        contents = container.find(".content").addClass("omitted");
+        let first = contents.first();
+        let last = contents.last();
+        if (first.data("event") !== last.data("event")) {
+            first.removeClass("omitted");
+        }
+        last.removeClass("omitted");
+        if (contents.length > 2) {
+            let more = container.find(".more");
+            if (more.length > 0) {
+                more.attr("title", contents.length)
+            } else {
+                $("<i class='more fi-indent-more'></i>").attr("title", contents.length).insertAfter(first);
+            }
+        }
+    } else {
+        $("<div class='message event'/>")
+            .data("user-no", payload.userNo)
+            .append(content)
+            .appendTo(convo);
+    }
+    if (!restored) {
+        convo.animate({scrollTop: convo.prop("scrollHeight")});
+    }
 }
 
-function printUserLeftMessage(payload, animatable, container) {
-    let text = "<strong>" + payload.username + "</strong> has left this chat";
-    if (payload.datetime) {
-        text += "<span class='datetime'>" +
-            moment.utc(payload.datetime).local().format("L LT") + "</span>";
-    }
-    printEvent(text, animatable, container, "user-left");
-}
-
-function printMessage(payload, animatable) {
+function printMessage(payload, restored) {
     let convo = $("#convo");
     let myself = (currentUserNo === payload.userNo);
     let sender = $("<span class='username'/>")
@@ -291,7 +338,6 @@ function printMessage(payload, animatable) {
         content.append("<span class='datetime'>" +
             datetime.format(hours < 24 ? "LTS" : "L LT") + "</span>");
     }
-
     let lastMessage = $("#convo .message").last();
     if (lastMessage.length && lastMessage.data("user-no") === payload.userNo) {
         lastMessage.append(content);
@@ -303,12 +349,12 @@ function printMessage(payload, animatable) {
             .append(sender).append(content);
         convo.append(message);
     }
-    if (animatable !== false) {
+    if (!restored) {
         convo.animate({scrollTop: convo.prop("scrollHeight")});
     }
 }
 
-function printEvent(text, animatable, container, event) {
+function printEvent(text, restored, container, event) {
     let convo = $("#convo");
     let content = $("<p class='content'/>").html(text);
     if (event) {
@@ -321,17 +367,17 @@ function printEvent(text, animatable, container, event) {
             .append(content)
             .appendTo(convo);
     }
-    if (animatable !== false) {
+    if (!restored) {
         convo.animate({scrollTop: convo.prop("scrollHeight")});
     }
 }
 
-function printError(text, animatable) {
+function printError(text, restored) {
     let convo = $("#convo");
     let div = $("<div/>").addClass("message event error");
     $("<p/>").addClass("content").html(text).appendTo(div);
     convo.append(div);
-    if (animatable !== false) {
+    if (!restored) {
         convo.animate({scrollTop: convo.prop("scrollHeight")});
     }
 }
@@ -345,56 +391,37 @@ function printRecentConvo(chatMessages) {
         Object.getOwnPropertyNames(chatMessage).forEach(function(val, idx, array) {
             let payload = chatMessage[val];
             if (payload) {
-                console.log(payload);
                 switch (val) {
                     case "broadcast":
-                        printMessage(payload, false);
+                        printMessage(payload, true);
                         prevUserNo = null;
                         break;
                     case "userJoined":
                         if (prevUserNo === payload.userNo) {
                             if (!container) {
                                 container = convo.find(".message.event").last();
-                                console.log("container : " + container);
                             }
                         } else {
                             container = null;
                         }
-                        printUserJoinedMessage(payload, false, container);
+                        printUserJoinedMessage(payload, true, container);
                         prevUserNo = payload.userNo;
                         break;
                     case "userLeft":
                         if (prevUserNo === payload.userNo) {
                             if (!container) {
                                 container = convo.find(".message.event").last();
-                                console.log("container : " + container);
                             }
                         } else {
                             container = null;
                         }
-                        printUserLeftMessage(payload, false, container);
+                        printUserLeftMessage(payload, true, container);
                         prevUserNo = payload.userNo;
                         break;
                 }
             }
         });
     }
-    convo.find(".message.event.group").filter(function() {
-        let contents = $(this).find(".content");
-        let cnt = contents.length;
-        if (cnt > 1) {
-            contents.addClass("omitted").hide();
-            let first = contents.first();
-            let last = contents.last();
-            if (first.data("event") !== last.data("event")) {
-                first.removeClass("omitted").show();
-                cnt--;
-            }
-            cnt--;
-            last.removeClass("omitted").show();
-            $("<i class='more fi-indent-more'></i>").attr("title", cnt).insertAfter(first);
-        }
-    });
     convo.animate({scrollTop: convo.prop("scrollHeight")});
 }
 

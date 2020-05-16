@@ -67,20 +67,20 @@ function drawLookingBar(wait) {
     printEvent(text, true);
 }
 
-function printJoinMessage(payload, animatable, container) {
+function printJoinMessage(payload, restored, container) {
     clearConvo();
     drawLookingBar();
 }
 
-function printUserJoinedMessage(payload, animatable, container) {
+function printUserJoinedMessage(payload, restored, container) {
     clearConvo();
     let text = "<i class='fi-microphone'></i> Chat started. Feel free to say hello to <strong>" + payload.username + "</strong>.";
-    printEvent(text, animatable, container);
+    printEvent(text, restored, container);
     readyToType();
 }
 
-function printUserLeftMessage(payload, animatable, container) {
+function printUserLeftMessage(payload, restored, container) {
     let text = "<strong>" + payload.username + "</strong> has left this chat";
-    printEvent(text, animatable, container);
+    printEvent(text, restored, container);
     drawLookingBar();
 }

@@ -1,6 +1,6 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
-<link rel="stylesheet" type="text/css" href="/assets/css/chat-public.css?v11" />
-<script src="/assets/js/chat-public.js?v0.8"></script>
+<link rel="stylesheet" type="text/css" href="/assets/css/chat-public.css?v0.12" />
+<script src="/assets/js/chat-public.js?v0.9"></script>
 <script>
     const currentUserNo = Number("${page.userNo}");
     const currentUsername = "${page.username}";

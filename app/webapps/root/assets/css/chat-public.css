@@ -65,18 +65,17 @@
 }
 #convo .message.event.group {
     border-radius: 6px;
+    max-height: 300px;
+    overflow: auto;
 }
-#convo .message.event.group .content:first-child {
-    padding-bottom: 0;
-    border-radius: 6px 6px 0 0;
+#convo .message.event.group.all-visible .content {
+    display: block !important;
 }
-#convo .message.event.group .content:last-child {
-    padding-top: 0;
-    border-radius: 0 0 6px 6px;
+#convo .message.event.group .content {
+    border-radius: 0;
 }
 #convo .message.event.group .content.omitted {
     display: none;
-    border-radius: 0;
     font-size: .7em;
     padding-left: 20px;
     padding-top: 0;
@@ -97,9 +96,9 @@
 }
 #convo .message.event.group .more {
     position: absolute;
-    top: 3px;
-    right: 0;
-    color: blue;
+    top: 5px;
+    left: 0;
+    color: #ff5900;
     cursor: pointer;
 }
 #convo .message.event .content strong {
