@@ -1,7 +1,7 @@
 package club.textchat.redis.pubsub;
 
 import club.textchat.redis.RedisConnectionPool;
-import club.textchat.server.PublicChatHandler;
+import club.textchat.server.DefaultChatHandler;
 import club.textchat.server.message.ChatMessage;
 import club.textchat.server.message.payload.BroadcastPayload;
 import club.textchat.server.message.payload.UserJoinedPayload;
@@ -24,19 +24,19 @@ import java.io.IOException;
  */
 @Component
 @Bean
-public class PublicMessageSubscriber extends RedisPubSubAdapter<String, String>
+public class DefaultMessageSubscriber extends RedisPubSubAdapter<String, String>
         implements InitializableBean, DisposableBean {
 
-    private static final Logger logger = LoggerFactory.getLogger(PublicMessageSubscriber.class);
+    private static final Logger logger = LoggerFactory.getLogger(DefaultMessageSubscriber.class);
 
-    public static final String CHANNEL = "chat:public";
+    public static final String CHANNEL = "chat:default";
 
     private final StatefulRedisPubSubConnection<String, String> connection;
 
-    private final PublicChatHandler chatHandler;
+    private final DefaultChatHandler chatHandler;
 
     @Autowired
-    public PublicMessageSubscriber(RedisConnectionPool connectionPool, PublicChatHandler chatHandler) {
+    public DefaultMessageSubscriber(RedisConnectionPool connectionPool, DefaultChatHandler chatHandler) {
         this.connection = connectionPool.getPubSubConnection();
         this.chatHandler = chatHandler;
     }

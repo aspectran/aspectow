@@ -354,12 +354,9 @@ function printMessage(payload, restored) {
     }
 }
 
-function printEvent(text, restored, container, event) {
+function printEvent(text, restored, container) {
     let convo = $("#convo");
     let content = $("<p class='content'/>").html(text);
-    if (event) {
-        content.addClass(event).data("event", event);
-    }
     if (container) {
         container.addClass("group").append(content);
     } else {

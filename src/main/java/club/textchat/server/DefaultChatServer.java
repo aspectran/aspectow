@@ -39,17 +39,17 @@ import java.io.IOException;
  */
 @Component
 @ServerEndpoint(
-        value = "/chat/public/{token}",
+        value = "/chat/default/{token}",
         encoders = ChatMessageEncoder.class,
         decoders = ChatMessageDecoder.class,
         configurator = ChatServerConfigurator.class
 )
-public class PublicChatServer {
+public class DefaultChatServer {
 
-    private final PublicChatHandler chatHandler;
+    private final DefaultChatHandler chatHandler;
 
     @Autowired
-    public PublicChatServer(PublicChatHandler chatHandler) {
+    public DefaultChatServer(DefaultChatHandler chatHandler) {
         this.chatHandler = chatHandler;
     }
 

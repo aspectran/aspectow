@@ -1,7 +1,7 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
-<link rel="stylesheet" type="text/css" href="/assets/css/chat-public.css?v0.12" />
+<link rel="stylesheet" type="text/css" href="/assets/css/chat-default.css?v0.12" />
 <link rel="stylesheet" type="text/css" href="/assets/css/chat-random.css?v0.11" />
-<script src="/assets/js/chat-public.js?v0.9"></script>
+<script src="/assets/js/chat-default.js?v0.9"></script>
 <script src="/assets/js/chat-random.js?v0.9"></script>
 <script>
     const currentUserNo = Number("${page.userNo}");

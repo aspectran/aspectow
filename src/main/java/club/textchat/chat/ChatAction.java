@@ -56,7 +56,7 @@ public class ChatAction {
         if (RANDOM_CHATROOM_ID.equals(roomId)) {
             map.put("include", "pages/chat-random");
         } else {
-            map.put("include", "pages/chat-public");
+            map.put("include", "pages/chat-default");
         }
         map.put("userNo", Long.toString(userInfo.getUserNo()));
         map.put("username", userInfo.getUsername());

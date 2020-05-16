@@ -2,7 +2,7 @@ package club.textchat.server;
 
 import club.textchat.redis.persistence.ChatersPersistence;
 import club.textchat.redis.persistence.InConvoUsersPersistence;
-import club.textchat.redis.persistence.PublicConvosPersistence;
+import club.textchat.redis.persistence.DefaultConvosPersistence;
 import club.textchat.redis.persistence.SignedInUsersPersistence;
 import club.textchat.server.message.ChatMessage;
 import club.textchat.server.message.payload.BroadcastPayload;
@@ -23,16 +23,16 @@ import java.util.Set;
  */
 @Component
 @Bean
-public class PublicChatHandler extends AbstractChatHandler {
+public class DefaultChatHandler extends AbstractChatHandler {
 
-    private final PublicConvosPersistence publicConvosPersistence;
+    private final DefaultConvosPersistence defaultConvosPersistence;
 
-    public PublicChatHandler(SignedInUsersPersistence signedInUsersPersistence,
-                             InConvoUsersPersistence inConvoUsersPersistence,
-                             ChatersPersistence chatersPersistence,
-                             PublicConvosPersistence publicConvosPersistence) {
+    public DefaultChatHandler(SignedInUsersPersistence signedInUsersPersistence,
+                              InConvoUsersPersistence inConvoUsersPersistence,
+                              ChatersPersistence chatersPersistence,
+                              DefaultConvosPersistence defaultConvosPersistence) {
         super(signedInUsersPersistence, inConvoUsersPersistence, chatersPersistence);
-        this.publicConvosPersistence = publicConvosPersistence;
+        this.defaultConvosPersistence = defaultConvosPersistence;
     }
 
     protected void handle(Session session, ChatMessage chatMessage) {
@@ -88,7 +88,7 @@ public class PublicChatHandler extends AbstractChatHandler {
             JoinPayload payload = new JoinPayload();
             payload.setUsername(chaterInfo.getUsername());
             payload.setChaters(roomChaters);
-            payload.setRecentConvo(publicConvosPersistence.getRecentConvo(chaterInfo.getRoomId()));
+            payload.setRecentConvo(defaultConvosPersistence.getRecentConvo(chaterInfo.getRoomId()));
             payload.setRejoin(rejoin);
             ChatMessage message = new ChatMessage(payload);
             send(session, message);
@@ -118,7 +118,7 @@ public class PublicChatHandler extends AbstractChatHandler {
         payload.setPrevUsername(chaterInfo.getPrevUsername());
         payload.setDatetime(getCurrentDatetime(chaterInfo));
         ChatMessage message = new ChatMessage(payload);
-        publicConvosPersistence.put(chaterInfo.getRoomId(), message);
+        defaultConvosPersistence.put(chaterInfo.getRoomId(), message);
     }
 
     private void broadcastUserLeft(ChaterInfo chaterInfo) {
@@ -128,7 +128,7 @@ public class PublicChatHandler extends AbstractChatHandler {
         payload.setUsername(chaterInfo.getUsername());
         payload.setDatetime(getCurrentDatetime(chaterInfo));
         ChatMessage message = new ChatMessage(payload);
-        publicConvosPersistence.put(chaterInfo.getRoomId(), message);
+        defaultConvosPersistence.put(chaterInfo.getRoomId(), message);
     }
 
     private void broadcastMessage(ChaterInfo chaterInfo, String content) {
@@ -139,7 +139,7 @@ public class PublicChatHandler extends AbstractChatHandler {
         payload.setContent(content);
         payload.setDatetime(getCurrentDatetime(chaterInfo));
         ChatMessage message = new ChatMessage(payload);
-        publicConvosPersistence.put(chaterInfo.getRoomId(), message);
+        defaultConvosPersistence.put(chaterInfo.getRoomId(), message);
     }
 
     public void broadcast(ChatMessage message, String roomId, final long excludedUserNo) {

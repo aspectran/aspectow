@@ -34,7 +34,7 @@
         </arguments>
     </bean>
 
-    <bean class="club.textchat.redis.persistence.PublicConvosPersistence">
+    <bean class="club.textchat.redis.persistence.DefaultConvosPersistence">
         <arguments>
             <item>#{redisConnectionPool}</item>
             <item valueType="int">30</item>

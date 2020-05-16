@@ -31,7 +31,7 @@ function startLooking() {
     }
     startTimer = setTimeout(function () {
         openSocket();
-    }, 2000);
+    }, 1800);
     clearChaters();
     clearConvo();
     drawLookingBar(true);
@@ -67,7 +67,7 @@ function drawLookingBar(wait) {
     printEvent(text, true);
 }
 
-function printJoinMessage(payload, restored, container) {
+function printJoinMessage(payload, restored) {
     clearConvo();
     drawLookingBar();
 }

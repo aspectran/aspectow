@@ -1,11 +1,11 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
-<link rel="stylesheet" type="text/css" href="/assets/css/chat-public.css?v0.12" />
-<script src="/assets/js/chat-public.js?v0.9"></script>
+<link rel="stylesheet" type="text/css" href="/assets/css/chat-default.css?v0.12" />
+<script src="/assets/js/chat-default.js?v0.9"></script>
 <script>
     const currentUserNo = Number("${page.userNo}");
     const currentUsername = "${page.username}";
     const admissionToken = "${page.token}";
-    const chatServerType = "public";
+    const chatServerType = "default";
     const autoConnect = true;
 </script>
 <div class="grid-y grid-frame">
