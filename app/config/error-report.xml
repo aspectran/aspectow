@@ -10,10 +10,10 @@
         </description>
         <exception>
             <thrown>
-                <echo>
+                <echo hidden="true">
                     <item name="error">#{currentTranslet^rootCauseOfRaisedException}</item>
                 </echo>
-                <transform type="text">
+                <transform format="text">
                     <template style="apon">
                         |
                         |Ooops!
@@ -22,9 +22,9 @@
                         |
                     </template>
                 </transform>
-                <transform type="json">
+                <transform format="text" contentType="application/json">
                     <template style="apon">
-                        |null
+                        |null2
                     </template>
                 </transform>
                 <dispatch name="templates/error" contentType="text/html" default="true"/>

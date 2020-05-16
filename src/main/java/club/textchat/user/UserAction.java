@@ -11,7 +11,7 @@ import com.aspectran.core.component.bean.annotation.Request;
 import com.aspectran.core.component.bean.annotation.RequestToPost;
 import com.aspectran.core.component.bean.annotation.Required;
 import com.aspectran.core.component.bean.annotation.Transform;
-import com.aspectran.core.context.rule.type.TransformType;
+import com.aspectran.core.context.rule.type.FormatType;
 import com.aspectran.core.util.logging.Logger;
 import com.aspectran.core.util.logging.LoggerFactory;
 
@@ -38,7 +38,7 @@ public class UserAction {
     }
 
     @RequestToPost("/guest/signin")
-    @Transform(TransformType.JSON)
+    @Transform(FormatType.JSON)
     public Map<String, Integer> signin(Translet translet,
                                        @Required String username,
                                        @Required String recaptchaResponse,

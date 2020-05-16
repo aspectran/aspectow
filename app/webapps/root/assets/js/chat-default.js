@@ -28,12 +28,12 @@ $(function() {
     });
     readyToType();
     if (autoConnect !== false) {
-        openSocket();
+        openSocket(admissionToken);
     }
 });
 
-function openSocket() {
-    if (!chatServerType || !currentUserNo || !currentUsername || !admissionToken) {
+function openSocket(token) {
+    if (!chatServerType || !currentUserNo || !currentUsername || !token) {
         location.href = "/rooms";
     }
     if (socket) {
@@ -41,7 +41,7 @@ function openSocket() {
         socket.close();
         socket = null;
     }
-    let url = new URL('/chat/' + chatServerType + '/' + admissionToken, location.href);
+    let url = new URL('/chat/' + chatServerType + '/' + token, location.href);
     url.protocol = url.protocol.replace('https:', 'wss:');
     url.protocol = url.protocol.replace('http:', 'ws:');
     socket = new WebSocket(url.href);

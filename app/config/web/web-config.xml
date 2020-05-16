@@ -67,7 +67,7 @@
     </aspect>
 
     <translet name="/ping">
-        <transform type="text" contentType="text/plain">
+        <transform format="text" contentType="text/plain">
             <template>pong</template>
         </transform>
     </translet>

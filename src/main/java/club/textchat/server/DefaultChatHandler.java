@@ -1,8 +1,8 @@
 package club.textchat.server;
 
 import club.textchat.redis.persistence.ChatersPersistence;
-import club.textchat.redis.persistence.InConvoUsersPersistence;
 import club.textchat.redis.persistence.DefaultConvosPersistence;
+import club.textchat.redis.persistence.InConvoUsersPersistence;
 import club.textchat.redis.persistence.SignedInUsersPersistence;
 import club.textchat.server.message.ChatMessage;
 import club.textchat.server.message.payload.BroadcastPayload;

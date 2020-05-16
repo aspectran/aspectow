@@ -10,6 +10,8 @@ import com.aspectran.core.component.bean.annotation.Component;
 import com.aspectran.core.component.bean.annotation.Dispatch;
 import com.aspectran.core.component.bean.annotation.Request;
 import com.aspectran.core.component.bean.annotation.Required;
+import com.aspectran.core.component.bean.annotation.Transform;
+import com.aspectran.core.context.rule.type.FormatType;
 import com.aspectran.core.util.PBEncryptionUtils;
 import com.aspectran.core.util.security.TimeLimitedPBTokenIssuer;
 
@@ -45,24 +47,38 @@ public class ChatAction {
 
         UserInfo userInfo = userManager.getUserInfo();
 
-        AdmissionToken admissionToken = new AdmissionToken();
-        admissionToken.setUserNo(userInfo.getUserNo());
-        admissionToken.setUsername(userInfo.getUsername());
-        admissionToken.setRoomId(roomId);
-
-        String encryptedAdmissionToken = TimeLimitedPBTokenIssuer.getToken(admissionToken);
-
         Map<String, String> map = new HashMap<>();
-        if (RANDOM_CHATROOM_ID.equals(roomId)) {
-            map.put("include", "pages/chat-random");
-        } else {
-            map.put("include", "pages/chat-default");
-        }
         map.put("userNo", Long.toString(userInfo.getUserNo()));
         map.put("username", userInfo.getUsername());
         map.put("roomName", roomId);
-        map.put("token", encryptedAdmissionToken);
+
+        if (RANDOM_CHATROOM_ID.equals(roomId)) {
+            map.put("include", "pages/chat-random");
+        } else {
+            AdmissionToken admissionToken = new AdmissionToken();
+            admissionToken.setUserNo(userInfo.getUserNo());
+            admissionToken.setUsername(userInfo.getUsername());
+            admissionToken.setRoomId(roomId);
+
+            map.put("token", TimeLimitedPBTokenIssuer.getToken(admissionToken));
+            map.put("include", "pages/chat-default");
+        }
+
         return map;
+    }
+
+    @Request("/rooms/random/token")
+    @Transform(FormatType.JSON)
+    public String randomChatToken() {
+        if (true) {
+            throw new RuntimeException("test");
+        }
+        UserInfo userInfo = userManager.getUserInfo();
+        AdmissionToken admissionToken = new AdmissionToken();
+        admissionToken.setUserNo(userInfo.getUserNo());
+        admissionToken.setUsername(userInfo.getUsername());
+        admissionToken.setRoomId(RANDOM_CHATROOM_ID);
+        return TimeLimitedPBTokenIssuer.getToken(admissionToken);
     }
 
 }

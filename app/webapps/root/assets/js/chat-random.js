@@ -25,13 +25,30 @@ $(function() {
 });
 
 let startTimer;
+let canceled;
 function startLooking() {
     if (startTimer) {
+        canceled = true;
         clearTimeout(startTimer);
     }
+    canceled = false;
     startTimer = setTimeout(function () {
-        openSocket();
-    }, 1800);
+        $.ajax('/rooms/random/token')
+            .done(function(token) {
+                console.log(token);
+                alert(token);
+                if (token) {
+                    if (!canceled) {
+                        openSocket(token);
+                    }
+                } else {
+                    location.reload();
+                }
+            })
+            .fail(function() {
+                location.reload();
+            });
+    }, 1000);
     clearChaters();
     clearConvo();
     drawLookingBar(true);

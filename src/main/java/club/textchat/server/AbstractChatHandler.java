@@ -64,7 +64,6 @@ public abstract class AbstractChatHandler extends InstantActivitySupport {
             session.close(new CloseReason(CloseReason.CloseCodes.CANNOT_ACCEPT, reason));
             throw new IOException(reason);
         }
-
         chaterInfo.setRoomId(admissionToken.getRoomId());
         if (logger.isDebugEnabled()) {
             logger.debug("Created chater " + chaterInfo);
