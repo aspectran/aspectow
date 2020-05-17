@@ -149,11 +149,11 @@
     }
 }
 .message-box .button {
-    padding-left: 7px;
-    padding-right: 7px;
 }
 .message-box button.next {
     margin-left: 5px;
+    padding-left: 7px;
+    padding-right: 7px;
     border-radius: 5px !important;
     background-color: #1b838d;
 }
