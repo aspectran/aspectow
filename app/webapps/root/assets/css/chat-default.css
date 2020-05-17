@@ -104,6 +104,9 @@
     color: #ff5900;
     cursor: pointer;
 }
+#convo .message.event.group.all-visible .more {
+    color: #aaa;
+}
 #convo .message.event .content strong {
     font-weight: bold;
 }

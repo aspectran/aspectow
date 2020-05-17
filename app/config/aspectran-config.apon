@@ -37,7 +37,7 @@ shell: {
         |{{CYAN  }} /_/ /_____//_/|_|/_/     \____/_/ /_/_/  |_/_/    Club
         |{{CYAN  }}=========================================================
         |{{reset }}
-        |{{RED   }}Welcome To TextChat 1.0.0-SNAPSHOT
+        |{{RED   }}Welcome To TextChat 1.0-SNAPSHOT
         |{{reset }}
         |If you want a list of all supported built-in commands, type '{{GREEN}}help{{reset}}'.
         |To get help on a specific command, type '{{GREEN}}command_name -h{{reset}}'.
