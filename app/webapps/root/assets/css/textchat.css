@@ -138,6 +138,13 @@ input#for-automata-clear {
     width: 70px;
     height: 70px;
 }
+.sidebar .user .avatar .iconfont {
+    position: absolute;
+    top: -10px;
+    left: 8px;
+    font-size: 60px;
+    color: #d1f3ff;
+}
 .sidebar .user .country {
     color: #fff;
     background-color: #4ca9d7;

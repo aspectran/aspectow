@@ -16,13 +16,16 @@
 }
 #contacts .contact .status {
     display: inline;
+    padding: .3em .6em;
+    border-radius: 50%;
+    font-size: .8rem;
+    background-color: #69d4f4;
 }
-#contacts .contact .status .badge {
-    color: #94d8f8;
-    vertical-align: baseline;
+#contacts .contact .status .iconfont {
+    color: #4ca9d7;
 }
-#contacts .contact.me .status .badge {
-    color: #fabc03;
+#contacts .contact.me .status {
+    background-color: #fbd27e;
 }
 #contacts .contact .name {
     line-height: 1.1;

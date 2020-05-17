@@ -217,8 +217,8 @@ function addChater(userNo, username) {
     let contact = $("<li class='contact'/>")
         .data("user-no", userNo)
         .data("username", username);
-    let status = $("<div/>").addClass("status badge");
-    let badge = $("<i class='badge fi-record'/>");
+    let status = $("<div/>").addClass("status");
+    let badge = $("<i class='iconfont fi-record'/>");
     let name = $("<div class='name'/>").text(username);
     contact.append(status.append(badge)).append(name).appendTo($("#contacts"));
     updateTotalPeople();
