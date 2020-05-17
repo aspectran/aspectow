@@ -4,11 +4,12 @@
 .rooms .room {
     position: relative;
     border-radius: 10px;
-    background-color: aliceblue;
+    background-color: #f5f8fb;
 }
 .rooms .room .card-section {
     margin: 2px;
     padding: .5em;
+    color: #333;
 }
 .rooms .room .card-section:hover {
     border: 2px solid #99ddfc;
@@ -23,7 +24,15 @@
     border: 2px solid #f1a5bc;
 }
 .rooms .no-room .card-section {
-    padding: 0;
+    padding: 1em;
+    background-color: #f5f5f5;
+    border-radius: 10px;
+}
+.rooms .random.guide .card-section {
+    background-color: #fcf5f7;
+}
+.rooms .create.guide .card-section {
+    background-color: #f5f8fb;
 }
 .rooms .room.random h4 {
     color: #d45472;
@@ -36,8 +45,11 @@
     right: 0;
     bottom: 0;
     border-radius: 7px 0 7px 0;
-    background-color: #458caf;
+    background-color: #6eb4d5;
 }
 .rooms .room.random .button.start {
-    background-color: #d26881;
+    background-color: #d97c92;
+}
+.rooms .room.create {
+    border: 1px solid #58aed9;
 }
