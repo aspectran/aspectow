@@ -137,7 +137,7 @@ input#for-automata-clear {
     width: 70px;
     height: 60px;
     margin: 4px;
-    border-radius: 10px;
+    border-radius: 8px;
 }
 .sidebar .user .avatar .iconfont {
     position: absolute;
@@ -153,7 +153,7 @@ input#for-automata-clear {
     background-color: #a8e0fd;
     margin: 4px 4px 4px 0;
     height: 60px;
-    border-radius: 10px;
+    border-radius: 8px;
 }
 .sidebar .user .nameplate .icon {
     display: inline-block;
@@ -162,12 +162,12 @@ input#for-automata-clear {
     line-height: 26px;
     font-size: 14px;
     padding: 0 6px;
+    border-radius: 10px 0 10px 0;
 }
 .sidebar .user .nameplate .country {
     position: absolute;
     right: 0;
     bottom: 0;
-    border-radius: 10px 0 10px 0;
 }
 .sidebar .user .nameplate .username {
     padding: 6px 10px;
