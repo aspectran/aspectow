@@ -77,7 +77,7 @@ function openSocket(token) {
                 .fail(function () {
                     $('#connection-lost').foundation('open');
                 });
-        }, 15);
+        }, 100);
     };
     socket.onerror = function(event) {
         console.error("WebSocket error observed:", event);
@@ -358,16 +358,12 @@ function printMessage(payload, restored) {
     }
 }
 
-function printEvent(text, restored, container) {
+function printEvent(text, restored) {
     let convo = $("#convo");
     let content = $("<p class='content'/>").html(text);
-    if (container) {
-        container.addClass("group").append(content);
-    } else {
-        $("<div class='message event'/>")
-            .append(content)
-            .appendTo(convo);
-    }
+    $("<div class='message event'/>")
+        .append(content)
+        .appendTo(convo);
     if (!restored) {
         convo.animate({scrollTop: convo.prop("scrollHeight")});
     }

@@ -16,13 +16,11 @@
     margin: 0;
 }
 .rooms .room.random {
-    border: 2px solid #d26881;
+    border: 1px solid #d26881;
     background-color: #fcf5f7;
 }
 .rooms .room.random .card-section:hover {
-    margin: 1px;
-    border: 1px solid #f1a5bc;
-    border-radius: 7px;
+    border: 2px solid #f1a5bc;
 }
 .rooms .no-room .card-section {
     padding: 0;
@@ -37,7 +35,7 @@
     position: absolute;
     right: 0;
     bottom: 0;
-    border-radius: 8px 0 8px 0;
+    border-radius: 7px 0 7px 0;
     background-color: #458caf;
 }
 .rooms .room.random .button.start {

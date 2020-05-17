@@ -65,21 +65,28 @@ function stopLooking() {
 function drawSearchBar() {
     let text = "<i class='iconfont fi-shuffle sign'></i>" +
         "<button type='button' class='success button next'>Search for another stranger</button>";
-    printEvent(text, false);
+    printEvent(text);
 }
 
 function drawLookingBar(wait) {
     let title;
+    let sign;
     if (wait) {
+        sign = "<i class='iconfont fi-shuffle sign'></i>";
         title = "<h3 class='wait'>Please wait a moment.</h3>";
     } else {
+        sign = "<i class='iconfont fi-shuffle sign active'></i>";
         title = "<h3>Looking for stranger...</h3>";
     }
-    let text = "<i class='iconfont fi-shuffle sign'></i>" +
-        title +
+    let text = sign + title +
         "<div class='progress-bar'><div class='cylon_eye'></div></div>" +
         "<button type='button' class='success button cancel'>Cancel</button>";
-    printEvent(text, true);
+    printEvent(text);
+    if (wait) {
+        setTimeout(function() {
+            $("#convo .message.event .content .sign").addClass("animate");
+        }, 200);
+    }
 }
 
 function printJoinMessage(payload, restored) {

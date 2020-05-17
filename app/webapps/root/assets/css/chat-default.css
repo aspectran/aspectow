@@ -77,13 +77,13 @@
 #convo .message.event.group .content.omitted {
     display: none;
     font-size: .7em;
-    padding-left: 20px;
+    padding-left: 2em;
     padding-top: 0;
     padding-bottom: 0;
     color: #555;
 }
 #convo .message.event.group .content.omitted:hover {
-    font-size: .9em;
+    color: #333;
 }
 #convo .message.event .content.user-joined {
     text-align: left;
@@ -96,7 +96,7 @@
 }
 #convo .message.event.group .more {
     position: absolute;
-    top: 5px;
+    top: 4px;
     left: 0;
     color: #ff5900;
     cursor: pointer;
