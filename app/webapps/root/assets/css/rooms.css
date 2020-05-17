@@ -23,10 +23,14 @@
 .rooms .room.random .card-section:hover {
     border: 2px solid #f1a5bc;
 }
-.rooms .no-room .card-section {
+.rooms .card.guide {
+    border: none;
+}
+.rooms .guide .card-section {
     padding: 1em;
     background-color: #f5f5f5;
     border-radius: 10px;
+    font-size: .85em;
 }
 .rooms .random.guide .card-section {
     background-color: #fcf5f7;
@@ -49,7 +53,11 @@
 }
 .rooms .room.random .button.start {
     background-color: #d97c92;
+    min-width: 10em;
 }
 .rooms .room.create {
     border: 1px solid #58aed9;
+}
+.rooms .room.create .button.start {
+    min-width: 10em;
 }

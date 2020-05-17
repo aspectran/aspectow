@@ -14,7 +14,7 @@ import java.util.Map;
  * <p>Created: 2020/05/17</p>
  */
 @Component
-public class PingPongAction {
+public class PingPongService {
 
     private static final int MAX_INTERVAL = 2000;
 
@@ -34,11 +34,11 @@ public class PingPongAction {
         return "pong";
     }
 
-    public static <K, V> Map<K, V> createLRUMap(final int maxEntries) {
-        return new LinkedHashMap<K, V>(maxEntries * 10 / 7, 0.7f, true) {
+    public static <K, V> Map<K, V> createLRUMap(final int maxSize) {
+        return new LinkedHashMap<K, V>(maxSize * 10 / 7, 0.7f, true) {
             @Override
             protected boolean removeEldestEntry(Map.Entry<K, V> eldest) {
-                return size() > maxEntries;
+                return size() > maxSize;
             }
         };
     }

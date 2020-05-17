@@ -1,6 +1,6 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <script src="https://www.google.com/recaptcha/api.js?render=explicit&onload=loadCaptcha"></script>
-<script src="/assets/js/recaptcha.js"></script>
+<script src="/assets/js/recaptcha.js?v1"></script>
 <script src="/assets/js/index.js?v0.1"></script>
 <div class="intro grid-y grid-frame">
     <div class="header cell cell-block-container">
@@ -33,7 +33,7 @@
                                 Your username is already in use or a similar name already exists.<br/>
                                 Please enter a different username.
                             </p>
-                            <div id="inline-badge"></div>
+                            <div id="captcha-container"></div>
                         </form>
                     </div>
                     <div class="cell">

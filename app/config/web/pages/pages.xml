@@ -10,11 +10,4 @@
         <dispatch name="templates/default"/>
     </translet>
 
-    <translet name="/rooms">
-        <echo id="page">
-            <item name="include">pages/rooms</item>
-        </echo>
-        <dispatch name="templates/default"/>
-    </translet>
-
 </aspectran>

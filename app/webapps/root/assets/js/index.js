@@ -5,7 +5,7 @@ $(function() {
             return false;
         }
         $("#username").val(username);
-        executeCaptcha();
+        executeCaptcha("sign_in", signIn);
         return false;
     });
     $("#username").val(getCookie("username")).select();
@@ -26,21 +26,21 @@ function signIn() {
                 recaptchaResponse: recaptchaResponse,
                 timeZone: getTimeZone()
             },
-            success: function(data) {
-                switch (data.result) {
-                    case 0:
+            success: function(result) {
+                switch (result) {
+                    case "0":
                         setCookie("username", username, 7);
                         location.href = "/rooms";
                         break;
-                    case -1:
+                    case "-1":
                         alert("reCAPTCHA verification failed");
                         break;
-                    case -2:
+                    case "-2":
                         $(".form-error.already-in-use").show();
                         $("#username").select().focus();
                         break;
                     default:
-                        console.error(data);
+                        console.error(result);
                         alert("Unexpected error occurred.");
                 }
             },

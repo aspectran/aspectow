@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="rooms">
+
+    <select id="getRoomCountByName" parameterType="string" resultType="int">
+		select count(1) from rooms where room_nm = #{roomId}
+	</select>
+
+    <insert id="insertRoom" parameterType="club.textchat.room.RoomInfo" useGeneratedKeys="true" keyProperty="roomId">
+        insert into rooms (room_nm, lang_cd) values (#{roomName}, #{language})
+    </insert>
+
+	<insert id="insertRoomHist" parameterType="club.textchat.room.RoomInfo" useGeneratedKeys="true">
+        insert into room_hist (room_id) values (#{roomId})
+    </insert>
+
+	<select id="getRoomInfo" parameterType="string" resultType="club.textchat.room.RoomInfo">
+		select
+		    room_id as roomId,
+		    room_nm as roomName,
+		    lang_cd as language
+		from rooms
+		where room_id = #{roomId}
+	</select>
+
+    <select id="getRoomList" parameterType="map" resultType="club.textchat.room.RoomInfo">
+		select
+		    room_id as roomId,
+		    room_nm as roomName
+		from rooms
+		order by room_id desc
+		limit 100
+	</select>
+
+</mapper>

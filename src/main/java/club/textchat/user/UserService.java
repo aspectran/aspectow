@@ -4,7 +4,6 @@ import club.textchat.common.mybatis.SimpleSqlSession;
 import club.textchat.recaptcha.ReCaptchaVerifier;
 import com.aspectran.core.activity.Translet;
 import com.aspectran.core.component.bean.annotation.Autowired;
-import com.aspectran.core.component.bean.annotation.Bean;
 import com.aspectran.core.component.bean.annotation.Component;
 import com.aspectran.core.component.bean.annotation.Redirect;
 import com.aspectran.core.component.bean.annotation.Request;
@@ -21,25 +20,24 @@ import java.util.Locale;
 import java.util.Map;
 
 @Component
-@Bean("userAction")
-public class UserAction {
+public class UserService {
 
-    private static final Logger logger = LoggerFactory.getLogger(UserAction.class);
+    private static final Logger logger = LoggerFactory.getLogger(UserService.class);
 
     private final UserManager userManager;
 
     private final SimpleSqlSession sqlSession;
 
     @Autowired
-    public UserAction(UserManager userManager,
-                      SimpleSqlSession sqlSession) {
+    public UserService(UserManager userManager,
+                       SimpleSqlSession sqlSession) {
         this.userManager = userManager;
         this.sqlSession = sqlSession;
     }
 
     @RequestToPost("/guest/signin")
     @Transform(FormatType.JSON)
-    public Map<String, Integer> signin(Translet translet,
+    public String signin(Translet translet,
                                        @Required String username,
                                        @Required String recaptchaResponse,
                                        String timeZone) {
@@ -51,13 +49,12 @@ public class UserAction {
         } catch (IOException e) {
             logger.warn("reCAPTCHA verification failed", e);
         }
-
         if (!success) {
-            return Collections.singletonMap("result", -1);
+            return "-1";
         }
 
         if (userManager.isInUseUsername(username)) {
-            return Collections.singletonMap("result", -2);
+            return "-2";
         }
 
         UserInfo userInfo = new UserInfo();
@@ -65,20 +62,20 @@ public class UserAction {
 
         Locale locale = translet.getRequestAdapter().getLocale();
         if (locale != null) {
-            userInfo.setLocale(locale.toString());
             userInfo.setCountry(locale.getCountry());
+            userInfo.setLanguage(locale.getLanguage());
         }
         userInfo.setTimeZone(timeZone);
 
-        sqlSession.insert("users.insertLoginHist", userInfo);
+        sqlSession.insert("users.insertGuest", userInfo);
         if (userInfo.getUserNo() <= 0) {
-            return Collections.singletonMap("result", -3);
+            return "-9";
         }
         userInfo.setUserNo(-userInfo.getUserNo());
 
         userManager.saveUserInfo(userInfo);
 
-        return Collections.singletonMap("result", 0);
+        return "0";
     }
 
     @Request("/signout")

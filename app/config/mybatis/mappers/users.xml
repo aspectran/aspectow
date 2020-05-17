@@ -3,8 +3,8 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="users">
 
-    <insert id="insertLoginHist" parameterType="club.textchat.user.UserInfo" useGeneratedKeys="true" keyProperty="userNo">
-        insert into user_login_hist (username) values (#{username})
+    <insert id="insertGuest" parameterType="club.textchat.user.UserInfo" useGeneratedKeys="true" keyProperty="userNo">
+        insert into guests (user_nm, ip_addr) values (#{username}, #{ipAddr})
     </insert>
 
 </mapper>

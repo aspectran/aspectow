@@ -6,7 +6,7 @@
     <%@ include file="includes/head.jsp" %>
     <script>
         $(function() {
-            $('.reveal').foundation('open');
+            $("#error-report").foundation('open');
         })
     </script>
 </head>
@@ -30,10 +30,10 @@
             </div>
         </div>
     </div>
-    <div class="reveal" aria-labelledby="oops" data-reveal data-close-on-click="false" data-close-on-esc="false">
-        <h1 id="oops">Oops!</h1>
+    <div id="error-report" class="reveal popup error" aria-labelledby="oops" data-reveal data-close-on-click="false" data-close-on-esc="false">
+        <h3 id="oops">Oops!</h3>
         <c:choose>
-            <c:when test="${error.message eq 'invalid-room-id'}">
+            <c:when test="${translet.rootCauseOfRaisedException.message eq 'invalid-room-id'}">
                 <p>Invalid Chat Room ID: ${error.roomId}</p>
             </c:when>
             <c:otherwise>

@@ -1,9 +1,9 @@
-let clientId;
+let recaptchaClientId;
 let recaptchaResponse;
 
 function loadCaptcha() {
     grecaptcha.ready(function() {
-        clientId = grecaptcha.render('inline-badge', {
+        recaptchaClientId = grecaptcha.render('captcha-container', {
             'sitekey': '6Ldt0r0UAAAAAP4ejDGFZLB0S-zDzWL3ZkB49FvN',
             'badge': 'inline',
             'size': 'invisible'
@@ -11,13 +11,13 @@ function loadCaptcha() {
     });
 }
 
-function executeCaptcha() {
+function executeCaptcha(action, callback) {
     grecaptcha.ready(function() {
-        grecaptcha.execute(clientId, {
-            action: 'sign_in'
+        grecaptcha.execute(recaptchaClientId, {
+            action: action
         }).then(function(token) {
             recaptchaResponse = token;
-            signIn();
+            callback();
         });
     });
 }

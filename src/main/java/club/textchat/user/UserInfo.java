@@ -16,9 +16,11 @@ public class UserInfo implements Serializable {
 
     private String country;
 
-    private String locale;
+    private String language;
 
     private String timeZone;
+
+    private String ipAddr;
 
     public long getUserNo() {
         return userNo;
@@ -52,12 +54,12 @@ public class UserInfo implements Serializable {
         this.country = country;
     }
 
-    public String getLocale() {
-        return locale;
+    public String getLanguage() {
+        return language;
     }
 
-    public void setLocale(String locale) {
-        this.locale = locale;
+    public void setLanguage(String language) {
+        this.language = language;
     }
 
     public String getTimeZone() {
@@ -68,6 +70,14 @@ public class UserInfo implements Serializable {
         this.timeZone = timeZone;
     }
 
+    public String getIpAddr() {
+        return ipAddr;
+    }
+
+    public void setIpAddr(String ipAddr) {
+        this.ipAddr = ipAddr;
+    }
+
     @Override
     public String toString() {
         ToStringBuilder tsb = new ToStringBuilder();
@@ -75,8 +85,9 @@ public class UserInfo implements Serializable {
         tsb.append("username", username);
         tsb.append("prevUsername", prevUsername);
         tsb.append("country", country);
-        tsb.append("locale", locale);
+        tsb.append("language", language);
         tsb.append("timeZone", timeZone);
+        tsb.append("ipAddr", ipAddr);
         return tsb.toString();
     }
 

@@ -10,8 +10,8 @@
         </description>
         <exception>
             <thrown>
-                <echo hidden="true">
-                    <item name="error">#{currentTranslet^rootCauseOfRaisedException}</item>
+                <echo>
+                    <item name="translet">#{currentTranslet}</item>
                 </echo>
                 <transform format="text">
                     <template style="apon">
