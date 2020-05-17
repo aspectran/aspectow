@@ -4,9 +4,9 @@
         <div class="avatar"><i class="iconfont fi-mountains"></i></div>
     </div>
     <div class="cell auto">
-        <ul>
-            <li><span class="username">${user.username}</span></li>
-        </ul>
-        <div class="country">${user.country}</div>
+        <div class="nameplate">
+            <div class="icon country">${user.country}</div>
+            <h5 class="username">${user.username}</h5>
+        </div>
     </div>
 </div>

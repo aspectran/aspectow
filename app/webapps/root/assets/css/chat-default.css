@@ -6,6 +6,7 @@
 #contacts .contact {
     padding: 8px 8px 8px 12px;
     position: relative;
+    color: #217aa6;
 }
 #contacts .contact.me {
     background-color: #95d6f6;
