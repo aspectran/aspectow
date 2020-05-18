@@ -123,37 +123,37 @@ input#for-automata-clear {
     overflow: hidden;
     padding: 0;
 }
-.sidebar .user {
+.user {
     position: relative;
 }
-.sidebar .user .shrink {
+.user .shrink {
     position: relative;
 }
-.sidebar .user .auto {
+.user .auto {
     position: relative;
 }
-.sidebar .user .avatar {
+.user .avatar {
     background-color: #a8e0fd;
     width: 70px;
     height: 60px;
     margin: 4px;
     border-radius: 8px;
 }
-.sidebar .user .avatar .iconfont {
+.user .avatar .iconfont {
     position: absolute;
     top: -5px;
     left: 15px;
     font-size: 50px;
     color: #d1f3ff;
 }
-.sidebar .user .nameplate {
+.user .nameplate {
     position: relative;
     background-color: #a8e0fd;
     margin: 4px 4px 4px 0;
     height: 60px;
     border-radius: 8px;
 }
-.sidebar .user .nameplate .icon {
+.user .nameplate .icon {
     display: inline-block;
     color: #fff;
     background-color: #72bde2;
@@ -162,12 +162,12 @@ input#for-automata-clear {
     padding: 0 6px;
     border-radius: 10px 0 10px 0;
 }
-.sidebar .user .nameplate .country {
+.user .nameplate .country {
     position: absolute;
     right: 0;
     bottom: 0;
 }
-.sidebar .user .nameplate .username {
+.user .nameplate .username {
     padding: 6px 10px;
     max-width: 100% !important;
     overflow: hidden !important;

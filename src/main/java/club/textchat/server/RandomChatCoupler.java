@@ -12,7 +12,7 @@ public class RandomChatCoupler {
 
     private static final Logger logger = LoggerFactory.getLogger(RandomChatCoupler.class);
 
-    private static final int THREAD_HOLD = 10000;
+    private static final int THREAD_HOLD = 5000;
 
     private static final int MIN_SLEEP_TIME = 100;
 

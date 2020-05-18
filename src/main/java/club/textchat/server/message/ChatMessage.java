@@ -52,7 +52,7 @@ public class ChatMessage extends AbstractParameters {
     private static final ParameterKey[] parameterKeys;
 
     static {
-        receiver = new ParameterKey("receiver", ValueType.LONG);
+        receiver = new ParameterKey("receiver", ValueType.INT);
         join = new ParameterKey("join", JoinPayload.class);
         chaters = new ParameterKey("chaters", ChatersPayload.class);
         userJoined = new ParameterKey("userJoined", UserJoinedPayload.class);
@@ -114,8 +114,8 @@ public class ChatMessage extends AbstractParameters {
         putValue(broadcast, broadcastPayload);
     }
 
-    public long getReceiver() {
-        return getLong(receiver);
+    public int getReceiver() {
+        return getInt(receiver);
     }
 
     public void setReceiver(int userNo) {

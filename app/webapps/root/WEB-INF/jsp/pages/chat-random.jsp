@@ -1,8 +1,8 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <link rel="stylesheet" type="text/css" href="/assets/css/chat-default.css?v0.12" />
 <link rel="stylesheet" type="text/css" href="/assets/css/chat-random.css?v0.11" />
-<script src="/assets/js/chat-default.js?v0.9"></script>
-<script src="/assets/js/chat-random.js?v0.9"></script>
+<script src="/assets/js/chat-default.js?v0.10"></script>
+<script src="/assets/js/chat-random.js?v0.10"></script>
 <script>
     const currentUserNo = Number("${page.userNo}");
     const currentUsername = "${page.username}";
@@ -54,19 +54,4 @@
         </div>
     </div>
 </div>
-<div id="connection-lost" class="reveal popup" data-reveal data-close-on-click="false" data-close-on-esc="false">
-    <h3>Connection lost</h3>
-    <p class="lead">You have lost connection with the server.</p>
-    <div class="button-group align-right">
-        <a class="success button" href="/rooms">Home</a>
-        <a class="warning button" href="">Reload this page</a>
-    </div>
-</div>
-<div id="chatroom-rejoined" class="reveal popup" data-reveal data-close-on-click="false" data-close-on-esc="false">
-    <h3>Alert</h3>
-    <p class="lead">You leave this chat room because you reconnected through a different route.</p>
-    <p>Note: Duplicate participation in the same chat room is prohibited.</p>
-    <div class="button-group align-right">
-        <a class="success button" href="/rooms">OK</a>
-    </div>
-</div>
+<%@ include file="includes/chat-reveals.jsp" %>

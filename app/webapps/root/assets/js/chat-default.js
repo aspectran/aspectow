@@ -5,17 +5,16 @@ let aborted;
 
 $(function() {
     $("form#send-message").submit(function() {
-        let wrap = $("#contacts-wrap");
-        if (!wrap.hasClass("show-for-medium")) {
-            wrap.addClass("show-for-medium");
-        }
         $("#for-automata-clear").focus();
         sendMessage();
         return false;
     });
+    $("#message").on("focusin", function() {
+        hideSidebar();
+    });
     $(".header button.people").on("click", function() {
-        if (!toggleSidebar() && autoConnect) {
-            $("#message").focus();
+        if (!toggleSidebar(true) && autoConnect) {
+            readyToType();
         }
     })
     $("button.leave").on("click", function() {
@@ -65,24 +64,36 @@ function openSocket(token) {
             location.href = "/rooms";
             return;
         }
-        setTimeout(function() {
-            $.ajax('/ping')
-                .done(function (result) {
-                    if (result === "pong") {
-                        location.reload();
-                    } else {
-                        location.href = "/rooms";
-                    }
-                })
-                .fail(function () {
-                    $('#connection-lost').foundation('open');
-                });
-        }, 100);
+        checkConnection(100);
     };
     socket.onerror = function(event) {
         console.error("WebSocket error observed:", event);
         printError('Could not connect to server. Please refresh this page.');
     };
+}
+
+function checkConnection(timeout) {
+    setTimeout(function() {
+        $.ajax("/ping")
+            .done(function (result) {
+                if (result === "pong") {
+                    location.reload();
+                } else {
+                    location.href = "/rooms";
+                }
+            })
+            .fail(function () {
+                let retries = $("#connection-lost").data("retries")||0;
+                $("#connection-lost").data("retries", retries + 1);
+                if (retries === 0) {
+                    $("#connection-lost").foundation('open');
+                } else if (retries > 25) {
+                    return;
+                }
+                console.log(retries + " retries");
+                checkConnection(2000 * retries);
+            });
+    }, timeout);
 }
 
 function closeSocket() {
@@ -352,7 +363,6 @@ function printMessage(payload, restored) {
             .append(sender).append(content);
         convo.append(message);
     }
-    console.log(restored);
     if (!restored) {
         convo.animate({scrollTop: convo.prop("scrollHeight")});
     }
@@ -403,18 +413,24 @@ function printRecentConvo(chatMessages) {
     convo.animate({scrollTop: convo.prop("scrollHeight")});
 }
 
-function toggleSidebar() {
-    return $(".sidebar").toggle().toggleClass("show-for-medium").is(":visible");
+function toggleSidebar(force) {
+    let sidebar = $(".sidebar");
+    if (force || !sidebar.hasClass("show-for-medium")) {
+        return sidebar.toggle().toggleClass("show-for-medium").is(":visible");
+    }
+    return sidebar.is(":visible");
 }
 
-function showSidebar() {
-    if (!$(".sidebar").is(":visible")) {
+function showSidebar(force) {
+    let sidebar = $(".sidebar");
+    if (force || !sidebar.hasClass("show-for-medium") && !sidebar.is(":visible")) {
         toggleSidebar();
     }
 }
 
-function hideSidebar() {
-    if ($(".sidebar").is(":visible")) {
+function hideSidebar(force) {
+    let sidebar = $(".sidebar");
+    if (force || !sidebar.hasClass("show-for-medium") && sidebar.is(":visible")) {
         toggleSidebar();
     }
 }

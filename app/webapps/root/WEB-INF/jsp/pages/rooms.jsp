@@ -23,6 +23,7 @@
             </div>
             <div class="cell auto cell-block-y">
                 <div class="grid-container">
+                    <%@ include file="includes/rooms-user.jsp" %>
                     <div class="rooms grid-x grid-margin-x grid-margin-y t10">
                         <div class="cell medium-12 large-8 card random guide small-order-1 large-order-2">
                             <div class="card-section">

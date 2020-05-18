@@ -1,8 +1,5 @@
 $(function() {
     $("form#send-message").off().submit(function() {
-        if (!$("#contacts-wrap").hasClass("show-for-medium")) {
-            $("#contacts-wrap").addClass("show-for-medium");
-        }
         $("#for-automata-clear").focus();
         if (getTotalPeople() > 1) {
             sendMessage();
@@ -38,6 +35,7 @@ function startLooking() {
             .done(function(token) {
                 if (token) {
                     if (!canceled) {
+                        hideSidebar();
                         openSocket(token);
                     }
                 } else {
@@ -95,15 +93,21 @@ function printJoinMessage(payload, restored) {
     drawLookingBar();
 }
 
-function printUserJoinedMessage(payload, restored, container) {
+function printUserJoinedMessage(payload, restored) {
+    hideSidebar();
     clearConvo();
-    let text = "<i class='fi-microphone'></i> Chat started. Feel free to say hello to <strong>" + payload.username + "</strong>.";
-    printEvent(text, restored, container);
+    let text = "<i class='fi-microphone'></i> Chat started. Feel free to say hello to <strong>" +
+        payload.username + "</strong>.";
+    printEvent(text, restored);
     readyToType();
+    setTimeout(function() {
+        hideSidebar();
+    }, 500);
 }
 
-function printUserLeftMessage(payload, restored, container) {
+function printUserLeftMessage(payload, restored) {
+    hideSidebar();
     let text = "<strong>" + payload.username + "</strong> has left this chat";
-    printEvent(text, restored, container);
+    printEvent(text, restored);
     drawLookingBar();
 }
