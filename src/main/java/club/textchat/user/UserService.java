@@ -13,6 +13,7 @@ import com.aspectran.core.context.rule.type.FormatType;
 import com.aspectran.core.util.logging.Logger;
 import com.aspectran.core.util.logging.LoggerFactory;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.Locale;
 
@@ -56,6 +57,7 @@ public class UserService {
 
         UserInfo userInfo = new UserInfo();
         userInfo.setUsername(username);
+        userInfo.setIpAddr(((HttpServletRequest)translet.getRequestAdaptee()).getRemoteAddr());
 
         Locale locale = translet.getRequestAdapter().getLocale();
         if (locale != null) {

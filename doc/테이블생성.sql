@@ -4,6 +4,7 @@ create table guests
     user_no    int auto_increment comment '사용자 번호' primary key,
     user_nm    varchar(100) not null comment '사용자명',
     ip_addr    varchar(50) null comment 'IP 주소',
+    discarded_dt  datetime null comment '사용자명 폐기일',
     reg_dt     datetime default now() not null comment '등록일자'
 )
 comment '게스트 사용자명' engine=MyISAM charset=utf8mb4 COLLATE=utf8mb4_unicode_ci;

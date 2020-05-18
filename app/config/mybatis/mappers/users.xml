@@ -7,4 +7,11 @@
         insert into guests (user_nm, ip_addr) values (#{username}, #{ipAddr})
     </insert>
 
+    <update id="discardUsername" parameterType="int">
+        update guests set
+            discarded_dt = now()
+        where user_no = #{userNo}
+            and discarded_dt is null
+    </update>
+
 </mapper>

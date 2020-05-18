@@ -45,6 +45,12 @@ public class ChaterManager extends InstantActivitySupport implements Initializab
         return true;
     }
 
+    public void discardUsername(UserInfo userInfo) {
+        if (userInfo.getUserNo() < 0) {
+            sqlSession.update("users.discardUsername", -userInfo.getUserNo());
+        }
+    }
+
     public boolean isInUseUsername(String username) {
         String httpSessionId = signedInUsersPersistence.get(username);
         String httpSessionId2 = inConvoUsersPersistence.get(username);
@@ -61,7 +67,7 @@ public class ChaterManager extends InstantActivitySupport implements Initializab
         sessionListenerRegistration.register(new UserInfoUnboundListener(signedInUsersPersistence));
     }
 
-    public static class UserInfoUnboundListener implements SessionListener {
+    public class UserInfoUnboundListener implements SessionListener {
 
         private final SignedInUsersPersistence signedInUsersPersistence;
 
@@ -101,6 +107,7 @@ public class ChaterManager extends InstantActivitySupport implements Initializab
             if (UserManager.USER_INFO_SESSION_KEY.equals(name)) {
                 UserInfo userInfo = (UserInfo)value;
                 signedInUsersPersistence.abandon(userInfo.getUsername(), sessionId);
+                discardUsername(userInfo);
             }
         }
 
@@ -108,6 +115,7 @@ public class ChaterManager extends InstantActivitySupport implements Initializab
             UserInfo userInfo = session.getAttribute(UserManager.USER_INFO_SESSION_KEY);
             if (userInfo != null) {
                 signedInUsersPersistence.abandon(userInfo.getUsername(), session.getId());
+                discardUsername(userInfo);
             }
         }
 
