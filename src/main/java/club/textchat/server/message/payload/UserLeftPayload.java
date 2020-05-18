@@ -35,7 +35,7 @@ public class UserLeftPayload extends AbstractParameters {
 
     static {
         roomId = new ParameterKey("roomId", ValueType.STRING);
-        userNo = new ParameterKey("userNo", ValueType.LONG);
+        userNo = new ParameterKey("userNo", ValueType.INT);
         username = new ParameterKey("username", ValueType.STRING);
         datetime = new ParameterKey("datetime", ValueType.STRING);
 
@@ -59,11 +59,11 @@ public class UserLeftPayload extends AbstractParameters {
         putValue(UserLeftPayload.roomId, roomId);
     }
 
-    public long getUserNo() {
-        return getLong(userNo);
+    public int getUserNo() {
+        return getInt(userNo);
     }
 
-    public void setUserNo(long userNo) {
+    public void setUserNo(int userNo) {
         putValue(UserLeftPayload.userNo, userNo);
     }
 

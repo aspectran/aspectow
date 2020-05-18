@@ -28,7 +28,7 @@ public class AdmissionToken extends AbstractParameters {
     private static final ParameterKey[] parameterKeys;
 
     static {
-        userNo = new ParameterKey("userNo", ValueType.LONG);
+        userNo = new ParameterKey("userNo", ValueType.INT);
         username = new ParameterKey("username", ValueType.STRING);
         roomId = new ParameterKey("roomId", ValueType.STRING);
 
@@ -43,11 +43,11 @@ public class AdmissionToken extends AbstractParameters {
         super(parameterKeys);
     }
 
-    public long getUserNo() {
-        return getLong(userNo);
+    public int getUserNo() {
+        return getInt(userNo);
     }
 
-    public void setUserNo(long userNo) {
+    public void setUserNo(int userNo) {
         putValue(AdmissionToken.userNo, userNo);
     }
 

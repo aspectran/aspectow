@@ -2,6 +2,8 @@ package club.textchat.room;
 
 import club.textchat.common.mybatis.SimpleSqlSession;
 import club.textchat.recaptcha.ReCaptchaVerifier;
+import club.textchat.user.UserInfo;
+import club.textchat.user.UserManager;
 import club.textchat.user.UserService;
 import com.aspectran.core.component.bean.annotation.Action;
 import com.aspectran.core.component.bean.annotation.Autowired;
@@ -31,8 +33,12 @@ public class RoomService {
 
     private final SqlSession sqlSession;
 
+    private final UserManager userManager;
+
     @Autowired
-    public RoomService(SimpleSqlSession sqlSession) {
+    public RoomService(UserManager userManager,
+                       SimpleSqlSession sqlSession) {
+        this.userManager = userManager;
         this.sqlSession = sqlSession;
     }
 
@@ -71,9 +77,12 @@ public class RoomService {
             return "-2";
         }
 
+        UserInfo userInfo = userManager.getUserInfo();
+
         RoomInfo roomInfo = new RoomInfo();
         roomInfo.setRoomName(roomName);
         roomInfo.setLanguage(language);
+        roomInfo.setUserNo(userInfo.getUserNo());
 
         sqlSession.insert("rooms.insertRoom", roomInfo);
         if (roomInfo.getRoomId() <= 0) {

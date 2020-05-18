@@ -8,7 +8,7 @@ public class UserInfo implements Serializable {
 
     private static final long serialVersionUID = -2434622566554519523L;
 
-    private long userNo;
+    private int userNo;
 
     private String username;
 
@@ -22,11 +22,11 @@ public class UserInfo implements Serializable {
 
     private String ipAddr;
 
-    public long getUserNo() {
+    public int getUserNo() {
         return userNo;
     }
 
-    public void setUserNo(long userNo) {
+    public void setUserNo(int userNo) {
         this.userNo = userNo;
     }
 

@@ -150,7 +150,7 @@ public class RandomChatHandler extends AbstractChatHandler {
         broadcastUserJoined(chaterInfo, chaterInfo2.getUserNo());
     }
 
-    private void broadcastUserJoined(ChaterInfo chaterInfo, long userNo) {
+    private void broadcastUserJoined(ChaterInfo chaterInfo, int userNo) {
         UserJoinedPayload payload = new UserJoinedPayload();
         payload.setUserNo(chaterInfo.getUserNo());
         payload.setUsername(chaterInfo.getUsername());
@@ -160,7 +160,7 @@ public class RandomChatHandler extends AbstractChatHandler {
         randomConvosPersistence.put(message);
     }
 
-    private void broadcastUserLeft(ChaterInfo chaterInfo, long userNo) {
+    private void broadcastUserLeft(ChaterInfo chaterInfo, int userNo) {
         UserLeftPayload payload = new UserLeftPayload();
         payload.setUserNo(chaterInfo.getUserNo());
         payload.setUsername(chaterInfo.getUsername());
@@ -191,7 +191,7 @@ public class RandomChatHandler extends AbstractChatHandler {
         }
     }
 
-    public ChaterInfo getPartner(long userNo) {
+    public ChaterInfo getPartner(int userNo) {
         return randomChaterPersistence.get(userNo);
     }
 
@@ -200,11 +200,11 @@ public class RandomChatHandler extends AbstractChatHandler {
         broadcastUserJoined(chaterInfo1, chaterInfo2);
     }
 
-    public boolean hasPartner(long userNo) {
+    public boolean hasPartner(int userNo) {
         return randomChaterPersistence.exists(userNo);
     }
 
-    public boolean isPastPartner(long userNo1, long userNo2) {
+    public boolean isPastPartner(int userNo1, int userNo2) {
         return randomHistoryPersistence.exists(userNo1, userNo2);
     }
 

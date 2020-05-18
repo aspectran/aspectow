@@ -39,7 +39,7 @@ public class ChatersPersistence extends AbstractPersistence {
                 int index = str.indexOf(VALUE_SEPARATOR);
                 if (index > -1) {
                     String userNo = str.substring(0, index);
-                    if (chaterInfo.getUserNo() == Long.parseLong(userNo)) {
+                    if (chaterInfo.getUserNo() == Integer.parseInt(userNo)) {
                         return true;
                     }
                 }
@@ -58,7 +58,7 @@ public class ChatersPersistence extends AbstractPersistence {
         if (index > -1) {
             String userNo = str.substring(0, index);
             String username = str.substring(index + 1);
-            return new ChaterInfo(Long.parseLong(userNo), username);
+            return new ChaterInfo(Integer.parseInt(userNo), username);
         }
         return null;
     }

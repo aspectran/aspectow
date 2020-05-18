@@ -8,7 +8,7 @@
 	</select>
 
     <insert id="insertRoom" parameterType="club.textchat.room.RoomInfo" useGeneratedKeys="true" keyProperty="roomId">
-        insert into rooms (room_nm, lang_cd) values (#{roomName}, #{language})
+        insert into rooms (room_nm, lang_cd, user_no) values (#{roomName}, #{language}, #{userNo})
     </insert>
 
 	<insert id="insertRoomHist" parameterType="club.textchat.room.RoomInfo" useGeneratedKeys="true">

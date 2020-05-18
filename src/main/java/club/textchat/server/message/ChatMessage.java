@@ -118,7 +118,7 @@ public class ChatMessage extends AbstractParameters {
         return getLong(receiver);
     }
 
-    public void setReceiver(long userNo) {
+    public void setReceiver(int userNo) {
         putValue(ChatMessage.receiver, userNo);
     }
 

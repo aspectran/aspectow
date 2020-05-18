@@ -20,16 +20,16 @@ public class RandomHistoryPersistence extends AbstractPersistence {
         this.expiryPeriodInSeconds = expiryPeriodInSeconds;
     }
 
-    public void set(long userNo1, long userNo2) {
+    public void set(int userNo1, int userNo2) {
         super.setex(makeKey(userNo1, userNo2), MET, expiryPeriodInSeconds);
     }
 
-    public boolean exists(long userNo1, long userNo2) {
+    public boolean exists(int userNo1, int userNo2) {
         String str = super.get(makeKey(userNo1, userNo2));
         return MET.equals(str);
     }
 
-    private String makeKey(long userNo1, long userNo2) {
+    private String makeKey(int userNo1, int userNo2) {
         if (userNo1 < userNo2) {
             return (KEY_PREFIX + userNo1 + VALUE_SEPARATOR + userNo2);
         }  else {

@@ -35,7 +35,7 @@ public class MessagePayload extends AbstractParameters {
 
     static {
         type = new ParameterKey("type", ValueType.STRING);
-        userNo = new ParameterKey("userNo", ValueType.LONG);
+        userNo = new ParameterKey("userNo", ValueType.INT);
         username = new ParameterKey("username", ValueType.STRING);
         content = new ParameterKey("content", ValueType.STRING);
 
@@ -60,8 +60,8 @@ public class MessagePayload extends AbstractParameters {
         return MessageType.valueOf(getString(type));
     }
 
-    public long getUserNo() {
-        return getLong(userNo);
+    public int getUserNo() {
+        return getInt(userNo);
     }
 
     public String getUsername() {

@@ -24,7 +24,7 @@ public class ChaterInfo extends UserInfo implements Serializable {
 
     private ZoneId zoneId;
 
-    public ChaterInfo(long userNo, String username) {
+    public ChaterInfo(int userNo, String username) {
         setUserNo(userNo);
         setUsername(username);
     }

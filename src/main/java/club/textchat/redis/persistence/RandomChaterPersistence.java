@@ -19,20 +19,20 @@ public class RandomChaterPersistence extends AbstractPersistence {
         super(connectionPool);
     }
 
-    public ChaterInfo get(long userNo) {
+    public ChaterInfo get(int userNo) {
         String str = super.get(makeKey(userNo));
         if (str != null && !NONE.equals(str)) {
             int index = str.indexOf(VALUE_SEPARATOR);
             if (index > -1) {
                 String userNo2 = str.substring(0, index);
                 String username = str.substring(index + 1);
-                return new ChaterInfo(Long.parseLong(userNo2), username);
+                return new ChaterInfo(Integer.parseInt(userNo2), username);
             }
         }
         return null;
     }
 
-    public void set(long userNo) {
+    public void set(int userNo) {
         super.set(makeKey(userNo), NONE);
     }
 
@@ -41,23 +41,23 @@ public class RandomChaterPersistence extends AbstractPersistence {
         super.set(makeKey(chaterInfo2.getUserNo()), makeValue(chaterInfo));
     }
 
-    public void unset(long userNo1, long userNo2) {
+    public void unset(int userNo1, int userNo2) {
         ChaterInfo chaterInfo = get(userNo1);
         if (chaterInfo != null && chaterInfo.getUserNo() == userNo2) {
             set(chaterInfo.getUserNo());
         }
     }
 
-    public void remove(long userNo) {
+    public void remove(int userNo) {
         del(makeKey(userNo));
     }
 
-    public boolean exists(long userNo) {
+    public boolean exists(int userNo) {
         String str = super.get(makeKey(userNo));
         return (str != null && !NONE.equals(str));
     }
 
-    private String makeKey(long userNo) {
+    private String makeKey(int userNo) {
         return KEY_PREFIX + userNo;
     }
 
