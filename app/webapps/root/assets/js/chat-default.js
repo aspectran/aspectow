@@ -88,6 +88,7 @@ function checkConnection(timeout) {
                 if (retries === 0) {
                     $("#connection-lost").foundation('open');
                 } else if (retries > 25) {
+                    console.log("Abandon reconnection");
                     return;
                 }
                 console.log(retries + " retries");
