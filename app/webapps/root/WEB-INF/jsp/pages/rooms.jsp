@@ -1,9 +1,9 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
-<link rel="stylesheet" type="text/css" href="/assets/css/rooms.css?v11" />
+<link rel="stylesheet" type="text/css" href="/assets/css/page-rooms.css?v11" />
 <script src="https://www.google.com/recaptcha/api.js?render=explicit&onload=loadCaptcha"></script>
 <script src="/assets/js/recaptcha.js?v1"></script>
-<script src="/assets/js/rooms.js?v0.1"></script>
+<script src="/assets/js/page-rooms.js?v0.1"></script>
 <div class="grid-y grid-frame">
     <div class="header cell cell-block-container">
         <div class="grid-x">
@@ -17,7 +17,7 @@
     </div>
     <div class="body shadow cell auto cell-block-container">
         <div class="grid-x full-height">
-            <div class="sidebar cell medium-4 large-3 cell-block-y show-for-medium">
+            <div class="sidebar cell medium-4 large-3 cell-block-y show-for-large">
                 <%@ include file="includes/sidebar-user.jsp" %>
                 <div class="side-menu"></div>
             </div>

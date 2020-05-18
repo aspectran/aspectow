@@ -1,7 +1,7 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <script src="https://www.google.com/recaptcha/api.js?render=explicit&onload=loadCaptcha"></script>
 <script src="/assets/js/recaptcha.js?v1"></script>
-<script src="/assets/js/index.js?v0.1"></script>
+<script src="/assets/js/page-index.js?v0.1"></script>
 <div class="intro grid-y grid-frame">
     <div class="header cell cell-block-container">
         <div class="grid-x">
@@ -14,7 +14,7 @@
     </div>
     <div class="body shadow cell auto cell-block-container">
         <div class="grid-x grid-padding-x grid-padding-y full-height">
-            <div class="sidebar cell medium-4 large-3 cell-block-y show-for-medium">
+            <div class="sidebar cell medium-4 large-3 cell-block-y show-for-large">
             </div>
             <div class="cell auto cell-block-y">
                 <div class="grid-container grid-x grid-margin-y">

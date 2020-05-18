@@ -31,7 +31,7 @@ function startLooking() {
     }
     canceled = false;
     startTimer = setTimeout(function () {
-        $.ajax('/rooms/random/token')
+        $.ajax("/rooms/random/token")
             .done(function(token) {
                 if (token) {
                     if (!canceled) {
@@ -39,11 +39,11 @@ function startLooking() {
                         openSocket(token);
                     }
                 } else {
-                    location.href = "/rooms";
+                    gotoHomepage();
                 }
             })
             .fail(function() {
-                location.reload();
+                reloadPage();
             });
     }, 1000);
     clearChaters();
@@ -68,8 +68,8 @@ function drawSearchBar() {
 }
 
 function drawLookingBar(wait) {
-    let title;
     let sign;
+    let title;
     if (wait) {
         sign = "<i class='iconfont fi-shuffle sign'></i>";
         title = "<h3 class='wait'>Please wait a moment.</h3>";
@@ -107,7 +107,7 @@ function printUserJoinedMessage(payload, restored) {
 
 function printUserLeftMessage(payload, restored) {
     hideSidebar();
-    let text = "<strong>" + payload.username + "</strong> has left this chat";
+    let text = "<strong>" + payload.username + "</strong> has left this chat.";
     printEvent(text, restored);
-    drawLookingBar();
+    drawSearchBar();
 }

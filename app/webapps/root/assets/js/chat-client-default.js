@@ -13,7 +13,7 @@ $(function() {
         hideSidebar();
     });
     $(".header button.people").on("click", function() {
-        if (!toggleSidebar(true) && autoConnect) {
+        if (!toggleSidebar(true) && chatClientSettings.autoConnectEnabled) {
             readyToType();
         }
     })
@@ -26,19 +26,20 @@ $(function() {
         $(this).toggleClass("all-visible");
     });
     readyToType();
-    if (autoConnect !== false) {
+    if (chatClientSettings.autoConnectEnabled !== false) {
         setTimeout(function() {
-            openSocket(admissionToken);
+            openSocket(chatClientSettings.token);
         }, 300);
     }
 });
 
 function openSocket(token) {
-    if (!chatServerType || !currentUserNo || !currentUsername || !token) {
-        location.href = "/rooms";
+    if (!chatClientSettings || !token) {
+        gotoHomepage();
+        return;
     }
     closeSocket();
-    let url = new URL('/chat/' + chatServerType + '/' + token, location.href);
+    let url = new URL(chatClientSettings.serverEndpoint + token, location.href);
     url.protocol = url.protocol.replace('https:', 'wss:');
     url.protocol = url.protocol.replace('http:', 'ws:');
     socket = new WebSocket(url.href);
@@ -46,8 +47,8 @@ function openSocket(token) {
         let chatMessage = {
             message: {
                 type: 'JOIN',
-                userNo: currentUserNo,
-                username: currentUsername
+                userNo: chatClientSettings.userNo,
+                username: chatClientSettings.username
             }
         };
         socket.send(serialize(chatMessage));
@@ -61,28 +62,45 @@ function openSocket(token) {
     };
     socket.onclose = function(event) {
         if (aborted) {
-            location.href = "/rooms";
+            gotoHomepage();
             return;
         }
+        closeSocket();
         checkConnection(100);
     };
     socket.onerror = function(event) {
+        closeSocket();
         console.error("WebSocket error observed:", event);
-        printError('Could not connect to server. Please refresh this page.');
+        printError("Couldn't connect to the server. Please refresh this page.");
     };
+}
+
+function heartbeatPing() {
+    if (heartbeatTimer) {
+        clearTimeout(heartbeatTimer);
+    }
+    heartbeatTimer = setTimeout(function() {
+        if (socket) {
+            let chatMessage = {
+                heartBeat: "-ping-"
+            };
+            socket.send(serialize(chatMessage));
+            heartbeatPing();
+        }
+    }, 57000);
 }
 
 function checkConnection(timeout) {
     setTimeout(function() {
         $.ajax("/ping")
-            .done(function (result) {
+            .done(function(result) {
                 if (result === "pong") {
-                    location.reload();
+                    reloadPage();
                 } else {
-                    location.href = "/rooms";
+                    gotoHomepage();
                 }
             })
-            .fail(function () {
+            .fail(function() {
                 let retries = $("#connection-lost").data("retries")||0;
                 $("#connection-lost").data("retries", retries + 1);
                 if (retries === 0) {
@@ -107,23 +125,7 @@ function closeSocket() {
 
 function leaveRoom() {
     closeSocket();
-    location.href = "/rooms";
-}
-
-function heartbeatPing() {
-    if (heartbeatTimer) {
-        clearTimeout(heartbeatTimer);
-    }
-    heartbeatTimer = setTimeout(function() {
-        if (socket) {
-            let chatMessage = {
-                heartBeat: "-ping-"
-            };
-            socket.send(serialize(chatMessage));
-            // heartbeatTimer = null;
-            heartbeatPing();
-        }
-    }, 57000);
+    gotoHomepage();
 }
 
 function handleMessage(chatMessage) {
@@ -195,8 +197,8 @@ function sendMessage() {
     if (text) {
         let message = {
             type: 'CHAT',
-            userNo: currentUserNo,
-            username: currentUsername,
+            userNo: chatClientSettings.userNo,
+            username: chatClientSettings.username,
             content: text
         }
         let chatMessage = {
@@ -221,7 +223,7 @@ function setChaters(chaters) {
             }
         }
         updateTotalPeople();
-        findUser(currentUserNo).addClass("me");
+        findUser(chatClientSettings.userNo).addClass("me");
     }
 }
 
@@ -337,12 +339,12 @@ function printUserEvent(payload, event, restored) {
             .appendTo(convo);
     }
     if (!restored) {
-        convo.animate({scrollTop: convo.prop("scrollHeight")});
+        scrollToBottom(convo);
     }
 }
 
 function printMessage(payload, restored) {
-    let myself = (currentUserNo === payload.userNo);
+    let myself = (chatClientSettings.userNo === payload.userNo);
     let sender = $("<span class='username'/>")
         .text(myself ? "You" : payload.username);
     let content = $("<p class='content'/>").text(payload.content);
@@ -365,7 +367,7 @@ function printMessage(payload, restored) {
         convo.append(message);
     }
     if (!restored) {
-        convo.animate({scrollTop: convo.prop("scrollHeight")});
+        scrollToBottom(convo);
     }
 }
 
@@ -376,7 +378,7 @@ function printEvent(text, restored) {
         .append(content)
         .appendTo(convo);
     if (!restored) {
-        convo.animate({scrollTop: convo.prop("scrollHeight")});
+        scrollToBottom(convo);
     }
 }
 
@@ -386,7 +388,7 @@ function printError(text, restored) {
     $("<p/>").addClass("content").html(text).appendTo(div);
     convo.append(div);
     if (!restored) {
-        convo.animate({scrollTop: convo.prop("scrollHeight")});
+        scrollToBottom(convo);
     }
 }
 
@@ -410,8 +412,7 @@ function printRecentConvo(chatMessages) {
             }
         });
     }
-    let convo = $("#convo");
-    convo.animate({scrollTop: convo.prop("scrollHeight")});
+    scrollToBottom($("#convo"));
 }
 
 function toggleSidebar(force) {
@@ -434,6 +435,18 @@ function hideSidebar(force) {
     if (force || !sidebar.hasClass("show-for-medium") && sidebar.is(":visible")) {
         toggleSidebar();
     }
+}
+
+function scrollToBottom(container) {
+    container.animate({scrollTop: container.prop("scrollHeight")});
+}
+
+function reloadPage() {
+    location.reload();
+}
+
+function gotoHomepage() {
+    location.href = chatClientSettings.homepage;
 }
 
 function serialize(json) {

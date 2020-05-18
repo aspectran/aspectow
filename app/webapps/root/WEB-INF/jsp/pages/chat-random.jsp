@@ -1,14 +1,17 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
-<link rel="stylesheet" type="text/css" href="/assets/css/chat-default.css?v0.12" />
+<link rel="stylesheet" type="text/css" href="/assets/css/chat-common.css?v0.12" />
 <link rel="stylesheet" type="text/css" href="/assets/css/chat-random.css?v0.11" />
-<script src="/assets/js/chat-default.js?v0.10"></script>
-<script src="/assets/js/chat-random.js?v0.10"></script>
+<script src="/assets/js/chat-client-default.js?v0.10"></script>
+<script src="/assets/js/chat-client-random.js?v0.10"></script>
 <script>
-    const currentUserNo = Number("${page.userNo}");
-    const currentUsername = "${page.username}";
-    const admissionToken = "${page.token}";
-    const chatServerType = "random";
-    const autoConnect = false;
+    const chatClientSettings = {
+        serverEndpoint: "/chat/random/",
+        autoConnectEnabled: false,
+        userNo: Number("${page.userNo}"),
+        username: "${page.username}",
+        token: "${page.token}",
+        homepage: "/rooms"
+    }
 </script>
 <div class="grid-y grid-frame random">
     <div class="header cell cell-block-container">

@@ -1,12 +1,15 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
-<link rel="stylesheet" type="text/css" href="/assets/css/chat-default.css?v0.12" />
-<script src="/assets/js/chat-default.js?v0.10"></script>
+<link rel="stylesheet" type="text/css" href="/assets/css/chat-common.css?v0.12" />
+<script src="/assets/js/chat-client-default.js?v0.10"></script>
 <script>
-    const currentUserNo = Number("${page.userNo}");
-    const currentUsername = "${page.username}";
-    const admissionToken = "${page.token}";
-    const chatServerType = "default";
-    const autoConnect = true;
+    const chatClientSettings = {
+        serverEndpoint: "/chat/default/",
+        autoConnectEnabled: true,
+        userNo: Number("${page.userNo}"),
+        username: "${page.username}",
+        token: "${page.token}",
+        homepage: "/rooms"
+    }
 </script>
 <div class="grid-y grid-frame">
     <div class="header cell cell-block-container">
