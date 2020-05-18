@@ -171,7 +171,7 @@ function handleMessage(chatMessage) {
                             leaveRoom();
                             break;
                         case "rejoin":
-                            $('#chatroom-rejoined').foundation('open');
+                            $("#duplicate-join").foundation('open');
                             break;
                         default:
                             alert("Abnormal access detected.");
