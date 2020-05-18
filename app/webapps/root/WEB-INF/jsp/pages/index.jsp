@@ -65,3 +65,4 @@
         </div>
     </div>
 </div>
+<%@ include file="includes/index-already-signed-in.jsp" %>

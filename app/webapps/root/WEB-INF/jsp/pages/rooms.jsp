@@ -28,7 +28,7 @@
                             <div class="card-section">
                                 <a href="/rooms/random"><h4>Random Chat</h4></a>
                                 <p>Best place to talk to strangers</p>
-                                <a class="button small start" href="/rooms/random">Start chat</a>
+                                <a class="button small start" href="/rooms/random">Start random chat</a>
                             </div>
                         </div>
                         <div class="cell medium-12 large-8 card random guide show-for-medium">
@@ -59,7 +59,7 @@
                     <c:forEach items="${page.rooms}" var="roomInfo">
                         <div class="cell small-12 medium-6 large-4 card room">
                             <div class="card-section">
-                                <a href="/rooms/${roomInfo.encryptedRoomId}"><h4>${roomInfo.roomName}</h4></a>
+                                <a href="/rooms/${roomInfo.encryptedRoomId}"><h5>${roomInfo.roomName}</h5></a>
                                 <p></p>
                                 <a class="button small start" href="/rooms/${roomInfo.encryptedRoomId}">Start chat</a>
                             </div>

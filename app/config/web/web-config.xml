@@ -52,20 +52,6 @@
         </advice>
     </aspect>
 
-    <aspect id="alreadySignedInCheckAspect" order="1">
-        <joinpoint>
-            pointcut: {
-                +: /
-                +: /*/signin
-            }
-        </joinpoint>
-        <advice bean="userManager">
-            <before>
-                <invoke method="checkAlreadySignedIn"/>
-            </before>
-        </advice>
-    </aspect>
-
     <append file="/config/web/common/locale.xml"/>
     <append file="/config/web/common/xss-prevent.xml"/>
     <append file="/config/web/pages/pages.xml"/>

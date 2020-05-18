@@ -1,7 +1,6 @@
 let recentlyCreatedRoom;
 
 $(function() {
-    // $('#rooms-room-create-complete').foundation('open');
     $("form#room-create").submit(function() {
         executeCaptcha("room_create", createRoom);
         return false;

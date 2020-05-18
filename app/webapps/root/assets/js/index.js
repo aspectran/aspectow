@@ -1,4 +1,7 @@
 $(function() {
+    if ($("#index-already-signed-in").length) {
+        $("#index-already-signed-in").foundation('open');
+    }
     $("form#sign-in").submit(function() {
         let username = $("#username").val().trim();
         if (!username) {
