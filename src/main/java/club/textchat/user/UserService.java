@@ -1,6 +1,5 @@
 package club.textchat.user;
 
-import club.textchat.common.mybatis.SimpleSqlSession;
 import club.textchat.recaptcha.ReCaptchaVerifier;
 import com.aspectran.core.activity.Translet;
 import com.aspectran.core.component.bean.annotation.Autowired;
@@ -15,9 +14,7 @@ import com.aspectran.core.util.logging.Logger;
 import com.aspectran.core.util.logging.LoggerFactory;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.Locale;
-import java.util.Map;
 
 @Component
 public class UserService {
@@ -26,21 +23,21 @@ public class UserService {
 
     private final UserManager userManager;
 
-    private final SimpleSqlSession sqlSession;
+    private final ChaterManager chaterManager;
 
     @Autowired
     public UserService(UserManager userManager,
-                       SimpleSqlSession sqlSession) {
+                       ChaterManager chaterManager) {
         this.userManager = userManager;
-        this.sqlSession = sqlSession;
+        this.chaterManager = chaterManager;
     }
 
     @RequestToPost("/guest/signin")
     @Transform(FormatType.JSON)
     public String signin(Translet translet,
-                                       @Required String username,
-                                       @Required String recaptchaResponse,
-                                       String timeZone) {
+                         @Required String username,
+                         @Required String recaptchaResponse,
+                         String timeZone) {
         username = UsernameUtils.normalize(username);
 
         boolean success = false;
@@ -53,7 +50,7 @@ public class UserService {
             return "-1";
         }
 
-        if (userManager.isInUseUsername(username)) {
+        if (chaterManager.isInUseUsername(username)) {
             return "-2";
         }
 
@@ -67,14 +64,11 @@ public class UserService {
         }
         userInfo.setTimeZone(timeZone);
 
-        sqlSession.insert("users.insertGuest", userInfo);
-        if (userInfo.getUserNo() <= 0) {
+        if (!chaterManager.createGuestChater(userInfo)) {
             return "-9";
         }
-        userInfo.setUserNo(-userInfo.getUserNo());
 
         userManager.saveUserInfo(userInfo);
-
         return "0";
     }
 

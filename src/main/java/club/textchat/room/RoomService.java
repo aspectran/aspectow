@@ -1,10 +1,8 @@
 package club.textchat.room;
 
-import club.textchat.common.mybatis.SimpleSqlSession;
 import club.textchat.recaptcha.ReCaptchaVerifier;
 import club.textchat.user.UserInfo;
 import club.textchat.user.UserManager;
-import club.textchat.user.UserService;
 import com.aspectran.core.component.bean.annotation.Action;
 import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Component;
@@ -15,13 +13,10 @@ import com.aspectran.core.component.bean.annotation.RequestToPost;
 import com.aspectran.core.component.bean.annotation.Required;
 import com.aspectran.core.component.bean.annotation.Transform;
 import com.aspectran.core.context.rule.type.FormatType;
-import com.aspectran.core.util.PBEncryptionUtils;
 import com.aspectran.core.util.logging.Logger;
 import com.aspectran.core.util.logging.LoggerFactory;
-import org.apache.ibatis.session.SqlSession;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,25 +26,22 @@ public class RoomService {
 
     private static final Logger logger = LoggerFactory.getLogger(RoomService.class);
 
-    private final SqlSession sqlSession;
-
     private final UserManager userManager;
+
+    private final RoomManager roomManager;
 
     @Autowired
     public RoomService(UserManager userManager,
-                       SimpleSqlSession sqlSession) {
+                       RoomManager roomManager) {
         this.userManager = userManager;
-        this.sqlSession = sqlSession;
+        this.roomManager = roomManager;
     }
 
     @Request("/rooms")
     @Dispatch("templates/default")
     @Action("page")
     public Map<String, Object> rooms() {
-        List<RoomInfo> rooms = sqlSession.selectList("rooms.getRoomList");
-        for (RoomInfo roomInfo : rooms) {
-            roomInfo.setEncryptedRoomId(PBEncryptionUtils.encrypt(Integer.toString(roomInfo.getRoomId())));
-        }
+        List<RoomInfo> rooms = roomManager.getRoomList();
 
         Map<String, Object> map = new HashMap<>();
         map.put("include", "pages/rooms");
@@ -72,11 +64,6 @@ public class RoomService {
             return "-1";
         }
 
-        Integer count = sqlSession.selectOne("rooms.getRoomCountByName", roomName);
-        if (count != null && count > 0) {
-            return "-2";
-        }
-
         UserInfo userInfo = userManager.getUserInfo();
 
         RoomInfo roomInfo = new RoomInfo();
@@ -84,13 +71,8 @@ public class RoomService {
         roomInfo.setLanguage(language);
         roomInfo.setUserNo(userInfo.getUserNo());
 
-        sqlSession.insert("rooms.insertRoom", roomInfo);
-        if (roomInfo.getRoomId() <= 0) {
-            return "-9";
-        }
-        sqlSession.insert("rooms.insertRoomHist", roomInfo);
-
-        return PBEncryptionUtils.encrypt(Integer.toString(roomInfo.getRoomId()));
+        String encryptedRoomId = roomManager.createRoom(roomInfo);
+        return (encryptedRoomId != null ? encryptedRoomId : "-2");
     }
 
 }
