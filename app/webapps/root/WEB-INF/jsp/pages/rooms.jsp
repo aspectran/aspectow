@@ -24,14 +24,7 @@
             <div class="cell auto cell-block-y">
                 <div class="grid-container">
                     <div class="rooms grid-x grid-margin-x grid-margin-y t10">
-                        <div class="cell medium-12 large-4 card room random">
-                            <div class="card-section">
-                                <a href="/rooms/random"><h4>Random Chat</h4></a>
-                                <p>Best place to talk to strangers</p>
-                                <a class="button small start" href="/rooms/random">Start random chat</a>
-                            </div>
-                        </div>
-                        <div class="cell medium-12 large-8 card random guide show-for-medium">
+                        <div class="cell medium-12 large-8 card random guide small-order-1 large-order-2">
                             <div class="card-section">
                                 <h5>Welcome to Text Chat Club.</h5>
                                 You must be 18+ to start random chat with strangers.<br/>
@@ -39,19 +32,26 @@
                                 Don't share any personal information or contacts, don't send any money to strangers.
                             </div>
                         </div>
-                        <div class="cell medium-12 large-4 card room create">
+                        <div class="cell medium-12 large-4 card room random small-order-2 large-order-1">
                             <div class="card-section">
-                                <a data-open="rooms-room-create"><h4>New Chatroom</h4></a>
-                                <p>Meeting people with similar interests</p>
-                                <a class="button small start" data-open="rooms-room-create">Create chatroom</a>
+                                <a href="/rooms/random"><h4>Random Chat</h4></a>
+                                <p>Best place to talk to strangers</p>
+                                <a class="button small start" href="/rooms/random">Start random chat</a>
                             </div>
                         </div>
-                        <div class="cell medium-12 large-8 card create guide show-for-medium">
+                        <div class="cell medium-12 large-8 card create guide small-order-4 show-for-medium">
                             <div class="card-section">
                                 <h5>Would you like to create a new chat room?</h5>
                                 You can talk freely in chat rooms of people with similar interests.<br/>
                                 If no one is in the chat room, it is automatically discarded after a certain period of time.<br/>
                                 It is also a good idea to join the chat room already created below.
+                            </div>
+                        </div>
+                        <div class="cell medium-12 large-4 card room create small-order-3">
+                            <div class="card-section">
+                                <a data-open="rooms-room-create"><h4>New Chatroom</h4></a>
+                                <p>Meeting people with similar interests</p>
+                                <a class="button small start" data-open="rooms-room-create">Create chatroom</a>
                             </div>
                         </div>
                     </div>
