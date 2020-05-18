@@ -8,17 +8,13 @@ $(function() {
         return false;
     });
     $(".message-box button.next").on("click", function() {
-        hideSidebar();
-        clearChaters();
-        clearConvo();
         startLooking();
     });
     $("#convo").on("click", ".message.event .content button.next", function() {
         startLooking();
     }).on("click", ".message.event .content button.cancel", function() {
-        stopLooking();
+        stopLooking(true);
     });
-
     startLooking();
 });
 
@@ -46,18 +42,22 @@ function startLooking() {
                 reloadPage();
             });
     }, 1000);
+    hideSidebar();
     clearChaters();
     clearConvo();
     drawLookingBar(true);
 }
 
-function stopLooking() {
+function stopLooking(convoClear) {
     if (startTimer) {
         clearTimeout(startTimer);
     }
-    clearChaters();
-    clearConvo();
+    hideSidebar();
     closeSocket();
+    clearChaters();
+    if (convoClear) {
+        clearConvo();
+    }
     drawSearchBar();
 }
 
@@ -94,7 +94,6 @@ function printJoinMessage(payload, restored) {
 }
 
 function printUserJoinedMessage(payload, restored) {
-    hideSidebar();
     clearConvo();
     let text = "<i class='fi-microphone'></i> Chat started. Feel free to say hello to <strong>" +
         payload.username + "</strong>.";
@@ -106,8 +105,7 @@ function printUserJoinedMessage(payload, restored) {
 }
 
 function printUserLeftMessage(payload, restored) {
-    hideSidebar();
     let text = "<strong>" + payload.username + "</strong> has left this chat.";
     printEvent(text, restored);
-    drawSearchBar();
+    stopLooking();
 }
