@@ -14,9 +14,7 @@ $(function() {
         return false;
     });
     $(".header button.people").on("click", function() {
-        let sidebar = $(".sidebar");
-        sidebar.toggle().toggleClass("show-for-medium");
-        if (sidebar.hasClass("show-for-medium") || !sidebar.is(":visible")) {
+        if (!toggleSidebar() && autoConnect) {
             $("#message").focus();
         }
     })
@@ -403,6 +401,22 @@ function printRecentConvo(chatMessages) {
     }
     let convo = $("#convo");
     convo.animate({scrollTop: convo.prop("scrollHeight")});
+}
+
+function toggleSidebar() {
+    return $(".sidebar").toggle().toggleClass("show-for-medium").is(":visible");
+}
+
+function showSidebar() {
+    if (!$(".sidebar").is(":visible")) {
+        toggleSidebar();
+    }
+}
+
+function hideSidebar() {
+    if ($(".sidebar").is(":visible")) {
+        toggleSidebar();
+    }
 }
 
 function serialize(json) {

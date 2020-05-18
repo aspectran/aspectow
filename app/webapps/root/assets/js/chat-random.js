@@ -11,6 +11,7 @@ $(function() {
         return false;
     });
     $(".message-box button.next").on("click", function() {
+        hideSidebar();
         clearChaters();
         clearConvo();
         startLooking();

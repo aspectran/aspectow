@@ -14,8 +14,5 @@
             <a class="button secondary" href="/signout">Sign out</a>
         </div>
     </div>
-    <button class="close-button" data-close aria-label="Close modal" type="button">
-        <span aria-hidden="true">&times;</span>
-    </button>
 </div>
 </c:if>
