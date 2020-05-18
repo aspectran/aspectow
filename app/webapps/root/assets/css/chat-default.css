@@ -4,9 +4,10 @@
     padding: 0;
 }
 #contacts .contact {
-    padding: 8px 8px 8px 12px;
     position: relative;
+    padding: .75em .75em .75em 2.9em;
     color: #217aa6;
+    font-size: .95em;
 }
 #contacts .contact.me {
     background-color: #95d6f6;
@@ -16,10 +17,13 @@
     cursor: pointer;
 }
 #contacts .contact .status {
-    display: inline;
-    padding: .3em .6em;
+    position: absolute;
+    left: 1em;
+    top: .6em;
+    width: 2em;
+    padding: .2em .6em;
     border-radius: 50%;
-    font-size: .8rem;
+    font-size: .8em;
     background-color: #69d4f4;
 }
 #contacts .contact .status .iconfont {
@@ -30,8 +34,9 @@
 }
 #contacts .contact .name {
     line-height: 1.1;
-    padding-left: 8px;
-    display: inline-block;
+    overflow: hidden !important;
+    text-overflow: ellipsis;
+    white-space: nowrap !important;
 }
 #convo {
     height: 100%;

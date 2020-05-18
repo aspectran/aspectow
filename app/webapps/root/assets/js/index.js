@@ -32,7 +32,7 @@ function signIn() {
             success: function(result) {
                 switch (result) {
                     case "0":
-                        setCookie("username", username, 7);
+                        setCookie("username", username, 1);
                         location.href = "/rooms";
                         break;
                     case "-1":
