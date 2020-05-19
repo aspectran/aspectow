@@ -11,13 +11,16 @@ import com.aspectran.core.component.bean.annotation.Component;
 import com.aspectran.core.component.session.Session;
 import com.aspectran.core.component.session.SessionListener;
 import com.aspectran.core.component.session.SessionListenerRegistration;
-import org.apache.ibatis.session.SqlSession;
+import com.aspectran.core.util.logging.Logger;
+import com.aspectran.core.util.logging.LoggerFactory;
 
 @Component
 @AvoidAdvice
 public class ChaterManager extends InstantActivitySupport implements InitializableBean {
 
-    private final SqlSession sqlSession;
+    private static final Logger logger = LoggerFactory.getLogger(ChaterManager.class);
+
+    private final SimpleSqlSession sqlSession;
 
     private final UserManager userManager;
 
@@ -48,6 +51,9 @@ public class ChaterManager extends InstantActivitySupport implements Initializab
     public void discardUsername(UserInfo userInfo) {
         if (userInfo.getUserNo() < 0) {
             sqlSession.update("users.discardUsername", -userInfo.getUserNo());
+            if (logger.isDebugEnabled()) {
+                logger.debug("Deprecated username: " + userInfo.getUserNo());
+            }
         }
     }
 

@@ -7,7 +7,6 @@ import club.textchat.user.UserInfo;
 import club.textchat.user.UserManager;
 import com.aspectran.core.component.bean.annotation.Action;
 import com.aspectran.core.component.bean.annotation.Autowired;
-import com.aspectran.core.component.bean.annotation.Bean;
 import com.aspectran.core.component.bean.annotation.Component;
 import com.aspectran.core.component.bean.annotation.Dispatch;
 import com.aspectran.core.component.bean.annotation.Request;
