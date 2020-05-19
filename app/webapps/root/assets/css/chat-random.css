@@ -12,6 +12,7 @@
     width: 150px;
     margin: 0 auto;
     color: #879495;
+    text-shadow: 5px 5px 1px #ccc;
 }
 .random #convo .message.event .content .iconfont.sign.animate {
     -webkit-transition: width .5s, height .5s, background-color 1s, -webkit-transform 1s;

@@ -2,7 +2,7 @@
 <script src="https://www.google.com/recaptcha/api.js?render=explicit&onload=loadCaptcha"></script>
 <script src="/assets/js/recaptcha.js?v1"></script>
 <script src="/assets/js/page-index.js?v0.1"></script>
-<div class="intro grid-y grid-frame">
+<div class="grid-y grid-frame">
     <div class="header cell cell-block-container">
         <div class="grid-x">
             <div class="cell auto align-self-middle">

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE aspectran PUBLIC "-//ASPECTRAN//DTD Aspectran Configuration 6.0//EN"
+        "http://aspectran.github.io/dtd/aspectran-6.dtd">
+<aspectran>
+
+    <bean id="testJspTemplate" class="com.aspectran.web.support.view.JspTemplateViewDispatcher">
+        <description>
+            Register a JSP Template View Dispatcher.
+        </description>
+        <properties>
+            <item name="contentType">text/html</item>
+            <item name="template">/WEB-INF/jsp/templates/test.jsp</item>
+            <item name="includePageKey">INCLUDE_PAGE</item>
+        </properties>
+    </bean>
+
+    <aspect id="testTransletSettings">
+        <joinpoint>
+            pointcut: {
+                +: /test/includes/**
+            }
+        </joinpoint>
+        <settings>
+            <setting name="viewDispatcher" value="testJspTemplate"/>
+        </settings>
+    </aspect>
+
+    <translet name="/test/includes/${filename}">
+        <dispatch name="includes/${filename}"/>
+    </translet>
+
+</aspectran>

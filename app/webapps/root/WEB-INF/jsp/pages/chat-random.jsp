@@ -58,3 +58,4 @@
     </div>
 </div>
 <%@ include file="includes/chat-reveals.jsp" %>
+<%@ include file="includes/common-notice-popup.jsp" %>

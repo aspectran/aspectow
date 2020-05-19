@@ -27,20 +27,24 @@ function startLooking() {
     }
     canceled = false;
     startTimer = setTimeout(function () {
-        $.ajax("/rooms/random/token")
-            .done(function(token) {
+        $.ajax({
+            url: "/rooms/random/token",
+            method: 'GET',
+            dataType: 'json',
+            success: function(token) {
                 if (token) {
                     if (!canceled) {
                         hideSidebar();
                         openSocket(token);
                     }
                 } else {
-                    gotoHomepage();
+                    serviceNotAvailable();
                 }
-            })
-            .fail(function() {
-                reloadPage();
-            });
+            },
+            error: function(xhr) {
+                serviceNotAvailable();
+            }
+        });
     }, 1000);
     hideSidebar();
     clearChaters();
@@ -67,10 +71,10 @@ function drawSearchBar() {
     printEvent(text);
 }
 
-function drawLookingBar(wait) {
+function drawLookingBar(intermission) {
     let sign;
     let title;
-    if (wait) {
+    if (intermission) {
         sign = "<i class='iconfont fi-shuffle sign'></i>";
         title = "<h3 class='wait'>Please wait a moment.</h3>";
     } else {
@@ -81,7 +85,7 @@ function drawLookingBar(wait) {
         "<div class='progress-bar'><div class='cylon_eye'></div></div>" +
         "<button type='button' class='success button cancel'>Cancel</button>";
     printEvent(text);
-    if (wait) {
+    if (intermission) {
         setTimeout(function() {
             $("#convo .message.event .content .sign").addClass("animate");
         }, 200);
@@ -108,4 +112,10 @@ function printUserLeftMessage(payload, restored) {
     let text = "<strong>" + payload.username + "</strong> has left this chat.";
     printEvent(text, restored);
     stopLooking();
+}
+
+function serviceNotAvailable() {
+    noticePopup("Please note",
+        "Sorry. Our random chat service is not available at this time.",
+        function() { gotoHomepage(); });
 }

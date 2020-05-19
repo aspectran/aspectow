@@ -2,7 +2,7 @@
 <div id="rooms-room-create" class="reveal popup" data-reveal data-close-on-click="false" data-close-on-esc="false">
     <h3>Creating a chat room</h3>
     <form id="room-create">
-        <div class="grid-x grid-margin-x">
+        <div class="grid-x">
             <fieldset class="cell">
                 <legend>Details of the new chat room</legend>
                 <label>Chatroom name:
@@ -20,7 +20,7 @@
                 </label>
             </fieldset>
         </div>
-        <div class="grid-x grid-padding-x medium-up-2">
+        <div class="grid-x medium-up-2">
             <div class="cell medium-order-2 text-right">
                 <button type="button" class="alert button" data-close aria-label="Cancel creating a chat room">Cancel</button>
                 <button type="submit" class="success button">OK</button>

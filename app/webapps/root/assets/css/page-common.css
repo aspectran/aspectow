@@ -211,6 +211,13 @@ input#for-automata-clear {
     margin-bottom: 1.4em;
     text-shadow: rgba(0, 0, 0, .498039) 0 1px 2px
 }
+.reveal.popup .content p .button {
+    margin: 0;
+    padding: .4em .8em;
+}
+.reveal.popup .buttons {
+    text-align: right;
+}
 .reveal.popup .close-button {
     color: #f5fffa;
 }

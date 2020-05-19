@@ -68,7 +68,7 @@ public class ChatService {
             admissionToken.setRoomId(roomId);
 
             map.put("token", TimeLimitedPBTokenIssuer.getToken(admissionToken));
-            map.put("include", "pages/chat-default");
+            map.put("include", "pages/chat-public");
         }
 
         return map;

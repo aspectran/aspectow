@@ -5,23 +5,26 @@
 }
 #contacts .contact {
     position: relative;
-    padding: .75em .75em .75em 2.9em;
+    margin: 4px;
+    padding: .6em .6em .6em 2.4em;
     color: #217aa6;
     font-size: .95em;
+    background-color: #a8e0fd;
+    border-radius: 8px;
 }
 #contacts .contact.me {
     background-color: #95d6f6;
 }
 #contacts .contact:hover {
-    background-color: #30b1f1;
+    background-color: #95d6f6;
     cursor: pointer;
 }
 #contacts .contact .status {
     position: absolute;
-    left: 1em;
-    top: .6em;
+    left: .4em;
+    top: .4em;
     width: 2em;
-    padding: .2em .6em;
+    padding: .2em .64em;
     border-radius: 50%;
     font-size: .8em;
     background-color: #69d4f4;

@@ -34,7 +34,7 @@ $(function() {
 });
 
 function openSocket(token) {
-    if (!chatClientSettings || !token) {
+    if (!chatClientSettings || !token || token.length > 100) {
         gotoHomepage();
         return;
     }
