@@ -22,7 +22,7 @@ function noticePopup(title, message, action) {
     let popup = $("#common-notice-popup");
     popup.find("h3").text(title);
     popup.find(".content").html("").append(p);
-    popup.find(".button").off().on("click", function() {
+    popup.find(".button.ok").off().on("click", function() {
         if (action) {
             action();
         }

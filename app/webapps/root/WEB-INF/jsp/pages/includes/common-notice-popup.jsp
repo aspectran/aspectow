@@ -6,7 +6,7 @@
             <p>Please note</p>
         </div>
         <div class="cell buttons text-right">
-            <a class="secondary button">OK</a>
+            <a class="secondary button ok">OK</a>
         </div>
     </div>
 </div>
