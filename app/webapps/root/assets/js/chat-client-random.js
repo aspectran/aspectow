@@ -115,7 +115,12 @@ function printUserLeftMessage(payload, restored) {
 }
 
 function serviceNotAvailable() {
+    closeSocket();
+    clearChaters();
+    clearConvo();
     noticePopup("Please note",
         "Sorry. Our random chat service is not available at this time.",
-        function() { gotoHomepage(); });
+        function() {
+            gotoHomepage();
+    });
 }
