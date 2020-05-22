@@ -1,6 +1,6 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
-<link rel="stylesheet" type="text/css" href="/assets/css/chat-common.css?v0.12" />
-<script src="/assets/js/chat-client-default.js?v0.10"></script>
+<link rel="stylesheet" type="text/css" href="/assets/css/chat-common.css?v0.13" />
+<script src="/assets/js/chat-client-default.js?v0.11"></script>
 <script>
     const chatClientSettings = {
         serverEndpoint: "/chat/default/",

@@ -37,22 +37,16 @@
     border-bottom: 1px solid #eec938;
 }
 #convo .message:nth-last-child(2) {
-    opacity: .8;
+    opacity: .93;
 }
 #convo .message:nth-last-child(3) {
-    opacity: .7;
+    opacity: .89;
 }
 #convo .message:nth-last-child(4) {
-    opacity: .45;
+    opacity: .7;
 }
 #convo .message:nth-last-child(5) {
-    opacity: .2;
-}
-#convo .message:nth-last-child(6) {
-    opacity: .1;
-}
-#convo .message:nth-last-child(7) {
-    opacity: 0;
+    opacity: .5;
 }
 .message-box button.quiet {
     margin-left: 5px;

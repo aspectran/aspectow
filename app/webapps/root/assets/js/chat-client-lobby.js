@@ -5,9 +5,12 @@ $(function () {
         $("#convo").toggle();
         $("#message, #send-message button.send").prop("disabled", lobbyChatEnabled);
         lobbyChatEnabled = !lobbyChatEnabled;
+        if (lobbyChatEnabled) {
+            readyToType();
+        }
     });
 });
-let cnt = 0;
+
 function printMessage(payload, restored) {
     if (!lobbyChatEnabled) {
         return;
@@ -18,7 +21,7 @@ function printMessage(payload, restored) {
     }
     let sender = $("<span class='username'/>").text(payload.username);
     let content = $("<p class='content'/>")
-        .text(++cnt + " : " + payload.content)
+        .text(payload.content)
         .append(sender);
     let message = $("<div/>")
         .addClass("message")

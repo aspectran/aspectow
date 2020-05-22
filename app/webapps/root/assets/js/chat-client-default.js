@@ -27,9 +27,7 @@ $(function () {
         if (!$("#message").val()) {
             return false;
         }
-        console.log(frequentlySentCount);
         if (frequentlySentCount > 1) {
-            console.log("return");
             return false;
         }
         $("#for-automata-clear").focus();

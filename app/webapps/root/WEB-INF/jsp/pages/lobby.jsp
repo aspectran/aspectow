@@ -1,10 +1,10 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
-<link rel="stylesheet" type="text/css" href="/assets/css/chat-common.css?v0.12" />
-<link rel="stylesheet" type="text/css" href="/assets/css/chat-lobby.css?v0.1" />
-<link rel="stylesheet" type="text/css" href="/assets/css/page-lobby.css?v11" />
-<script src="/assets/js/chat-client-default.js?v0.10"></script>
-<script src="/assets/js/chat-client-lobby.js?v0.1"></script>
+<link rel="stylesheet" type="text/css" href="/assets/css/chat-common.css?v0.13" />
+<link rel="stylesheet" type="text/css" href="/assets/css/chat-lobby.css?v0.2" />
+<link rel="stylesheet" type="text/css" href="/assets/css/page-lobby.css?v12" />
+<script src="/assets/js/chat-client-default.js?v0.11"></script>
+<script src="/assets/js/chat-client-lobby.js?v0.2"></script>
 <script src="https://www.google.com/recaptcha/api.js?render=explicit&onload=loadCaptcha"></script>
 <script src="/assets/js/recaptcha.js?v1"></script>
 <script src="/assets/js/page-lobby.js?v0.1"></script>

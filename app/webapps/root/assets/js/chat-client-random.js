@@ -1,39 +1,35 @@
+let tokenIssuanceTimer;
+let tokenIssuanceCanceled;
+
 $(function () {
-    $("form#send-message").off().submit(function () {
-        $("#for-automata-clear").focus();
-        if (getTotalPeople() > 1) {
-            sendMessage();
-        }
-        readyToType();
-        return false;
-    });
+    $(".message-box button.send").prop("disabled", true).addClass("pause");
     $(".message-box button.next").on("click", function () {
+        $(".message-box button.send").prop("disabled", true).addClass("pause");
+        closeSocket();
         startLooking();
     });
     $("#convo").on("click", ".message.event .content button.next", function () {
-        startLooking();
+        $(".message-box button.next").click();
     }).on("click", ".message.event .content button.cancel", function () {
         stopLooking(true);
     });
     startLooking();
 });
 
-let startTimer;
-let canceled;
 function startLooking() {
-    if (startTimer) {
-        canceled = true;
-        clearTimeout(startTimer);
+    if (tokenIssuanceTimer) {
+        tokenIssuanceCanceled = true;
+        clearTimeout(tokenIssuanceTimer);
     }
-    canceled = false;
-    startTimer = setTimeout(function () {
+    tokenIssuanceCanceled = false;
+    tokenIssuanceTimer = setTimeout(function () {
         $.ajax({
             url: "/rooms/random/token",
             method: 'GET',
             dataType: 'json',
             success: function (token) {
                 if (token) {
-                    if (!canceled) {
+                    if (!tokenIssuanceCanceled) {
                         hideSidebar();
                         openSocket(token);
                     }
@@ -53,8 +49,8 @@ function startLooking() {
 }
 
 function stopLooking(convoClear) {
-    if (startTimer) {
-        clearTimeout(startTimer);
+    if (tokenIssuanceTimer) {
+        clearTimeout(tokenIssuanceTimer);
     }
     hideSidebar();
     closeSocket();
@@ -102,6 +98,7 @@ function printUserJoinedMessage(payload, restored) {
     let text = "<i class='fi-microphone'></i> Chat started. Feel free to say hello to <strong>" +
         payload.username + "</strong>.";
     printEvent(text, restored);
+    $(".message-box button.send").prop("disabled", false).removeClass("pause");
     readyToType();
     setTimeout(function () {
         hideSidebar();
@@ -111,6 +108,7 @@ function printUserJoinedMessage(payload, restored) {
 function printUserLeftMessage(payload, restored) {
     let text = "<strong>" + payload.username + "</strong> has left this chat.";
     printEvent(text, restored);
+    $(".message-box button.send").prop("disabled", true).addClass("pause");
     stopLooking();
 }
 
