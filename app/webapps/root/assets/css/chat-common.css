@@ -152,6 +152,10 @@
 .message-box .input-group {
     margin: 0;
 }
+.message-box button.busy, .message-box button.pause {
+    background-color: brown;
+    opacity: .8;
+}
 @media screen and (max-width: 39.9375em) {
     .message-box {
         background: #f5f5f5;

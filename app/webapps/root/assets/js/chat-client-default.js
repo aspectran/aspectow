@@ -2,20 +2,13 @@ let socket;
 let heartbeatTimer;
 let pendedMessages;
 let aborted;
+let frequentlySentCount = 0;
 
 $(function () {
     if (!chatClientSettings) {
         gotoHomepage();
         return;
     }
-    $("form#send-message").submit(function () {
-        $("#for-automata-clear").focus();
-        sendMessage();
-        return false;
-    });
-    $("#message").on("focusin", function () {
-        hideSidebar();
-    });
     $(".header button.people").on("click", function () {
         toggleSidebar();
     });
@@ -26,6 +19,30 @@ $(function () {
         $(this).parent().toggleClass("all-visible");
     }).on("mouseleave", ".message.event.group.all-visible", function () {
         $(this).toggleClass("all-visible");
+    });
+    $("#message").on("focusin", function () {
+        hideSidebar();
+    });
+    $("form#send-message").submit(function () {
+        if (!$("#message").val()) {
+            return false;
+        }
+        console.log(frequentlySentCount);
+        if (frequentlySentCount > 1) {
+            console.log("return");
+            return false;
+        }
+        $("#for-automata-clear").focus();
+        sendMessage();
+        frequentlySentCount++;
+        $("form#send-message button.send").addClass("busy");
+        setTimeout(function () {
+            $("form#send-message button.send").removeClass("busy");
+        }, 500);
+        setTimeout(function () {
+            frequentlySentCount--;
+        }, 1000);
+        return false;
     });
     readyToType();
     if (chatClientSettings.autoConnectEnabled !== false) {
@@ -211,7 +228,6 @@ function sendMessage() {
         };
         $msg.val('');
         socket.send(serialize(chatMessage));
-        // printMessage(message);
         $msg.focus();
     }
 }
@@ -419,7 +435,7 @@ function printRecentConvo(chatMessages) {
             }
         });
     }
-    scrollToBottom($("#convo"));
+    scrollToBottom($("#convo"), false);
 }
 
 function toggleSidebar() {
@@ -433,8 +449,12 @@ function hideSidebar(force) {
     }
 }
 
-function scrollToBottom(container) {
-    container.animate({scrollTop: container.prop("scrollHeight")});
+function scrollToBottom(container, animate) {
+    if (animate) {
+        container.animate({scrollTop: container.prop("scrollHeight")});
+    } else {
+        container.scrollTop(container.prop("scrollHeight"));
+    }
 }
 
 function reloadPage() {

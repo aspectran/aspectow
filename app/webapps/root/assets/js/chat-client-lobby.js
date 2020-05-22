@@ -1,25 +1,24 @@
 let lobbyChatEnabled = true;
 $(function () {
     $("#send-message button.quiet").on("click", function () {
-        $(this).toggleClass("enabled");
+        $(this).toggleClass("pause");
         $("#convo").toggle();
         $("#message, #send-message button.send").prop("disabled", lobbyChatEnabled);
         lobbyChatEnabled = !lobbyChatEnabled;
     });
 });
-
+let cnt = 0;
 function printMessage(payload, restored) {
     if (!lobbyChatEnabled) {
         return;
     }
     let convo = $("#convo");
-    console.log(convo.find(".message").length);
     if (convo.find(".message").length >= 5) {
-        convo.find(".message").last().remove();
+        convo.find(".message").first().remove();
     }
     let sender = $("<span class='username'/>").text(payload.username);
     let content = $("<p class='content'/>")
-        .text(payload.content)
+        .text(++cnt + " : " + payload.content)
         .append(sender);
     let message = $("<div/>")
         .addClass("message")
@@ -27,9 +26,9 @@ function printMessage(payload, restored) {
         .data("username", payload.username)
         .append(content);
     convo.append(message);
-    scrollToBottom(convo);
+    scrollToBottom(convo, false);
     setTimeout(function () {
-       message.remove();
+        message.remove();
     }, 7000);
 }
 
