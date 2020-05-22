@@ -1,5 +1,6 @@
 package club.textchat.server;
 
+import club.textchat.chat.ChatAction;
 import club.textchat.redis.persistence.ChatersPersistence;
 import club.textchat.redis.persistence.InConvoUsersPersistence;
 import club.textchat.redis.persistence.RandomChaterPersistence;
@@ -62,7 +63,10 @@ public class RandomChatHandler extends AbstractChatHandler {
         MessagePayload payload = chatMessage.getMessagePayload();
         if (payload != null) {
             ChaterInfo chaterInfo = getChaterInfo(session);
-            chaterInfo.setRoomId(null);
+            if (!ChatAction.RANDOM_CHATROOM_ID.equals(chaterInfo.getRoomId())) {
+                abort(session, chaterInfo, "no-chater");
+                return;
+            }
             switch (payload.getType()) {
                 case CHAT:
                     ChaterInfo chaterInfo2 = getPartner(payload.getUserNo());
@@ -209,7 +213,7 @@ public class RandomChatHandler extends AbstractChatHandler {
     }
 
     public ChaterInfo randomChater() {
-        return chatersPersistence.randomChater();
+        return chatersPersistence.randomChater(ChatAction.RANDOM_CHATROOM_ID);
     }
 
 }

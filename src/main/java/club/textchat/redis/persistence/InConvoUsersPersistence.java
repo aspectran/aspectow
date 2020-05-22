@@ -46,6 +46,9 @@ public class InConvoUsersPersistence extends AbstractPersistence {
     }
 
     private String makeKey(String username) {
+        if (username == null) {
+            throw new IllegalArgumentException("username must not be null");
+        }
         return KEY_PREFIX + UsernameUtils.condense(username);
     }
 

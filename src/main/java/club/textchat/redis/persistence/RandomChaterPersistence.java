@@ -1,5 +1,6 @@
 package club.textchat.redis.persistence;
 
+import club.textchat.chat.ChatAction;
 import club.textchat.redis.RedisConnectionPool;
 import club.textchat.server.ChaterInfo;
 import com.aspectran.core.component.bean.annotation.Autowired;
@@ -32,7 +33,7 @@ public class RandomChaterPersistence extends AbstractPersistence {
             if (index > -1) {
                 String userNo2 = str.substring(0, index);
                 String username = str.substring(index + 1);
-                return new ChaterInfo(Integer.parseInt(userNo2), username);
+                return new ChaterInfo(ChatAction.RANDOM_CHATROOM_ID, Integer.parseInt(userNo2), username);
             }
         }
         return null;

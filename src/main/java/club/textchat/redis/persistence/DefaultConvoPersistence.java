@@ -50,6 +50,9 @@ public class DefaultConvoPersistence extends AbstractPersistence {
     }
 
     private String makeKey(String roomId) {
+        if (roomId == null) {
+            throw new IllegalArgumentException("roomId must not be null");
+        }
         return KEY_PREFIX + roomId;
     }
 

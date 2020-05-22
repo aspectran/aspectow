@@ -24,6 +24,8 @@ import java.util.Map;
 @Component
 public class ChatAction {
 
+    public static final String RANDOM_CHATROOM_ID = "-1";
+
     private final UserManager userManager;
 
     private final SqlSession sqlSession;
@@ -75,7 +77,7 @@ public class ChatAction {
         AdmissionToken admissionToken = new AdmissionToken();
         admissionToken.setUserNo(userInfo.getUserNo());
         admissionToken.setUsername(userInfo.getUsername());
-        admissionToken.setRoomId(ChatersPersistence.RANDOM_CHATROOM_ID);
+        admissionToken.setRoomId(RANDOM_CHATROOM_ID);
         return TimeLimitedPBTokenIssuer.getToken(admissionToken);
     }
 
