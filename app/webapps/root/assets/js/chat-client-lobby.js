@@ -1,7 +1,17 @@
+let lobbyChatEnabled = true;
 $(function () {
+    $("#send-message button.quiet").on("click", function () {
+        $(this).toggleClass("enabled");
+        $("#convo").toggle();
+        $("#message, #send-message button.send").prop("disabled", lobbyChatEnabled);
+        lobbyChatEnabled = !lobbyChatEnabled;
+    });
 });
 
 function printMessage(payload, restored) {
+    if (!lobbyChatEnabled) {
+        return;
+    }
     let convo = $("#convo");
     console.log(convo.find(".message").length);
     if (convo.find(".message").length >= 5) {

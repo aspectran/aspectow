@@ -54,3 +54,12 @@
 #convo .message:nth-last-child(7) {
     opacity: 0;
 }
+.message-box button.quiet {
+    margin-left: 5px;
+    padding-left: 7px;
+    padding-right: 7px;
+    border-radius: 5px !important;
+}
+.message-box button.quiet.enabled {
+    background-color: darkred;
+}

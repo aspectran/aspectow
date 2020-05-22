@@ -99,6 +99,7 @@
                         <input id="for-automata-clear" type="text"/>
                         <div class="input-group-button">
                             <button type="submit" class="button send" title="Send message"><i class="icon-paper-plane"></i></button>
+                            <button type="button" class="button quiet" title="Neither read nor send messages"><i class="fi-pause"></i></button>
                         </div>
                     </div>
                 </form>
