@@ -82,9 +82,9 @@ public class LobbyChatHandler extends AbstractChatHandler {
             if (chaters.put(chaterInfo, session) != null) {
                 replaced = true;
             }
-            chatersPersistence.put(chaterInfo);
             inConvoUsersPersistence.put(chaterInfo.getUsername(), chaterInfo.getHttpSessionId());
             Set<String> roomChaters = chatersPersistence.getChaters(chaterInfo.getRoomId());
+            chatersPersistence.put(chaterInfo);
             JoinPayload payload = new JoinPayload();
             payload.setUsername(chaterInfo.getUsername());
             payload.setChaters(roomChaters);
@@ -141,16 +141,15 @@ public class LobbyChatHandler extends AbstractChatHandler {
         lobbyConvoPersistence.put(message);
     }
 
-    public void broadcast(ChatMessage message, String roomId) {
-        broadcast(message, roomId, 0);
+    public void broadcast(ChatMessage message) {
+        broadcast(message, 0);
     }
 
-    public void broadcast(ChatMessage message, String roomId, int userNo) {
+    public void broadcast(ChatMessage message, int userNo) {
         for (Map.Entry<ChaterInfo, Session> entry : chaters.entrySet()) {
             ChaterInfo chaterInfo = entry.getKey();
             Session session = entry.getValue();
-            if (chaterInfo.getRoomId().equals(roomId) &&
-                    (userNo == 0 || userNo == chaterInfo.getUserNo())) {
+            if (userNo == 0 || userNo == chaterInfo.getUserNo()) {
                 send(session, message);
             }
         }

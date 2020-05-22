@@ -2,6 +2,7 @@ package club.textchat.redis.subscribe;
 
 import club.textchat.redis.RedisConnectionPool;
 import club.textchat.server.DefaultChatHandler;
+import club.textchat.server.LobbyChatHandler;
 import club.textchat.server.message.ChatMessage;
 import club.textchat.server.message.payload.BroadcastPayload;
 import club.textchat.server.message.payload.UserJoinedPayload;
@@ -33,10 +34,10 @@ public class LobbyMessageSubscriber extends RedisPubSubAdapter<String, String>
 
     private final StatefulRedisPubSubConnection<String, String> connection;
 
-    private final DefaultChatHandler chatHandler;
+    private final LobbyChatHandler chatHandler;
 
     @Autowired
-    public LobbyMessageSubscriber(RedisConnectionPool connectionPool, DefaultChatHandler chatHandler) {
+    public LobbyMessageSubscriber(RedisConnectionPool connectionPool, LobbyChatHandler chatHandler) {
         this.connection = connectionPool.getPubSubConnection();
         this.chatHandler = chatHandler;
     }
@@ -55,17 +56,17 @@ public class LobbyMessageSubscriber extends RedisPubSubAdapter<String, String>
         }
         BroadcastPayload broadcastPayload = chatMessage.getBroadcastPayload();
         if (broadcastPayload != null) {
-            chatHandler.broadcast(chatMessage, broadcastPayload.getRoomId());
+            chatHandler.broadcast(chatMessage);
             return;
         }
         UserJoinedPayload userJoinedPayload = chatMessage.getUserJoinedPayload();
         if (userJoinedPayload != null) {
-            chatHandler.broadcast(chatMessage, userJoinedPayload.getRoomId());
+            chatHandler.broadcast(chatMessage);
             return;
         }
         UserLeftPayload userLeftPayload = chatMessage.getUserLeftPayload();
         if (userLeftPayload != null) {
-            chatHandler.broadcast(chatMessage, userLeftPayload.getRoomId()); // talker already left
+            chatHandler.broadcast(chatMessage); // talker already left
         }
     }
 

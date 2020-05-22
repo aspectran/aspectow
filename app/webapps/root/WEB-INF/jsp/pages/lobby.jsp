@@ -1,6 +1,7 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <link rel="stylesheet" type="text/css" href="/assets/css/chat-common.css?v0.12" />
+<link rel="stylesheet" type="text/css" href="/assets/css/chat-lobby.css?v0.1" />
 <link rel="stylesheet" type="text/css" href="/assets/css/page-lobby.css?v11" />
 <script src="/assets/js/chat-client-default.js?v0.10"></script>
 <script src="/assets/js/chat-client-lobby.js?v0.1"></script>
@@ -34,8 +35,8 @@
             <div class="sidebar cell medium-4 large-3 cell-block-y hide-for-small-only">
                 <ul id="contacts"></ul>
             </div>
-            <div class="cell auto cell-block-y">
-                <div class="grid-container">
+            <div class="convo-container cell auto cell-block-y">
+                <div class="grid-container full-height">
                     <%@ include file="includes/lobby-user.jsp" %>
                     <div class="rooms grid-x grid-margin-x grid-margin-y t10">
                         <div class="cell medium-12 large-8 card random guide small-order-1 large-order-2">
@@ -80,6 +81,8 @@
                         </div>
                     </c:forEach>
                     </div>
+                </div>
+                <div id="convo">
                 </div>
             </div>
         </div>

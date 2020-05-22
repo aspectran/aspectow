@@ -46,10 +46,10 @@ import java.io.IOException;
 )
 public class LobbyChatServer {
 
-    private final DefaultChatHandler chatHandler;
+    private final LobbyChatHandler chatHandler;
 
     @Autowired
-    public LobbyChatServer(DefaultChatHandler chatHandler) {
+    public LobbyChatServer(LobbyChatHandler chatHandler) {
         this.chatHandler = chatHandler;
     }
 

@@ -1,58 +1,56 @@
-.random #convo .message.event .content {
-    padding: 1em;
+.convo-container {
+    position: relative;
 }
-.random #convo .message.event .content .button {
-    border: none;
-    background-color: #1b838d;
-    color: #fff;
+.convo-container .grid-container.full-height {
+    overflow: auto;
 }
-.random #convo .message.event .content .iconfont.sign {
-    display: block;
-    font-size: 6em;
-    width: 150px;
-    margin: 0 auto;
-    color: #879495;
-    text-shadow: 5px 5px 1px #ccc;
-}
-.random #convo .message.event .content .iconfont.sign.animate {
-    -webkit-transition: width .5s, height .5s, background-color 1s, -webkit-transform 1s;
-    transition: width .5s, height .5s, background-color 1s, transform 1s;
-    -webkit-transform: rotate(360deg);
-    transform: rotate(360deg);
-}
-.random #convo .message.event .content .iconfont.sign.active {
-    color: #1b838d;
-}
-.random #convo .message.event .content h3 {
-    color: #1b838d;
-}
-.random #convo .message.event .content h3.wait {
-    color: #777;
-}
-.random .message-box button.next {
-    margin-left: 5px;
-    background-color: #1b838d;
-    color: #fff;
-}
-.progress-bar {
-    width: 80%;
-    height: 1em;
-    margin: 1em auto;
+#convo {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    z-index: 101;
+    height: auto;
+    padding: 0;
     overflow: hidden;
-    background-color: #1b838d;
-    border-radius: 1em;
+}
+#convo .message {
+    margin: 0;
+}
+#convo .message .content {
+    float: none;
+    margin: 0;
+    border-radius: 0;
+    background-color: #f6e6ad;
+    border: 0;
+    border-top: 1px solid #eec938;
+    overflow: auto;
+}
+#convo .message .content .username {
+    float: right;
+    padding-left: 2em;
+    font-weight: normal;
+    font-size: .8em;
+    color: #333;
+}
+#convo .message:nth-last-child(1) {
+    border-bottom: 1px solid #eec938;
+}
+#convo .message:nth-last-child(2) {
+    opacity: .8;
+}
+#convo .message:nth-last-child(3) {
+    opacity: .7;
+}
+#convo .message:nth-last-child(4) {
     opacity: .45;
 }
-.cylon_eye {
-    background-color: #02e7fd;
-    background-image: linear-gradient(to right,
-        rgba(27, 131, 141, 1) 0%,
-        rgba(27, 131, 141, .1) 50%,
-        rgba(27, 131, 141, 1) 100%);
-    height: 100%;
-    width: 5em;
-    -webkit-animation: 4s linear 0s infinite alternate move_eye;
-    animation: 4s linear 0s infinite alternate move_eye;
+#convo .message:nth-last-child(5) {
+    opacity: .2;
 }
-@-webkit-keyframes move_eye { from { margin-left: -20%; } to { margin-left: 100%; }  }
-@keyframes move_eye { from { margin-left: -20%; } to { margin-left: 100%; }  }
+#convo .message:nth-last-child(6) {
+    opacity: .1;
+}
+#convo .message:nth-last-child(7) {
+    opacity: 0;
+}
