@@ -10,7 +10,7 @@
         </div>
         <div class="cell text-right">
             <a class="success button" href="/rooms">Home</a>
-            <a class="warning button" href="">Reload this page</a>
+            <a class="warning button" href="">Refresh this page</a>
         </div>
     </div>
 </div>

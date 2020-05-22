@@ -173,5 +173,6 @@
     color: #999;
     text-align: center;
     border-radius: 10px;
-    background-color: #000;
+    background-color: #131e57;
+    text-shadow: 5px 5px 1px #000;
 }

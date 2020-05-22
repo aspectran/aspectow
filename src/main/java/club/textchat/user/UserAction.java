@@ -18,17 +18,17 @@ import java.io.IOException;
 import java.util.Locale;
 
 @Component
-public class UserService {
+public class UserAction {
 
-    private static final Logger logger = LoggerFactory.getLogger(UserService.class);
+    private static final Logger logger = LoggerFactory.getLogger(UserAction.class);
 
     private final UserManager userManager;
 
     private final ChaterManager chaterManager;
 
     @Autowired
-    public UserService(UserManager userManager,
-                       ChaterManager chaterManager) {
+    public UserAction(UserManager userManager,
+                      ChaterManager chaterManager) {
         this.userManager = userManager;
         this.chaterManager = chaterManager;
     }

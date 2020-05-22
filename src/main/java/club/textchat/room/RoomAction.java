@@ -22,17 +22,17 @@ import java.util.List;
 import java.util.Map;
 
 @Component
-public class RoomService {
+public class RoomAction {
 
-    private static final Logger logger = LoggerFactory.getLogger(RoomService.class);
+    private static final Logger logger = LoggerFactory.getLogger(RoomAction.class);
 
     private final UserManager userManager;
 
     private final RoomManager roomManager;
 
     @Autowired
-    public RoomService(UserManager userManager,
-                       RoomManager roomManager) {
+    public RoomAction(UserManager userManager,
+                      RoomManager roomManager) {
         this.userManager = userManager;
         this.roomManager = roomManager;
     }

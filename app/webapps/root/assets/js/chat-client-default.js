@@ -67,9 +67,10 @@ function openSocket(token) {
         checkConnection(100);
     };
     socket.onerror = function(event) {
-        closeSocket();
         console.error("WebSocket error observed:", event);
-        printError("Couldn't connect to the server. Please refresh this page.");
+        closeSocket();
+        checkConnection(100);
+        // printError("Couldn't connect to the server. Please refresh this page.");
     };
 }
 
@@ -88,7 +89,7 @@ function heartbeatPing() {
     }, 57000);
 }
 
-function checkConnection(timeout) {
+function checkConnection(delay) {
     setTimeout(function() {
         $.ajax("/ping")
             .done(function(result) {
@@ -110,7 +111,7 @@ function checkConnection(timeout) {
                 console.log(retries + " retries");
                 checkConnection(2000 * retries);
             });
-    }, timeout);
+    }, delay);
 }
 
 function closeSocket() {

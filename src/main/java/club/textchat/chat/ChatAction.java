@@ -21,7 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Component
-public class ChatService {
+public class ChatAction {
 
     private static final String RANDOM_CHATROOM_ID = "0";
 
@@ -30,8 +30,8 @@ public class ChatService {
     private final SqlSession sqlSession;
 
     @Autowired
-    public ChatService(UserManager userManager,
-                       SimpleSqlSession sqlSession) {
+    public ChatAction(UserManager userManager,
+                      SimpleSqlSession sqlSession) {
         this.userManager = userManager;
         this.sqlSession = sqlSession;
     }
@@ -68,7 +68,7 @@ public class ChatService {
             admissionToken.setRoomId(roomId);
 
             map.put("token", TimeLimitedPBTokenIssuer.getToken(admissionToken));
-            map.put("include", "pages/chat-public");
+            map.put("include", "pages/chat-default");
         }
 
         return map;
