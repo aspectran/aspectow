@@ -13,10 +13,8 @@ $(function() {
         hideSidebar();
     });
     $(".header button.people").on("click", function() {
-        if (!toggleSidebar(true) && chatClientSettings.autoConnectEnabled) {
-            readyToType();
-        }
-    })
+        toggleSidebar();
+    });
     $("button.leave").on("click", function() {
         leaveRoom();
     });
@@ -415,24 +413,13 @@ function printRecentConvo(chatMessages) {
     scrollToBottom($("#convo"));
 }
 
-function toggleSidebar(force) {
-    let sidebar = $(".sidebar");
-    if (force || !sidebar.hasClass("show-for-medium")) {
-        return sidebar.toggle().toggleClass("show-for-medium").is(":visible");
-    }
-    return sidebar.is(":visible");
-}
-
-function showSidebar(force) {
-    let sidebar = $(".sidebar");
-    if (force || !sidebar.hasClass("show-for-medium") && !sidebar.is(":visible")) {
-        toggleSidebar();
-    }
+function toggleSidebar() {
+    $(".sidebar").toggleClass("hide-for-small-only").toggleClass("show-for-small-only");
 }
 
 function hideSidebar(force) {
     let sidebar = $(".sidebar");
-    if (force || !sidebar.hasClass("show-for-medium") && sidebar.is(":visible")) {
+    if (sidebar.is(":visible") && !sidebar.hasClass("hide-for-small-only")) {
         toggleSidebar();
     }
 }

@@ -29,7 +29,7 @@
     </div>
     <div class="body shadow cell auto cell-block-container">
         <div class="grid-x full-height">
-            <div class="sidebar cell medium-4 large-3 cell-block-y show-for-medium">
+            <div class="sidebar cell medium-4 large-3 cell-block-y hide-for-small-only">
                 <ul id="contacts"></ul>
             </div>
             <div class="cell auto cell-block-y">
@@ -39,7 +39,7 @@
     </div>
     <div class="footer shadow cell">
         <div class="grid-x grid-padding-x grid-padding-y">
-            <div class="sidebar cell medium-4 large-3 cell-block-y show-for-medium">
+            <div class="sidebar cell medium-4 large-3 cell-block-y hide-for-small-only">
                 <%@ include file="includes/sidebar-user.jsp" %>
             </div>
             <div class="message-box cell auto cell-block-y">
