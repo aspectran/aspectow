@@ -3,7 +3,7 @@
         "http://aspectran.github.io/dtd/aspectran-6.dtd">
 <aspectran>
 
-    <bean id="redisConnectionPool" class="club.textchat.redis.RedisConnectionPool">
+    <bean class="club.textchat.redis.RedisConnectionPool" lazyDestroy="true">
         <arguments>
             <item>
                 <bean class="club.textchat.redis.RedisConnectionPoolConfig">
@@ -12,51 +12,6 @@
                     </properties>
                 </bean>
             </item>
-        </arguments>
-    </bean>
-
-    <bean class="club.textchat.redis.persistence.SignedInUsersPersistence">
-        <arguments>
-            <item>#{redisConnectionPool}</item>
-            <item valueType="int">10</item>
-        </arguments>
-    </bean>
-
-    <bean class="club.textchat.redis.persistence.InConvoUsersPersistence">
-        <arguments>
-            <item>#{redisConnectionPool}</item>
-        </arguments>
-    </bean>
-
-    <bean class="club.textchat.redis.persistence.ChatersPersistence">
-        <arguments>
-            <item>#{redisConnectionPool}</item>
-        </arguments>
-    </bean>
-
-    <bean class="club.textchat.redis.persistence.DefaultConvosPersistence">
-        <arguments>
-            <item>#{redisConnectionPool}</item>
-            <item valueType="int">30</item>
-        </arguments>
-    </bean>
-
-    <bean class="club.textchat.redis.persistence.RandomConvosPersistence">
-        <arguments>
-            <item>#{redisConnectionPool}</item>
-        </arguments>
-    </bean>
-
-    <bean class="club.textchat.redis.persistence.RandomChaterPersistence">
-        <arguments>
-            <item>#{redisConnectionPool}</item>
-        </arguments>
-    </bean>
-
-    <bean class="club.textchat.redis.persistence.RandomHistoryPersistence">
-        <arguments>
-            <item>#{redisConnectionPool}</item>
-            <item valueType="int">10</item>
         </arguments>
     </bean>
 

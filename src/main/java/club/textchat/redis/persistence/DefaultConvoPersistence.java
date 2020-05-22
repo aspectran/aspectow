@@ -1,8 +1,11 @@
 package club.textchat.redis.persistence;
 
 import club.textchat.redis.RedisConnectionPool;
-import club.textchat.redis.pubsub.DefaultMessageSubscriber;
+import club.textchat.redis.subscribe.DefaultMessageSubscriber;
 import club.textchat.server.message.ChatMessage;
+import com.aspectran.core.component.bean.annotation.Autowired;
+import com.aspectran.core.component.bean.annotation.Bean;
+import com.aspectran.core.component.bean.annotation.Component;
 import com.aspectran.core.util.apon.AponReader;
 
 import java.io.IOException;
@@ -12,25 +15,27 @@ import java.util.List;
 /**
  * <p>Created: 2020/05/03</p>
  */
-public class DefaultConvosPersistence extends AbstractPersistence {
+@Component
+@Bean
+public class DefaultConvoPersistence extends AbstractPersistence {
 
-    private static final String KEY_PREFIX = "convos:";
+    private static final String KEY_PREFIX = "convo:";
 
-    private final int maxSaveMessages;
+    private static final int MAX_SAVE_MESSAGES = 50;
 
-    public DefaultConvosPersistence(RedisConnectionPool connectionPool, int maxSaveMessages) {
+    @Autowired
+    public DefaultConvoPersistence(RedisConnectionPool connectionPool) {
         super(connectionPool);
-        this.maxSaveMessages = maxSaveMessages;
     }
 
     public void put(String roomId, ChatMessage message) {
         String value = message.toString();
-        rpush(makeKey(roomId), value, maxSaveMessages);
+        rpush(makeKey(roomId), value, MAX_SAVE_MESSAGES);
         publish(DefaultMessageSubscriber.CHANNEL, value);
     }
 
     public List<ChatMessage> getRecentConvo(String roomId) {
-        List<String> list = lrange(makeKey(roomId), maxSaveMessages);
+        List<String> list = lrange(makeKey(roomId), MAX_SAVE_MESSAGES);
         List<ChatMessage> result = new ArrayList<>(list.size());
         for (String str : list) {
             ChatMessage message;

@@ -2,11 +2,16 @@ package club.textchat.redis.persistence;
 
 import club.textchat.redis.RedisConnectionPool;
 import club.textchat.server.ChaterInfo;
+import com.aspectran.core.component.bean.annotation.Autowired;
+import com.aspectran.core.component.bean.annotation.Bean;
+import com.aspectran.core.component.bean.annotation.Component;
 import com.aspectran.core.lang.NonNull;
 
 /**
  * <p>Created: 2020/05/03</p>
  */
+@Component
+@Bean
 public class RandomChaterPersistence extends AbstractPersistence {
 
     private static final String KEY_PREFIX = "rchat:";
@@ -15,6 +20,7 @@ public class RandomChaterPersistence extends AbstractPersistence {
 
     private static final String NONE = "0";
 
+    @Autowired
     public RandomChaterPersistence(RedisConnectionPool connectionPool) {
         super(connectionPool);
     }

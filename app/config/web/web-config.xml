@@ -55,6 +55,6 @@
     <append file="/config/web/common/locale.xml"/>
     <append file="/config/web/common/xss-prevent.xml"/>
     <append file="/config/web/pages/pages.xml"/>
-    <append file="/config/web/pages/test.xml" profile="!prod"/>
+    <append file="/config/web/pages/modal.xml" profile="!prod"/>
 
 </aspectran>

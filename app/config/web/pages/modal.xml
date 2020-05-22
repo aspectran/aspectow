@@ -9,7 +9,7 @@
         </description>
         <properties>
             <item name="contentType">text/html</item>
-            <item name="template">/WEB-INF/jsp/templates/test.jsp</item>
+            <item name="template">/WEB-INF/jsp/templates/modal.jsp</item>
             <item name="includePageKey">INCLUDE_PAGE</item>
         </properties>
     </bean>
@@ -17,7 +17,7 @@
     <aspect id="testTransletSettings">
         <joinpoint>
             pointcut: {
-                +: /test/includes/**
+                +: /modal/**
             }
         </joinpoint>
         <settings>

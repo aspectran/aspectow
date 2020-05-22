@@ -1,4 +1,4 @@
-package club.textchat.redis.pubsub;
+package club.textchat.redis.subscribe;
 
 import club.textchat.redis.RedisConnectionPool;
 import club.textchat.server.DefaultChatHandler;
@@ -24,19 +24,19 @@ import java.io.IOException;
  */
 @Component
 @Bean
-public class DefaultMessageSubscriber extends RedisPubSubAdapter<String, String>
+public class LobbyMessageSubscriber extends RedisPubSubAdapter<String, String>
         implements InitializableBean, DisposableBean {
 
-    private static final Logger logger = LoggerFactory.getLogger(DefaultMessageSubscriber.class);
+    private static final Logger logger = LoggerFactory.getLogger(LobbyMessageSubscriber.class);
 
-    public static final String CHANNEL = "chat:default";
+    public static final String CHANNEL = "chat:lobby";
 
     private final StatefulRedisPubSubConnection<String, String> connection;
 
     private final DefaultChatHandler chatHandler;
 
     @Autowired
-    public DefaultMessageSubscriber(RedisConnectionPool connectionPool, DefaultChatHandler chatHandler) {
+    public LobbyMessageSubscriber(RedisConnectionPool connectionPool, DefaultChatHandler chatHandler) {
         this.connection = connectionPool.getPubSubConnection();
         this.chatHandler = chatHandler;
     }
@@ -55,17 +55,17 @@ public class DefaultMessageSubscriber extends RedisPubSubAdapter<String, String>
         }
         BroadcastPayload broadcastPayload = chatMessage.getBroadcastPayload();
         if (broadcastPayload != null) {
-            chatHandler.broadcast(chatMessage, broadcastPayload.getRoomId(), broadcastPayload.getUserNo());
+            chatHandler.broadcast(chatMessage, broadcastPayload.getRoomId());
             return;
         }
         UserJoinedPayload userJoinedPayload = chatMessage.getUserJoinedPayload();
         if (userJoinedPayload != null) {
-            chatHandler.broadcast(chatMessage, userJoinedPayload.getRoomId(), userJoinedPayload.getUserNo());
+            chatHandler.broadcast(chatMessage, userJoinedPayload.getRoomId());
             return;
         }
         UserLeftPayload userLeftPayload = chatMessage.getUserLeftPayload();
         if (userLeftPayload != null) {
-            chatHandler.broadcast(chatMessage, userLeftPayload.getRoomId(), 0L); // talker already left
+            chatHandler.broadcast(chatMessage, userLeftPayload.getRoomId()); // talker already left
         }
     }
 

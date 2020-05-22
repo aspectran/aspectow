@@ -5,8 +5,8 @@
     const chatClientSettings = {
         serverEndpoint: "/chat/default/",
         autoConnectEnabled: true,
-        token: "${page.token}",
-        homepage: "/rooms"
+        admissionToken: "${page.token}",
+        homepage: "/lobby"
     }
 </script>
 <div class="grid-y grid-frame">

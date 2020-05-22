@@ -7,8 +7,8 @@
     const chatClientSettings = {
         serverEndpoint: "/chat/random/",
         autoConnectEnabled: false,
-        token: "${page.token}",
-        homepage: "/rooms"
+        admissionToken: "${page.token}",
+        homepage: "/lobby"
     }
 </script>
 <div class="grid-y grid-frame random">

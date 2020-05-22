@@ -44,7 +44,7 @@ function doSignIn() {
                 switch (result) {
                     case "0":
                         setCookie("username", username, 1);
-                        location.href = "/rooms";
+                        location.href = "/lobby";
                         break;
                     case "-1":
                         alert("reCAPTCHA verification failed");

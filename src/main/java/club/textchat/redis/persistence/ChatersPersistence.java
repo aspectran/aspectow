@@ -2,20 +2,26 @@ package club.textchat.redis.persistence;
 
 import club.textchat.redis.RedisConnectionPool;
 import club.textchat.server.ChaterInfo;
+import com.aspectran.core.component.bean.annotation.Autowired;
+import com.aspectran.core.component.bean.annotation.Bean;
+import com.aspectran.core.component.bean.annotation.Component;
 
 import java.util.Set;
 
 /**
  * <p>Created: 2020/05/03</p>
  */
+@Component
+@Bean
 public class ChatersPersistence extends AbstractPersistence {
 
     private static final String KEY_PREFIX = "chaters:";
 
     private static final String VALUE_SEPARATOR = ":";
 
-    private static final String RANDOM_CHATROOM_ID = "0";
+    public static final String RANDOM_CHATROOM_ID = "-1";
 
+    @Autowired
     public ChatersPersistence(RedisConnectionPool connectionPool) {
         super(connectionPool);
     }

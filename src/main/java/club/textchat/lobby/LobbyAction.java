@@ -1,6 +1,9 @@
-package club.textchat.room;
+package club.textchat.lobby;
 
 import club.textchat.recaptcha.ReCaptchaVerifier;
+import club.textchat.room.RoomInfo;
+import club.textchat.room.RoomManager;
+import club.textchat.server.AdmissionToken;
 import club.textchat.user.UserInfo;
 import club.textchat.user.UserManager;
 import com.aspectran.core.component.bean.annotation.Action;
@@ -15,6 +18,7 @@ import com.aspectran.core.component.bean.annotation.Transform;
 import com.aspectran.core.context.rule.type.FormatType;
 import com.aspectran.core.util.logging.Logger;
 import com.aspectran.core.util.logging.LoggerFactory;
+import com.aspectran.core.util.security.TimeLimitedPBTokenIssuer;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -22,45 +26,41 @@ import java.util.List;
 import java.util.Map;
 
 @Component
-public class RoomAction {
+public class LobbyAction {
 
-    private static final Logger logger = LoggerFactory.getLogger(RoomAction.class);
+    private static final Logger logger = LoggerFactory.getLogger(LobbyAction.class);
+
+    private static final String LOBBY_CHATROOM_ID = "0";
 
     private final UserManager userManager;
 
     private final RoomManager roomManager;
 
     @Autowired
-    public RoomAction(UserManager userManager,
-                      RoomManager roomManager) {
+    public LobbyAction(UserManager userManager,
+                       RoomManager roomManager) {
         this.userManager = userManager;
         this.roomManager = roomManager;
     }
 
-    @RequestToPost("/rooms")
-    @Transform(FormatType.JSON)
-    public String createChatroom(@Required String recaptchaResponse,
-                                 @Required @Qualifier("room_nm") String roomName,
-                                 @Required @Qualifier("lang_cd") String language) {
-        boolean success = false;
-        try {
-            success = ReCaptchaVerifier.verifySuccess(recaptchaResponse);
-        } catch (IOException e) {
-            logger.warn("reCAPTCHA verification failed", e);
-        }
-        if (!success) {
-            return "-1";
-        }
+    @Request("/lobby")
+    @Dispatch("templates/default")
+    @Action("page")
+    public Map<String, Object> rooms() {
+        List<RoomInfo> rooms = roomManager.getRoomList();
 
         UserInfo userInfo = userManager.getUserInfo();
 
-        RoomInfo roomInfo = new RoomInfo();
-        roomInfo.setRoomName(roomName);
-        roomInfo.setLanguage(language);
-        roomInfo.setUserNo(userInfo.getUserNo());
+        AdmissionToken admissionToken = new AdmissionToken();
+        admissionToken.setUserNo(userInfo.getUserNo());
+        admissionToken.setUsername(userInfo.getUsername());
+        admissionToken.setRoomId(LOBBY_CHATROOM_ID);
 
-        String encryptedRoomId = roomManager.createRoom(roomInfo);
-        return (encryptedRoomId != null ? encryptedRoomId : "-2");
+        Map<String, Object> map = new HashMap<>();
+        map.put("token", TimeLimitedPBTokenIssuer.getToken(admissionToken));
+        map.put("rooms", rooms);
+        map.put("include", "pages/lobby");
+        return map;
     }
 
 }

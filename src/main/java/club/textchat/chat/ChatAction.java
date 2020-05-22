@@ -1,6 +1,7 @@
 package club.textchat.chat;
 
 import club.textchat.common.mybatis.SimpleSqlSession;
+import club.textchat.redis.persistence.ChatersPersistence;
 import club.textchat.room.RoomInfo;
 import club.textchat.server.AdmissionToken;
 import club.textchat.user.UserInfo;
@@ -23,8 +24,6 @@ import java.util.Map;
 @Component
 public class ChatAction {
 
-    private static final String RANDOM_CHATROOM_ID = "0";
-
     private final UserManager userManager;
 
     private final SqlSession sqlSession;
@@ -36,39 +35,36 @@ public class ChatAction {
         this.sqlSession = sqlSession;
     }
 
+    @Request("/rooms/random")
+    @Dispatch("templates/default")
+    @Action("page")
+    public Map<String, String> startRandomChat() {
+        Map<String, String> map = new HashMap<>();
+        map.put("include", "pages/chat-random");
+        return map;
+    }
+
     @Request("/rooms/${roomId}")
     @Dispatch("templates/default")
     @Action("page")
-    public Map<String, String> startChat(@Required String roomId) {
-        if ("random".equals(roomId)) {
-            roomId = "0";
-        } else {
-            try {
-                roomId = PBEncryptionUtils.decrypt(roomId);
-            } catch (Exception e) {
-                throw new InvalidChatRoomException(roomId, "invalid-room-id");
-            }
+    public Map<String, String> startPublicChat(@Required String roomId) {
+        try {
+            roomId = PBEncryptionUtils.decrypt(roomId);
+        } catch (Exception e) {
+            throw new InvalidChatRoomException(roomId, "invalid-room-id");
         }
 
         UserInfo userInfo = userManager.getUserInfo();
+        AdmissionToken admissionToken = new AdmissionToken();
+        admissionToken.setUserNo(userInfo.getUserNo());
+        admissionToken.setUsername(userInfo.getUsername());
+        admissionToken.setRoomId(roomId);
 
         Map<String, String> map = new HashMap<>();
-
-        if (RANDOM_CHATROOM_ID.equals(roomId)) {
-            map.put("include", "pages/chat-random");
-        } else {
-            RoomInfo roomInfo = sqlSession.selectOne("rooms.getRoomInfo", roomId);
-            map.put("roomName", roomInfo.getRoomName());
-
-            AdmissionToken admissionToken = new AdmissionToken();
-            admissionToken.setUserNo(userInfo.getUserNo());
-            admissionToken.setUsername(userInfo.getUsername());
-            admissionToken.setRoomId(roomId);
-
-            map.put("token", TimeLimitedPBTokenIssuer.getToken(admissionToken));
-            map.put("include", "pages/chat-default");
-        }
-
+        RoomInfo roomInfo = sqlSession.selectOne("rooms.getRoomInfo", roomId);
+        map.put("roomName", roomInfo.getRoomName());
+        map.put("token", TimeLimitedPBTokenIssuer.getToken(admissionToken));
+        map.put("include", "pages/chat-default");
         return map;
     }
 
@@ -79,7 +75,7 @@ public class ChatAction {
         AdmissionToken admissionToken = new AdmissionToken();
         admissionToken.setUserNo(userInfo.getUserNo());
         admissionToken.setUsername(userInfo.getUsername());
-        admissionToken.setRoomId(RANDOM_CHATROOM_ID);
+        admissionToken.setRoomId(ChatersPersistence.RANDOM_CHATROOM_ID);
         return TimeLimitedPBTokenIssuer.getToken(admissionToken);
     }
 

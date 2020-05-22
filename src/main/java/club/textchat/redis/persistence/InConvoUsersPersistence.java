@@ -2,6 +2,9 @@ package club.textchat.redis.persistence;
 
 import club.textchat.redis.RedisConnectionPool;
 import club.textchat.user.UsernameUtils;
+import com.aspectran.core.component.bean.annotation.Autowired;
+import com.aspectran.core.component.bean.annotation.Bean;
+import com.aspectran.core.component.bean.annotation.Component;
 
 /**
  * Persistence for the names of the users in the chat room.
@@ -10,10 +13,13 @@ import club.textchat.user.UsernameUtils;
  *
  * <p>Created: 2020/05/03</p>
  */
+@Component
+@Bean
 public class InConvoUsersPersistence extends AbstractPersistence {
 
     private static final String KEY_PREFIX = "inconvo:";
 
+    @Autowired
     public InConvoUsersPersistence(RedisConnectionPool connectionPool) {
         super(connectionPool);
     }

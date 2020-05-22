@@ -173,6 +173,7 @@
     color: #999;
     text-align: center;
     border-radius: 10px;
-    background-color: #131e57;
-    text-shadow: 5px 5px 1px #000;
+    background-color: #353537;
+    text-shadow: 5px 5px 1px #4d4c4c;
+    letter-spacing: -10px;
 }

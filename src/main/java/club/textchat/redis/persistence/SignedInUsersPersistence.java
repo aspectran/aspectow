@@ -2,6 +2,9 @@ package club.textchat.redis.persistence;
 
 import club.textchat.redis.RedisConnectionPool;
 import club.textchat.user.UsernameUtils;
+import com.aspectran.core.component.bean.annotation.Autowired;
+import com.aspectran.core.component.bean.annotation.Bean;
+import com.aspectran.core.component.bean.annotation.Component;
 
 /**
  * Persistence for names of users who are not in conversation yet.
@@ -10,15 +13,17 @@ import club.textchat.user.UsernameUtils;
  *
  * <p>Created: 2020/05/03</p>
  */
+@Component
+@Bean
 public class SignedInUsersPersistence extends AbstractPersistence {
 
     private static final String KEY_PREFIX = "signed:";
 
-    private final int expiryPeriodInSeconds;
+    private static final int EXPIRY_PERIOD_IN_SECONDS = 10;
 
-    public SignedInUsersPersistence(RedisConnectionPool connectionPool, int expiryPeriodInSeconds) {
+    @Autowired
+    public SignedInUsersPersistence(RedisConnectionPool connectionPool) {
         super(connectionPool);
-        this.expiryPeriodInSeconds = expiryPeriodInSeconds;
     }
 
     @Override
@@ -31,11 +36,11 @@ public class SignedInUsersPersistence extends AbstractPersistence {
     }
 
     public void tryAbandon(String username, String httpSessionId) {
-        setexIfNotExist(makeKey(username), httpSessionId, expiryPeriodInSeconds);
+        setexIfNotExist(makeKey(username), httpSessionId, EXPIRY_PERIOD_IN_SECONDS);
     }
 
     public void abandon(String username, String httpSessionId) {
-        setex(makeKey(username), httpSessionId, expiryPeriodInSeconds);
+        setex(makeKey(username), httpSessionId, EXPIRY_PERIOD_IN_SECONDS);
     }
 
     public boolean exists(String username, String httpSessionId) {

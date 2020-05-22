@@ -10,7 +10,7 @@
                 Otherwise, press <a class="button alert" href="/rooms">Home</a> to return to the previous page.</p>
         </div>
         <div class="cell buttons">
-            <a class="button alert" href="/rooms">Home</a>
+            <a class="button alert" href="/lobby">Home</a>
             <a class="button secondary" href="/signout">Sign out</a>
         </div>
     </div>

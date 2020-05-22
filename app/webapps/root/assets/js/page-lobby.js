@@ -10,7 +10,7 @@ $(function () {
                 $(this).attr("selected", true);
             }
         });
-        $('#rooms-room-create').foundation('open');
+        $('#lobby-room-create').foundation('open');
     });
     $("form#room-create").submit(function () {
         executeCaptcha("room_create", doCreateRoom);
@@ -36,7 +36,7 @@ function doCreateRoom() {
         return;
     }
     $.ajax({
-        url: '/room/create',
+        url: '/rooms',
         type: 'post',
         dataType: 'json',
         data: {
@@ -61,8 +61,8 @@ function doCreateRoom() {
                     }
                     $("form#room-create input[name=room_nm]").val("");
                     recentlyCreatedRoom = result;
-                    $('#rooms-room-create').foundation('close');
-                    $('#rooms-room-create-complete').foundation('open');
+                    $('#lobby-room-create').foundation('close');
+                    $('#lobby-room-create-complete').foundation('open');
             }
         },
         error: function (request, status, error) {

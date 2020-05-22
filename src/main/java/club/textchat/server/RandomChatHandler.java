@@ -3,7 +3,7 @@ package club.textchat.server;
 import club.textchat.redis.persistence.ChatersPersistence;
 import club.textchat.redis.persistence.InConvoUsersPersistence;
 import club.textchat.redis.persistence.RandomChaterPersistence;
-import club.textchat.redis.persistence.RandomConvosPersistence;
+import club.textchat.redis.persistence.RandomConvoPersistence;
 import club.textchat.redis.persistence.RandomHistoryPersistence;
 import club.textchat.redis.persistence.SignedInUsersPersistence;
 import club.textchat.server.message.ChatMessage;
@@ -36,7 +36,7 @@ public class RandomChatHandler extends AbstractChatHandler {
 
     private final RandomHistoryPersistence randomHistoryPersistence;
 
-    private final RandomConvosPersistence randomConvosPersistence;
+    private final RandomConvoPersistence randomConvoPersistence;
 
     private final RandomChatCoupler randomChatCoupler;
 
@@ -46,12 +46,12 @@ public class RandomChatHandler extends AbstractChatHandler {
                              ChatersPersistence chatersPersistence,
                              RandomChaterPersistence randomChaterPersistence,
                              RandomHistoryPersistence randomHistoryPersistence,
-                             RandomConvosPersistence randomConvosPersistence) {
+                             RandomConvoPersistence randomConvoPersistence) {
         super(signedInUsersPersistence, inConvoUsersPersistence, chatersPersistence);
         this.chatersPersistence = chatersPersistence;
         this.randomChaterPersistence = randomChaterPersistence;
         this.randomHistoryPersistence = randomHistoryPersistence;
-        this.randomConvosPersistence = randomConvosPersistence;
+        this.randomConvoPersistence = randomConvoPersistence;
         this.randomChatCoupler = new RandomChatCoupler(this);
     }
 
@@ -146,7 +146,7 @@ public class RandomChatHandler extends AbstractChatHandler {
         payload.setUsername(chaterInfo2.getUsername());
         ChatMessage message = new ChatMessage(payload);
         message.setReceiver(chaterInfo.getUserNo());
-        broadcast(message);
+        broadcast(message, chaterInfo.getUserNo());
         broadcastUserJoined(chaterInfo, chaterInfo2.getUserNo());
     }
 
@@ -157,7 +157,7 @@ public class RandomChatHandler extends AbstractChatHandler {
         payload.setPrevUsername(chaterInfo.getPrevUsername());
         ChatMessage message = new ChatMessage(payload);
         message.setReceiver(userNo);
-        randomConvosPersistence.put(message);
+        randomConvoPersistence.put(message);
     }
 
     private void broadcastUserLeft(ChaterInfo chaterInfo, int userNo) {
@@ -166,7 +166,7 @@ public class RandomChatHandler extends AbstractChatHandler {
         payload.setUsername(chaterInfo.getUsername());
         ChatMessage message = new ChatMessage(payload);
         message.setReceiver(userNo);
-        randomConvosPersistence.put(message);
+        randomConvoPersistence.put(message);
     }
 
     private void broadcastMessage(ChaterInfo chaterInfo, ChaterInfo chaterInfo2, String content) {
@@ -177,15 +177,15 @@ public class RandomChatHandler extends AbstractChatHandler {
             payload.setContent(content);
             ChatMessage message = new ChatMessage(payload);
             message.setReceiver(chaterInfo2.getUserNo());
-            randomConvosPersistence.put(message);
+            randomConvoPersistence.put(message);
         }
     }
 
-    public void broadcast(ChatMessage message) {
+    public void broadcast(ChatMessage message, int userNo) {
         for (Map.Entry<ChaterInfo, Session> entry : chaters.entrySet()) {
             ChaterInfo chaterInfo = entry.getKey();
             Session session = entry.getValue();
-            if (message.getReceiver() == chaterInfo.getUserNo()) {
+            if (chaterInfo.getUserNo() == userNo) {
                 send(session, message);
             }
         }

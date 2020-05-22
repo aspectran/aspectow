@@ -32,7 +32,7 @@
         </properties>
     </environment>
 
-    <bean id="sqlSessionFactory" class="com.aspectran.mybatis.SqlSessionFactoryBean" lazyInit="true">
+    <bean id="sqlSessionFactory" class="com.aspectran.mybatis.SqlSessionFactoryBean" lazyInit="true" lazyDestroy="true">
         <description>
             FactoryBean that creates an MyBatis SqlSessionFactory using default MyBatis Configuration.
         </description>

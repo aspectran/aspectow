@@ -1,4 +1,4 @@
-package club.textchat.redis.pubsub;
+package club.textchat.redis.subscribe;
 
 import club.textchat.redis.RedisConnectionPool;
 import club.textchat.server.RandomChatHandler;
@@ -55,17 +55,18 @@ public class RandomMessageSubscriber extends RedisPubSubAdapter<String, String>
         }
         BroadcastPayload broadcastPayload = chatMessage.getBroadcastPayload();
         if (broadcastPayload != null) {
-            chatHandler.broadcast(chatMessage);
+            chatHandler.broadcast(chatMessage, broadcastPayload.getUserNo());
+            chatHandler.broadcast(chatMessage, chatMessage.getReceiver());
             return;
         }
         UserJoinedPayload userJoinedPayload = chatMessage.getUserJoinedPayload();
         if (userJoinedPayload != null) {
-            chatHandler.broadcast(chatMessage);
+            chatHandler.broadcast(chatMessage, chatMessage.getReceiver());
             return;
         }
         UserLeftPayload userLeftPayload = chatMessage.getUserLeftPayload();
         if (userLeftPayload != null) {
-            chatHandler.broadcast(chatMessage);
+            chatHandler.broadcast(chatMessage, chatMessage.getReceiver());
         }
     }
 

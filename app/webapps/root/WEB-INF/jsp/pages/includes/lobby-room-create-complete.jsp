@@ -1,5 +1,5 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
-<div id="rooms-room-create-complete" class="reveal popup" data-reveal data-close-on-click="false" data-close-on-esc="false">
+<div id="lobby-room-create-complete" class="reveal popup" data-reveal data-close-on-click="false" data-close-on-esc="false">
     <h3>Congratulations</h3>
     <div class="grid-x">
         <div class="cell content">

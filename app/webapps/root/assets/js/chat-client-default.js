@@ -4,6 +4,10 @@ let pendedMessages;
 let aborted;
 
 $(function () {
+    if (!chatClientSettings) {
+        gotoHomepage();
+        return;
+    }
     $("form#send-message").submit(function () {
         $("#for-automata-clear").focus();
         sendMessage();
@@ -26,13 +30,13 @@ $(function () {
     readyToType();
     if (chatClientSettings.autoConnectEnabled !== false) {
         setTimeout(function () {
-            openSocket(chatClientSettings.token);
+            openSocket(chatClientSettings.admissionToken);
         }, 300);
     }
 });
 
 function openSocket(token) {
-    if (!chatClientSettings || !token || token.length > 100) {
+    if (!token || token.length > 100) {
         gotoHomepage();
         return;
     }
@@ -122,7 +126,7 @@ function closeSocket() {
     }
 }
 
-function leaveRoom() {
+function leaveRoom(force) {
     closeSocket();
     gotoHomepage();
 }
@@ -155,7 +159,9 @@ function handleMessage(chatMessage) {
                 case "join":
                     pendedMessages = [];
                     setChaters(payload.chaters);
-                    printRecentConvo(payload.recentConvo);
+                    if (payload.recentConvo) {
+                        printRecentConvo(payload.recentConvo);
+                    }
                     printJoinMessage(payload);
                     while (pendedMessages && pendedMessages.length > 0) {
                         handleMessage(pendedMessages.pop());
@@ -166,15 +172,15 @@ function handleMessage(chatMessage) {
                     aborted = true;
                     switch (payload.cause) {
                         case "exists":
-                            alert("Username already in use.");
-                            leaveRoom();
+                            alert("Username already in use. Please sign in again.");
+                            leaveRoom(true);
                             break;
                         case "rejoin":
                             $("#duplicate-join").foundation('open');
                             break;
                         default:
-                            alert("Abnormal access detected.");
-                            leaveRoom();
+                            //alert("Abnormal access detected.");
+                            checkConnection();
                     }
                     break;
             }
@@ -205,7 +211,7 @@ function sendMessage() {
         };
         $msg.val('');
         socket.send(serialize(chatMessage));
-        printMessage(message);
+        // printMessage(message);
         $msg.focus();
     }
 }
@@ -222,7 +228,6 @@ function setChaters(chaters) {
             }
         }
         updateTotalPeople();
-        findUser(userInfo.userNo).addClass("me");
     }
 }
 
@@ -234,6 +239,9 @@ function addChater(userNo, username) {
     let badge = $("<i class='iconfont fi-record'/>");
     let name = $("<div class='name'/>").text(username);
     contact.append(status.append(badge)).append(name).appendTo($("#contacts"));
+    if (userInfo.userNo === userNo) {
+        contact.addClass("me");
+    }
     updateTotalPeople();
 }
 
@@ -434,7 +442,9 @@ function reloadPage() {
 }
 
 function gotoHomepage() {
-    location.href = chatClientSettings.homepage;
+    if (chatClientSettings.homepage) {
+        location.href = chatClientSettings.homepage;
+    }
 }
 
 function serialize(json) {

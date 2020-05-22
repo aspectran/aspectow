@@ -1,10 +1,15 @@
 package club.textchat.redis.persistence;
 
 import club.textchat.redis.RedisConnectionPool;
+import com.aspectran.core.component.bean.annotation.Autowired;
+import com.aspectran.core.component.bean.annotation.Bean;
+import com.aspectran.core.component.bean.annotation.Component;
 
 /**
  * <p>Created: 2020/05/03</p>
  */
+@Component
+@Bean
 public class RandomHistoryPersistence extends AbstractPersistence {
 
     private static final String KEY_PREFIX = "rhist:";
@@ -13,15 +18,15 @@ public class RandomHistoryPersistence extends AbstractPersistence {
 
     private static final String MET = "1";
 
-    private final int expiryPeriodInSeconds;
+    private static final int EXPIRY_PERIOD_IN_SECONDS = 10;
 
-    public RandomHistoryPersistence(RedisConnectionPool connectionPool, int expiryPeriodInSeconds) {
+    @Autowired
+    public RandomHistoryPersistence(RedisConnectionPool connectionPool) {
         super(connectionPool);
-        this.expiryPeriodInSeconds = expiryPeriodInSeconds;
     }
 
     public void set(int userNo1, int userNo2) {
-        super.setex(makeKey(userNo1, userNo2), MET, expiryPeriodInSeconds);
+        super.setex(makeKey(userNo1, userNo2), MET, EXPIRY_PERIOD_IN_SECONDS);
     }
 
     public boolean exists(int userNo1, int userNo2) {

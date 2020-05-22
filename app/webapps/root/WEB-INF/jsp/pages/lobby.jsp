@@ -1,14 +1,28 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
-<link rel="stylesheet" type="text/css" href="/assets/css/page-rooms.css?v11" />
+<link rel="stylesheet" type="text/css" href="/assets/css/chat-common.css?v0.12" />
+<link rel="stylesheet" type="text/css" href="/assets/css/page-lobby.css?v11" />
+<script src="/assets/js/chat-client-default.js?v0.10"></script>
+<script src="/assets/js/chat-client-lobby.js?v0.1"></script>
 <script src="https://www.google.com/recaptcha/api.js?render=explicit&onload=loadCaptcha"></script>
 <script src="/assets/js/recaptcha.js?v1"></script>
-<script src="/assets/js/page-rooms.js?v0.1"></script>
+<script src="/assets/js/page-lobby.js?v0.1"></script>
+<script>
+    const chatClientSettings = {
+        serverEndpoint: "/chat/lobby/",
+        autoConnectEnabled: true,
+        admissionToken: "${page.token}",
+        homepage: "/"
+    }
+</script>
 <div class="grid-y grid-frame">
     <div class="header cell cell-block-container">
         <div class="grid-x">
             <div class="cell auto align-self-middle">
-                <h1><i class="fi-results-demographics"></i> Text Chat Club</h1>
+                <button type="button" class="button people" title="People">
+                    <i class="iconfont fi-results-demographics"></i>
+                    <span id="totalPeople">0</span></button>
+                <h1>Text Chat Club</h1>
             </div>
             <div class="cell shrink align-self-middle text-right">
                 <button type="button" class="button signout" title="Sign out">Sign out</button>
@@ -17,13 +31,12 @@
     </div>
     <div class="body shadow cell auto cell-block-container">
         <div class="grid-x full-height">
-            <div class="sidebar cell medium-4 large-3 cell-block-y show-for-large">
-                <%@ include file="includes/sidebar-user.jsp" %>
-                <div class="side-menu"></div>
+            <div class="sidebar cell medium-4 large-3 cell-block-y hide-for-small-only">
+                <ul id="contacts"></ul>
             </div>
             <div class="cell auto cell-block-y">
                 <div class="grid-container">
-                    <%@ include file="includes/rooms-user.jsp" %>
+                    <%@ include file="includes/lobby-user.jsp" %>
                     <div class="rooms grid-x grid-margin-x grid-margin-y t10">
                         <div class="cell medium-12 large-8 card random guide small-order-1 large-order-2">
                             <div class="card-section">
@@ -71,6 +84,26 @@
             </div>
         </div>
     </div>
+    <div class="footer shadow cell">
+        <div class="grid-x grid-padding-x grid-padding-y">
+            <div class="sidebar cell medium-4 large-3 cell-block-y hide-for-small-only">
+                <%@ include file="includes/sidebar-user.jsp" %>
+            </div>
+            <div class="message-box cell auto cell-block-y">
+                <form id="send-message">
+                    <div class="input-group">
+                        <input id="message" class="input-group-field" type="text" autocomplete="off" placeholder="Enter your message"/>
+                        <input id="for-automata-clear" type="text"/>
+                        <div class="input-group-button">
+                            <button type="submit" class="button send" title="Send message"><i class="icon-paper-plane"></i></button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
-<%@ include file="includes/rooms-room-create.jsp" %>
-<%@ include file="includes/rooms-room-create-complete.jsp" %>
+<%@ include file="includes/lobby-not-available.jsp" %>
+<%@ include file="includes/lobby-room-create.jsp" %>
+<%@ include file="includes/lobby-room-create-complete.jsp" %>
+<%@ include file="includes/chat-reveals.jsp" %>
