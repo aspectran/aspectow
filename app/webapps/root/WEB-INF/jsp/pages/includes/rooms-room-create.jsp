@@ -11,6 +11,9 @@
                         A chat room with the same name already exists.<br/>
                         Please enter a different chat room name.
                     </p>
+                    <p class="form-error room-name-required">
+                        Please enter your chat room name.
+                    </p>
                 </label>
                 <label>Language:
                     <select name="lang_cd">

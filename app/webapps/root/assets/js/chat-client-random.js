@@ -1,5 +1,5 @@
-$(function() {
-    $("form#send-message").off().submit(function() {
+$(function () {
+    $("form#send-message").off().submit(function () {
         $("#for-automata-clear").focus();
         if (getTotalPeople() > 1) {
             sendMessage();
@@ -7,12 +7,12 @@ $(function() {
         readyToType();
         return false;
     });
-    $(".message-box button.next").on("click", function() {
+    $(".message-box button.next").on("click", function () {
         startLooking();
     });
-    $("#convo").on("click", ".message.event .content button.next", function() {
+    $("#convo").on("click", ".message.event .content button.next", function () {
         startLooking();
-    }).on("click", ".message.event .content button.cancel", function() {
+    }).on("click", ".message.event .content button.cancel", function () {
         stopLooking(true);
     });
     startLooking();
@@ -31,7 +31,7 @@ function startLooking() {
             url: "/rooms/random/token",
             method: 'GET',
             dataType: 'json',
-            success: function(token) {
+            success: function (token) {
                 if (token) {
                     if (!canceled) {
                         hideSidebar();
@@ -41,7 +41,7 @@ function startLooking() {
                     serviceNotAvailable();
                 }
             },
-            error: function(xhr) {
+            error: function (xhr) {
                 serviceNotAvailable();
             }
         });
@@ -86,7 +86,7 @@ function drawLookingBar(intermission) {
         "<button type='button' class='success button cancel'>Cancel</button>";
     printEvent(text);
     if (intermission) {
-        setTimeout(function() {
+        setTimeout(function () {
             $("#convo .message.event .content .sign").addClass("animate");
         }, 200);
     }
@@ -103,7 +103,7 @@ function printUserJoinedMessage(payload, restored) {
         payload.username + "</strong>.";
     printEvent(text, restored);
     readyToType();
-    setTimeout(function() {
+    setTimeout(function () {
         hideSidebar();
     }, 500);
 }
@@ -118,9 +118,9 @@ function serviceNotAvailable() {
     closeSocket();
     clearChaters();
     clearConvo();
-    noticePopup("Please note",
+    openNoticePopup("Please note",
         "Sorry. Our random chat service is not available at this time.",
-        function() {
+        function () {
             gotoHomepage();
     });
 }

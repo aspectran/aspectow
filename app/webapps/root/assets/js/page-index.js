@@ -1,20 +1,30 @@
-$(function() {
+$(function () {
     if ($("#index-already-signed-in").length) {
         $("#index-already-signed-in").foundation('open');
+        return;
     }
-    $("form#sign-in").submit(function() {
+    $("form#sign-in").submit(function () {
         let username = $("#username").val().trim();
         if (!username) {
             return false;
         }
         $("#username").val(username);
-        executeCaptcha("sign_in", signIn);
+        executeCaptcha("sign_in", startSignIn);
         return false;
     });
     $("#username").val(getCookie("username")).select();
 });
 
-function signIn() {
+function startSignIn() {
+    openWaitPopup("Please wait while we are processing your request..", function () {
+        location.reload();
+    }, 10000);
+    setTimeout(function () {
+        doSignIn();
+    }, 600);
+}
+
+function doSignIn() {
     if (!recaptchaResponse) {
         return;
     }
@@ -29,7 +39,8 @@ function signIn() {
                 recaptchaResponse: recaptchaResponse,
                 timeZone: getTimeZone()
             },
-            success: function(result) {
+            success: function (result) {
+                closeWaitPopup();
                 switch (result) {
                     case "0":
                         setCookie("username", username, 1);
@@ -48,6 +59,7 @@ function signIn() {
                 }
             },
             error: function (request, status, error) {
+                closeWaitPopup();
                 alert("An error has occurred making the request: " + error);
             }
         });

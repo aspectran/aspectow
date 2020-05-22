@@ -17,7 +17,7 @@
 <script>
     /* Set a custom property that contains the height value of the viewport */
     document.documentElement.style.setProperty("--vh", (window.innerHeight * 0.01) + "px");
-    window.addEventListener("resize", function() {
+    window.addEventListener("resize", function () {
         document.documentElement.style.setProperty("--vh", (window.innerHeight * 0.01) + "px");
     });
 </script>

@@ -52,7 +52,7 @@
                             <div class="card-section">
                                 <a data-open="rooms-room-create"><h4>New Chatroom</h4></a>
                                 <p>Meeting people with similar interests</p>
-                                <a class="button small start" data-open="rooms-room-create">Create chatroom</a>
+                                <a class="button small start room-create">Create chatroom</a>
                             </div>
                         </div>
                     </div>

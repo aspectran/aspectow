@@ -66,3 +66,4 @@
     </div>
 </div>
 <%@ include file="includes/index-already-signed-in.jsp" %>
+<%@ include file="includes/common-wait-popup.jsp" %>

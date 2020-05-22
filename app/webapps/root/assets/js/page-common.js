@@ -1,12 +1,12 @@
-$(function() {
+$(function () {
     $(document).foundation();
 
-    $("button.signout").click(function() {
+    $("button.signout").click(function () {
         location.href = "/signout"
     });
 
     /* Creating custom :external selector */
-    $.expr[':'].external = function(obj) {
+    $.expr[':'].external = function (obj) {
         return !obj.href.match(/^javascript:/)
             && !obj.href.match(/^mailto:/)
             && (obj.hostname !== location.hostname);
@@ -17,16 +17,40 @@ $(function() {
     $(".external").attr('target','_blank');
 });
 
-function noticePopup(title, message, action) {
+function openNoticePopup(title, message, action) {
     let p = $("<p/>").text(message);
     let popup = $("#common-notice-popup");
     popup.find("h3").text(title);
     popup.find(".content").html("").append(p);
-    popup.find(".button.ok").off().on("click", function() {
+    popup.find(".button.ok").off().on("click", function () {
         if (action) {
             action();
         }
         popup.foundation('close');
     });
     popup.foundation('open');
+}
+
+function openWaitPopup(message, action, timeout) {
+    let p = $("<p/>").text(message);
+    let popup = $("#common-wait-popup");
+    popup.find(".content").html("").append(p);
+    popup.find(".button.cancel").hide().off().on("click", function () {
+        if (action) {
+            action();
+        }
+        popup.foundation('close');
+    });
+    popup.foundation('open');
+    if (timeout > 0) {
+        setTimeout(function () {
+            popup.find(".button.cancel").show();
+        }, timeout);
+    } else {
+        popup.find(".button.cancel").show();
+    }
+}
+
+function closeWaitPopup() {
+    $("#common-wait-popup").foundation('close');
 }

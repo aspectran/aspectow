@@ -5,8 +5,6 @@
     const chatClientSettings = {
         serverEndpoint: "/chat/default/",
         autoConnectEnabled: true,
-        userNo: Number("${page.userNo}"),
-        username: "${page.username}",
         token: "${page.token}",
         homepage: "/rooms"
     }

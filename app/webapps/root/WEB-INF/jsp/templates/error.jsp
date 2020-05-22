@@ -5,7 +5,7 @@
 <head>
     <%@ include file="includes/head.jsp" %>
     <script>
-        $(function() {
+        $(function () {
             $("#error-report").foundation('open');
         })
     </script>

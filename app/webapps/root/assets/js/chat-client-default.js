@@ -3,29 +3,29 @@ let heartbeatTimer;
 let pendedMessages;
 let aborted;
 
-$(function() {
-    $("form#send-message").submit(function() {
+$(function () {
+    $("form#send-message").submit(function () {
         $("#for-automata-clear").focus();
         sendMessage();
         return false;
     });
-    $("#message").on("focusin", function() {
+    $("#message").on("focusin", function () {
         hideSidebar();
     });
-    $(".header button.people").on("click", function() {
+    $(".header button.people").on("click", function () {
         toggleSidebar();
     });
-    $("button.leave").on("click", function() {
+    $("button.leave").on("click", function () {
         leaveRoom();
     });
-    $("#convo").on("click", ".message.event.group .more", function() {
+    $("#convo").on("click", ".message.event.group .more", function () {
         $(this).parent().toggleClass("all-visible");
-    }).on("mouseleave", ".message.event.group.all-visible", function() {
+    }).on("mouseleave", ".message.event.group.all-visible", function () {
         $(this).toggleClass("all-visible");
     });
     readyToType();
     if (chatClientSettings.autoConnectEnabled !== false) {
-        setTimeout(function() {
+        setTimeout(function () {
             openSocket(chatClientSettings.token);
         }, 300);
     }
@@ -41,24 +41,24 @@ function openSocket(token) {
     url.protocol = url.protocol.replace('https:', 'wss:');
     url.protocol = url.protocol.replace('http:', 'ws:');
     socket = new WebSocket(url.href);
-    socket.onopen = function(event) {
+    socket.onopen = function (event) {
         let chatMessage = {
             message: {
                 type: 'JOIN',
-                userNo: chatClientSettings.userNo,
-                username: chatClientSettings.username
+                userNo: userInfo.userNo,
+                username: userInfo.username
             }
         };
         socket.send(serialize(chatMessage));
         heartbeatPing();
     };
-    socket.onmessage = function(event) {
+    socket.onmessage = function (event) {
         if (typeof event.data === "string") {
             let chatMessage = deserialize(event.data);
             handleMessage(chatMessage);
         }
     };
-    socket.onclose = function(event) {
+    socket.onclose = function (event) {
         if (aborted) {
             gotoHomepage();
             return;
@@ -66,7 +66,7 @@ function openSocket(token) {
         closeSocket();
         checkConnection(100);
     };
-    socket.onerror = function(event) {
+    socket.onerror = function (event) {
         console.error("WebSocket error observed:", event);
         closeSocket();
         checkConnection(100);
@@ -78,7 +78,7 @@ function heartbeatPing() {
     if (heartbeatTimer) {
         clearTimeout(heartbeatTimer);
     }
-    heartbeatTimer = setTimeout(function() {
+    heartbeatTimer = setTimeout(function () {
         if (socket) {
             let chatMessage = {
                 heartBeat: "-ping-"
@@ -90,16 +90,16 @@ function heartbeatPing() {
 }
 
 function checkConnection(delay) {
-    setTimeout(function() {
+    setTimeout(function () {
         $.ajax("/ping")
-            .done(function(result) {
+            .done(function (result) {
                 if (result === "pong") {
                     reloadPage();
                 } else {
                     gotoHomepage();
                 }
             })
-            .fail(function() {
+            .fail(function () {
                 let retries = $("#connection-lost").data("retries")||0;
                 $("#connection-lost").data("retries", retries + 1);
                 if (retries === 0) {
@@ -132,7 +132,7 @@ function handleMessage(chatMessage) {
         pendedMessages.push(chatMessage);
         return;
     }
-    Object.getOwnPropertyNames(chatMessage).forEach(function(val, idx, array) {
+    Object.getOwnPropertyNames(chatMessage).forEach(function (val, idx, array) {
         let payload = chatMessage[val];
         if (payload) {
             switch (val) {
@@ -196,8 +196,8 @@ function sendMessage() {
     if (text) {
         let message = {
             type: 'CHAT',
-            userNo: chatClientSettings.userNo,
-            username: chatClientSettings.username,
+            userNo: userInfo.userNo,
+            username: userInfo.username,
             content: text
         }
         let chatMessage = {
@@ -222,7 +222,7 @@ function setChaters(chaters) {
             }
         }
         updateTotalPeople();
-        findUser(chatClientSettings.userNo).addClass("me");
+        findUser(userInfo.userNo).addClass("me");
     }
 }
 
@@ -244,7 +244,7 @@ function removeChater(userNo) {
 
 function findUser(userNo) {
     return $("#contacts .contact")
-        .filter(function() {
+        .filter(function () {
             return ($(this).data("user-no") === userNo);
         });
 }
@@ -343,7 +343,7 @@ function printUserEvent(payload, event, restored) {
 }
 
 function printMessage(payload, restored) {
-    let myself = (chatClientSettings.userNo === payload.userNo);
+    let myself = (userInfo.userNo === payload.userNo);
     let sender = $("<span class='username'/>")
         .text(myself ? "You" : payload.username);
     let content = $("<p class='content'/>").text(payload.content);
@@ -394,7 +394,7 @@ function printError(text, restored) {
 function printRecentConvo(chatMessages) {
     for (let i in chatMessages) {
         let chatMessage = chatMessages[i];
-        Object.getOwnPropertyNames(chatMessage).forEach(function(val, idx, array) {
+        Object.getOwnPropertyNames(chatMessage).forEach(function (val, idx, array) {
             let payload = chatMessage[val];
             if (payload) {
                 switch (val) {
