@@ -97,8 +97,8 @@ public class LobbyChatHandler extends AbstractChatHandler {
                 replaced = true;
             }
             inConvoUsersPersistence.put(chaterInfo.getUsername(), chaterInfo.getHttpSessionId());
-            Set<String> roomChaters = chatersPersistence.getChaters(chaterInfo.getRoomId());
             chatersPersistence.put(chaterInfo);
+            Set<String> roomChaters = chatersPersistence.getChaters(chaterInfo.getRoomId());
             JoinPayload payload = new JoinPayload();
             payload.setUsername(chaterInfo.getUsername());
             payload.setChaters(roomChaters);

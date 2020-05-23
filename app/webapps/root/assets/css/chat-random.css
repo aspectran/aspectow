@@ -6,21 +6,21 @@
     background-color: #1b838d;
     color: #fff;
 }
-.random #convo .message.event .content .iconfont.sign {
+.random #convo .message.event .content .iconfont.banner {
     display: block;
     font-size: 6em;
-    width: 150px;
+    width: 1em;
     margin: 0 auto;
     color: #879495;
     text-shadow: 5px 5px 1px #ccc;
 }
-.random #convo .message.event .content .iconfont.sign.animate {
+.random #convo .message.event .content .iconfont.banner.animate {
     -webkit-transition: width .5s, height .5s, background-color 1s, -webkit-transform 1s;
     transition: width .5s, height .5s, background-color 1s, transform 1s;
     -webkit-transform: rotate(360deg);
     transform: rotate(360deg);
 }
-.random #convo .message.event .content .iconfont.sign.active {
+.random #convo .message.event .content .iconfont.banner.active {
     color: #1b838d;
 }
 .random #convo .message.event .content h3 {

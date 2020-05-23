@@ -43,6 +43,7 @@
                 +: /**
                 -: /
                 -: /*/signin
+                -: /modal/**
             }
         </joinpoint>
         <advice bean="userManager">

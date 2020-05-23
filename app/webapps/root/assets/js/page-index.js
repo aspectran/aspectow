@@ -1,5 +1,5 @@
 $(function () {
-    if ($("#index-already-signed-in").length) {
+    if (userInfo && userInfo.userNo) {
         $("#index-already-signed-in").foundation('open');
         return;
     }
@@ -40,20 +40,22 @@ function doSignIn() {
                 timeZone: getTimeZone()
             },
             success: function (result) {
-                closeWaitPopup();
                 switch (result) {
                     case "0":
                         setCookie("username", username, 1);
                         location.href = "/lobby";
                         break;
                     case "-1":
+                        closeWaitPopup();
                         alert("reCAPTCHA verification failed");
                         break;
                     case "-2":
+                        closeWaitPopup();
                         $(".form-error.already-in-use").show();
                         $("#username").select().focus();
                         break;
                     default:
+                        closeWaitPopup();
                         console.error(result);
                         alert("Unexpected error occurred.");
                 }

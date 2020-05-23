@@ -64,7 +64,7 @@
                         </div>
                         <div class="cell medium-12 large-4 card room create small-order-3">
                             <div class="card-section">
-                                <a data-open="rooms-room-create"><h4>New Chatroom</h4></a>
+                                <a data-open="lobby-room-create"><h4>New Chatroom</h4></a>
                                 <p>Meeting people with similar interests</p>
                                 <a class="button small start room-create">Create chatroom</a>
                             </div>
@@ -110,4 +110,6 @@
 <%@ include file="includes/lobby-not-available.jsp" %>
 <%@ include file="includes/lobby-room-create.jsp" %>
 <%@ include file="includes/lobby-room-create-complete.jsp" %>
-<%@ include file="includes/chat-reveals.jsp" %>
+<%@ include file="includes/common-connection-lost.jsp" %>
+<%@ include file="includes/chat-duplicate-join.jsp" %>
+

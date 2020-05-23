@@ -6,7 +6,6 @@ let frequentlySentCount = 0;
 
 $(function () {
     if (!chatClientSettings) {
-        gotoHomepage();
         return;
     }
     $(".header button.people").on("click", function () {
@@ -119,10 +118,10 @@ function checkConnection(delay) {
                 }
             })
             .fail(function () {
-                let retries = $("#connection-lost").data("retries")||0;
-                $("#connection-lost").data("retries", retries + 1);
+                let retries = $("#common-connection-lost").data("retries")||0;
+                $("#common-connection-lost").data("retries", retries + 1);
                 if (retries === 0) {
-                    $("#connection-lost").foundation('open');
+                    $("#common-connection-lost").foundation('open');
                 } else if (retries > 25) {
                     console.log("Abandon reconnection");
                     return;
@@ -191,7 +190,7 @@ function handleMessage(chatMessage) {
                             leaveRoom(true);
                             break;
                         case "rejoin":
-                            $("#duplicate-join").foundation('open');
+                            $("#chat-duplicate-join").foundation('open');
                             break;
                         default:
                             //alert("Abnormal access detected.");

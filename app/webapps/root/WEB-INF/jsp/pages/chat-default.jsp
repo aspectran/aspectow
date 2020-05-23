@@ -52,4 +52,5 @@
         </div>
     </div>
 </div>
-<%@ include file="includes/chat-reveals.jsp" %>
+<%@ include file="includes/common-connection-lost.jsp" %>
+<%@ include file="includes/chat-duplicate-join.jsp" %>

@@ -62,28 +62,28 @@ function stopLooking(convoClear) {
 }
 
 function drawSearchBar() {
-    let text = "<i class='iconfont fi-shuffle sign'></i>" +
+    let text = "<i class='iconfont fi-shuffle banner'></i>" +
         "<button type='button' class='success button next'>Search for another stranger</button>";
     printEvent(text);
 }
 
 function drawLookingBar(intermission) {
-    let sign;
+    let banner;
     let title;
     if (intermission) {
-        sign = "<i class='iconfont fi-shuffle sign'></i>";
+        banner = "<i class='iconfont fi-shuffle banner'></i>";
         title = "<h3 class='wait'>Please wait a moment.</h3>";
     } else {
-        sign = "<i class='iconfont fi-shuffle sign active'></i>";
+        banner = "<i class='iconfont fi-shuffle banner active'></i>";
         title = "<h3>Looking for stranger...</h3>";
     }
-    let text = sign + title +
+    let text = banner + title +
         "<div class='progress-bar'><div class='cylon_eye'></div></div>" +
         "<button type='button' class='success button cancel'>Cancel</button>";
     printEvent(text);
     if (intermission) {
         setTimeout(function () {
-            $("#convo .message.event .content .sign").addClass("animate");
+            $("#convo .message.event .content .banner").addClass("animate");
         }, 200);
     }
 }

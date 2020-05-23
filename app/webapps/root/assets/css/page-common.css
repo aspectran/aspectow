@@ -215,9 +215,26 @@ input#for-automata-clear {
     margin: 0;
     padding: .4em .8em;
 }
-.reveal.popup .buttons {
-    text-align: right;
-}
 .reveal.popup .close-button {
     color: #f5fffa;
 }
+.reveal.popup .banner {
+    display: block;
+    font-size: 10em;
+    line-height: 1.2;
+    text-align: center;
+    width: 1em;
+    margin: 0 auto;
+    color: #999;
+    text-shadow: 5px 5px 1px #fff;
+    border-radius: 50%;
+}
+.reveal.popup .banner.animate {
+    text-shadow: none;
+    -webkit-animation: spin 4s linear infinite;
+    -moz-animation: spin 4s linear infinite;
+    animation: spin 4s linear infinite;
+}
+@-moz-keyframes spin { 100% { -moz-transform: rotate(360deg); } }
+@-webkit-keyframes spin { 100% { -webkit-transform: rotate(360deg); } }
+@keyframes spin { 100% { -webkit-transform: rotate(360deg); transform:rotate(360deg); } }

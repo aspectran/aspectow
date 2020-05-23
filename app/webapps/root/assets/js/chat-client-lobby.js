@@ -47,6 +47,7 @@ function printUserLeftMessage(payload, restored) {
 function leaveRoom(force) {
     closeSocket();
     if (force) {
+        $("#lobby-not-available").foundation('close');
         location.href = "/signout";
     } else {
         gotoHomepage();
