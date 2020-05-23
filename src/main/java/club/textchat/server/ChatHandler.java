@@ -13,19 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package club.textchat.common.mybatis;
+package club.textchat.server;
 
-import com.aspectran.core.component.bean.annotation.Bean;
-import com.aspectran.core.component.bean.annotation.Component;
-import com.aspectran.mybatis.SqlSessionAgent;
+import club.textchat.server.message.ChatMessage;
 
-@Component
-@Bean("simpleSqlSession")
-public class SimpleSqlSession extends SqlSessionAgent {
+import java.util.function.BiPredicate;
 
-    public SimpleSqlSession() {
-        super("simpleTxAspect");
-        setAutoParameters(true);
-    }
+public interface ChatHandler {
+
+    void broadcast(ChatMessage message);
+
+    void broadcast(ChatMessage message, String roomId);
+
+    void broadcast(ChatMessage message, int userNo);
+
+    void broadcast(ChatMessage message, String roomId, int userNo);
+
+    void broadcast(ChatMessage message, BiPredicate<String, Integer> predicate);
 
 }
