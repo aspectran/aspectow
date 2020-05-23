@@ -108,3 +108,13 @@
     font-size: .8em;
     font-weight: bold;
 }
+h6.info {
+    font-size: .85em;
+    background-color: #f5f5f5;
+    border-radius: 8px;
+    padding: .6em .8em;
+    margin: 0;
+}
+.rooms.public .cell {
+    margin-bottom: 0;
+}

@@ -20,7 +20,6 @@
                 <div class="grid-container grid-x grid-margin-y">
                     <div class="cell large-8">
                         <form id="sign-in" method="post">
-                            <h3>Text Chat Club is still in production, but you can try it out in advance.</h3>
                             <p>Chat with anyone you want, about anything you want, free.</p>
                             <p>Please enter your username.</p>
                             <div class="input-group">
@@ -37,9 +36,8 @@
                         </form>
                     </div>
                     <div class="cell">
-                        <h3>COMING SOON</h3>
-                        <p>We are working hard to make this website.<br/>
-                            This website provides a chat service that anyone can talk to freely.</p>
+                        <h3>TextChatClub launches Beta Service on May 24th!</h3>
+                        <p>This website provides a chat service that anyone can talk to freely.</p>
                         <p>Here are the differences from other chat sites:</p>
                         <ul>
                             <li>Text-based chat to prevent social side effects and to feel the purity of the past</li>

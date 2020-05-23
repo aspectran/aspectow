@@ -70,7 +70,12 @@
                             </div>
                         </div>
                     </div>
-                    <div class="rooms public grid-x grid-margin-x grid-margin-y t10">
+                    <div class="grid-x grid-margin-y t10">
+                        <div class="cell">
+                            <h6 class="info">Select a room you would like to join from the list below.</h6>
+                        </div>
+                    </div>
+                    <div class="rooms public grid-x grid-margin-x grid-margin-y">
                     <c:forEach items="${page.rooms}" var="roomInfo">
                         <div class="cell small-12 medium-6 large-4 card room<c:if test="${roomInfo.currentUsers gt 0}"> active</c:if>">
                             <div class="card-section">
