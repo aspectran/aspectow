@@ -1,11 +1,12 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
 <meta name="google" content="notranslate">
 <title>Text Chat Club<c:if test="${not empty page.title}"> - ${page.title}</c:if></title>
-<meta name="description" content="${empty page.description ? "Chat with anyone you want, about anything you want, free." : page.description}" />
-<link rel="stylesheet" type="text/css" href="https://aspectran.com/assets/css/aspectran.css?v1" />
+<meta name="description" content="Chat with anyone. Meet new people at random. Completely anonymously. No registration. No logs.">
+<meta name="keywords" content="chat with anyone, talk to strangers, random chat, chat with strangers, chat random">
+<link rel="stylesheet" type="text/css" href="https://aspectran.com/assets/css/aspectran.css?v1">
 <link rel="stylesheet" type="text/css" href="/assets/css/page-common.css?v12" />
 <link href="https://fonts.googleapis.com/css?family=Raleway:500,500i,700" rel="stylesheet">
 <script src="/assets/js/modernizr-custom.js"></script>

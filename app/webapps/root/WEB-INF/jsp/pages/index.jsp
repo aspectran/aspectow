@@ -20,7 +20,8 @@
                 <div class="grid-container grid-x grid-margin-y">
                     <div class="cell large-8">
                         <form id="sign-in" method="post">
-                            <p>Chat with anyone you want, about anything you want, free.</p>
+                            <h3>Welcome to Text Chat Club.</h3>
+                            <p>Chat with anyone. Meet new people at random. Completely anonymously.<br/>No registration. No logs.</p>
                             <p>Please enter your username.</p>
                             <div class="input-group">
                                 <input class="input-group-field" type="text" id="username" maxlength="30" placeholder="Username" autocomplete="off" autofocus/>
