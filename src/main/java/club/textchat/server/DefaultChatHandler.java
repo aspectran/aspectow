@@ -19,6 +19,7 @@ import club.textchat.redis.persistence.ChatersPersistence;
 import club.textchat.redis.persistence.DefaultConvoPersistence;
 import club.textchat.redis.persistence.InConvoUsersPersistence;
 import club.textchat.redis.persistence.SignedInUsersPersistence;
+import club.textchat.room.RoomManager;
 import club.textchat.server.message.ChatMessage;
 import club.textchat.server.message.payload.BroadcastPayload;
 import club.textchat.server.message.payload.JoinPayload;
@@ -41,12 +42,16 @@ public class DefaultChatHandler extends AbstractChatHandler {
 
     private final DefaultConvoPersistence defaultConvoPersistence;
 
+    private final RoomManager roomManager;
+
     public DefaultChatHandler(SignedInUsersPersistence signedInUsersPersistence,
                               InConvoUsersPersistence inConvoUsersPersistence,
                               ChatersPersistence chatersPersistence,
-                              DefaultConvoPersistence defaultConvoPersistence) {
+                              DefaultConvoPersistence defaultConvoPersistence,
+                              RoomManager roomManager) {
         super(signedInUsersPersistence, inConvoUsersPersistence, chatersPersistence);
         this.defaultConvoPersistence = defaultConvoPersistence;
+        this.roomManager = roomManager;
     }
 
     protected void handle(Session session, ChatMessage chatMessage) {
@@ -64,17 +69,17 @@ public class DefaultChatHandler extends AbstractChatHandler {
                     String username = chaterInfo.getUsername();
                     String username2 = payload.getUsername();
                     if (!username.equals(username2)) {
-                        abort(session, chaterInfo, "abnormal");
+                        sendAbort(session, chaterInfo, "abnormal");
                         return;
                     }
                     if (existsChater(chaterInfo)) {
                         if (!checkSameUser(chaterInfo)) {
-                            abort(session, chaterInfo, "exists");
+                            sendAbort(session, chaterInfo, "exists");
                             return;
                         }
                         Session session2 = chaters.get(chaterInfo);
                         if (session2 != null) {
-                            abort(session2, chaterInfo, "rejoin");
+                            sendAbort(session2, chaterInfo, "rejoin");
                         }
                         if (!join(session, chaterInfo, true)) {
                             broadcastUserJoined(chaterInfo);
@@ -85,9 +90,14 @@ public class DefaultChatHandler extends AbstractChatHandler {
                     }
                     break;
                 default:
-                    abort(session, chaterInfo, "abnormal");
+                    sendAbort(session, chaterInfo, "abnormal");
             }
         }
+    }
+
+    protected void close(Session session, CloseReason reason) {
+        ChaterInfo chaterInfo = getChaterInfo(session);
+        leave(session, chaterInfo);
     }
 
     private boolean join(Session session, ChaterInfo chaterInfo, boolean rejoin) {
@@ -106,13 +116,9 @@ public class DefaultChatHandler extends AbstractChatHandler {
             payload.setRejoin(rejoin);
             ChatMessage message = new ChatMessage(payload);
             send(session, message);
+            roomManager.checkIn(chaterInfo.getRoomId());
         }
         return replaced;
-    }
-
-    protected void close(Session session, CloseReason reason) {
-        ChaterInfo chaterInfo = getChaterInfo(session);
-        leave(session, chaterInfo);
     }
 
     private void leave(Session session, ChaterInfo chaterInfo) {
@@ -121,6 +127,7 @@ public class DefaultChatHandler extends AbstractChatHandler {
             signedInUsersPersistence.tryAbandon(chaterInfo.getUsername(), chaterInfo.getHttpSessionId());
             inConvoUsersPersistence.remove(chaterInfo.getUsername());
             broadcastUserLeft(chaterInfo);
+            roomManager.checkOut(chaterInfo.getRoomId());
         }
     }
 

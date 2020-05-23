@@ -64,17 +64,17 @@ public class LobbyChatHandler extends AbstractChatHandler {
                     String username = chaterInfo.getUsername();
                     String username2 = payload.getUsername();
                     if (!username.equals(username2)) {
-                        abort(session, chaterInfo, "abnormal");
+                        sendAbort(session, chaterInfo, "abnormal");
                         return;
                     }
                     if (existsChater(chaterInfo)) {
                         if (!checkSameUser(chaterInfo)) {
-                            abort(session, chaterInfo, "exists");
+                            sendAbort(session, chaterInfo, "exists");
                             return;
                         }
                         Session session2 = chaters.get(chaterInfo);
                         if (session2 != null) {
-                            abort(session2, chaterInfo, "rejoin");
+                            sendAbort(session2, chaterInfo, "rejoin");
                         }
                         if (!join(session, chaterInfo, true)) {
                             broadcastUserJoined(chaterInfo);
@@ -85,9 +85,14 @@ public class LobbyChatHandler extends AbstractChatHandler {
                     }
                     break;
                 default:
-                    abort(session, chaterInfo, "abnormal");
+                    sendAbort(session, chaterInfo, "abnormal");
             }
         }
+    }
+
+    protected void close(Session session, CloseReason reason) {
+        ChaterInfo chaterInfo = getChaterInfo(session);
+        leave(session, chaterInfo);
     }
 
     private boolean join(Session session, ChaterInfo chaterInfo, boolean rejoin) {
@@ -107,11 +112,6 @@ public class LobbyChatHandler extends AbstractChatHandler {
             send(session, message);
         }
         return replaced;
-    }
-
-    protected void close(Session session, CloseReason reason) {
-        ChaterInfo chaterInfo = getChaterInfo(session);
-        leave(session, chaterInfo);
     }
 
     private void leave(Session session, ChaterInfo chaterInfo) {

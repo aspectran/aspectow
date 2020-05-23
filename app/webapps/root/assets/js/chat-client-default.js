@@ -1,8 +1,9 @@
 let socket;
 let heartbeatTimer;
 let pendedMessages;
-let aborted;
 let frequentlySentCount = 0;
+let chatAborted;
+let justStayHere;
 
 $(function () {
     if (!chatClientSettings) {
@@ -77,12 +78,15 @@ function openSocket(token) {
         }
     };
     socket.onclose = function (event) {
-        if (aborted) {
-            gotoHomepage();
-            return;
+        if (chatAborted ) {
+            closeSocket();
+            if (!justStayHere) {
+                gotoHomepage();
+            }
+        } else {
+            closeSocket();
+            checkConnection(100);
         }
-        closeSocket();
-        checkConnection(100);
     };
     socket.onerror = function (event) {
         console.error("WebSocket error observed:", event);
@@ -111,7 +115,7 @@ function checkConnection(delay) {
     setTimeout(function () {
         $.ajax("/ping")
             .done(function (result) {
-                if (result === "pong") {
+                if (result === "pong" && !chatAborted) {
                     reloadPage();
                 } else {
                     gotoHomepage();
@@ -183,18 +187,20 @@ function handleMessage(chatMessage) {
                     pendedMessages = null;
                     break;
                 case "abort":
-                    aborted = true;
+                    chatAborted = true;
+                    justStayHere = false;
                     switch (payload.cause) {
                         case "exists":
                             alert("Username already in use. Please sign in again.");
                             leaveRoom(true);
                             break;
                         case "rejoin":
+                            justStayHere = true;
                             $("#chat-duplicate-join").foundation('open');
                             break;
                         default:
-                            //alert("Abnormal access detected.");
-                            checkConnection();
+                            justStayHere = true;
+                            serviceNotAvailable();
                     }
                     break;
             }
@@ -462,6 +468,14 @@ function gotoHomepage() {
     if (chatClientSettings.homepage) {
         location.href = chatClientSettings.homepage;
     }
+}
+
+function serviceNotAvailable() {
+    openNoticePopup("Please note",
+        "Sorry. Our service is unavailable due to a system error.",
+        function () {
+            gotoHomepage();
+        });
 }
 
 function serialize(json) {

@@ -56,4 +56,12 @@ public class RoomManager {
         return list;
     }
 
+    public void checkIn(String roomId) {
+        sqlSession.update("rooms.updateRoomForCheckIn", roomId);
+    }
+
+    public void checkOut(String roomId) {
+        sqlSession.update("rooms.updateRoomForCheckOut", roomId);
+    }
+
 }

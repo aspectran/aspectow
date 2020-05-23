@@ -78,7 +78,7 @@ public class RandomChatHandler extends AbstractChatHandler {
         if (payload != null) {
             ChaterInfo chaterInfo = getChaterInfo(session);
             if (!ChatAction.RANDOM_CHATROOM_ID.equals(chaterInfo.getRoomId())) {
-                abort(session, chaterInfo, "no-chater");
+                sendAbort(session, chaterInfo, "no-chater");
                 return;
             }
             switch (payload.getType()) {
@@ -90,17 +90,17 @@ public class RandomChatHandler extends AbstractChatHandler {
                     String username = chaterInfo.getUsername();
                     String username2 = payload.getUsername();
                     if (!username.equals(username2)) {
-                        abort(session, chaterInfo, "abnormal");
+                        sendAbort(session, chaterInfo, "abnormal");
                         return;
                     }
                     if (existsChater(chaterInfo)) {
                         if (!checkSameUser(chaterInfo)) {
-                            abort(session, chaterInfo, "exists");
+                            sendAbort(session, chaterInfo, "exists");
                             return;
                         }
                         Session session2 = chaters.get(chaterInfo);
                         if (session2 != null) {
-                            abort(session2, chaterInfo, "rejoin");
+                            sendAbort(session2, chaterInfo, "rejoin");
                         }
                         join(session, chaterInfo, true);
                     } else {
@@ -108,9 +108,14 @@ public class RandomChatHandler extends AbstractChatHandler {
                     }
                     break;
                 default:
-                    abort(session, chaterInfo, "abnormal");
+                    sendAbort(session, chaterInfo, "abnormal");
             }
         }
+    }
+
+    protected void close(Session session, CloseReason reason) {
+        ChaterInfo chaterInfo = getChaterInfo(session);
+        leave(session, chaterInfo);
     }
 
     private void join(Session session, ChaterInfo chaterInfo, boolean rejoin) {
@@ -130,18 +135,6 @@ public class RandomChatHandler extends AbstractChatHandler {
         }
     }
 
-    @Override
-    protected void abort(Session session, ChaterInfo chaterInfo, String cause) {
-        randomChatCoupler.withdraw(chaterInfo);
-        randomChaterPersistence.remove(chaterInfo.getUserNo());
-        super.abort(session, chaterInfo, cause);
-    }
-
-    protected void close(Session session, CloseReason reason) {
-        ChaterInfo chaterInfo = getChaterInfo(session);
-        leave(session, chaterInfo);
-    }
-
     private void leave(Session session, ChaterInfo chaterInfo) {
         randomChatCoupler.withdraw(chaterInfo);
         if (chaters.remove(chaterInfo, session)) {
@@ -156,6 +149,13 @@ public class RandomChatHandler extends AbstractChatHandler {
             }
             randomChaterPersistence.remove(chaterInfo.getUserNo());
         }
+    }
+
+    @Override
+    protected void sendAbort(Session session, ChaterInfo chaterInfo, String cause) {
+        randomChatCoupler.withdraw(chaterInfo);
+        randomChaterPersistence.remove(chaterInfo.getUserNo());
+        super.sendAbort(session, chaterInfo, cause);
     }
 
     private void broadcastUserJoined(ChaterInfo chaterInfo, ChaterInfo chaterInfo2) {

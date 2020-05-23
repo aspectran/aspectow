@@ -90,14 +90,14 @@ public abstract class AbstractChatHandler extends InstantActivitySupport impleme
         logger.error("Error in websocket session: " + session.getId(), error);
         try {
             ChaterInfo chaterInfo = getChaterInfo(session);
-            abort(session, chaterInfo, "abnormal:" + error.getMessage());
+            sendAbort(session, chaterInfo, "abnormal:" + error.getMessage());
             session.close(new CloseReason(CloseReason.CloseCodes.UNEXPECTED_CONDITION, null));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    protected void abort(Session session, ChaterInfo chaterInfo, String cause) {
+    protected void sendAbort(Session session, ChaterInfo chaterInfo, String cause) {
         if (chaters.remove(chaterInfo, session)) {
             chatersPersistence.remove(chaterInfo);
             signedInUsersPersistence.tryAbandon(chaterInfo.getUsername(), chaterInfo.getHttpSessionId());

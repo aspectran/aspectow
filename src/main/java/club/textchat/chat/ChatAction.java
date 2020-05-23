@@ -56,6 +56,7 @@ public class ChatAction {
     @Action("page")
     public Map<String, String> startRandomChat() {
         Map<String, String> map = new HashMap<>();
+        map.put("title", "Random Chat");
         map.put("include", "pages/chat-random");
         return map;
     }
@@ -80,6 +81,7 @@ public class ChatAction {
         RoomInfo roomInfo = sqlSession.selectOne("rooms.getRoomInfo", roomId);
         map.put("roomName", roomInfo.getRoomName());
         map.put("token", TimeLimitedPBTokenIssuer.getToken(admissionToken));
+        map.put("title", roomInfo.getRoomName());
         map.put("include", "pages/chat-default");
         return map;
     }

@@ -38,7 +38,7 @@ public class RoomInfo implements Serializable {
 
     private int currentUsers;
 
-    private Date recentlyUsed;
+    private int pastDays;
 
     public int getRoomId() {
         return roomId;
@@ -96,12 +96,12 @@ public class RoomInfo implements Serializable {
         this.currentUsers = currentUsers;
     }
 
-    public Date getRecentlyUsed() {
-        return recentlyUsed;
+    public int getPastDays() {
+        return pastDays;
     }
 
-    public void setRecentlyUsed(Date recentlyUsed) {
-        this.recentlyUsed = recentlyUsed;
+    public void setPastDays(int pastDays) {
+        this.pastDays = pastDays;
     }
 
     @Override
@@ -113,7 +113,7 @@ public class RoomInfo implements Serializable {
         tsb.append("language", language);
         tsb.append("cumulativeUsers", cumulativeUsers);
         tsb.append("currentUsers", currentUsers);
-        tsb.append("recentlyUsed", recentlyUsed);
+        tsb.append("pastDays", pastDays);
         return tsb.toString();
     }
 

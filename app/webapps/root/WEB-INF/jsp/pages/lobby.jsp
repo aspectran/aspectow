@@ -72,10 +72,11 @@
                     </div>
                     <div class="rooms grid-x grid-margin-x grid-margin-y t10">
                     <c:forEach items="${page.rooms}" var="roomInfo">
-                        <div class="cell small-12 medium-6 large-4 card room">
+                        <div class="cell small-12 medium-6 large-4 card room<c:if test="${roomInfo.currentUsers gt 0}"> active</c:if>">
                             <div class="card-section">
                                 <a href="/rooms/${roomInfo.encryptedRoomId}"><h5>${roomInfo.roomName}</h5></a>
-                                <p></p>
+                                <i class="curr-users fi-torsos-all"> ${roomInfo.currentUsers}</i>
+                                <c:if test="${roomInfo.pastDays eq 1}"><i class="new fi-burst-new"></i></c:if>
                                 <a class="button small start" href="/rooms/${roomInfo.encryptedRoomId}">Start chat</a>
                             </div>
                         </div>

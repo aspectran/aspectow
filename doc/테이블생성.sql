@@ -15,9 +15,12 @@ create table rooms
     room_nm    varchar(100) not null comment '대화방 이름',
     lang_cd    varchar(10) not null comment '언어 코드 (en, ko)',
     user_no    int not null comment '사용자 번호(만든이)',
+    cumu_users int default 0 not null comment '누적 이용자 수',
+    curr_users int default 0 not null comment '현재 이용자 수',
+    used_dt    datetime default now() not null comment '최근 사용일',
     del_yn     char(1) default 'N' not null comment '삭제 여부',
-    upd_dt     datetime default now() not null comment '수정일',
-    reg_dt     datetime default now() not null comment '등록일'
+    reg_dt     datetime default now() not null comment '등록일',
+    upd_dt     datetime default now() not null comment '수정일'
 )
 comment '대화방 마스터' engine=MyISAM charset=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

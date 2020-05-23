@@ -44,6 +44,8 @@
 }
 .rooms .room h5 {
     color: #1691cf;
+    margin-bottom: 1.5em;
+    padding-right: 1em;
 }
 .rooms .room p {
     margin-bottom: 1.3em;
@@ -51,12 +53,32 @@
 .rooms .room.random p, .rooms .room.create p {
     margin-bottom: 1.8em;
 }
+.rooms .room .curr-users {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    padding: .55em .65em;
+    line-height: 1;
+    color: #ccc;
+}
+.rooms .room.active .curr-users {
+    color: #0280be;
+}
+.rooms .room .new {
+    position: absolute;
+    right: 0;
+    top: 0;
+    padding: .1em;
+    color: #ff8f18;
+    line-height: 1;
+    font-size: 1.5em;
+}
 .rooms .room .button.start {
     position: absolute;
     right: 0;
     bottom: 0;
     border-radius: 20px 0 7px 0;
-    background-color: #ececec;
+    background-color: #d1e8f3;
     color: #555;
 }
 .rooms .room .card-section:hover .button.start {

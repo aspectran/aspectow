@@ -3,7 +3,37 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="rooms">
 
-    <select id="getRoomCountByName" parameterType="string" resultType="int">
+	<resultMap id="roomInfoMap" type="club.textchat.room.RoomInfo">
+		<result property="roomId" column="room_id" />
+		<result property="roomName" column="room_nm" />
+		<result property="language" column="lang_cd" />
+		<result property="cumulativeUsers" column="cumu_users" />
+		<result property="currentUsers" column="curr_users" />
+		<result property="pastDays" column="past_days" />
+	</resultMap>
+
+	<select id="getRoomInfo" parameterType="string" resultMap="roomInfoMap">
+		select
+		    room_id,
+		    room_nm,
+		    lang_cd
+		from rooms
+		where room_id = #{roomId}
+	</select>
+
+	<select id="getRoomList" resultMap="roomInfoMap">
+		select
+			room_id,
+			room_nm,
+			cumu_users,
+			curr_users,
+			datediff(now(), reg_dt) as past_days
+		from rooms
+		order by if(past_days = 1, 1, 2), curr_users desc, cumu_users desc
+		limit 99
+	</select>
+
+	<select id="getRoomCountByName" parameterType="string" resultType="int">
 		select count(1) from rooms where room_nm = #{roomId}
 	</select>
 
@@ -11,26 +41,20 @@
         insert into rooms (room_nm, lang_cd, user_no) values (#{roomName}, #{language}, #{userNo})
     </insert>
 
-	<insert id="insertRoomHist" parameterType="club.textchat.room.RoomInfo" useGeneratedKeys="true">
-        insert into room_hist (room_id) values (#{roomId})
-    </insert>
+	<update id="updateRoomForCheckIn" parameterType="string">
+        update rooms set
+        	cumu_users = cumu_users + 1,
+        	curr_users = curr_users + 1,
+        	used_dt = now()
+        where room_id = #{roomId}
+    </update>
 
-	<select id="getRoomInfo" parameterType="string" resultType="club.textchat.room.RoomInfo">
-		select
-		    room_id as roomId,
-		    room_nm as roomName,
-		    lang_cd as language
-		from rooms
-		where room_id = #{roomId}
-	</select>
-
-    <select id="getRoomList" parameterType="map" resultType="club.textchat.room.RoomInfo">
-		select
-		    room_id as roomId,
-		    room_nm as roomName
-		from rooms
-		order by room_id desc
-		limit 100
-	</select>
+	<update id="updateRoomForCheckOut" parameterType="string">
+        update rooms set
+        	curr_users = curr_users - 1,
+        	used_dt = now()
+        where room_id = #{roomId}
+        	and curr_users &gt; 0
+    </update>
 
 </mapper>
