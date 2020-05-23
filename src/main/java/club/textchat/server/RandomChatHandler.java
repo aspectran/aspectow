@@ -175,7 +175,7 @@ public class RandomChatHandler extends AbstractChatHandler {
         payload.setPrevUsername(chaterInfo.getPrevUsername());
         ChatMessage message = new ChatMessage(payload);
         message.setReceiver(userNo);
-        randomConvoPersistence.put(message);
+        randomConvoPersistence.publish(message);
     }
 
     private void broadcastUserLeft(ChaterInfo chaterInfo, int userNo) {
@@ -184,7 +184,7 @@ public class RandomChatHandler extends AbstractChatHandler {
         payload.setUsername(chaterInfo.getUsername());
         ChatMessage message = new ChatMessage(payload);
         message.setReceiver(userNo);
-        randomConvoPersistence.put(message);
+        randomConvoPersistence.publish(message);
     }
 
     private void broadcastMessage(ChaterInfo chaterInfo, ChaterInfo chaterInfo2, String content) {
@@ -195,7 +195,7 @@ public class RandomChatHandler extends AbstractChatHandler {
             payload.setContent(content);
             ChatMessage message = new ChatMessage(payload);
             message.setReceiver(chaterInfo2.getUserNo());
-            randomConvoPersistence.put(message);
+            randomConvoPersistence.publish(message);
         }
     }
 

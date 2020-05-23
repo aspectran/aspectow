@@ -15,13 +15,17 @@ function printMessage(payload, restored) {
     if (!lobbyChatEnabled) {
         return;
     }
+    if (!payload.content.startsWith("say:")) {
+        handleSystemMessage(payload.content);
+        return;
+    }
     let convo = $("#convo");
     if (convo.find(".message").length >= 5) {
         convo.find(".message").first().remove();
     }
     let sender = $("<span class='username'/>").text(payload.username);
     let content = $("<p class='content'/>")
-        .text(payload.content)
+        .text(payload.content.substring(4))
         .append(sender);
     let message = $("<div/>")
         .addClass("message")
@@ -33,6 +37,19 @@ function printMessage(payload, restored) {
     setTimeout(function () {
         message.remove();
     }, 7000);
+}
+
+function handleSystemMessage(message) {
+    if (!message) {
+        return;
+    }
+    if (message.startsWith("newRoom:")) {
+        let roomInfo = deserialize(message.substring(8));
+        let room = $(".new-room-template").clone().removeClass("new-room-template");
+        room.find("a").attr("href", "/rooms/" + roomInfo.encryptedRoomId);
+        room.find("h5").text(roomInfo.roomName);
+        room.prependTo($(".rooms.public")).fadeIn();
+    }
 }
 
 function printJoinMessage(payload, restored) {

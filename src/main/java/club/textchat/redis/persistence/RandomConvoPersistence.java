@@ -34,7 +34,7 @@ public class RandomConvoPersistence extends AbstractPersistence {
         super(connectionPool);
     }
 
-    public void put(ChatMessage message) {
+    public void publish(ChatMessage message) {
         publish(RandomMessageSubscriber.CHANNEL, message.toString());
     }
 

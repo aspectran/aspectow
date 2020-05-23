@@ -18,9 +18,12 @@ package club.textchat.redis.persistence;
 import club.textchat.redis.RedisConnectionPool;
 import club.textchat.redis.subscribe.LobbyMessageSubscriber;
 import club.textchat.server.message.ChatMessage;
+import club.textchat.server.message.payload.BroadcastPayload;
 import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Bean;
 import com.aspectran.core.component.bean.annotation.Component;
+
+import static club.textchat.server.LobbyChatHandler.USER_MESSAGE_PREFIX;
 
 /**
  * <p>Created: 2020/05/03</p>
@@ -34,8 +37,18 @@ public class LobbyConvoPersistence extends AbstractPersistence {
         super(connectionPool);
     }
 
-    public void put(ChatMessage message) {
+    public void publish(ChatMessage message) {
         publish(LobbyMessageSubscriber.CHANNEL, message.toString());
+    }
+
+    public void publish(String content) {
+        BroadcastPayload payload = new BroadcastPayload();
+        payload.setContent(content);
+        publish(new ChatMessage(payload));
+    }
+
+    public void say(String content) {
+        publish(USER_MESSAGE_PREFIX + content);
     }
 
 }

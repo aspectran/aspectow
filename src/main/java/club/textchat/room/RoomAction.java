@@ -50,7 +50,7 @@ public class RoomAction {
     @Transform(FormatType.JSON)
     public String createChatroom(@Required String recaptchaResponse,
                                  @Required @Qualifier("room_nm") String roomName,
-                                 @Required @Qualifier("lang_cd") String language) {
+                                 @Required @Qualifier("lang_cd") String language) throws IOException {
         boolean success = false;
         try {
             success = ReCaptchaVerifier.verifySuccess(recaptchaResponse);

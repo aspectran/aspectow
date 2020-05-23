@@ -16,11 +16,16 @@
 package club.textchat.room;
 
 import club.textchat.common.mybatis.SimpleSqlSession;
+import club.textchat.redis.persistence.LobbyConvoPersistence;
+import club.textchat.server.message.ChatMessage;
+import club.textchat.server.message.payload.BroadcastPayload;
 import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Component;
 import com.aspectran.core.util.PBEncryptionUtils;
+import com.aspectran.core.util.json.JsonWriter;
 import org.apache.ibatis.session.SqlSession;
 
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -29,23 +34,35 @@ import java.util.List;
 @Component
 public class RoomManager {
 
+    private static final String NEW_ROOM_MESSAGE_PREFIX = "newRoom:";
+
     private final SqlSession sqlSession;
 
+    private final LobbyConvoPersistence lobbyConvoPersistence;
+
     @Autowired
-    public RoomManager(SimpleSqlSession sqlSession) {
+    public RoomManager(SimpleSqlSession sqlSession, LobbyConvoPersistence lobbyConvoPersistence) {
         this.sqlSession = sqlSession;
+        this.lobbyConvoPersistence = lobbyConvoPersistence;
     }
 
-    public String createRoom(RoomInfo roomInfo) {
+    public String createRoom(RoomInfo roomInfo) throws IOException {
         Integer count = sqlSession.selectOne("rooms.getRoomCountByName", roomInfo.getRoomName());
         if (count != null && count > 0) {
             return null;
         }
 
         sqlSession.insert("rooms.insertRoom", roomInfo);
-        sqlSession.insert("rooms.insertRoomHist", roomInfo);
 
-        return PBEncryptionUtils.encrypt(Integer.toString(roomInfo.getRoomId()));
+        String encryptedRoomId = PBEncryptionUtils.encrypt(Integer.toString(roomInfo.getRoomId()));
+        roomInfo.setRoomId(0);
+        roomInfo.setEncryptedRoomId(encryptedRoomId);
+
+        String json = new JsonWriter().prettyPrint(false).nullWritable(false).write(roomInfo).toString();
+        lobbyConvoPersistence.publish(NEW_ROOM_MESSAGE_PREFIX + json);
+        lobbyConvoPersistence.say("\"" + roomInfo.getRoomName() + "\" chatroom was created.");
+
+        return encryptedRoomId;
     }
 
     public List<RoomInfo> getRoomList() {

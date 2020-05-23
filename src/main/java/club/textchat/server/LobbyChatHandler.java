@@ -39,6 +39,8 @@ import java.util.Set;
 @Bean
 public class LobbyChatHandler extends AbstractChatHandler {
 
+    public final static String USER_MESSAGE_PREFIX = "say:";
+
     private final LobbyConvoPersistence lobbyConvoPersistence;
 
     public LobbyChatHandler(SignedInUsersPersistence signedInUsersPersistence,
@@ -58,7 +60,7 @@ public class LobbyChatHandler extends AbstractChatHandler {
             ChaterInfo chaterInfo = getChaterInfo(session);
             switch (payload.getType()) {
                 case CHAT:
-                    broadcastMessage(chaterInfo, payload.getContent());
+                    broadcastMessage(chaterInfo, USER_MESSAGE_PREFIX + payload.getContent());
                     break;
                 case JOIN:
                     String username = chaterInfo.getUsername();
@@ -131,7 +133,7 @@ public class LobbyChatHandler extends AbstractChatHandler {
         payload.setPrevUsername(chaterInfo.getPrevUsername());
         payload.setDatetime(getCurrentDatetime(chaterInfo));
         ChatMessage message = new ChatMessage(payload);
-        lobbyConvoPersistence.put(message);
+        lobbyConvoPersistence.publish(message);
     }
 
     private void broadcastUserLeft(ChaterInfo chaterInfo) {
@@ -141,7 +143,7 @@ public class LobbyChatHandler extends AbstractChatHandler {
         payload.setUsername(chaterInfo.getUsername());
         payload.setDatetime(getCurrentDatetime(chaterInfo));
         ChatMessage message = new ChatMessage(payload);
-        lobbyConvoPersistence.put(message);
+        lobbyConvoPersistence.publish(message);
     }
 
     private void broadcastMessage(ChaterInfo chaterInfo, String content) {
@@ -152,7 +154,7 @@ public class LobbyChatHandler extends AbstractChatHandler {
         payload.setContent(content);
         payload.setDatetime(getCurrentDatetime(chaterInfo));
         ChatMessage message = new ChatMessage(payload);
-        lobbyConvoPersistence.put(message);
+        lobbyConvoPersistence.publish(message);
     }
 
 }
