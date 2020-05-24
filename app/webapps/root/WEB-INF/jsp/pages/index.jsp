@@ -18,7 +18,7 @@
             </div>
             <div class="cell auto cell-block-y">
                 <div class="grid-container grid-x grid-margin-y">
-                    <div class="cell large-8">
+                    <div class="cell">
                         <form id="form-sign-in" method="post">
                             <h3>Welcome to Text Chat Club.</h3>
                             <p>Chat with anyone. Meet new people at random. Completely anonymously.<br/>No registration. No logs.</p>
@@ -47,18 +47,6 @@
                         </ul>
                         <p>Thank you.</p>
                     </div>
-<%--                    <div class="cell">--%>
-<%--                        <h3>출시 예정</h3>--%>
-<%--                        <p>우리는 이 웹사이트를 만들기 위해 열심히 노력하고 있습니다.<br/>--%>
-<%--                            이 웹사이트는 누구나 자유롭게 대화할 수 있는 채팅 서비스를 제공합니다.</p>--%>
-<%--                        <p>다른 채팅 사이트와 다른 점은 다음과 같습니다.</p>--%>
-<%--                        <ul>--%>
-<%--                            <li>사회적인 부작용을 방지하고, 과거의 순수함을 느낄 수 있는 텍스트 기반의 채팅</li>--%>
-<%--                            <li>새로운 친구를 사귈 수 있는 랜덤 채팅</li>--%>
-<%--                            <li>남녀노소 누구나 사용하기 쉬운 인터페이스 제공</li>--%>
-<%--                        </ul>--%>
-<%--                        <p>감사합니다.</p>--%>
-<%--                    </div>--%>
                 </div>
             </div>
         </div>
