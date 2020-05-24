@@ -18,8 +18,14 @@ $(function () {
     });
     $("button.go-created-room").on("click", function () {
         if (recentlyCreatedRoom) {
+            closeSocket();
             location.href = "/rooms/" + recentlyCreatedRoom;
         }
+    });
+    $("a.start[href]").on("click", function (event) {
+        closeSocket();
+        location.href = $(this).attr("href");
+        event.stopPropagation();
     });
 });
 

@@ -49,7 +49,7 @@
                         </div>
                         <div class="cell medium-12 large-4 card room random small-order-2 large-order-1">
                             <div class="card-section">
-                                <a href="/rooms/random"><h4>Random Chat</h4></a>
+                                <a class="start" href="/rooms/random"><h4>Random Chat</h4></a>
                                 <p>Best place to talk to strangers</p>
                                 <a class="button small start" href="/rooms/random">Start random chat</a>
                             </div>
@@ -79,7 +79,7 @@
                     <c:forEach items="${page.rooms}" var="roomInfo">
                         <div class="cell small-12 medium-6 large-4 card room<c:if test="${roomInfo.currentUsers gt 0}"> active</c:if>">
                             <div class="card-section">
-                                <a href="/rooms/${roomInfo.encryptedRoomId}"><h5>${roomInfo.roomName}</h5></a>
+                                <a class="start" href="/rooms/${roomInfo.encryptedRoomId}"><h5>${roomInfo.roomName}</h5></a>
                                 <i class="curr-users fi-torsos-all"> ${roomInfo.currentUsers}</i>
                                 <c:if test="${roomInfo.pastDays le 1}"><i class="new fi-burst-new"></i></c:if>
                                 <a class="button small start" href="/rooms/${roomInfo.encryptedRoomId}">Start chat</a>
@@ -88,7 +88,7 @@
                     </c:forEach>
                         <div class="new-room-template cell small-12 medium-6 large-4 card room" style="display: none">
                             <div class="card-section">
-                                <a><h5></h5></a>
+                                <a class="start"><h5></h5></a>
                                 <i class="curr-users fi-torsos-all"> 0</i>
                                 <i class="new fi-burst-new"></i>
                                 <a class="button small start">Start chat</a>
