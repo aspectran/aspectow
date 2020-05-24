@@ -3,7 +3,7 @@ $(function () {
         $("#index-already-signed-in").foundation('open');
         return;
     }
-    $("form#sign-in").submit(function () {
+    $("#form-sign-in").submit(function () {
         let username = $("#username").val().trim();
         if (!username) {
             return false;

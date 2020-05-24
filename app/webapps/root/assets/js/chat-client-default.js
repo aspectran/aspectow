@@ -12,6 +12,13 @@ $(function () {
     if (!chatClientSettings) {
         return;
     }
+    $("button.signout").off().click(function () {
+        $("button.signout").prop("disabled", true);
+        closeSocket();
+        setTimeout(function () {
+            location.href = "/signout";
+        }, 1000);
+    });
     $(".header button.people").on("click", function () {
         toggleSidebar();
     });

@@ -176,19 +176,22 @@ input#for-automata-clear {
     color: #217aa6;
     font-size: .95em;
 }
-#sign-in h3 {
+#form-sign-in h3 {
     margin-bottom: 20px;
     color: #455259;
 }
-#sign-in h4 {
+#form-sign-in h4 {
     margin-bottom: 20px;
     color: #555;
 }
-#sign-in .input-group {
+#form-sign-in .input-group {
     max-width: 550px;
 }
-#sign-in .form-error {
+#form-sign-in .form-error {
     font-size: 1em;
+}
+button.signout:disabled {
+    cursor: wait;
 }
 .reveal.popup {
     background-color: #e9f4f6;

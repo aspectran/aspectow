@@ -2,7 +2,7 @@ $(function () {
     $(document).foundation();
 
     $("button.signout").click(function () {
-        location.href = "/signout"
+        location.href = "/signout";
     });
 
     /* Creating custom :external selector */

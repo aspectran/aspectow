@@ -2,17 +2,17 @@ let recentlyCreatedRoom;
 
 $(function () {
     $(".room-create").on("click", function () {
-        $("form#room-create").each(function () {
+        $("#form-room-create").each(function () {
             this.reset();
         });
-        $("form#room-create select[name=lang_cd] option").each(function () {
+        $("#form-room-create select[name=lang_cd] option").each(function () {
             if ($(this).val() === userInfo.language) {
                 $(this).attr("selected", true);
             }
         });
         $('#lobby-room-create').foundation('open');
     });
-    $("form#room-create").submit(function () {
+    $("#form-room-create").submit(function () {
         executeCaptcha("room_create", doCreateRoom);
         return false;
     });
@@ -27,12 +27,12 @@ function doCreateRoom() {
     if (!recaptchaResponse) {
         return;
     }
-    $("form#room-create .form-error").hide();
-    let roomName = $("form#room-create input[name=room_nm]").val().trim();
-    let langCode = $("form#room-create select[name=lang_cd]").val().trim();
+    $("#form-room-create .form-error").hide();
+    let roomName = $("#form-room-create input[name=room_nm]").val().trim();
+    let langCode = $("#form-room-create select[name=lang_cd]").val().trim();
     if (!roomName) {
-        $("form#room-create .form-error.room-name-required").show();
-        $("form#room-create input[name=room_nm]").focus();
+        $("#form-room-create .form-error.room-name-required").show();
+        $("#form-room-create input[name=room_nm]").focus();
         return;
     }
     $.ajax({
@@ -51,15 +51,15 @@ function doCreateRoom() {
                     alert("reCAPTCHA verification failed");
                     break;
                 case "-2":
-                    $("form#room-create .form-error.already-in-use").show();
-                    $("form#room-create input[name=room_nm]").select().focus();
+                    $("#form-room-create .form-error.already-in-use").show();
+                    $("#form-room-create input[name=room_nm]").select().focus();
                     break;
                 default:
                     if (!result) {
                         alert("Unexpected error occurred.");
                         return;
                     }
-                    $("form#room-create input[name=room_nm]").val("");
+                    $("#form-room-create input[name=room_nm]").val("");
                     recentlyCreatedRoom = result;
                     $('#lobby-room-create').foundation('close');
                     $('#lobby-room-create-complete').foundation('open');

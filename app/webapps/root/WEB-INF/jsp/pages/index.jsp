@@ -19,7 +19,7 @@
             <div class="cell auto cell-block-y">
                 <div class="grid-container grid-x grid-margin-y">
                     <div class="cell large-8">
-                        <form id="sign-in" method="post">
+                        <form id="form-sign-in" method="post">
                             <h3>Welcome to Text Chat Club.</h3>
                             <p>Chat with anyone. Meet new people at random. Completely anonymously.<br/>No registration. No logs.</p>
                             <p>Please enter your username.</p>
