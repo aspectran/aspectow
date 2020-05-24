@@ -2,9 +2,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
         xmlns:xhtml="http://www.w3.org/1999/xhtml">
     <url>
-        <loc>https://aspectran.com/aspectow/aspectow-enterprise/</loc>
-        <xhtml:link  rel="alternate" hreflang="en" href="https://aspectran.com/en/aspectow/aspectow-enterprise/" />
-        <xhtml:link  rel="alternate" hreflang="ko" href="https://aspectran.com/aspectow/aspectow-enterprise/" />
+        <loc>https://textchat.club/</loc>
         <lastmod>2020-05-25T00:00:00+09:00</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.3</priority>
