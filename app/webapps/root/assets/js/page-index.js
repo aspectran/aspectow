@@ -15,11 +15,16 @@ $(function () {
     $("#username").val(getCookie("username")).select();
 });
 
+let startSignInTimer;
 function startSignIn() {
+    if (startSignInTimer) {
+        clearTimeout(startSignInTimer);
+        startSignInTimer = null;
+    }
     openWaitPopup("Please wait while we are processing your request..", function () {
         location.reload();
     }, 10000);
-    setTimeout(function () {
+    startSignInTimer = setTimeout(function () {
         doSignIn();
     }, 600);
 }

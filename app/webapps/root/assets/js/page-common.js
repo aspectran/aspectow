@@ -31,7 +31,12 @@ function openNoticePopup(title, message, action) {
     popup.foundation('open');
 }
 
+let openWaitPopupTimer;
 function openWaitPopup(message, action, timeout) {
+    if (openWaitPopupTimer) {
+        clearTimeout(openWaitPopupTimer);
+        openWaitPopupTimer = null;
+    }
     let p = $("<p/>").text(message);
     let popup = $("#common-wait-popup");
     popup.find(".content").html("").append(p);
@@ -43,7 +48,7 @@ function openWaitPopup(message, action, timeout) {
     });
     popup.foundation('open');
     if (timeout > 0) {
-        setTimeout(function () {
+        openWaitPopupTimer = setTimeout(function () {
             popup.find(".button.cancel").show();
         }, timeout);
     } else {

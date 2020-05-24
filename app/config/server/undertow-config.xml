@@ -150,7 +150,7 @@
                         <item>
                             workerName: n0
                             maxSessions: 99999
-                            maxIdleSeconds: 1800
+                            maxIdleSeconds: 3600
                             evictionIdleSeconds: 900
                             scavengingIntervalSeconds: 600
                             removeUnloadableSessions: true
