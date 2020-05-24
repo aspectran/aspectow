@@ -99,6 +99,7 @@ input#for-automata-clear {
     background-color: #e02323;
 }
 .header button.leave:disabled {
+    background-color: #e02323;
     cursor: wait;
 }
 .header button.signout:disabled {
