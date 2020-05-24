@@ -55,6 +55,7 @@
     border-radius: 20px;
     padding: 6px 16px;
     margin: 0 0 2px;
+    word-wrap: anywhere;
 }
 #convo .message .content .datetime {
     font-size: .8em;
