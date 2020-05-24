@@ -23,7 +23,11 @@ $(function () {
         toggleSidebar();
     });
     $("button.leave").on("click", function () {
-        leaveRoom();
+        $("button.leave").prop("disabled", true);
+        closeSocket();
+        setTimeout(function () {
+            leaveRoom();
+        }, 500);
     });
     $("#convo").on("click", ".message.event.group .more", function () {
         $(this).parent().toggleClass("all-visible");
