@@ -2,6 +2,16 @@ let tokenIssuanceTimer;
 let tokenIssuanceCanceled;
 
 $(function () {
+    $("button.leave").off().on("click", function () {
+        $("button.leave").prop("disabled", true);
+        if (tokenIssuanceTimer) {
+            clearTimeout(tokenIssuanceTimer);
+        }
+        closeSocket();
+        setTimeout(function () {
+            leaveRoom();
+        }, 500);
+    });
     $(".message-box button.send").prop("disabled", true).addClass("pause");
     $(".message-box button.next").on("click", function () {
         $(".message-box button.send").prop("disabled", true).addClass("pause");
