@@ -32,6 +32,20 @@
         </properties>
     </environment>
 
+    <!-- 운영DB from GCP -->
+    <environment profile="prod-gcp">
+        <properties>
+            <item name="mybatis.environment" value="default"/>
+            <item name="mybatis.db.driver" value="%{classpath:db-prod-gcp.encrypted.properties^driver}"/>
+            <item name="mybatis.db.url" value="%{classpath:db-prod-gcp.encrypted.properties^url}"/>
+            <item name="mybatis.db.username" value="%{classpath:db-prod-gcp.encrypted.properties^username}"/>
+            <item name="mybatis.db.password" value="%{classpath:db-prod-gcp.encrypted.properties^password}"/>
+        </properties>
+        <properties profile="debug">
+            <item name="mybatis.db.url" value="%{classpath:db-prod-gcp.encrypted.properties^url}?profileSQL=true"/>
+        </properties>
+    </environment>
+
     <bean id="sqlSessionFactory" class="com.aspectran.mybatis.SqlSessionFactoryBean" lazyInit="true" lazyDestroy="true">
         <description>
             FactoryBean that creates an MyBatis SqlSessionFactory using default MyBatis Configuration.

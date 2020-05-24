@@ -11,17 +11,24 @@
         |
     </description>
 
-    <!-- 개발환경 -->
+    <!-- Development -->
     <environment profile="dev">
         <properties>
             <item name="redis.uri" value="%{classpath:redis-dev.properties^uri}"/>
         </properties>
     </environment>
 
-    <!-- 운영환경 -->
+    <!-- Production : Oracle Cloud -->
     <environment profile="prod">
         <properties>
             <item name="redis.uri" value="%{classpath:redis-prod.properties^uri}"/>
+        </properties>
+    </environment>
+
+    <!-- Production : GCP -->
+    <environment profile="prod-gcp">
+        <properties>
+            <item name="redis.uri" value="%{classpath:redis-prod-gcp.properties^uri}"/>
         </properties>
     </environment>
 
