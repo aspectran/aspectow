@@ -41,7 +41,7 @@
                 <%@ include file="includes/sidebar-user.jsp" %>
             </div>
             <div class="message-box cell auto cell-block-y">
-                <form id="send-message">
+                <form id="form-send-message">
                     <div class="input-group">
                         <input id="message" class="input-group-field" type="text" autocomplete="off" placeholder="Enter your message"/>
                         <input id="for-automata-clear" type="text"/>

@@ -17,7 +17,7 @@ $(function () {
         closeSocket();
         setTimeout(function () {
             location.href = "/signout";
-        }, 1000);
+        }, 900);
     });
     $(".header button.people").on("click", function () {
         toggleSidebar();
@@ -33,7 +33,7 @@ $(function () {
     $("#message").on("focusin", function () {
         hideSidebar();
     });
-    $("form#send-message").submit(function () {
+    $("#form-send-message").submit(function () {
         if (!$("#message").val()) {
             return false;
         }
@@ -43,9 +43,9 @@ $(function () {
         $("#for-automata-clear").focus();
         sendMessage();
         frequentlySentCount++;
-        $("form#send-message button.send").addClass("busy");
+        $("#form-send-message button.send").addClass("busy");
         setTimeout(function () {
-            $("form#send-message button.send").removeClass("busy");
+            $("#form-send-message button.send").removeClass("busy");
         }, 500);
         setTimeout(function () {
             frequentlySentCount--;

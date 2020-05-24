@@ -1,9 +1,9 @@
 let lobbyChatEnabled = true;
 $(function () {
-    $("#send-message button.quiet").on("click", function () {
+    $("#form-send-message button.quiet").on("click", function () {
         $(this).toggleClass("pause");
         $("#convo").toggle();
-        $("#message, #send-message button.send").prop("disabled", lobbyChatEnabled);
+        $("#message, #form-send-message button.send").prop("disabled", lobbyChatEnabled);
         lobbyChatEnabled = !lobbyChatEnabled;
         if (lobbyChatEnabled) {
             readyToType();
