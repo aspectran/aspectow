@@ -98,6 +98,12 @@ input#for-automata-clear {
 .header button.leave:hover {
     background-color: #e73737;
 }
+.header button.leave:disabled {
+    cursor: wait;
+}
+.header button.signout:disabled {
+    cursor: wait;
+}
 .footer {
     padding: 0;
 }
@@ -189,9 +195,6 @@ input#for-automata-clear {
 }
 #form-sign-in .form-error {
     font-size: 1em;
-}
-button.signout:disabled {
-    cursor: wait;
 }
 .reveal.popup {
     background-color: #e9f4f6;
