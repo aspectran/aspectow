@@ -1,8 +1,8 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <link rel="stylesheet" type="text/css" href="/assets/css/chat-common.css?v0.13" />
 <link rel="stylesheet" type="text/css" href="/assets/css/chat-random.css?v0.12" />
-<script src="/assets/js/chat-client-default.js?v0.11"></script>
-<script src="/assets/js/chat-client-random.js?v0.11"></script>
+<script src="/assets/js/chat-client-default.js?v1.0"></script>
+<script src="/assets/js/chat-client-random.js?v1.0"></script>
 <script>
     const chatClientSettings = {
         serverEndpoint: "/chat/random/",
@@ -55,6 +55,7 @@
         </div>
     </div>
 </div>
+<%@ include file="includes/chat-duplicate-join.jsp" %>
 <%@ include file="includes/common-notice-popup.jsp" %>
 <%@ include file="includes/common-connection-lost.jsp" %>
-<%@ include file="includes/chat-duplicate-join.jsp" %>
+<%@ include file="includes/common-browser-not-supported.jsp" %>

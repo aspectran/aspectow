@@ -6,15 +6,15 @@
 <title>Text Chat Club<c:if test="${not empty page.title}"> - ${page.title}</c:if></title>
 <meta name="description" content="Chat with anyone. Meet new people at random. Completely anonymously. No registration. No logs.">
 <meta name="keywords" content="chat with anyone, talk to strangers, random chat, chat with strangers, chat random">
-<link rel="stylesheet" type="text/css" href="https://aspectran.com/assets/css/aspectran.css?v1">
-<link rel="stylesheet" type="text/css" href="/assets/css/page-common.css?v12" />
 <link href="https://fonts.googleapis.com/css?family=Raleway:500,500i,700" rel="stylesheet">
-<script src="/assets/js/modernizr-custom.js"></script>
+<link rel="stylesheet" type="text/css" href="https://aspectran.com/assets/css/aspectran.css?v1">
+<link rel="stylesheet" type="text/css" href="/assets/css/page-common.css?v12">
+<script src="/assets/js/modernizr-custom.js?v2"></script>
 <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
 <script src="/assets/js/foundation.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.25.3/moment.min.js"></script>
 <script src="/assets/js/page-common.js?v0.1"></script>
-<script src="/assets/js/util.js?v0.1"></script>
+<script src="/assets/js/utils.js?v0.1"></script>
 <script>
     /* Set a custom property that contains the height value of the viewport */
     document.documentElement.style.setProperty("--vh", (window.innerHeight * 0.01) + "px");

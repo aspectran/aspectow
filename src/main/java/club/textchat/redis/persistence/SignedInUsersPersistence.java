@@ -34,7 +34,7 @@ public class SignedInUsersPersistence extends AbstractPersistence {
 
     private static final String KEY_PREFIX = "signed:";
 
-    private static final int EXPIRY_PERIOD_IN_SECONDS = 10;
+    private static final int EXPIRY_PERIOD_IN_SECONDS = 5;
 
     @Autowired
     public SignedInUsersPersistence(RedisConnectionPool connectionPool) {
