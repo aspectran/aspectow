@@ -96,11 +96,9 @@ input#for-automata-clear {
     background-color: #e85757;
 }
 .header button.leave:hover {
-    background-color: #e73737;
+    background-color: #e02323;
 }
 .header button.leave:disabled {
-    color: #cb7f7f;
-    background-color: #953939;
     cursor: wait;
 }
 .header button.signout:disabled {
