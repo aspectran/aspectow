@@ -103,8 +103,9 @@ function doSignIn(username) {
                     break;
                 case "-2":
                     closeWaitPopup();
+                    openSignInPopup();
                     $(".form-error.already-in-use").show();
-                    $("#username").select().focus();
+                    $("#form-sign-in input[name=username]").val(username).focus();
                     break;
                 default:
                     closeWaitPopup();

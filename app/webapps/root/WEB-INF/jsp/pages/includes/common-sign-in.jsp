@@ -14,8 +14,8 @@
                     </div>
                 </div>
                 <p class="form-error already-in-use">
-                    Your username is already in use or a similar name already exists.<br/>
-                    Please enter a different username.
+                    Your name is already in use or a similar name already exists.<br/>
+                    Please enter a different name.
                 </p>
                 <label class="title">Remember me</label>
                 <div class="switch">
