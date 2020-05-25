@@ -60,7 +60,6 @@ public class RoomManager {
 
         String json = new JsonWriter().prettyPrint(false).nullWritable(false).write(roomInfo).toString();
         lobbyConvoPersistence.publish(NEW_ROOM_MESSAGE_PREFIX + json);
-        lobbyConvoPersistence.say("\"" + roomInfo.getRoomName() + "\" chatroom was created.");
 
         return encryptedRoomId;
     }

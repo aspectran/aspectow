@@ -3,7 +3,7 @@
     <h3>Oops -.-;;</h3>
     <div class="grid-x grid-margin-y">
         <div class="cell content">
-            <p class="lead">You cannot enter the Text Chat Club's lobby.</p>
+            <p class="lead">You cannot enter the Text Chat Club.</p>
             <p>The cause can be one of the following:</p>
             <ul>
                 <li>When connecting with older web browser that does not support websockets</li>
@@ -11,7 +11,7 @@
             </ul>
         </div>
         <div class="cell text-center">
-            <a class="button alert" href="/lobby">Retry</a>
+            <a class="button alert" href="/">Retry</a>
         </div>
     </div>
 </div>

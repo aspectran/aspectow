@@ -23,12 +23,3 @@ create table rooms
     upd_dt     datetime default now() not null comment '수정일'
 )
 comment '대화방 마스터' engine=MyISAM charset=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-create table room_hist
-(
-    room_id    int auto_increment comment '대화방 일련번호' primary key,
-    cumu_users int default 0 not null comment '누적 이용자 수',
-    curr_users int default 0 not null comment '현재 이용자 수',
-    used_dt    datetime default now() not null comment '최근 사용일'
-)
-comment '대화방 이용 내역' engine=MyISAM charset=utf8mb4 COLLATE=utf8mb4_unicode_ci;

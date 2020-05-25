@@ -67,9 +67,13 @@ public class UserManager extends InstantActivitySupport {
         try {
             getUserInfo();
         } catch (LoginRequiredException e) {
-            translet.redirect("/", new HashMap<String, String>() {{
-                put("referrer", translet.getRequestName());
-            }});
+            if (!"/signout".equals(translet.getRequestName())) {
+                translet.redirect("/", new HashMap<String, String>() {{
+                    put("referrer", translet.getRequestName());
+                }});
+            } else {
+                translet.redirect("/");
+            }
         }
     }
 
@@ -87,7 +91,7 @@ public class UserManager extends InstantActivitySupport {
     }
 
     @NonNull
-    public UserInfo getUserInfo() {
+    public UserInfo getUserInfo() throws LoginRequiredException {
         try {
             UserInfo userInfo = getSessionAdapter().getAttribute(USER_INFO_SESSION_KEY);
             if (userInfo == null) {

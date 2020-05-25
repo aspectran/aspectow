@@ -2,6 +2,9 @@ let recentlyCreatedRoom;
 
 $(function () {
     $(".room-create").on("click", function () {
+        if (!checkSignedIn()) {
+            return false;
+        }
         $("#form-room-create").each(function () {
             this.reset();
         });
@@ -10,7 +13,9 @@ $(function () {
                 $(this).attr("selected", true);
             }
         });
+        loadCaptcha("room_create", "captcha-container-room-create");
         $('#lobby-room-create').foundation('open');
+        $("#form-room-create input[name=room_nm]").focus();
     });
     $("#form-room-create").submit(function () {
         executeCaptcha("room_create", doCreateRoom);
@@ -22,10 +27,10 @@ $(function () {
             location.href = "/rooms/" + recentlyCreatedRoom;
         }
     });
-    $("a.start[href]").on("click", function (event) {
+    $(".rooms a.start[href]").on("click", function (event) {
+        event.stopPropagation();
         closeSocket();
         location.href = $(this).attr("href");
-        event.stopPropagation();
     });
 });
 

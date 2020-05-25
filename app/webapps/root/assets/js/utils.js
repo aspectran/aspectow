@@ -18,3 +18,11 @@ function getCookie(name) {
     }
     return null;
 }
+
+function getTimeZone() {
+    try {
+        return Intl.DateTimeFormat().resolvedOptions().timeZone;
+    } catch (e) {
+        return null;
+    }
+}

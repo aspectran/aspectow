@@ -26,12 +26,19 @@
     border-top: 1px solid #eec938;
     overflow: auto;
 }
-#convo .message .content .username {
-    float: right;
-    padding-left: 2em;
+#convo .message .content code {
+    padding: .12em .5em;
     font-weight: normal;
     font-size: .8em;
     color: #333;
+    background-color: #fff7db;
+    border: 1px solid #eec938;
+    border-radius: 5px;
+}
+#convo .message .content code.sender {
+    float: right;
+    padding: .12em 1em;
+    margin-left: .5em;
 }
 #convo .message:nth-last-child(1) {
     border-bottom: 1px solid #eec938;
@@ -40,10 +47,10 @@
     opacity: .93;
 }
 #convo .message:nth-last-child(3) {
-    opacity: .89;
+    opacity: .87;
 }
 #convo .message:nth-last-child(4) {
-    opacity: .7;
+    opacity: .69;
 }
 #convo .message:nth-last-child(5) {
     opacity: .5;

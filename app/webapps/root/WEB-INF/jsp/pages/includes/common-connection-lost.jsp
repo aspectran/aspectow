@@ -9,7 +9,6 @@
             <p>You have lost connection with the server.</p>
         </div>
         <div class="cell text-center">
-            <a class="success button" href="/lobby">Home</a>
             <a class="warning button" href="">Refresh this page</a>
         </div>
     </div>

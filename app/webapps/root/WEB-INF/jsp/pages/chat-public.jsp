@@ -1,28 +1,18 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <link rel="stylesheet" type="text/css" href="/assets/css/chat-common.css?v0.13" />
 <script src="/assets/js/chat-client-default.js?v1.0"></script>
+<script src="/assets/js/chat-client-public.js?v1.0"></script>
 <script>
     const chatClientSettings = {
         serverEndpoint: "/chat/default/",
         autoConnectEnabled: true,
         admissionToken: "${page.token}",
-        homepage: "/lobby"
+        homepage: "/"
     }
 </script>
 <div class="grid-y grid-frame">
-    <div class="header cell cell-block-container">
-        <div class="grid-x">
-            <div class="cell auto align-self-middle">
-                <button type="button" class="button people" title="People">
-                    <i class="iconfont fi-results-demographics"></i>
-                    <span id="totalPeople">0</span></button>
-                <h2 class="text-truncate">${page.roomName}</h2>
-            </div>
-            <div class="cell shrink align-self-middle text-right">
-                <button type="button" class="button leave" title="Leave this chat room"><i class="iconfont fi-power"></i></button>
-            </div>
-        </div>
-    </div>
+    <%@ include file="includes/header.jsp" %>
     <div class="body shadow cell auto cell-block-container">
         <div class="grid-x full-height">
             <div class="sidebar cell medium-4 large-3 cell-block-y hide-for-small-only">
@@ -53,6 +43,10 @@
     </div>
 </div>
 <%@ include file="includes/chat-duplicate-join.jsp" %>
+<%@ include file="includes/common-wait-popup.jsp" %>
 <%@ include file="includes/common-notice-popup.jsp" %>
 <%@ include file="includes/common-connection-lost.jsp" %>
 <%@ include file="includes/common-browser-not-supported.jsp" %>
+<c:if test="${empty user}">
+    <%@ include file="includes/common-sign-in.jsp" %>
+</c:if>

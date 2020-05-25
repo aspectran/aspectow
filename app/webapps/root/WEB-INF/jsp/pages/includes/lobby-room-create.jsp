@@ -6,15 +6,15 @@
             <fieldset class="cell">
                 <legend>Details of the new chat room</legend>
                 <label>Chatroom name:
-                    <input type="text" name="room_nm" maxlength="30"/>
-                    <p class="form-error already-in-use">
-                        A chat room with the same name already exists.<br/>
-                        Please enter a different chat room name.
-                    </p>
-                    <p class="form-error room-name-required">
-                        Please enter your chat room name.
-                    </p>
+                    <input type="text" name="room_nm" maxlength="30" autocomplete="off"/>
                 </label>
+                <p class="form-error already-in-use">
+                    A chat room with the same name already exists.<br/>
+                    Please enter a different chat room name.
+                </p>
+                <p class="form-error room-name-required">
+                    Please enter your chat room name.
+                </p>
                 <label>Language:
                     <select name="lang_cd">
                         <option value="en">English</option>
@@ -29,7 +29,7 @@
                 <button type="submit" class="success button">OK</button>
             </div>
             <div class="cell medium-order-1">
-                <div id="captcha-container"></div>
+                <div id="captcha-container-room-create"></div>
             </div>
         </div>
     </form>

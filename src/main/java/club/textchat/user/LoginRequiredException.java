@@ -15,7 +15,7 @@
  */
 package club.textchat.user;
 
-public class LoginRequiredException extends RuntimeException {
+public class LoginRequiredException extends Exception {
 
     private static final long serialVersionUID = -8373830191696715447L;
 

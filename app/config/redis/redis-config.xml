@@ -8,7 +8,7 @@
             <item>
                 <bean class="club.textchat.redis.RedisConnectionPoolConfig">
                     <properties>
-                        <item name="uri">%{redis.uri}/1</item>
+                        <item name="uri">%{redis.uri.chat_db}</item>
                     </properties>
                 </bean>
             </item>

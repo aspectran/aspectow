@@ -1,10 +1,18 @@
-let lobbyChatEnabled = true;
+let lobbyChatEnabled = false;
+
 $(function () {
+    if (!userInfo.userNo) {
+        $("#message").blur();
+        $("#message, #form-send-message button").prop("disabled", true);
+        return;
+    }
+    lobbyChatEnabled = true;
     $("#form-send-message button.quiet").on("click", function () {
+        checkSignedIn();
+        lobbyChatEnabled = !lobbyChatEnabled;
         $(this).toggleClass("pause");
         $("#convo").toggle();
         $("#message, #form-send-message button.send").prop("disabled", lobbyChatEnabled);
-        lobbyChatEnabled = !lobbyChatEnabled;
         if (lobbyChatEnabled) {
             readyToType();
         }
@@ -23,7 +31,7 @@ function printMessage(payload, restored) {
     if (convo.find(".message").length >= 5) {
         convo.find(".message").first().remove();
     }
-    let sender = $("<span class='username'/>").text(payload.username);
+    let sender = $("<code class='sender'/>").text(payload.username);
     let content = $("<p class='content'/>")
         .text(payload.content.substring(4))
         .append(sender);
@@ -49,6 +57,7 @@ function handleSystemMessage(message) {
         room.find("a").attr("href", "/rooms/" + roomInfo.encryptedRoomId);
         room.find("h5").text(roomInfo.roomName);
         room.prependTo($(".rooms.public")).fadeIn();
+        printEvent("<code>" + roomInfo.roomName + "</code> chatroom has been created.");
     }
 }
 
@@ -56,9 +65,21 @@ function printJoinMessage(payload, restored) {
 }
 
 function printUserJoinedMessage(payload, restored) {
+    printEvent("<code>" + payload.username + "</code> has entered.");
 }
 
 function printUserLeftMessage(payload, restored) {
+}
+
+function printEvent(text, timeout) {
+    let convo = $("#convo");
+    let content = $("<p class='content'/>").html(text);
+    let message = $("<div/>").addClass("message").append(content);
+    message.appendTo(convo);
+    scrollToBottom(convo, false);
+    setTimeout(function () {
+        message.remove();
+    }, timeout||3000);
 }
 
 function leaveRoom(force) {

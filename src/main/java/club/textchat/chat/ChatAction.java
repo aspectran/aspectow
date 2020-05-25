@@ -18,6 +18,8 @@ package club.textchat.chat;
 import club.textchat.common.mybatis.SimpleSqlSession;
 import club.textchat.room.RoomInfo;
 import club.textchat.server.AdmissionToken;
+import club.textchat.user.LoginRequiredException;
+import club.textchat.user.UserAction;
 import club.textchat.user.UserInfo;
 import club.textchat.user.UserManager;
 import com.aspectran.core.component.bean.annotation.Action;
@@ -29,6 +31,8 @@ import com.aspectran.core.component.bean.annotation.Required;
 import com.aspectran.core.component.bean.annotation.Transform;
 import com.aspectran.core.context.rule.type.FormatType;
 import com.aspectran.core.util.PBEncryptionUtils;
+import com.aspectran.core.util.logging.Logger;
+import com.aspectran.core.util.logging.LoggerFactory;
 import com.aspectran.core.util.security.TimeLimitedPBTokenIssuer;
 import org.apache.ibatis.session.SqlSession;
 
@@ -37,6 +41,8 @@ import java.util.Map;
 
 @Component
 public class ChatAction {
+
+    private static final Logger logger = LoggerFactory.getLogger(UserAction.class);
 
     public static final String RANDOM_CHATROOM_ID = "-1";
 
@@ -71,25 +77,44 @@ public class ChatAction {
             throw new InvalidChatRoomException(roomId, "invalid-room-id");
         }
 
-        UserInfo userInfo = userManager.getUserInfo();
-        AdmissionToken admissionToken = new AdmissionToken();
-        admissionToken.setUserNo(userInfo.getUserNo());
-        admissionToken.setUsername(userInfo.getUsername());
-        admissionToken.setRoomId(roomId);
+        UserInfo userInfo = null;
+        try {
+            userInfo = userManager.getUserInfo();
+        } catch (LoginRequiredException e) {
+            // ignore
+        }
+
+        String token = null;
+        if (userInfo != null) {
+            AdmissionToken admissionToken = new AdmissionToken();
+            admissionToken.setUserNo(userInfo.getUserNo());
+            admissionToken.setUsername(userInfo.getUsername());
+            admissionToken.setRoomId(roomId);
+            token = TimeLimitedPBTokenIssuer.getToken(admissionToken);
+        }
 
         Map<String, String> map = new HashMap<>();
         RoomInfo roomInfo = sqlSession.selectOne("rooms.getRoomInfo", roomId);
+        map.put("roomId", roomInfo.getRoomName());
         map.put("roomName", roomInfo.getRoomName());
-        map.put("token", TimeLimitedPBTokenIssuer.getToken(admissionToken));
+        if (token != null) {
+            map.put("token", token);
+        }
         map.put("title", roomInfo.getRoomName());
-        map.put("include", "pages/chat-default");
+        map.put("include", "pages/chat-public");
         return map;
     }
 
     @Request("/rooms/random/token")
     @Transform(FormatType.JSON)
     public String randomChatToken() {
-        UserInfo userInfo = userManager.getUserInfo();
+        UserInfo userInfo;
+        try {
+            userInfo = userManager.getUserInfo();
+        } catch (LoginRequiredException e) {
+            logger.debug(e);
+            return null;
+        }
         AdmissionToken admissionToken = new AdmissionToken();
         admissionToken.setUserNo(userInfo.getUserNo());
         admissionToken.setUsername(userInfo.getUsername());

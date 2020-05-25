@@ -2,6 +2,11 @@ let tokenIssuanceTimer;
 let tokenIssuanceCanceled;
 
 $(function () {
+    if (!checkSignedIn()) {
+        $("#message").blur();
+        $("#message, #form-send-message button").prop("disabled", true);
+        return;
+    }
     $("button.leave").off().on("click", function () {
         $("button.leave").prop("disabled", true);
         if (tokenIssuanceTimer) {

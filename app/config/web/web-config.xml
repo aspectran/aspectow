@@ -37,21 +37,21 @@
         </settings>
     </aspect>
 
-    <aspect id="signedInCheckAspect" order="1">
-        <joinpoint>
-            pointcut: {
-                +: /**
-                -: /
-                -: /*/signin
-                -: /modal/**
-            }
-        </joinpoint>
-        <advice bean="userManager">
-            <before>
-                <invoke method="checkSignedIn"/>
-            </before>
-        </advice>
-    </aspect>
+<!--    <aspect id="signedInCheckAspect" order="1">-->
+<!--        <joinpoint>-->
+<!--            pointcut: {-->
+<!--                +: /**-->
+<!--                -: /-->
+<!--                -: /*/signin-->
+<!--                -: /modal/**-->
+<!--            }-->
+<!--        </joinpoint>-->
+<!--        <advice bean="userManager">-->
+<!--            <before>-->
+<!--                <invoke method="checkSignedIn"/>-->
+<!--            </before>-->
+<!--        </advice>-->
+<!--    </aspect>-->
 
     <append file="/config/web/common/locale.xml"/>
     <append file="/config/web/common/xss-prevent.xml"/>

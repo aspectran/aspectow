@@ -18,6 +18,7 @@ package club.textchat.lobby;
 import club.textchat.room.RoomInfo;
 import club.textchat.room.RoomManager;
 import club.textchat.server.AdmissionToken;
+import club.textchat.user.LoginRequiredException;
 import club.textchat.user.UserInfo;
 import club.textchat.user.UserManager;
 import com.aspectran.core.component.bean.annotation.Action;
@@ -47,20 +48,32 @@ public class LobbyAction {
         this.roomManager = roomManager;
     }
 
-    @Request("/lobby")
+    @Request("/")
     @Dispatch("templates/default")
     @Action("page")
     public Map<String, Object> rooms() {
-        UserInfo userInfo = userManager.getUserInfo();
         List<RoomInfo> rooms = roomManager.getRoomList();
 
-        AdmissionToken admissionToken = new AdmissionToken();
-        admissionToken.setUserNo(userInfo.getUserNo());
-        admissionToken.setUsername(userInfo.getUsername());
-        admissionToken.setRoomId(LOBBY_CHATROOM_ID);
+        UserInfo userInfo = null;
+        try {
+            userInfo = userManager.getUserInfo();
+        } catch (LoginRequiredException e) {
+            // ignore
+        }
+
+        String token = null;
+        if (userInfo != null) {
+            AdmissionToken admissionToken = new AdmissionToken();
+            admissionToken.setUserNo(userInfo.getUserNo());
+            admissionToken.setUsername(userInfo.getUsername());
+            admissionToken.setRoomId(LOBBY_CHATROOM_ID);
+            token = TimeLimitedPBTokenIssuer.getToken(admissionToken);
+        }
 
         Map<String, Object> map = new HashMap<>();
-        map.put("token", TimeLimitedPBTokenIssuer.getToken(admissionToken));
+        if (token != null) {
+            map.put("token", token);
+        }
         map.put("rooms", rooms);
         map.put("include", "pages/lobby");
         return map;

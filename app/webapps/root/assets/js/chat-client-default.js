@@ -1,5 +1,6 @@
 let socket;
 let heartbeatTimer;
+let heartbeatCount = 0;
 let pendedMessages;
 let frequentlySentCount = 0;
 let chatAborted;
@@ -45,7 +46,9 @@ $(function () {
             return false;
         }
         $("#for-automata-clear").focus();
-        sendMessage();
+        if (userInfo.userNo) {
+            sendMessage();
+        }
         frequentlySentCount++;
         $("#form-send-message button.send").addClass("busy");
         setTimeout(function () {
@@ -57,7 +60,7 @@ $(function () {
         return false;
     });
     readyToType();
-    if (chatClientSettings.autoConnectEnabled !== false) {
+    if (chatClientSettings.admissionToken && chatClientSettings.autoConnectEnabled !== false) {
         setTimeout(function () {
             openSocket(chatClientSettings.admissionToken);
         }, 300);
@@ -106,7 +109,6 @@ function openSocket(token) {
         console.error("WebSocket error observed:", event);
         closeSocket();
         checkConnection(100);
-        // printError("Couldn't connect to the server. Please refresh this page.");
     };
 }
 
@@ -121,21 +123,41 @@ function heartbeatPing() {
             };
             socket.send(serialize(chatMessage));
             heartbeatPing();
+            heartbeatCount++;
+            if (heartbeatCount % 25 === 0) {
+                $.ajax({
+                    url: '/ping',
+                    type: 'get',
+                    dataType: 'text',
+                    success: function (result) {
+                        if (result !== "pong") {
+                            leaveRoom();
+                        }
+                    },
+                    error: function () {
+                        leaveRoom();
+                    }
+                });
+            }
         }
     }, 57000);
 }
 
 function checkConnection(delay) {
     setTimeout(function () {
-        $.ajax("/ping")
-            .done(function (result) {
+        $.ajax({
+            url: '/ping',
+            type: 'get',
+            dataType: 'text',
+            timeout: 30000,
+            success: function (result) {
                 if (result === "pong" && !chatAborted) {
                     reloadPage();
                 } else {
                     gotoHomepage();
                 }
-            })
-            .fail(function () {
+            },
+            error: function () {
                 let retries = $("#common-connection-lost").data("retries")||0;
                 $("#common-connection-lost").data("retries", retries + 1);
                 if (retries === 0) {
@@ -146,7 +168,8 @@ function checkConnection(delay) {
                 }
                 console.log(retries + " retries");
                 checkConnection(2000 * retries);
-            });
+            }
+        });
     }, delay);
 }
 

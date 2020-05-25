@@ -14,21 +14,24 @@
     <!-- Development -->
     <environment profile="dev">
         <properties>
-            <item name="redis.uri" value="%{classpath:redis-dev.properties^uri}"/>
+            <item name="redis.uri.session_db" value="%{classpath:redis-dev.properties^uri_2}"/>
+            <item name="redis.uri.chat_db" value="%{classpath:redis-dev.properties^uri_3}"/>
         </properties>
     </environment>
 
     <!-- Production : Oracle Cloud -->
     <environment profile="prod">
         <properties>
-            <item name="redis.uri" value="%{classpath:redis-prod.properties^uri}"/>
+            <item name="redis.uri.session_db" value="%{classpath:redis-prod.properties^uri_0}"/>
+            <item name="redis.uri.chat_db" value="%{classpath:redis-prod.properties^uri_1}"/>
         </properties>
     </environment>
 
     <!-- Production : GCP -->
     <environment profile="prod-gcp">
         <properties>
-            <item name="redis.uri" value="%{classpath:redis-prod-gcp.properties^uri}"/>
+            <item name="redis.uri.session_db" value="%{classpath:redis-prod-gcp.properties^uri_0}"/>
+            <item name="redis.uri.chat_db" value="%{classpath:redis-prod-gcp.properties^uri_1}"/>
         </properties>
     </environment>
 

@@ -64,18 +64,19 @@ input#for-automata-clear {
     min-width: 34px;
     line-height: 26px;
 }
-.header button {
+.header .button {
     margin: 0;
     border-radius: 6px;
     vertical-align: baseline;
     height: 30px;
+    line-height: 28px;
     padding: 0 6px;
 }
-.header button .iconfont {
+.header .button .iconfont {
     font-size: 24px;
     vertical-align: sub;
 }
-.header button.people {
+.header .button.people {
     float: left;
     margin: 0 6px 0 0;
     color: #fff;
@@ -84,25 +85,36 @@ input#for-automata-clear {
     text-align: left;
     white-space: nowrap;
 }
-.header button.people:hover {
+.header .button.people:hover {
     background-color: #138484;
 }
-.header button.people span {
+.header .button.people span {
     font-size: 16px;
     vertical-align: top;
     margin: 0 4px;
 }
-.header button.leave {
+.header .button.leave {
     background-color: #e85757;
 }
-.header button.leave:hover {
+.header .button.leave:hover {
     background-color: #e02323;
 }
-.header button.leave:disabled {
+.header .button.leave:disabled {
     background-color: #e02323;
     cursor: wait;
 }
-.header button.signout:disabled {
+.header .button.signin {
+    display: none;
+    background-color: #2D844D;
+}
+.header .button.signin .iconfont {
+    color: #fff;
+}
+.header .button.signout {
+    display: none;
+    background-color: #2D844D;
+}
+.header .button.signout:disabled {
     cursor: wait;
 }
 .footer {
@@ -183,16 +195,10 @@ input#for-automata-clear {
     color: #217aa6;
     font-size: .95em;
 }
-#form-sign-in h3 {
-    margin-bottom: 20px;
-    color: #455259;
-}
-#form-sign-in h4 {
-    margin-bottom: 20px;
-    color: #555;
-}
-#form-sign-in .input-group {
-    max-width: 550px;
+#form-sign-in label.title {
+    color: #454545;
+    margin: 0 0 .2em 0;
+    font-size: 1em;
 }
 #form-sign-in .form-error {
     font-size: 1em;
