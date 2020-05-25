@@ -8,13 +8,16 @@ $(function () {
     }
     lobbyChatEnabled = true;
     $("#form-send-message button.quiet").on("click", function () {
-        checkSignedIn();
         lobbyChatEnabled = !lobbyChatEnabled;
-        $(this).toggleClass("pause");
-        $("#convo").toggle();
-        $("#message, #form-send-message button.send").prop("disabled", lobbyChatEnabled);
         if (lobbyChatEnabled) {
+            $(this).removeClass("pause");
+            $("#message, #form-send-message button.send").prop("disabled", false);
+            $("#convo").show();
             readyToType();
+        } else {
+            $(this).addClass("pause");
+            $("#message, #form-send-message button.send").prop("disabled", true);
+            $("#convo").hide();
         }
     });
 });
