@@ -1,9 +1,9 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
-<link rel="stylesheet" type="text/css" href="/assets/css/chat-common.css?v0.13" />
-<link rel="stylesheet" type="text/css" href="/assets/css/chat-random.css?v0.12" />
-<script src="/assets/js/chat-client-default.js?v1.0"></script>
-<script src="/assets/js/chat-client-random.js?v1.0"></script>
+<link rel="stylesheet" type="text/css" href="/assets/css/chat-common.css?v14" />
+<link rel="stylesheet" type="text/css" href="/assets/css/chat-random.css?v14" />
+<script src="/assets/js/chat-client-default.js?v1.1"></script>
+<script src="/assets/js/chat-client-random.js?v1.1"></script>
 <script>
     const chatClientSettings = {
         serverEndpoint: "/chat/random/",
