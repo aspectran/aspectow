@@ -35,9 +35,9 @@
                         </div>
                         <div class="cell medium-12 large-4 card room random small-order-2 large-order-1">
                             <div class="card-section">
-                                <a class="start" href="/rooms/random"><h4>Random Chat</h4></a>
+                                <a class="start" href="/random"><h4>Random Chat</h4></a>
                                 <p>Best place to talk to strangers</p>
-                                <a class="button small start" href="/rooms/random">Start random chat</a>
+                                <a class="button small start" href="/random">Start random chat</a>
                             </div>
                         </div>
                         <div class="cell medium-12 large-8 card create guide small-order-4 show-for-medium">

@@ -39,7 +39,7 @@ function startLooking() {
     tokenIssuanceCanceled = false;
     tokenIssuanceTimer = setTimeout(function () {
         $.ajax({
-            url: "/rooms/random/token",
+            url: "/random/token",
             method: 'GET',
             dataType: 'json',
             success: function (token) {

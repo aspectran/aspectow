@@ -57,7 +57,7 @@ public class ChatAction {
         this.sqlSession = sqlSession;
     }
 
-    @Request("/rooms/random")
+    @Request("/random")
     @Dispatch("templates/default")
     @Action("page")
     public Map<String, String> startRandomChat() {
@@ -105,7 +105,7 @@ public class ChatAction {
         return map;
     }
 
-    @Request("/rooms/random/token")
+    @Request("/random/token")
     @Transform(FormatType.JSON)
     public String randomChatToken() {
         UserInfo userInfo;
