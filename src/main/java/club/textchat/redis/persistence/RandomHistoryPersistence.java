@@ -33,7 +33,7 @@ public class RandomHistoryPersistence extends AbstractPersistence {
 
     private static final String MET = "1";
 
-    private static final int EXPIRY_PERIOD_IN_SECONDS = 10;
+    private static final int EXPIRY_PERIOD_IN_SECONDS = 600;
 
     @Autowired
     public RandomHistoryPersistence(RedisConnectionPool connectionPool) {

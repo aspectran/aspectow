@@ -10,7 +10,7 @@
             <p>Note: Duplicate participation in the same chat room is prohibited.</p>
         </div>
         <div class="cell text-center">
-            <a class="secondary button" href="/">OK</a>
+            <h4>Please close this window.</h4>
         </div>
     </div>
 </div>

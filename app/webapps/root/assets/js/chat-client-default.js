@@ -230,6 +230,9 @@ function handleMessage(chatMessage) {
                             break;
                         case "rejoin":
                             justStayHere = true;
+                            clearChaters();
+                            clearConvo();
+                            closeSocket();
                             $("#chat-duplicate-join").foundation('open');
                             break;
                         default:
