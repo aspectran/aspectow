@@ -18,9 +18,7 @@
                 <p>TextChatClub is a place to chat with your friends, meet new people and discover conversations.</p>
             </c:if>
             <c:if test="${page.roomId eq '-1'}">
-                <p>You must be 18+ to start random chat with strangers.<br/>
-                    How To Chat With Strangers Safely?<br/>
-                    Don't share any personal information or contacts, don't send any money to strangers.</p>
+                <p>You must be 18+ to start random chat with strangers.</p>
             </c:if>
             <label class="title">Please enter your name.</label>
             <div class="input-group">
