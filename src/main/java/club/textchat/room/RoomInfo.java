@@ -18,7 +18,6 @@ package club.textchat.room;
 import com.aspectran.core.util.ToStringBuilder;
 
 import java.io.Serializable;
-import java.util.Date;
 
 public class RoomInfo implements Serializable {
 

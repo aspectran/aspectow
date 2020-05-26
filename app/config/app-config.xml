@@ -14,24 +14,33 @@
     <!-- Development -->
     <environment profile="dev">
         <properties>
-            <item name="redis.uri.session_db" value="%{classpath:redis-dev.properties^uri_2}"/>
-            <item name="redis.uri.chat_db" value="%{classpath:redis-dev.properties^uri_3}"/>
+            <item name="redis.uri.session_db" value="%{classpath:redis-dev.properties^uri.session_db}"/>
+            <item name="redis.uri.chat_db" value="%{classpath:redis-dev.properties^uri.chat_db}"/>
+            <item name="redis.channel.public_chat" value="%{classpath:redis-dev.properties^channel.public_chat}"/>
+            <item name="redis.channel.random_chat" value="%{classpath:redis-dev.properties^channel.random_chat}"/>
+            <item name="redis.channel.lobby_chat" value="%{classpath:redis-dev.properties^channel.lobby_chat}"/>
         </properties>
     </environment>
 
-    <!-- Production : Oracle Cloud -->
+    <!-- Production - Oracle Cloud -->
     <environment profile="prod">
         <properties>
-            <item name="redis.uri.session_db" value="%{classpath:redis-prod.properties^uri_0}"/>
-            <item name="redis.uri.chat_db" value="%{classpath:redis-prod.properties^uri_1}"/>
+            <item name="redis.uri.session_db" value="%{classpath:redis-prod.properties^uri.session_db}"/>
+            <item name="redis.uri.chat_db" value="%{classpath:redis-prod.properties^uri.chat_db}"/>
+            <item name="redis.channel.public_chat" value="%{classpath:redis-prod.properties^channel.public_chat}"/>
+            <item name="redis.channel.random_chat" value="%{classpath:redis-prod.properties^channel.random_chat}"/>
+            <item name="redis.channel.lobby_chat" value="%{classpath:redis-prod.properties^channel.lobby_chat}"/>
         </properties>
     </environment>
 
-    <!-- Production : GCP -->
+    <!-- Production - GCP -->
     <environment profile="prod-gcp">
         <properties>
-            <item name="redis.uri.session_db" value="%{classpath:redis-prod-gcp.properties^uri_0}"/>
-            <item name="redis.uri.chat_db" value="%{classpath:redis-prod-gcp.properties^uri_1}"/>
+            <item name="redis.uri.session_db" value="%{classpath:redis-prod-gp.properties^uri.session_db}"/>
+            <item name="redis.uri.chat_db" value="%{classpath:redis-prod-gcp.properties^uri.chat_db}"/>
+            <item name="redis.channel.public_chat" value="%{classpath:redis-prod-gcp.properties^channel.public_chat}"/>
+            <item name="redis.channel.random_chat" value="%{classpath:redis-prod-gcp.properties^channel.random_chat}"/>
+            <item name="redis.channel.lobby_chat" value="%{classpath:redis-prod-gcp.properties^channel.lobby_chat}"/>
         </properties>
     </environment>
 

@@ -45,16 +45,19 @@ public class RandomMessageSubscriber extends RedisPubSubAdapter<String, String>
 
     private static final Logger logger = LoggerFactory.getLogger(RandomMessageSubscriber.class);
 
-    public static final String CHANNEL = "chat:random";
-
     private final StatefulRedisPubSubConnection<String, String> connection;
 
     private final ChatHandler chatHandler;
 
+    private final ChannelManager channelManager;
+
     @Autowired
-    public RandomMessageSubscriber(RedisConnectionPool connectionPool, RandomChatHandler chatHandler) {
+    public RandomMessageSubscriber(RedisConnectionPool connectionPool,
+                                   RandomChatHandler chatHandler,
+                                   ChannelManager channelManager) {
         this.connection = connectionPool.getPubSubConnection();
         this.chatHandler = chatHandler;
+        this.channelManager = channelManager;
     }
 
     @Override
@@ -90,7 +93,7 @@ public class RandomMessageSubscriber extends RedisPubSubAdapter<String, String>
     public void initialize() throws Exception {
         connection.addListener(this);
         RedisPubSubCommands<String, String> sync = connection.sync();
-        sync.subscribe(CHANNEL);
+        sync.subscribe(channelManager.getRandomChatChannel());
     }
 
     @Override

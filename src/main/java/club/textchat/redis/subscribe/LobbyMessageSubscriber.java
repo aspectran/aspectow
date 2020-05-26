@@ -45,16 +45,19 @@ public class LobbyMessageSubscriber extends RedisPubSubAdapter<String, String>
 
     private static final Logger logger = LoggerFactory.getLogger(LobbyMessageSubscriber.class);
 
-    public static final String CHANNEL = "chat:lobby";
-
     private final StatefulRedisPubSubConnection<String, String> connection;
 
     private final ChatHandler chatHandler;
 
+    private final ChannelManager channelManager;
+
     @Autowired
-    public LobbyMessageSubscriber(RedisConnectionPool connectionPool, LobbyChatHandler chatHandler) {
+    public LobbyMessageSubscriber(RedisConnectionPool connectionPool,
+                                  LobbyChatHandler chatHandler,
+                                  ChannelManager channelManager) {
         this.connection = connectionPool.getPubSubConnection();
         this.chatHandler = chatHandler;
+        this.channelManager = channelManager;
     }
 
     @Override
@@ -91,7 +94,7 @@ public class LobbyMessageSubscriber extends RedisPubSubAdapter<String, String>
     public void initialize() throws Exception {
         connection.addListener(this);
         RedisPubSubCommands<String, String> sync = connection.sync();
-        sync.subscribe(CHANNEL);
+        sync.subscribe(channelManager.getLobbyChatChannel());
     }
 
     @Override

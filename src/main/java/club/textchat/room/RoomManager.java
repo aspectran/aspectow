@@ -17,8 +17,6 @@ package club.textchat.room;
 
 import club.textchat.common.mybatis.SimpleSqlSession;
 import club.textchat.redis.persistence.LobbyConvoPersistence;
-import club.textchat.server.message.ChatMessage;
-import club.textchat.server.message.payload.BroadcastPayload;
 import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Component;
 import com.aspectran.core.util.PBEncryptionUtils;

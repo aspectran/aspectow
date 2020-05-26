@@ -40,21 +40,24 @@ import java.io.IOException;
  */
 @Component
 @Bean
-public class DefaultMessageSubscriber extends RedisPubSubAdapter<String, String>
+public class PublicMessageSubscriber extends RedisPubSubAdapter<String, String>
         implements InitializableBean, DisposableBean {
 
-    private static final Logger logger = LoggerFactory.getLogger(DefaultMessageSubscriber.class);
-
-    public static final String CHANNEL = "chat:default";
+    private static final Logger logger = LoggerFactory.getLogger(PublicMessageSubscriber.class);
 
     private final StatefulRedisPubSubConnection<String, String> connection;
 
     private final ChatHandler chatHandler;
 
+    private final ChannelManager channelManager;
+
     @Autowired
-    public DefaultMessageSubscriber(RedisConnectionPool connectionPool, DefaultChatHandler chatHandler) {
+    public PublicMessageSubscriber(RedisConnectionPool connectionPool,
+                                   DefaultChatHandler chatHandler,
+                                   ChannelManager channelManager) {
         this.connection = connectionPool.getPubSubConnection();
         this.chatHandler = chatHandler;
+        this.channelManager = channelManager;
     }
 
     @Override
@@ -91,7 +94,7 @@ public class DefaultMessageSubscriber extends RedisPubSubAdapter<String, String>
     public void initialize() throws Exception {
         connection.addListener(this);
         RedisPubSubCommands<String, String> sync = connection.sync();
-        sync.subscribe(CHANNEL);
+        sync.subscribe(channelManager.getPublicChatChannel());
     }
 
     @Override

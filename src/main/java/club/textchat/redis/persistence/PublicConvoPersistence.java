@@ -16,7 +16,7 @@
 package club.textchat.redis.persistence;
 
 import club.textchat.redis.RedisConnectionPool;
-import club.textchat.redis.subscribe.DefaultMessageSubscriber;
+import club.textchat.redis.subscribe.ChannelManager;
 import club.textchat.server.message.ChatMessage;
 import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Bean;
@@ -32,21 +32,25 @@ import java.util.List;
  */
 @Component
 @Bean
-public class DefaultConvoPersistence extends AbstractPersistence {
+public class PublicConvoPersistence extends AbstractPersistence {
 
     private static final String KEY_PREFIX = "convo:";
 
     private static final int MAX_SAVE_MESSAGES = 50;
 
+    private final ChannelManager channelManager;
+
     @Autowired
-    public DefaultConvoPersistence(RedisConnectionPool connectionPool) {
+    public PublicConvoPersistence(RedisConnectionPool connectionPool,
+                                  ChannelManager channelManager) {
         super(connectionPool);
+        this.channelManager = channelManager;
     }
 
     public void put(String roomId, ChatMessage message) {
         String value = message.toString();
         rpush(makeKey(roomId), value, MAX_SAVE_MESSAGES);
-        publish(DefaultMessageSubscriber.CHANNEL, value);
+        publish(channelManager.getPublicChatChannel(), value);
     }
 
     public List<ChatMessage> getRecentConvo(String roomId) {

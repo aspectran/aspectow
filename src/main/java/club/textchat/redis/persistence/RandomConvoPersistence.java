@@ -16,7 +16,7 @@
 package club.textchat.redis.persistence;
 
 import club.textchat.redis.RedisConnectionPool;
-import club.textchat.redis.subscribe.RandomMessageSubscriber;
+import club.textchat.redis.subscribe.ChannelManager;
 import club.textchat.server.message.ChatMessage;
 import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Bean;
@@ -29,13 +29,17 @@ import com.aspectran.core.component.bean.annotation.Component;
 @Bean
 public class RandomConvoPersistence extends AbstractPersistence {
 
+    private final ChannelManager channelManager;
+
     @Autowired
-    public RandomConvoPersistence(RedisConnectionPool connectionPool) {
+    public RandomConvoPersistence(RedisConnectionPool connectionPool,
+                                  ChannelManager channelManager) {
         super(connectionPool);
+        this.channelManager = channelManager;
     }
 
     public void publish(ChatMessage message) {
-        publish(RandomMessageSubscriber.CHANNEL, message.toString());
+        publish(channelManager.getRandomChatChannel(), message.toString());
     }
 
 }
