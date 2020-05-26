@@ -62,6 +62,7 @@ public class ChatAction {
     @Action("page")
     public Map<String, String> startRandomChat() {
         Map<String, String> map = new HashMap<>();
+        map.put("roomId", RANDOM_CHATROOM_ID);
         map.put("include", "pages/random");
         return map;
     }

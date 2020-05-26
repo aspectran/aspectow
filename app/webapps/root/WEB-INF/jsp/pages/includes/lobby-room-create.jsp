@@ -6,7 +6,7 @@
             <fieldset class="cell">
                 <legend>Details of the new chat room</legend>
                 <label>Chatroom name:
-                    <input type="text" name="room_nm" maxlength="30" autocomplete="off"/>
+                    <input type="text" name="room_nm" maxlength="40" autocomplete="off"/>
                 </label>
                 <p class="form-error already-in-use">
                     A chat room with the same name already exists.<br/>

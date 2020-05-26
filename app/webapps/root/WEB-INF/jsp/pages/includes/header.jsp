@@ -10,8 +10,8 @@
                 <c:when test="${not empty page.roomName}">
                     <h2 class="text-truncate">${page.roomName}</h2>
                 </c:when>
-                <c:when test="${page.roomId eq '0'}">
-                    <h2 class="text-truncate">Chat with random strangers</h2>
+                <c:when test="${page.roomId eq '-1'}">
+                    <h2 class="text-truncate">Random Chat</h2>
                 </c:when>
                 <c:otherwise>
                     <h1>Text Chat Club</h1>

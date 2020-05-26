@@ -8,7 +8,7 @@
 <meta name="keywords" content="chat with anyone, talk to strangers, random chat, chat with strangers, chat random">
 <link href="https://fonts.googleapis.com/css?family=Raleway:500,500i,700" rel="stylesheet">
 <link rel="stylesheet" type="text/css" href="https://aspectran.com/assets/css/aspectran.css?v1">
-<link rel="stylesheet" type="text/css" href="/assets/css/page-common.css?v13">
+<link rel="stylesheet" type="text/css" href="/assets/css/page-common.css?v14">
 <script src="https://www.google.com/recaptcha/api.js?render=explicit"></script>
 <script src="/assets/js/recaptcha.js?v1"></script>
 <script src="/assets/js/modernizr-custom.js?v2"></script>

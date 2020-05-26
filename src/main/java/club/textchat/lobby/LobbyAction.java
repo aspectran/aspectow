@@ -75,6 +75,7 @@ public class LobbyAction {
             map.put("token", token);
         }
         map.put("rooms", rooms);
+        map.put("roomId", LOBBY_CHATROOM_ID);
         map.put("include", "pages/lobby");
         return map;
     }

@@ -25,7 +25,7 @@
                 <div class="grid-container full-height">
                     <%@ include file="includes/lobby-user.jsp" %>
                     <div class="rooms grid-x grid-margin-x t15">
-                        <div class="cell medium-12 large-8 card random guide small-order-1 large-order-2">
+                        <div class="cell medium-12 large-8 card random guide small-order-1 large-order-2 show-for-medium">
                             <div class="card-section">
                                 <h5>Welcome to Text Chat Club.</h5>
                                 You must be 18+ to start random chat with strangers.<br/>

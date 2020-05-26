@@ -13,19 +13,7 @@
     }
 </script>
 <div class="grid-y grid-frame random">
-    <div class="header cell cell-block-container">
-        <div class="grid-x">
-            <div class="cell auto align-self-middle">
-                <button type="button" class="button people" title="People">
-                    <i class="iconfont fi-results-demographics"></i>
-                    <span id="totalPeople">0</span></button>
-                <h2 class="text-truncate">Chat with random strangers</h2>
-            </div>
-            <div class="cell shrink align-self-middle text-right">
-                <button type="button" class="button leave" title="Leave this chat room"><i class="iconfont fi-power"></i></button>
-            </div>
-        </div>
-    </div>
+    <%@ include file="includes/header.jsp" %>
     <div class="body shadow cell auto cell-block-container">
         <div class="grid-x full-height">
             <div class="sidebar cell medium-4 large-3 cell-block-y hide-for-small-only">

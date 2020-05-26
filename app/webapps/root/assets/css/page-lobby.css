@@ -9,7 +9,7 @@
 }
 .rooms .room .card-section {
     margin: 2px;
-    padding: .5em;
+    padding: .5em .7em;
     color: #333;
 }
 .rooms .room .card-section:hover {
