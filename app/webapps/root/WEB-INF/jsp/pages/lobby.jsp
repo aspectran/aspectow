@@ -2,7 +2,7 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <link rel="stylesheet" type="text/css" href="/assets/css/chat-common.css?v14" />
 <link rel="stylesheet" type="text/css" href="/assets/css/chat-lobby.css?v14" />
-<link rel="stylesheet" type="text/css" href="/assets/css/page-lobby.css?v16" />
+<link rel="stylesheet" type="text/css" href="/assets/css/page-lobby.css?v17" />
 <script src="/assets/js/chat-client-default.js?v1.1"></script>
 <script src="/assets/js/chat-client-lobby.js?v1.2"></script>
 <script src="/assets/js/page-lobby.js?v1.2"></script>
@@ -28,9 +28,9 @@
                         <div class="cell medium-12 large-8 card random guide small-order-1 large-order-2 show-for-medium">
                             <div class="card-section">
                                 <h5>Welcome to Text Chat Club.</h5>
-                                You must be 18+ to start random chat with strangers.<br/>
-                                How To Chat With Strangers Safely?<br/>
-                                Don't share any personal information or contacts, don't send any money to strangers.
+                                Our random chat service lets you text chat with randomly selected people.
+                                To chat with strangers on the Internet is a great way to find new friends.<br/>
+                                You must be 18+ to start random chat with strangers.
                             </div>
                         </div>
                         <div class="cell medium-12 large-4 card room random small-order-2 large-order-1">
@@ -43,9 +43,9 @@
                         <div class="cell medium-12 large-8 card create guide small-order-4 show-for-medium">
                             <div class="card-section">
                                 <h5>Would you like to create a new chat room?</h5>
-                                You can talk freely in chat rooms of people with similar interests.<br/>
-                                If no one is in the chat room, it is automatically discarded after a certain period of time.<br/>
-                                It is also a good idea to join the chat room already created below.
+                                You can chat with people of similar interests by creating chat rooms.
+                                If no one is in the chat room, it is automatically deleted after a certain period of time.<br/>
+                                It is also a good idea to join the chat rooms already created below.
                             </div>
                         </div>
                         <div class="cell medium-12 large-4 card room create small-order-3">
