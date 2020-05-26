@@ -53,7 +53,7 @@ function printMessage(payload, restored) {
     scrollToBottom(convo, false);
     setTimeout(function () {
         message.remove();
-    }, 8000);
+    }, 9000);
 }
 
 function handleSystemMessage(message) {
