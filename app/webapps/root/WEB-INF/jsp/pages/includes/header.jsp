@@ -20,7 +20,7 @@
         </div>
         <div class="cell shrink align-self-middle text-right">
         <c:choose>
-            <c:when test="${not empty page.roomId && not empty user}">
+            <c:when test="${(page.roomId eq '-1' or page.roomId gt '0') && not empty user}">
                 <button type="button" class="button leave" title="Leave this chat room"><i class="iconfont fi-power"></i></button>
             </c:when>
             <c:otherwise>
