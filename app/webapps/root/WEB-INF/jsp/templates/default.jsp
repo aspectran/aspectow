@@ -3,15 +3,15 @@
 <!DOCTYPE html>
 <html class="no-js" lang="en">
 <head>
-    <%@ include file="includes/head.jsp" %>
-    <script>
-        const userInfo = {
-            userNo: Number("${user.userNo}"),
-            username: "${user.username}",
-            country: "${user.country}",
-            language: "${user.language}"
-        }
-    </script>
+<%@ include file="includes/head.jsp" %>
+<script>
+    const userInfo = {
+        userNo: Number("${user.userNo}"),
+        username: "${user.username}",
+        country: "${user.country}",
+        language: "${user.language}"
+    }
+</script>
 </head>
 <body>
 <c:if test="${not empty page.include}">

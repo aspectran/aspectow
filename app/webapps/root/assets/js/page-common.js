@@ -50,10 +50,10 @@ function openSignInPopup() {
     $("#common-sign-in").foundation('open');
     loadCaptcha("sign_in", "captcha-container-sign-in");
     let username = getCookie("username");
-    $("#form-sign-in input[name=username]").val(username).focus();
     if (username) {
         $("#form-sign-in input[name=remember-me]").prop("checked", true);
     }
+    $("#form-sign-in input[name=username]").val(username).focus();
 }
 
 let startSignInTimer;
@@ -65,7 +65,7 @@ function startSignIn() {
     $("#common-sign-in").foundation('close');
     let username = $("#form-sign-in input[name=username]").val().trim();
     if (username) {
-        if ($("#form-sign-in input[name=remember-me]").prop("checked")) {
+        if ($("#form-sign-in input[name='remember-me']").prop("checked")) {
             setCookie("username", username, 7);
         } else {
             setCookie("username", "", 0);

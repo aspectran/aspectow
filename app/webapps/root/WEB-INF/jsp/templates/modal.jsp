@@ -3,12 +3,12 @@
 <!DOCTYPE html>
 <html class="no-js" lang="en">
 <head>
-    <%@ include file="includes/head.jsp" %>
-    <script>
-        $(function () {
-            $(".reveal").foundation('open');
-        });
-    </script>
+<%@ include file="includes/head.jsp" %>
+<script>
+    $(function () {
+        $(".reveal").foundation('open');
+    });
+</script>
 </head>
 <body>
 <c:if test="${not empty INCLUDE_PAGE}">

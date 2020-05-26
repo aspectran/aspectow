@@ -3,12 +3,12 @@
 <!DOCTYPE html>
 <html class="no-js" lang="en">
 <head>
-    <%@ include file="includes/head.jsp" %>
-    <script>
-        $(function () {
-            $("#error-report").foundation('open');
-        })
-    </script>
+<%@ include file="includes/head.jsp" %>
+<script>
+    $(function () {
+        $("#error-report").foundation('open');
+    })
+</script>
 </head>
 <body>
     <div class="grid-y grid-frame">

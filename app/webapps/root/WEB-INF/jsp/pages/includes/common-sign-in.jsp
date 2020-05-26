@@ -11,30 +11,29 @@
             <h3>Sign in into TextChatClub</h3>
         </c:otherwise>
     </c:choose>
+    <form id="form-sign-in" method="post">
     <div class="grid-x grid-padding-x grid-margin-y">
         <div class="cell content">
-            <form id="form-sign-in" method="post">
-                <c:if test="${page.roomId eq '0'}">
-                    <p>Chat with anyone. Meet new people at random.<br/>
-                        Completely anonymously. No registration. No logs.</p>
-                </c:if>
-                <c:if test="${page.roomId eq '-1'}">
-                    <p>You must be 18+ to start random chat with strangers.<br/>
-                        How To Chat With Strangers Safely?<br/>
-                        Don't share any personal information or contacts, don't send any money to strangers.</p>
-                </c:if>
-                <label class="title">Please enter your name.</label>
-                <div class="input-group">
-                    <input class="input-group-field" type="text" name="username" maxlength="30" placeholder="Your name" autocomplete="off" autofocus/>
-                    <div class="input-group-button">
-                        <button type="submit" class="button" title="Sign in">Sign in</button>
-                    </div>
+            <c:if test="${page.roomId eq '0'}">
+                <p>Chat with anyone. Meet new people at random.<br/>
+                    Completely anonymously. No registration. No logs.</p>
+            </c:if>
+            <c:if test="${page.roomId eq '-1'}">
+                <p>You must be 18+ to start random chat with strangers.<br/>
+                    How To Chat With Strangers Safely?<br/>
+                    Don't share any personal information or contacts, don't send any money to strangers.</p>
+            </c:if>
+            <label class="title">Please enter your name.</label>
+            <div class="input-group">
+                <input class="input-group-field" type="text" name="username" maxlength="30" placeholder="Your name" autocomplete="off" autofocus/>
+                <div class="input-group-button">
+                    <button type="submit" class="button" title="Sign in">Sign in</button>
                 </div>
-                <p class="form-error already-in-use">
-                    Your name is already in use or a similar name already exists.<br/>
-                    Please enter a different name.
-                </p>
-            </form>
+            </div>
+            <p class="form-error already-in-use">
+                Your name is already in use or a similar name already exists.<br/>
+                Please enter a different name.
+            </p>
         </div>
     </div>
     <div class="grid-x grid-padding-x">
@@ -55,6 +54,7 @@
             <button type="button" class="button small alert cancel" title="Cancel">Cancel</button>
         </div>
     </div>
+    </form>
     <div class="grid-x grid-padding-x grid-margin-y">
         <div class="cell">
             <div id="captcha-container-sign-in"></div>
