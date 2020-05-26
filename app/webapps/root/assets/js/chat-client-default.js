@@ -7,9 +7,6 @@ let chatAborted;
 let justStayHere;
 
 $(function () {
-    if (!Modernizr.websockets) {
-        $("#common-browser-not-supported").foundation('open');
-    }
     if (!chatClientSettings) {
         return;
     }
