@@ -15,8 +15,7 @@
     <div class="grid-x grid-padding-x grid-margin-y">
         <div class="cell content">
             <c:if test="${page.roomId eq '0'}">
-                <p>Chat with anyone. Meet new people at random.<br/>
-                    Completely anonymously. No registration. No logs.</p>
+                <p>TextChatClub is a place to chat with your friends, meet new people and discover conversations.</p>
             </c:if>
             <c:if test="${page.roomId eq '-1'}">
                 <p>You must be 18+ to start random chat with strangers.<br/>
