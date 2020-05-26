@@ -27,7 +27,7 @@
             <div class="input-group">
                 <input class="input-group-field" type="text" name="username" maxlength="30" placeholder="Your name" autocomplete="off" autofocus/>
                 <div class="input-group-button">
-                    <button type="submit" class="button" title="Sign in">Sign in</button>
+                    <button type="submit" class="button success" title="Sign in">Sign in</button>
                 </div>
             </div>
             <p class="form-error already-in-use">

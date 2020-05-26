@@ -42,7 +42,7 @@
         </c:choose>
         <p></p>
         <div class="button-group align-right">
-            <a class="alert button" href="/">OK</a>
+            <a class="alert button" href="/signout">OK</a>
         </div>
     </div>
 </body>

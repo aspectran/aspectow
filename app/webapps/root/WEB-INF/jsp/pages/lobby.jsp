@@ -15,7 +15,7 @@
     }
 </script>
 <div class="grid-y grid-frame">
-    <%@ include file="includes/header.jsp" %>
+    <%@ include file="includes/chat-header.jsp" %>
     <div class="body shadow cell auto cell-block-container">
         <div class="grid-x full-height">
             <div class="sidebar cell medium-4 large-3 cell-block-y hide-for-small-only">

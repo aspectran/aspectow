@@ -8,7 +8,7 @@
 <meta name="keywords" content="chat, online chat, random chat, stranger chat, chat with anyone, talk to strangers, chat with strangers">
 <link href="https://fonts.googleapis.com/css?family=Raleway:500,500i,700" rel="stylesheet">
 <link rel="stylesheet" type="text/css" href="https://aspectran.com/assets/css/aspectran.css?v1">
-<link rel="stylesheet" type="text/css" href="/assets/css/page-common.css?v14">
+<link rel="stylesheet" type="text/css" href="/assets/css/page-common.css?v15">
 <script src="/assets/js/modernizr-custom.js?v2"></script>
 <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
 <script src="/assets/js/foundation.min.js"></script>

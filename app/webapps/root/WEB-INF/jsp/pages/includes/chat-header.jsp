@@ -3,7 +3,7 @@
 <div class="header cell cell-block-container">
     <div class="grid-x">
         <div class="cell auto align-self-middle">
-            <button type="button" class="button people" title="People">
+            <button type="button" class="button people" title="People in chatroom">
                 <i class="iconfont fi-results-demographics"></i>
                 <span id="totalPeople"></span></button>
             <c:choose>

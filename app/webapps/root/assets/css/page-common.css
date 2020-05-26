@@ -112,7 +112,7 @@ input#for-automata-clear {
 }
 .header .button.signout {
     display: none;
-    background-color: #2D844D;
+    background-color: #C45A4F;
 }
 .header .button.signout:disabled {
     cursor: wait;
