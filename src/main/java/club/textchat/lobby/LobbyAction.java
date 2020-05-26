@@ -26,6 +26,8 @@ import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Component;
 import com.aspectran.core.component.bean.annotation.Dispatch;
 import com.aspectran.core.component.bean.annotation.Request;
+import com.aspectran.core.component.bean.annotation.Transform;
+import com.aspectran.core.context.rule.type.FormatType;
 import com.aspectran.core.util.security.TimeLimitedPBTokenIssuer;
 
 import java.util.HashMap;
@@ -51,7 +53,7 @@ public class LobbyAction {
     @Request("/")
     @Dispatch("templates/default")
     @Action("page")
-    public Map<String, Object> rooms() {
+    public Map<String, Object> lobby() {
         List<RoomInfo> rooms = roomManager.getRoomList();
 
         UserInfo userInfo = null;

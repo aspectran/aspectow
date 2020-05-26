@@ -65,6 +65,7 @@ function handleSystemMessage(message) {
         let room = $(".new-room-template").clone().removeClass("new-room-template");
         room.find("a").attr("href", "/rooms/" + roomInfo.encryptedRoomId);
         room.find("h5").text(roomInfo.roomName);
+        room.find(".new").show();
         room.prependTo($(".rooms.public")).fadeIn();
         printEvent("<code>" + roomInfo.roomName + "</code> chatroom has been created.");
     }

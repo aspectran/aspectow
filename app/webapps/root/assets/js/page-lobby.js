@@ -32,6 +32,12 @@ $(function () {
         closeSocket();
         location.href = $(this).attr("href");
     });
+    $(".refresh-rooms").on("click", function () {
+        if (checkSignedIn()) {
+            refreshRooms();
+        }
+    });
+
 });
 
 function doCreateRoom() {
@@ -80,4 +86,38 @@ function doCreateRoom() {
             alert("An error has occurred making the request: " + error);
         }
     });
+}
+
+let refreshRoomsTimer;
+function refreshRooms() {
+    if (refreshRoomsTimer) {
+        clearTimeout(refreshRoomsTimer);
+        refreshRoomsTimer = null;
+    }
+    refreshRoomsTimer = setTimeout(function () {
+        $.ajax({
+            url: '/rooms',
+            type: 'get',
+            dataType: 'json',
+            success: function (list) {
+                if (list) {
+                    $(".rooms.public .room:visible").remove();
+                    for (let i in list) {
+                        let roomInfo = list[i];
+                        console.log(roomInfo);
+                        let room = $(".new-room-template").clone().removeClass("new-room-template");
+                        room.find("a").attr("href", "/rooms/" + roomInfo.encryptedRoomId);
+                        room.find("h5").text(roomInfo.roomName);
+                        if (roomInfo.pastDays < 2) {
+                            room.find(".new").show();
+                        }
+                        room.appendTo($(".rooms.public")).fadeIn();
+                    }
+                }
+            },
+            error: function (request, status, error) {
+                alert("An error has occurred making the request: " + error);
+            }
+        });
+    }, 400);
 }

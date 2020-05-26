@@ -59,34 +59,25 @@ public class UserManager extends InstantActivitySupport {
         }
     }
 
-    public void checkSignedIn() {
-        Translet translet = getCurrentActivity().getTranslet();
-        if (translet == null) {
-            throw new IllegalStateException("No such translet in " + getCurrentActivity());
-        }
+    public void checkSignedIn() throws LoginRequiredException {
+        getUserInfo();
+    }
+
+    public void checkSignedInPage() throws LoginRequiredException {
         try {
             getUserInfo();
         } catch (LoginRequiredException e) {
-            if (!"/signout".equals(translet.getRequestName())) {
+            Translet translet = getCurrentActivity().getTranslet();
+            if (translet == null) {
+                throw e;
+            }
+            if (!"/".equals(translet.getRequestName()) && !"/signout".equals(translet.getRequestName())) {
                 translet.redirect("/", new HashMap<String, String>() {{
                     put("referrer", translet.getRequestName());
                 }});
             } else {
                 translet.redirect("/");
             }
-        }
-    }
-
-    public void checkAlreadySignedIn() {
-        Translet translet = getCurrentActivity().getTranslet();
-        if (translet == null) {
-            throw new IllegalStateException("No such translet in " + getCurrentActivity());
-        }
-        try {
-            getUserInfo();
-            translet.redirect("/rooms");
-        } catch (LoginRequiredException e) {
-            // ignore
         }
     }
 

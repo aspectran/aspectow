@@ -25,7 +25,7 @@
             </c:when>
             <c:otherwise>
                 <button type="button" class="button signin" title="Sign in"><i class="iconfont fi-arrow-right"></i> Sign in</button>
-                <button type="button" class="button signout" title="Sign out">Sign out</button>
+                <button type="button" class="button signout" title="Sign out">Sign out <i class="iconfont icon-circle-with-cross"></i></button>
             </c:otherwise>
         </c:choose>
         </div>
