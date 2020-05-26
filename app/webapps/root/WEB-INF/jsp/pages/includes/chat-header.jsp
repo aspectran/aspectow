@@ -14,7 +14,7 @@
                     <h2 class="text-truncate">Random Chat</h2>
                 </c:when>
                 <c:otherwise>
-                    <h1>Text Chat Club</h1>
+                    <h2>Text Chat Club</h2>
                 </c:otherwise>
             </c:choose>
         </div>
