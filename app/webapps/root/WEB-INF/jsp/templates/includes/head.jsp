@@ -4,8 +4,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
 <meta name="google" content="notranslate">
 <title>Text Chat Club<c:if test="${not empty page.title}"> - ${page.title}</c:if></title>
-<meta name="description" content="Chat with anyone. Meet new people at random. Completely anonymously. No registration. No logs.">
-<meta name="keywords" content="chat with anyone, talk to strangers, random chat, chat with strangers, chat random">
+<meta name="description" content="Chat with anyone. Meet new people at random. No registration. No logs.">
+<meta name="keywords" content="chat, online chat, random chat, stranger chat, chat with anyone, talk to strangers, chat with strangers">
 <link href="https://fonts.googleapis.com/css?family=Raleway:500,500i,700" rel="stylesheet">
 <link rel="stylesheet" type="text/css" href="https://aspectran.com/assets/css/aspectran.css?v1">
 <link rel="stylesheet" type="text/css" href="/assets/css/page-common.css?v14">
