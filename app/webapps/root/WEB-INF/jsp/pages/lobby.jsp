@@ -2,7 +2,7 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <link rel="stylesheet" type="text/css" href="/assets/css/chat-common.css?v14" />
 <link rel="stylesheet" type="text/css" href="/assets/css/chat-lobby.css?v14" />
-<link rel="stylesheet" type="text/css" href="/assets/css/page-lobby.css?v14" />
+<link rel="stylesheet" type="text/css" href="/assets/css/page-lobby.css?v15" />
 <script src="/assets/js/chat-client-default.js?v1.1"></script>
 <script src="/assets/js/chat-client-lobby.js?v1.2"></script>
 <script src="/assets/js/page-lobby.js?v1.1"></script>
@@ -24,7 +24,7 @@
             <div class="convo-container cell auto cell-block-y">
                 <div class="grid-container full-height">
                     <%@ include file="includes/lobby-user.jsp" %>
-                    <div class="rooms grid-x grid-margin-x grid-margin-y t10">
+                    <div class="rooms grid-x grid-margin-x t15">
                         <div class="cell medium-12 large-8 card random guide small-order-1 large-order-2">
                             <div class="card-section">
                                 <h5>Welcome to Text Chat Club.</h5>
@@ -56,12 +56,12 @@
                             </div>
                         </div>
                     </div>
-                    <div class="grid-x grid-margin-y t10">
+                    <div class="grid-x grid-margin-y">
                         <div class="cell">
                             <h6 class="info">Select a room you would like to join from the list below.</h6>
                         </div>
                     </div>
-                    <div class="rooms public grid-x grid-margin-x grid-margin-y b20">
+                    <div class="rooms public grid-x grid-margin-x grid-margin-y b15">
                     <c:forEach items="${page.rooms}" var="roomInfo">
                         <div class="cell small-12 medium-6 large-4 card room<c:if test="${roomInfo.currentUsers gt 0}"> active</c:if>">
                             <div class="card-section">
