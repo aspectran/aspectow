@@ -29,8 +29,6 @@ $(function () {
     });
     $("#convo").on("click", ".message.event.group .more", function () {
         $(this).parent().toggleClass("all-visible");
-    }).on("mouseleave", ".message.event.group.all-visible", function () {
-        $(this).toggleClass("all-visible");
     });
     $("#message").on("focusin", function () {
         hideSidebar();

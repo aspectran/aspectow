@@ -78,7 +78,7 @@
 }
 #convo .message.event.group {
     border-radius: 6px;
-    max-height: 300px;
+    max-height: 200px;
     overflow: auto;
 }
 #convo .message.event.group.all-visible .content {
@@ -89,7 +89,7 @@
 }
 #convo .message.event.group .content.omitted {
     display: none;
-    font-size: .7em;
+    font-size: .85em;
     padding-left: 2em;
     padding-top: 0;
     padding-bottom: 0;
