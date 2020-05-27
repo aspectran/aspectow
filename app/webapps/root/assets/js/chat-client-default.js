@@ -420,6 +420,9 @@ function printMessage(payload, restored) {
     let convo = $("#convo");
     let last = convo.find(".message").last();
     if (last.length && !last.hasClass("event") && last.data("user-no") === payload.userNo) {
+        if (restored) {
+            last.addClass("restored");
+        }
         last.append(content);
     } else {
         let message = $("<div/>")
@@ -427,6 +430,9 @@ function printMessage(payload, restored) {
             .data("user-no", payload.userNo)
             .data("username", payload.username)
             .append(sender).append(content);
+        if (restored) {
+            message.addClass("restored");
+        }
         convo.append(message);
     }
     if (!restored) {

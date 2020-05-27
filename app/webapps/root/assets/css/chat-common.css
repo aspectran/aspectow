@@ -150,6 +150,9 @@
 #convo .message.coupled .username {
     display: none;
 }
+#convo .message.restored .content {
+    background-color: #ccc;
+}
 .message-box .input-group {
     margin: 0;
 }
