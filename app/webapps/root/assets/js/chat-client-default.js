@@ -121,7 +121,7 @@ function heartbeatPing() {
             socket.send(serialize(chatMessage));
             heartbeatPing();
             heartbeatCount++;
-            if (heartbeatCount % 25 === 0) {
+            if (heartbeatCount % 15 === 0) {
                 $.ajax({
                     url: '/ping',
                     type: 'get',

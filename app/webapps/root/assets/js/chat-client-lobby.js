@@ -95,7 +95,7 @@ function printEvent(text, timeout) {
 function leaveRoom(force) {
     closeSocket();
     if (force) {
-        $("#lobby-not-available").foundation('close');
+        $("#common-service-not-available").foundation('close');
         location.href = "/signout";
     } else {
         gotoHomepage();
@@ -103,5 +103,5 @@ function leaveRoom(force) {
 }
 
 function gotoHomepage() {
-    $("#lobby-not-available").foundation('open');
+    $("#common-service-not-available").foundation('open');
 }

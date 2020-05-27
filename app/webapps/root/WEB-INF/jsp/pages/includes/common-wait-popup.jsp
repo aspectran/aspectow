@@ -3,7 +3,7 @@
     <h3>Please wait</h3>
     <div class="grid-x grid-margin-y">
         <div class="cell text-center">
-            <i class="banner animate icon-globe"></i>
+            <i class="banner icon-globe"></i>
         </div>
         <div class="cell content text-center">
             <p></p>

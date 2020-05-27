@@ -150,6 +150,7 @@ function openWaitPopup(message, action, timeout) {
         popup.foundation('close');
     });
     popup.foundation('open');
+    popup.find(".banner").addClass("animate");
     if (timeout > 0) {
         openWaitPopupTimer = setTimeout(function () {
             popup.find(".button.cancel").show();
@@ -160,5 +161,7 @@ function openWaitPopup(message, action, timeout) {
 }
 
 function closeWaitPopup() {
-    $("#common-wait-popup").foundation('close');
+    let popup = $("#common-wait-popup");
+    popup.find(".banner").addClass("animate");
+    popup.foundation('close');
 }

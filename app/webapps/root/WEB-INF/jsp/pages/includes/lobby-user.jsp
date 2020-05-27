@@ -1,5 +1,5 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
-<div class="user grid-x hide-for-large t10">
+<div class="user grid-x hide-for-medium t10">
     <div class="cell shrink">
         <div class="avatar"><i class="iconfont fi-mountains"></i></div>
     </div>

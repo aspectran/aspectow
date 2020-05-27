@@ -3,8 +3,8 @@
 <link rel="stylesheet" type="text/css" href="/assets/css/chat-common.css?v14" />
 <link rel="stylesheet" type="text/css" href="/assets/css/chat-lobby.css?v14" />
 <link rel="stylesheet" type="text/css" href="/assets/css/page-lobby.css?v17" />
-<script src="/assets/js/chat-client-default.js?v1.1"></script>
-<script src="/assets/js/chat-client-lobby.js?v1.2"></script>
+<script src="/assets/js/chat-client-default.js?v1.3"></script>
+<script src="/assets/js/chat-client-lobby.js?v1.3"></script>
 <script src="/assets/js/page-lobby.js?v1.2"></script>
 <script>
     const chatClientSettings = {
@@ -23,7 +23,9 @@
             </div>
             <div class="convo-container cell auto cell-block-y">
                 <div class="grid-container full-height">
-                    <%@ include file="includes/lobby-user.jsp" %>
+                    <c:if test="${not empty user}">
+                        <%@ include file="includes/lobby-user.jsp" %>
+                    </c:if>
                     <div class="rooms grid-x grid-margin-x t15">
                         <div class="cell medium-12 large-8 card random guide small-order-1 large-order-2 show-for-medium">
                             <div class="card-section">
@@ -36,7 +38,7 @@
                         <div class="cell medium-12 large-4 card room random small-order-2 large-order-1">
                             <div class="card-section">
                                 <a class="start" href="/random"><h4>Random Chat</h4></a>
-                                <p>Best place to talk to strangers</p>
+                                <p>Best place to talk to randomly selected people from all over the world</p>
                                 <a class="button small start" href="/random">Start random chat</a>
                             </div>
                         </div>
@@ -51,7 +53,7 @@
                         <div class="cell medium-12 large-4 card room create small-order-3">
                             <div class="card-section">
                                 <a data-open="lobby-room-create"><h4>New Chatroom</h4></a>
-                                <p>Meeting people with similar interests</p>
+                                <p>Meeting people with similar interests in public chat rooms</p>
                                 <a class="button small start room-create">Create chatroom</a>
                             </div>
                         </div>
@@ -107,12 +109,12 @@
         </div>
     </div>
 </div>
-<%@ include file="includes/lobby-not-available.jsp" %>
 <%@ include file="includes/lobby-room-create.jsp" %>
 <%@ include file="includes/lobby-room-create-complete.jsp" %>
 <%@ include file="includes/chat-duplicate-join.jsp" %>
 <%@ include file="includes/common-wait-popup.jsp" %>
 <%@ include file="includes/common-connection-lost.jsp" %>
+<%@ include file="includes/common-service-not-available.jsp" %>
 <%@ include file="includes/common-browser-not-supported.jsp" %>
 <c:if test="${empty user}">
     <%@ include file="includes/common-sign-in.jsp" %>
