@@ -25,6 +25,7 @@ import com.aspectran.core.component.bean.annotation.RequestToPost;
 import com.aspectran.core.component.bean.annotation.Required;
 import com.aspectran.core.component.bean.annotation.Transform;
 import com.aspectran.core.context.rule.type.FormatType;
+import com.aspectran.core.util.StringUtils;
 import com.aspectran.core.util.logging.Logger;
 import com.aspectran.core.util.logging.LoggerFactory;
 
@@ -72,14 +73,21 @@ public class UserAction {
 
         UserInfo userInfo = new UserInfo();
         userInfo.setUsername(username);
-        userInfo.setIpAddr(((HttpServletRequest)translet.getRequestAdaptee()).getRemoteAddr());
 
         Locale locale = translet.getRequestAdapter().getLocale();
         if (locale != null) {
             userInfo.setCountry(locale.getCountry());
             userInfo.setLanguage(locale.getLanguage());
         }
+
         userInfo.setTimeZone(timeZone);
+
+        String remoteAddr = translet.getRequestAdapter().getHeader("X-FORWARDED-FOR");
+        if (!StringUtils.isEmpty(remoteAddr)) {
+            userInfo.setIpAddr(remoteAddr);
+        } else {
+            userInfo.setIpAddr(((HttpServletRequest)translet.getRequestAdaptee()).getRemoteAddr());
+        }
 
         if (!chaterManager.createGuestChater(userInfo)) {
             return "-9";
