@@ -4,7 +4,8 @@
 <mapper namespace="users">
 
     <insert id="insertGuest" parameterType="club.textchat.user.UserInfo" useGeneratedKeys="true" keyProperty="userNo">
-        insert into guests (user_nm, ip_addr) values (#{username}, #{ipAddr})
+        insert into guests (user_nm, country_cd, lang_cd, ip_addr)
+        values (#{username}, #{country}, #{language}, #{ipAddr})
     </insert>
 
     <update id="discardUsername" parameterType="int">

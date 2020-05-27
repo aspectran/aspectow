@@ -3,6 +3,8 @@ create table guests
 (
     user_no    int auto_increment comment '사용자 번호' primary key,
     user_nm    varchar(100) not null comment '사용자명',
+    country_cd varchar(5) null comment '국가코드',
+    lang_cd varchar(5) null comment '언어코드',
     ip_addr    varchar(50) null comment 'IP 주소',
     discarded_dt  datetime null comment '사용자명 폐기일',
     reg_dt     datetime default now() not null comment '등록일자'
