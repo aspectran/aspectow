@@ -104,10 +104,13 @@ function refreshRooms() {
                     $(".rooms.public .room:visible").remove();
                     for (let i in list) {
                         let roomInfo = list[i];
-                        console.log(roomInfo);
                         let room = $(".new-room-template").clone().removeClass("new-room-template");
                         room.find("a").attr("href", "/rooms/" + roomInfo.encryptedRoomId);
                         room.find("h5").text(roomInfo.roomName);
+                        room.find(".curr-users span").text(roomInfo.currentUsers);
+                        if (roomInfo.currentUsers > 0) {
+                            room.addClass("active");
+                        }
                         if (roomInfo.pastDays < 2) {
                             room.find(".new").show();
                         }

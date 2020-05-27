@@ -5,7 +5,7 @@
 <link rel="stylesheet" type="text/css" href="/assets/css/page-lobby.css?v17" />
 <script src="/assets/js/chat-client-default.js?v1.3"></script>
 <script src="/assets/js/chat-client-lobby.js?v1.3"></script>
-<script src="/assets/js/page-lobby.js?v1.2"></script>
+<script src="/assets/js/page-lobby.js?v1.3"></script>
 <script>
     const chatClientSettings = {
         serverEndpoint: "/chat/lobby/",
@@ -68,7 +68,7 @@
                         <div class="cell small-12 medium-6 large-4 card room<c:if test="${roomInfo.currentUsers gt 0}"> active</c:if>">
                             <div class="card-section">
                                 <a class="start" href="/rooms/${roomInfo.encryptedRoomId}"><h5>${roomInfo.roomName}</h5></a>
-                                <i class="curr-users fi-torsos-all"> ${roomInfo.currentUsers}</i>
+                                <i class="curr-users fi-torsos-all"> <span>${roomInfo.currentUsers}</span></i>
                                 <c:if test="${roomInfo.pastDays le 1}"><i class="new fi-burst-new"></i></c:if>
                                 <a class="button small start" href="/rooms/${roomInfo.encryptedRoomId}">Start chat</a>
                             </div>
@@ -77,7 +77,7 @@
                         <div class="new-room-template cell small-12 medium-6 large-4 card room" style="display: none">
                             <div class="card-section">
                                 <a class="start"><h5></h5></a>
-                                <i class="curr-users fi-torsos-all"> 0</i>
+                                <i class="curr-users fi-torsos-all"> <span>0</span></i>
                                 <i class="new fi-burst-new" style="display: none"></i>
                                 <a class="button small start">Start chat</a>
                             </div>
