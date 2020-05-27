@@ -430,6 +430,8 @@ function printMessage(payload, restored) {
             .append(sender).append(content);
         if (restored) {
             message.addClass("restored");
+        } else if (payload.color) {
+            message.addClass("my-col-" + payload.color);
         }
         convo.append(message);
     }

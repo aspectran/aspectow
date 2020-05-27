@@ -53,6 +53,7 @@ public class UserAction {
     @Transform(FormatType.JSON)
     public String signin(Translet translet,
                          @Required String username,
+                         String favoriteColor,
                          @Required String recaptchaResponse,
                          String timeZone) {
         username = UsernameUtils.normalize(username);
@@ -73,6 +74,9 @@ public class UserAction {
 
         UserInfo userInfo = new UserInfo();
         userInfo.setUsername(username);
+        if (!StringUtils.isEmpty(favoriteColor)) {
+            userInfo.setColor(favoriteColor);
+        }
 
         Locale locale = translet.getRequestAdapter().getLocale();
         if (locale != null) {

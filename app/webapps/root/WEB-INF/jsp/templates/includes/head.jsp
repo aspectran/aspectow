@@ -33,3 +33,11 @@
     gtag('config', 'UA-150079188-1');
     gtag('config', 'AW-798244126');
 </script>
+<script>
+    const userInfo = {
+        userNo: Number("${user.userNo}"),
+        username: "${user.username}",
+        country: "${user.country}",
+        language: "${user.language}"
+    }
+</script>

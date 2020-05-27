@@ -22,8 +22,10 @@ import club.textchat.server.message.payload.JoinPayload;
 import club.textchat.server.message.payload.MessagePayload;
 import club.textchat.server.message.payload.UserJoinedPayload;
 import club.textchat.server.message.payload.UserLeftPayload;
+import com.aspectran.core.util.StringUtils;
 import com.aspectran.core.util.apon.AbstractParameters;
 import com.aspectran.core.util.apon.AponReader;
+import com.aspectran.core.util.apon.AponWriter;
 import com.aspectran.core.util.apon.ParameterKey;
 import com.aspectran.core.util.apon.ValueType;
 
@@ -145,6 +147,19 @@ public class ChatMessage extends AbstractParameters {
 
     public BroadcastPayload getBroadcastPayload() {
         return getParameters(broadcast);
+    }
+
+    @Override
+    public String toString() {
+        try {
+            return new AponWriter()
+                    .prettyPrint(false)
+                    .nullWritable(false)
+                    .write(this)
+                    .toString();
+        } catch (IOException e) {
+            return StringUtils.EMPTY;
+        }
     }
 
 }

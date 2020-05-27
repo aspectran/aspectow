@@ -164,6 +164,7 @@ input#for-automata-clear {
     left: 15px;
     font-size: 50px;
     color: #d1f3ff;
+    text-shadow: rgba(0, 0, 0, .498039) 0 1px 2px;
 }
 .user .nameplate {
     position: relative;
@@ -195,6 +196,27 @@ input#for-automata-clear {
     color: #217aa6;
     font-size: .95em;
 }
+.user.my-col-1 .avatar .iconfont {
+    color: #fcbdbd;
+}
+.user.my-col-2 .avatar .iconfont {
+    color: #fcd3b2;
+}
+.user.my-col-3 .avatar .iconfont {
+    color: #f6ea9e;
+}
+.user.my-col-4 .avatar .iconfont {
+    color: #b4ecb1;
+}
+.user.my-col-5 .avatar .iconfont {
+    color: #b5defc;
+}
+.user.my-col-6 .avatar .iconfont {
+    color: #c5c5fa;
+}
+.user.my-col-7 .avatar .iconfont {
+    color: #f3c1f2;
+}
 #form-sign-in label.title {
     color: #454545;
     margin: 0 0 .2em 0;
@@ -202,6 +224,38 @@ input#for-automata-clear {
 }
 #form-sign-in .form-error {
     font-size: 1em;
+}
+#common-sign-in .my-col-1 {
+    background-color: #fcbdbd;
+}
+#common-sign-in .my-col-2 {
+    background-color: #fcd3b2;
+}
+#common-sign-in .my-col-3 {
+    background-color: #f6ea9e;
+}
+#common-sign-in .my-col-4 {
+    background-color: #b4ecb1;
+}
+#common-sign-in .my-col-5 {
+    background-color: #b5defc;
+}
+#common-sign-in .my-col-6 {
+    background-color: #c5c5fa;
+}
+#common-sign-in .my-col-7 {
+    background-color: #f3c1f2;
+}
+#common-sign-in .my-col-block {
+    display: inline-block;
+    padding: .2em .8em;
+    margin-bottom: .3em;
+    border-radius: 5px;
+    cursor: pointer;
+    border: 3px solid #fff;
+}
+#common-sign-in .my-col-block.selected {
+    border: 3px solid #1b8d8d;
 }
 .reveal.popup {
     background-color: #e9f4f6;

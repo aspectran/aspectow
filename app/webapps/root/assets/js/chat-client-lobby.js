@@ -43,17 +43,20 @@ function printMessage(payload, restored) {
     let sender = $("<code class='sender'/>").text(payload.username);
     let content = $("<p class='content'/>")
         .text(payload.content.substring(4))
-        .append(sender);
+        .prepend(sender);
     let message = $("<div/>")
         .addClass("message")
         .data("user-no", payload.userNo)
         .data("username", payload.username)
         .append(content);
+    if (payload.color) {
+        message.addClass("my-col-" + payload.color);
+    }
     convo.append(message);
     scrollToBottom(convo, false);
     setTimeout(function () {
         message.remove();
-    }, 9000);
+    }, 10000);
 }
 
 function handleSystemMessage(message) {
@@ -82,6 +85,7 @@ function printUserLeftMessage(payload, restored) {
 }
 
 function printEvent(text, timeout) {
+    console.log(text);
     let convo = $("#convo");
     let content = $("<p class='content'/>").html(text);
     let message = $("<div/>").addClass("message").append(content);
@@ -89,7 +93,7 @@ function printEvent(text, timeout) {
     scrollToBottom(convo, false);
     setTimeout(function () {
         message.remove();
-    }, timeout||3000);
+    }, timeout||3500);
 }
 
 function leaveRoom(force) {

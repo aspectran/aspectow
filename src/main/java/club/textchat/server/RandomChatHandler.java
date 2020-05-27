@@ -193,6 +193,7 @@ public class RandomChatHandler extends AbstractChatHandler {
             payload.setUserNo(chaterInfo.getUserNo());
             payload.setUsername(chaterInfo.getUsername());
             payload.setContent(content);
+            payload.setColor(chaterInfo.getColor());
             ChatMessage message = new ChatMessage(payload);
             message.setReceiver(chaterInfo2.getUserNo());
             randomConvoPersistence.publish(message);

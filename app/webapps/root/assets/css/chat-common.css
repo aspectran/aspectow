@@ -151,7 +151,28 @@
     display: none;
 }
 #convo .message.restored .content {
-    background-color: #ccc;
+    background-color: #ccc !important;
+}
+#convo .message.my-col-1 .content {
+    background-color: #fbd2d2;
+}
+#convo .message.my-col-2 .content {
+    background-color: #ffe0c5;
+}
+#convo .message.my-col-3 .content {
+    background-color: #f4ebac;
+}
+#convo .message.my-col-4 .content {
+    background-color: #c0eabe;
+}
+#convo .message.my-col-5 .content {
+    background-color: #c6e6fd;
+}
+#convo .message.my-col-6 .content {
+    background-color: #d4d4fc;
+}
+#convo .message.my-col-7 .content {
+    background-color: #f4cff3;
 }
 .message-box .input-group {
     margin: 0;

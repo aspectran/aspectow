@@ -97,7 +97,7 @@
             <div class="message-box cell auto cell-block-y">
                 <form id="form-send-message">
                     <div class="input-group">
-                        <input id="message" class="input-group-field" type="text" maxlength="150" autocomplete="off" placeholder="Enter your message"/>
+                        <input id="message" class="input-group-field" type="text" maxlength="100" autocomplete="off" placeholder="Enter your message"/>
                         <input id="for-automata-clear" type="text"/>
                         <div class="input-group-button">
                             <button type="submit" class="button send" title="Send message"><i class="icon-paper-plane"></i></button>

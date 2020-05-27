@@ -159,10 +159,9 @@ public class DefaultChatHandler extends AbstractChatHandler {
         payload.setUsername(chaterInfo.getUsername());
         payload.setContent(content);
         payload.setDatetime(getCurrentDatetime(chaterInfo));
+        payload.setColor(chaterInfo.getColor());
         ChatMessage message = new ChatMessage(payload);
         publicConvoPersistence.put(chaterInfo.getRoomId(), message);
     }
-
-
 
 }

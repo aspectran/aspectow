@@ -29,6 +29,7 @@
 			curr_users,
 			datediff(now(), reg_dt) as past_days
 		from rooms
+		where del_yn = 'N'
 		order by if(past_days &lt;= 1, 1, 2), curr_users desc, cumu_users desc
 		limit 99
 	</select>

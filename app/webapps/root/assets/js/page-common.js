@@ -29,6 +29,10 @@ $(function () {
             setCookie("username", "", 10);
         }
     });
+    $("#common-sign-in .my-col-block").on("click", function () {
+        $("#common-sign-in .my-col-block").removeClass("selected");
+        $(this).addClass("selected");
+    });
     $("#common-sign-in .button.cancel").on("click", function () {
         if (location.pathname !== "/") {
             location.href = "/";
@@ -53,6 +57,12 @@ function openSignInPopup() {
     if (username) {
         $("#form-sign-in input[name=remember-me]").prop("checked", true);
     }
+    let favoriteColor = Number(getCookie("favoriteColor"));
+    if (favoriteColor < 1 || favoriteColor > 7) {
+        favoriteColor = Math.floor(Math.random() * 7) + 1;
+    }
+    $("#common-sign-in .my-col-block").removeClass("selected");
+    $("#common-sign-in .my-col-" + favoriteColor).addClass("selected");
     $("#form-sign-in input[name=username]").val(username).focus();
 }
 
@@ -65,21 +75,24 @@ function startSignIn() {
     $("#common-sign-in").foundation('close');
     let username = $("#form-sign-in input[name=username]").val().trim();
     if (username) {
+        let favoriteColor = $("#common-sign-in .my-col-block.selected").text();
         if ($("#form-sign-in input[name='remember-me']").prop("checked")) {
             setCookie("username", username, 7);
+            setCookie("favoriteColor", favoriteColor, 7);
         } else {
             setCookie("username", "", 0);
+            setCookie("favoriteColor", "", 0);
         }
         openWaitPopup("Signing in...", function () {
             location.reload();
         }, 10000);
         startSignInTimer = setTimeout(function () {
-            doSignIn(username);
+            doSignIn(username, favoriteColor);
         }, 600);
     }
 }
 
-function doSignIn(username) {
+function doSignIn(username, favoriteColor) {
     if (!recaptchaResponse) {
         return;
     }
@@ -89,6 +102,7 @@ function doSignIn(username) {
         dataType: 'json',
         data: {
             username: username,
+            favoriteColor: favoriteColor,
             recaptchaResponse: recaptchaResponse,
             timeZone: getTimeZone()
         },

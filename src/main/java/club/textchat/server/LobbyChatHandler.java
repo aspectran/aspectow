@@ -153,6 +153,7 @@ public class LobbyChatHandler extends AbstractChatHandler {
         payload.setUsername(chaterInfo.getUsername());
         payload.setContent(content);
         payload.setDatetime(getCurrentDatetime(chaterInfo));
+        payload.setColor(chaterInfo.getColor());
         ChatMessage message = new ChatMessage(payload);
         lobbyConvoPersistence.publish(message);
     }

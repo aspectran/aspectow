@@ -21,7 +21,7 @@
     float: none;
     margin: 0;
     border-radius: 0;
-    background-color: #f6e6ad;
+    background-color: #f6e6ad !important;
     border: 0;
     border-top: 1px solid #eec938;
     overflow: auto;
@@ -29,16 +29,35 @@
 #convo .message .content code {
     padding: .12em .5em;
     font-weight: normal;
-    font-size: .8em;
     color: #333;
-    background-color: #fff7db;
+    background-color: #fff;
     border: 1px solid #eec938;
     border-radius: 5px;
+    vertical-align: top;
 }
 #convo .message .content code.sender {
-    float: right;
-    padding: .12em 1em;
-    margin-left: .5em;
+    margin-right: .5em;
+}
+#convo .message.my-col-1 .content code.sender {
+    background-color: #fbd2d2;
+}
+#convo .message.my-col-2 .content code.sender {
+    background-color: #ffe0c5;
+}
+#convo .message.my-col-3 .content code.sender {
+    background-color: #f4ebac;
+}
+#convo .message.my-col-4 .content code.sender {
+    background-color: #c0eabe;
+}
+#convo .message.my-col-5 .content code.sender {
+    background-color: #c6e6fd;
+}
+#convo .message.my-col-6 .content code.sender {
+    background-color: #d9d9fb;
+}
+#convo .message.my-col-7 .content code.sender {
+    background-color: #f4cff3;
 }
 #convo .message:nth-last-child(1) {
     border-bottom: 1px solid #eec938;

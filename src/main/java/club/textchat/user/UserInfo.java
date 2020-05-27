@@ -29,6 +29,8 @@ public class UserInfo implements Serializable {
 
     private String prevUsername;
 
+    private String color;
+
     private String country;
 
     private String language;
@@ -59,6 +61,14 @@ public class UserInfo implements Serializable {
 
     public void setPrevUsername(String prevUsername) {
         this.prevUsername = prevUsername;
+    }
+
+    public String getColor() {
+        return color;
+    }
+
+    public void setColor(String color) {
+        this.color = color;
     }
 
     public String getCountry() {
