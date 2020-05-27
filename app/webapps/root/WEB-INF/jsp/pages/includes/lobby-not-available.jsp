@@ -6,6 +6,7 @@
             <p class="lead">You cannot enter the Text Chat Club.</p>
             <p>The cause can be one of the following:</p>
             <ul>
+                <li>When the browser has not been used for a long time on a mobile device</li>
                 <li>When connecting with older web browser that does not support websockets</li>
                 <li>When an abnormal connection is attempted</li>
             </ul>
