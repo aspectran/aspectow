@@ -32,20 +32,28 @@
     </div>
     <div id="error-report" class="reveal popup error" aria-labelledby="oops" data-reveal data-close-on-click="false" data-close-on-esc="false">
         <h3 id="oops">Oops!</h3>
-        <c:choose>
-            <c:when test="${translet.rootCauseOfRaisedException.message eq 'invalid-room-id'}">
-                <p>Invalid Chat Room ID: ${error.roomId}</p>
-            </c:when>
-            <c:when test="${translet.rootCauseOfRaisedException.message eq 'room-not-found'}">
-                <p>Non-existent chat room: ${error.roomId}</p>
-            </c:when>
-            <c:otherwise>
-                <p class="lead">An unexpected error has occurred.</p>
-            </c:otherwise>
-        </c:choose>
-        <p></p>
-        <div class="button-group align-right">
-            <a class="alert button" href="/signout">OK</a>
+        <div class="grid-x grid-padding-x grid-margin-y">
+            <div class="cell text-center">
+                <i class="banner icon-warning"></i>
+            </div>
+            <div class="cell card">
+                <div class="card-section">
+                <c:choose>
+                    <c:when test="${translet.rootCauseOfRaisedException.message eq 'invalid-room-id'}">
+                        <p>Invalid Chat Room ID: ${translet.rootCauseOfRaisedException.roomId}</p>
+                    </c:when>
+                    <c:when test="${translet.rootCauseOfRaisedException.message eq 'room-not-found'}">
+                        <p>Non-existent chat room: ${translet.rootCauseOfRaisedException.roomId}</p>
+                    </c:when>
+                    <c:otherwise>
+                        <p class="lead">An unexpected error has occurred.</p>
+                    </c:otherwise>
+                </c:choose>
+                </div>
+            </div>
+            <div class="cell text-center">
+                <a class="alert button" href="/">OK</a>
+            </div>
         </div>
     </div>
 </body>

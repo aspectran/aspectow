@@ -1,8 +1,8 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
-<link rel="stylesheet" type="text/css" href="/assets/css/chat-common.css?15" />
-<script src="/assets/js/chat-client-default.js?v1.3"></script>
-<script src="/assets/js/chat-client-public.js?v1.3"></script>
+<link rel="stylesheet" type="text/css" href="/assets/css/chat-common.css?18" />
+<script src="/assets/js/chat-client-default.js?v1.5"></script>
+<script src="/assets/js/chat-client-public.js?v1.5"></script>
 <script>
     const chatClientSettings = {
         serverEndpoint: "/chat/public/",

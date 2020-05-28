@@ -24,6 +24,7 @@ import club.textchat.user.LoginRequiredException;
 import club.textchat.user.UserAction;
 import club.textchat.user.UserInfo;
 import club.textchat.user.UserManager;
+import com.aspectran.core.activity.Translet;
 import com.aspectran.core.component.bean.annotation.Action;
 import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Component;
@@ -33,6 +34,7 @@ import com.aspectran.core.component.bean.annotation.Required;
 import com.aspectran.core.component.bean.annotation.Transform;
 import com.aspectran.core.context.rule.type.FormatType;
 import com.aspectran.core.util.PBEncryptionUtils;
+import com.aspectran.core.util.StringUtils;
 import com.aspectran.core.util.logging.Logger;
 import com.aspectran.core.util.logging.LoggerFactory;
 import com.aspectran.core.util.security.TimeLimitedPBTokenIssuer;
@@ -92,7 +94,12 @@ public class ChatAction {
     @Request("/rooms/${roomId}")
     @Dispatch("templates/default")
     @Action("page")
-    public Map<String, String> startPublicChat(@Required String roomId) {
+    public Map<String, String> startPublicChat(Translet translet, String roomId) {
+        if (StringUtils.isEmpty(roomId)) {
+            translet.redirect("/");
+            return null;
+        }
+
         RoomInfo roomInfo = publicRoomManager.getRoomInfo(roomId);
         if (roomInfo == null) {
             throw new InvalidChatRoomException(roomId, "room-not-found");
@@ -124,7 +131,12 @@ public class ChatAction {
     @Request("/private/${encryptedRoomId}")
     @Dispatch("templates/default")
     @Action("page")
-    public Map<String, String> startPrivateChat(@Required String encryptedRoomId) {
+    public Map<String, String> startPrivateChat(Translet translet, String encryptedRoomId) {
+        if (StringUtils.isEmpty(encryptedRoomId)) {
+            translet.redirect("/");
+            return null;
+        }
+
         String roomId;
         try {
             roomId = PBEncryptionUtils.decrypt(encryptedRoomId);

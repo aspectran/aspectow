@@ -1,11 +1,11 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
-<link rel="stylesheet" type="text/css" href="/assets/css/chat-common.css?v15" />
-<link rel="stylesheet" type="text/css" href="/assets/css/chat-lobby.css?v15" />
-<link rel="stylesheet" type="text/css" href="/assets/css/page-lobby.css?v17" />
-<script src="/assets/js/chat-client-default.js?v1.3"></script>
-<script src="/assets/js/chat-client-lobby.js?v1.4"></script>
-<script src="/assets/js/page-lobby.js?v1.4"></script>
+<link rel="stylesheet" type="text/css" href="/assets/css/chat-common.css?v18" />
+<link rel="stylesheet" type="text/css" href="/assets/css/chat-lobby.css?v18" />
+<link rel="stylesheet" type="text/css" href="/assets/css/page-lobby.css?v18" />
+<script src="/assets/js/chat-client-default.js?v1.5"></script>
+<script src="/assets/js/chat-client-lobby.js?v1.5"></script>
+<script src="/assets/js/page-lobby.js?v1.5"></script>
 <script>
     const chatClientSettings = {
         serverEndpoint: "/chat/lobby/",
@@ -64,7 +64,7 @@
                                 <a class="button small start public-room-create" title="Create an open chat room">Create chatroom</a>
                             </div>
                         </div>
-                        <div class="cell medium-12 large-8 card create guide show-for-large">
+                        <div class="cell medium-12 large-8 card public guide show-for-large">
                             <div class="card-section">
                                 <h5>Would you like to create a new open chat room?</h5>
                                 You can chat with people of similar interests by creating chat rooms.
@@ -75,7 +75,7 @@
                     </div>
                     <div class="grid-x grid-margin-y">
                         <div class="cell">
-                            <h6 class="info">Most popular public chat rooms <a class="refresh-rooms float-right"><i class="fi-refresh"> Refresh</i></a></h6>
+                            <h6 class="bar">Most popular public chat rooms <a class="refresh-rooms float-right"><i class="fi-refresh"> Refresh</i></a></h6>
                         </div>
                     </div>
                     <div class="rooms public grid-x grid-margin-x grid-margin-y b15">
@@ -104,6 +104,7 @@
             </div>
         </div>
     </div>
+<c:if test="${not empty user}">
     <div class="footer shadow cell">
         <div class="grid-x grid-padding-x grid-padding-y">
             <div class="sidebar cell medium-4 large-3 cell-block-y hide-for-small-only">
@@ -123,6 +124,7 @@
             </div>
         </div>
     </div>
+</c:if>
 </div>
 <%@ include file="includes/lobby-public-room-create.jsp" %>
 <%@ include file="includes/lobby-public-room-create-complete.jsp" %>

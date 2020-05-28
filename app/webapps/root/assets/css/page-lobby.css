@@ -5,7 +5,12 @@
     position: relative;
     border-radius: 10px;
     background-color: #fbfbfb;
-    border: 1px solid #dcdcdc;
+    border: 1px solid #6eb4d5;
+}
+.rooms .room h5 {
+    color: #1691cf;
+    margin-bottom: 1.5em;
+    padding-right: 1em;
 }
 .rooms .room .card-section {
     margin: 1px;
@@ -18,54 +23,8 @@
     border-radius: 9px;
     margin: 0;
 }
-.rooms .room.random {
-    border: 1px solid #d26881;
-    background-color: #fcf5f7;
-}
-.rooms .room.random .card-section:hover {
-    border: 1px solid #f1a5bc;
-}
-.rooms .room.private {
-    border: 1px solid #ffa83c;
-    background-color: #fae9d5;
-}
-.rooms .room.private .card-section:hover {
-    border: 1px solid #fcd4a3;
-}
-.rooms .card.guide {
-    border: none;
-}
-.rooms .guide .card-section {
-    padding: 1em;
-    background-color: #f5f5f5;
-    border-radius: 10px;
-    font-size: .93em;
-}
-.rooms .private.guide .card-section {
-    background-color: #fdf1e3;
-}
-.rooms .public.guide .card-section {
-    background-color: azure;
-}
-.rooms .room.random h4 {
-    color: #d45472;
-}
-.rooms .room.private h4 {
-    color: #d27512;
-}
-.rooms .room.public h4 {
-    color: #1691cf;
-}
-.rooms .room h5 {
-    color: #1691cf;
-    margin-bottom: 1.5em;
-    padding-right: 1em;
-}
 .rooms .room p {
     margin-bottom: 1.3em;
-}
-.rooms .room.random p, .rooms .room.private p, .rooms .room.public p {
-    margin-bottom: 1.8em;
 }
 .rooms .room .curr-users {
     position: absolute;
@@ -99,14 +58,31 @@
 .rooms .room .card-section:hover .button.start {
     background-color: #bee2f6;
 }
+.rooms .card.guide {
+    border: none;
+}
+.rooms .card.guide h5 {
+    font-size: 1.3em;
+}
+.rooms .card.guide .card-section {
+    font-size: .92em;
+    border-radius: 10px;
+}
+.rooms .room.random {
+    border: 1px solid #d26881;
+    background-color: #fbf0f3;
+}
+.rooms .room.random .card-section:hover {
+    border: 1px solid #f1a5bc;
+}
 .rooms .room.random .card-section:hover .button.start {
     background-color: #f56386;
 }
-.rooms .room.private .card-section:hover .button.start {
-    background-color: #f8a03d;
+.rooms .room.random h4 {
+    color: #d45472;
 }
-.rooms .room.public .card-section:hover .button.start {
-    background-color: #44bbf5;
+.rooms .room.random p {
+    margin-bottom: 1.8em;
 }
 .rooms .room.random .button.start {
     min-width: 11em;
@@ -115,6 +91,22 @@
     font-size: .8em;
     font-weight: bold;
 }
+.rooms .random.guide .card-section {
+    background-color: #fbf0f3;
+}
+.rooms .room.private {
+    border: 1px solid #ffa83c;
+    background-color: #fae9d5;
+}
+.rooms .room.private .card-section:hover {
+    border: 1px solid #fcce98;
+}
+.rooms .room.private h4 {
+    color: #d27512;
+}
+.rooms .room.private p {
+    margin-bottom: 1.8em;
+}
 .rooms .room.private .button.start {
     min-width: 11em;
     background-color: #ea9f4b;
@@ -122,9 +114,21 @@
     font-size: .8em;
     font-weight: bold;
 }
+.rooms .room.private .card-section:hover .button.start {
+    background-color: #f8a03d;
+}
+.rooms .private.guide .card-section {
+    background-color: #fdf1e3;
+}
 .rooms .room.public {
     border: 1px solid #58aed9;
-    background-color: azure;
+    background-color: #e5f9f9;
+}
+.rooms .room.public h4 {
+    color: #1691cf;
+}
+.rooms .room.public p {
+    margin-bottom: 1.8em;
 }
 .rooms .room.public .button.start {
     min-width: 11em;
@@ -133,9 +137,15 @@
     font-size: .8em;
     font-weight: bold;
 }
-h6.info {
+.rooms .room.public .card-section:hover .button.start {
+    background-color: #44bbf5;
+}
+.rooms .public.guide .card-section {
+    background-color: #e5f9f9;
+}
+h6.bar {
     font-size: .85em;
-    background-color: #f5f5f5;
+    background-color: #dcebf0;
     border-radius: 8px;
     padding: .6em .8em;
     margin: 0;

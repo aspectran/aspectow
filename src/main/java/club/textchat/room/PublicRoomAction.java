@@ -76,11 +76,4 @@ public class PublicRoomAction {
         return roomId.toString();
     }
 
-    @Request("/rooms")
-    @Transform(FormatType.JSON)
-    public List<RoomInfo> getPublicChatRooms() throws LoginRequiredException {
-        userManager.checkSignedIn();
-        return publicRoomManager.getRoomList();
-    }
-
 }

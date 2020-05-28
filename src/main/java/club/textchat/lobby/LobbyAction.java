@@ -26,6 +26,8 @@ import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Component;
 import com.aspectran.core.component.bean.annotation.Dispatch;
 import com.aspectran.core.component.bean.annotation.Request;
+import com.aspectran.core.component.bean.annotation.Transform;
+import com.aspectran.core.context.rule.type.FormatType;
 import com.aspectran.core.util.security.TimeLimitedPBTokenIssuer;
 
 import java.util.HashMap;
@@ -78,6 +80,13 @@ public class LobbyAction {
         map.put("roomId", LOBBY_CHATROOM_ID);
         map.put("include", "pages/lobby");
         return map;
+    }
+
+    @Request("/lobby/rooms")
+    @Transform(FormatType.JSON)
+    public List<RoomInfo> getMostPopularPublicChatRooms() throws LoginRequiredException {
+        userManager.checkSignedIn();
+        return publicRoomManager.getRoomList();
     }
 
 }

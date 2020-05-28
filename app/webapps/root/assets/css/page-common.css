@@ -194,7 +194,6 @@ input#for-automata-clear {
     text-overflow: ellipsis;
     white-space: nowrap !important;
     color: #217aa6;
-    font-size: .95em;
 }
 .user.my-col-1 .avatar .iconfont {
     color: #fcbdbd;
@@ -308,3 +307,9 @@ input#for-automata-clear {
 @-moz-keyframes spin { 100% { -moz-transform: rotate(360deg); } }
 @-webkit-keyframes spin { 100% { -webkit-transform: rotate(360deg); } }
 @keyframes spin { 100% { -webkit-transform: rotate(360deg); transform:rotate(360deg); } }
+form label {
+    font-size: 1em;
+}
+form .form-error {
+    font-size: .9em;
+}

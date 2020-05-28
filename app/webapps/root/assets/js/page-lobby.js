@@ -48,6 +48,10 @@ $(function () {
             location.href = "/private/" + recentlyCreatedRoomId;
         }
     });
+    $("#lobby-private-room-create-complete").on("click", ".copy-to-clipboard", function () {
+        copyToClipboard("#lobby-private-room-create-complete .private-chatroom-url");
+        $(this).data("old-text", $(this).text()).text("Copied!").addClass("alert");
+    });
     $(".rooms a.start[href]").on("click", function (event) {
         event.stopPropagation();
         closeSocket();
@@ -144,7 +148,11 @@ function doCreatePrivateRoom() {
                     $("#form-private-room-create input[name=room_nm]").val("");
                     $("#lobby-private-room-create").foundation('close');
                     $("#lobby-private-room-create-complete").foundation('open');
-                    $("#lobby-private-room-create-complete .url").text(url);
+                    let oldText = $("#lobby-private-room-create-complete .copy-to-clipboard").data("old-text");
+                    if (oldText) {
+                        $("#lobby-private-room-create-complete .copy-to-clipboard").text(oldText).removeClass("alert");
+                    }
+                    $("#lobby-private-room-create-complete .private-chatroom-url").text(url);
             }
         },
         error: function (request, status, error) {
@@ -161,7 +169,7 @@ function refreshRooms() {
     }
     refreshRoomsTimer = setTimeout(function () {
         $.ajax({
-            url: '/rooms',
+            url: '/lobby/rooms',
             type: 'get',
             dataType: 'json',
             success: function (list) {

@@ -69,7 +69,7 @@
             </div>
         </div>
     </form>
-    <div class="grid-x grid-margin-y t5">
+    <div class="grid-x t10">
         <div class="cell">
             <div id="captcha-container-sign-in"></div>
         </div>
