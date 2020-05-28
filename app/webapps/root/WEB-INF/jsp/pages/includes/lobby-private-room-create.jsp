@@ -6,6 +6,7 @@
         <fieldset class="cell">
             <ul>
                 <li>Private chat rooms are always available for free.</li>
+                <li>This private chat has no registration steps - your friends can join instantly.</li>
                 <li>After creating a private chat room, send the URL only to those who want to chat.</li>
                 <li>Note that the conversation is not saved, so when you refresh the screen, the conversation disappears.</li>
             </ul>
