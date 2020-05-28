@@ -27,19 +27,19 @@ import com.aspectran.core.component.bean.annotation.Component;
  */
 @Component
 @Bean
-public class RandomConvoPersistence extends AbstractPersistence {
+public class PrivateChatPersistence extends AbstractPersistence {
 
     private final ChannelManager channelManager;
 
     @Autowired
-    public RandomConvoPersistence(RedisConnectionPool connectionPool,
-                                  ChannelManager channelManager) {
+    public PrivateChatPersistence(RedisConnectionPool connectionPool,
+                                 ChannelManager channelManager) {
         super(connectionPool);
         this.channelManager = channelManager;
     }
 
     public void publish(ChatMessage message) {
-        publish(channelManager.getRandomChatChannel(), message.toString());
+        publish(channelManager.getPrivateChatChannel(), message.toString());
     }
 
 }

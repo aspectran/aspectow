@@ -32,22 +32,22 @@ import java.util.List;
  */
 @Component
 @Bean
-public class PublicConvoPersistence extends AbstractPersistence {
+public class PublicChatPersistence extends AbstractPersistence {
 
-    private static final String KEY_PREFIX = "convo:";
+    private static final String KEY_PREFIX = "convo:pub:";
 
     private static final int MAX_SAVE_MESSAGES = 50;
 
     private final ChannelManager channelManager;
 
     @Autowired
-    public PublicConvoPersistence(RedisConnectionPool connectionPool,
-                                  ChannelManager channelManager) {
+    public PublicChatPersistence(RedisConnectionPool connectionPool,
+                                 ChannelManager channelManager) {
         super(connectionPool);
         this.channelManager = channelManager;
     }
 
-    public void put(String roomId, ChatMessage message) {
+    public void publish(String roomId, ChatMessage message) {
         String value = message.toString();
         rpush(makeKey(roomId), value, MAX_SAVE_MESSAGES);
         publish(channelManager.getPublicChatChannel(), value);

@@ -16,6 +16,8 @@
 package club.textchat.chat;
 
 import club.textchat.common.mybatis.SimpleSqlSession;
+import club.textchat.room.PrivateRoomManager;
+import club.textchat.room.PublicRoomManager;
 import club.textchat.room.RoomInfo;
 import club.textchat.server.AdmissionToken;
 import club.textchat.user.LoginRequiredException;
@@ -48,13 +50,17 @@ public class ChatAction {
 
     private final UserManager userManager;
 
-    private final SqlSession sqlSession;
+    private final PublicRoomManager publicRoomManager;
+
+    private final PrivateRoomManager privateRoomManager;
 
     @Autowired
     public ChatAction(UserManager userManager,
-                      SimpleSqlSession sqlSession) {
+                      PublicRoomManager publicRoomManager,
+                      PrivateRoomManager privateRoomManager) {
         this.userManager = userManager;
-        this.sqlSession = sqlSession;
+        this.publicRoomManager = publicRoomManager;
+        this.privateRoomManager = privateRoomManager;
     }
 
     @Request("/random")
@@ -67,15 +73,30 @@ public class ChatAction {
         return map;
     }
 
+    @Request("/random/token")
+    @Transform(FormatType.JSON)
+    public String randomChatToken() {
+        UserInfo userInfo;
+        try {
+            userInfo = userManager.getUserInfo();
+        } catch (LoginRequiredException e) {
+            return "-1";
+        }
+        AdmissionToken admissionToken = new AdmissionToken();
+        admissionToken.setUserNo(userInfo.getUserNo());
+        admissionToken.setUsername(userInfo.getUsername());
+        admissionToken.setRoomId(RANDOM_CHATROOM_ID);
+        return TimeLimitedPBTokenIssuer.getToken(admissionToken);
+    }
+
     @Request("/rooms/${roomId}")
     @Dispatch("templates/default")
     @Action("page")
     public Map<String, String> startPublicChat(@Required String roomId) {
-//        try {
-//            roomId = PBEncryptionUtils.decrypt(roomId);
-//        } catch (Exception e) {
-//            throw new InvalidChatRoomException(roomId, "invalid-room-id");
-//        }
+        RoomInfo roomInfo = publicRoomManager.getRoomInfo(roomId);
+        if (roomInfo == null) {
+            throw new InvalidChatRoomException(roomId, "room-not-found");
+        }
 
         UserInfo userInfo = null;
         try {
@@ -86,16 +107,11 @@ public class ChatAction {
 
         String token = null;
         if (userInfo != null) {
-            AdmissionToken admissionToken = new AdmissionToken();
-            admissionToken.setUserNo(userInfo.getUserNo());
-            admissionToken.setUsername(userInfo.getUsername());
-            admissionToken.setRoomId(roomId);
-            token = TimeLimitedPBTokenIssuer.getToken(admissionToken);
+            token = createAdmissionToken(roomId, userInfo);
         }
 
         Map<String, String> map = new HashMap<>();
-        RoomInfo roomInfo = sqlSession.selectOne("rooms.getRoomInfo", roomId);
-        map.put("roomId", roomInfo.getRoomName());
+        map.put("roomId", Integer.toString(roomInfo.getRoomId()));
         map.put("roomName", roomInfo.getRoomName());
         if (token != null) {
             map.put("token", token);
@@ -105,20 +121,50 @@ public class ChatAction {
         return map;
     }
 
-    @Request("/random/token")
-    @Transform(FormatType.JSON)
-    public String randomChatToken() {
-        UserInfo userInfo;
+    @Request("/private/${encryptedRoomId}")
+    @Dispatch("templates/default")
+    @Action("page")
+    public Map<String, String> startPrivateChat(@Required String encryptedRoomId) {
+        String roomId;
+        try {
+            roomId = PBEncryptionUtils.decrypt(encryptedRoomId);
+        } catch (Exception e) {
+            throw new InvalidChatRoomException(encryptedRoomId, "room-not-found");
+        }
+
+        RoomInfo roomInfo = privateRoomManager.getRoomInfo(roomId);
+        if (roomInfo == null) {
+            throw new InvalidChatRoomException(encryptedRoomId, "room-not-found");
+        }
+
+        UserInfo userInfo = null;
         try {
             userInfo = userManager.getUserInfo();
         } catch (LoginRequiredException e) {
-            logger.debug(e);
-            return null;
+            // ignore
         }
+
+        String token = null;
+        if (userInfo != null) {
+            token = createAdmissionToken(roomId, userInfo);
+        }
+
+        Map<String, String> map = new HashMap<>();
+        map.put("roomId", roomInfo.getEncryptedRoomId());
+        map.put("roomName", roomInfo.getRoomName());
+        if (token != null) {
+            map.put("token", token);
+        }
+        map.put("title", roomInfo.getRoomName());
+        map.put("include", "pages/private");
+        return map;
+    }
+
+    private String createAdmissionToken(String roomId, UserInfo userInfo) {
         AdmissionToken admissionToken = new AdmissionToken();
         admissionToken.setUserNo(userInfo.getUserNo());
         admissionToken.setUsername(userInfo.getUsername());
-        admissionToken.setRoomId(RANDOM_CHATROOM_ID);
+        admissionToken.setRoomId(roomId);
         return TimeLimitedPBTokenIssuer.getToken(admissionToken);
     }
 

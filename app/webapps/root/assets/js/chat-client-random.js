@@ -49,6 +49,10 @@ function startLooking() {
             success: function (token) {
                 if (token) {
                     if (!tokenIssuanceCanceled) {
+                        if (token === "-1") {
+                            reloadPage();
+                            return;
+                        }
                         hideSidebar();
                         openSocket(token);
                     }
@@ -56,7 +60,7 @@ function startLooking() {
                     serviceNotAvailable();
                 }
             },
-            error: function (xhr) {
+            error: function () {
                 serviceNotAvailable();
             }
         });

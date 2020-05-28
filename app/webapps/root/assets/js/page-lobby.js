@@ -1,30 +1,51 @@
-let recentlyCreatedRoom;
+let recentlyCreatedRoomId;
 
 $(function () {
-    $(".room-create").on("click", function () {
+    $(".public-room-create").on("click", function () {
         if (!checkSignedIn()) {
             return false;
         }
-        $("#form-room-create").each(function () {
+        $("#lobby-public-room-create").foundation('open');
+        $("#form-public-room-create").each(function () {
             this.reset();
         });
-        $("#form-room-create select[name=lang_cd] option").each(function () {
+        $("#form-public-room-create select[name=lang_cd] option").each(function () {
             if ($(this).val() === userInfo.language) {
                 $(this).attr("selected", true);
             }
         });
-        loadCaptcha("room_create", "captcha-container-room-create");
-        $('#lobby-room-create').foundation('open');
-        $("#form-room-create input[name=room_nm]").focus();
+        loadCaptcha("public_room_create", "captcha-container-public-room-create");
+        $("#form-public-room-create input[name=room_nm]").focus();
     });
-    $("#form-room-create").submit(function () {
-        executeCaptcha("room_create", doCreateRoom);
+    $("#form-public-room-create").submit(function () {
+        executeCaptcha("public_room_create", doCreatePublicRoom);
         return false;
     });
-    $("button.go-created-room").on("click", function () {
-        if (recentlyCreatedRoom) {
+    $("button.go-created-public-room").on("click", function () {
+        if (recentlyCreatedRoomId) {
             closeSocket();
-            location.href = "/rooms/" + recentlyCreatedRoom;
+            location.href = "/rooms/" + recentlyCreatedRoomId;
+        }
+    });
+    $(".private-room-create").on("click", function () {
+        if (!checkSignedIn()) {
+            return false;
+        }
+        $("#lobby-private-room-create").foundation('open');
+        $("#form-private-room-create").each(function () {
+            this.reset();
+        });
+        loadCaptcha("private_room_create", "captcha-container-private-room-create");
+        $("#form-private-room-create input[name=room_nm]").focus();
+    });
+    $("#form-private-room-create").submit(function () {
+        executeCaptcha("private_room_create", doCreatePrivateRoom);
+        return false;
+    });
+    $("button.go-created-private-room").on("click", function () {
+        if (recentlyCreatedRoomId) {
+            closeSocket();
+            location.href = "/private/" + recentlyCreatedRoomId;
         }
     });
     $(".rooms a.start[href]").on("click", function (event) {
@@ -40,16 +61,16 @@ $(function () {
 
 });
 
-function doCreateRoom() {
+function doCreatePublicRoom() {
     if (!recaptchaResponse) {
         return;
     }
-    $("#form-room-create .form-error").hide();
-    let roomName = $("#form-room-create input[name=room_nm]").val().trim();
-    let langCode = $("#form-room-create select[name=lang_cd]").val().trim();
+    $("#form-public-room-create .form-error").hide();
+    let roomName = $("#form-public-room-create input[name=room_nm]").val().trim();
+    let langCode = $("#form-public-room-create select[name=lang_cd]").val().trim();
     if (!roomName) {
-        $("#form-room-create .form-error.room-name-required").show();
-        $("#form-room-create input[name=room_nm]").focus();
+        $("#form-public-room-create .form-error.room-name-required").show();
+        $("#form-public-room-create input[name=room_nm]").focus();
         return;
     }
     $.ajax({
@@ -62,24 +83,68 @@ function doCreateRoom() {
             recaptchaResponse: recaptchaResponse
         },
         success: function (result) {
-            recentlyCreatedRoom = null;
+            recentlyCreatedRoomId = null;
             switch (result) {
                 case "-1":
                     alert("reCAPTCHA verification failed");
                     break;
                 case "-2":
-                    $("#form-room-create .form-error.already-in-use").show();
-                    $("#form-room-create input[name=room_nm]").select().focus();
+                    $("#form-public-room-create .form-error.already-in-use").show();
+                    $("#form-public-room-create input[name=room_nm]").select().focus();
                     break;
                 default:
                     if (!result) {
                         alert("Unexpected error occurred.");
                         return;
                     }
-                    $("#form-room-create input[name=room_nm]").val("");
-                    recentlyCreatedRoom = result;
-                    $('#lobby-room-create').foundation('close');
-                    $('#lobby-room-create-complete').foundation('open');
+                    $("#form-public-room-create input[name=room_nm]").val("");
+                    recentlyCreatedRoomId = result;
+                    $("#lobby-public-room-create").foundation('close');
+                    $("#lobby-public-room-create-complete").foundation('open');
+            }
+        },
+        error: function (request, status, error) {
+            alert("An error has occurred making the request: " + error);
+        }
+    });
+}
+
+function doCreatePrivateRoom() {
+    if (!recaptchaResponse) {
+        return;
+    }
+    $("#form-private-room-create .form-error").hide();
+    let roomName = $("#form-private-room-create input[name=room_nm]").val().trim();
+    if (!roomName) {
+        $("#form-private-room-create .form-error.room-name-required").show();
+        $("#form-private-room-create input[name=room_nm]").focus();
+        return;
+    }
+    $.ajax({
+        url: '/private',
+        type: 'post',
+        dataType: 'json',
+        data: {
+            room_nm: roomName,
+            recaptchaResponse: recaptchaResponse
+        },
+        success: function (result) {
+            recentlyCreatedRoomId = null;
+            switch (result) {
+                case "-1":
+                    alert("reCAPTCHA verification failed");
+                    break;
+                default:
+                    if (!result) {
+                        alert("Unexpected error occurred.");
+                        return;
+                    }
+                    recentlyCreatedRoomId = result;
+                    let url = "https://textchat.club/private/" + result;
+                    $("#form-private-room-create input[name=room_nm]").val("");
+                    $("#lobby-private-room-create").foundation('close');
+                    $("#lobby-private-room-create-complete").foundation('open');
+                    $("#lobby-private-room-create-complete .url").text(url);
             }
         },
         error: function (request, status, error) {

@@ -27,40 +27,55 @@
                         <%@ include file="includes/lobby-user.jsp" %>
                     </c:if>
                     <div class="rooms grid-x grid-margin-x t15">
-                        <div class="cell medium-12 large-8 card random guide small-order-1 large-order-2 show-for-medium">
-                            <div class="card-section">
-                                <h5>Welcome to Text Chat Club.</h5>
-                                Our random chat service lets you text chat with randomly selected people.
-                                To chat with strangers on the Internet is a great way to find new friends.<br/>
-                                You must be 18+ to start random chat with strangers.
-                            </div>
-                        </div>
-                        <div class="cell medium-12 large-4 card room random small-order-2 large-order-1">
+                        <div class="cell medium-12 large-4 card room random">
                             <div class="card-section">
                                 <a class="start" href="/random"><h4>Random Chat</h4></a>
                                 <p>Best place to talk to randomly selected people from all over the world</p>
                                 <a class="button small start" href="/random">Start random chat</a>
                             </div>
                         </div>
-                        <div class="cell medium-12 large-8 card create guide small-order-4 show-for-medium">
+                        <div class="cell medium-12 large-8 card random guide show-for-large">
                             <div class="card-section">
-                                <h5>Would you like to create a new chat room?</h5>
+                                <h5>Welcome to Text Chat Club.</h5>
+                                Our random chat service lets you text chat with randomly selected people.
+                                To chat with strangers on the Internet is a great way to find new friends.
+                                Please note that you must be 18+ to start random chats with strangers.
+                            </div>
+                        </div>
+                        <div class="cell medium-12 large-4 card room private create">
+                            <div class="card-section">
+                                <a class="private-room-create"><h4>Private Chat</h4></a>
+                                <p>Best place to talk only between you and the people you invite</p>
+                                <a class="button small start private-room-create" title="Create a private chat room">Create chatroom</a>
+                            </div>
+                        </div>
+                        <div class="cell medium-12 large-8 card private guide show-for-large">
+                            <div class="card-section">
+                                <h5>Would you like to create a new private chat room?</h5>
+                                Private chat rooms are always available for free.<br/>
+                                After creating a private chat room, send the URL only to those who want to chat.
+                                Note that the conversation is not saved, so when you refresh the screen, the conversation disappears.
+                            </div>
+                        </div>
+                        <div class="cell medium-12 large-4 card room public create">
+                            <div class="card-section">
+                                <a class="public-room-create"><h4>Public Chat</h4></a>
+                                <p>Meeting people with similar interests in public chat rooms</p>
+                                <a class="button small start public-room-create" title="Create an open chat room">Create chatroom</a>
+                            </div>
+                        </div>
+                        <div class="cell medium-12 large-8 card create guide show-for-large">
+                            <div class="card-section">
+                                <h5>Would you like to create a new open chat room?</h5>
                                 You can chat with people of similar interests by creating chat rooms.
                                 If no one is in the chat room, it is automatically deleted after a certain period of time.<br/>
                                 It is also a good idea to join the chat rooms already created below.
                             </div>
                         </div>
-                        <div class="cell medium-12 large-4 card room create small-order-3">
-                            <div class="card-section">
-                                <a data-open="lobby-room-create"><h4>New Chatroom</h4></a>
-                                <p>Meeting people with similar interests in public chat rooms</p>
-                                <a class="button small start room-create">Create chatroom</a>
-                            </div>
-                        </div>
                     </div>
                     <div class="grid-x grid-margin-y">
                         <div class="cell">
-                            <h6 class="info">Select a room you would like to join from the list below. <a class="refresh-rooms float-right"><i class="fi-refresh"> Refresh</i></a></h6>
+                            <h6 class="info">Most popular public chat rooms <a class="refresh-rooms float-right"><i class="fi-refresh"> Refresh</i></a></h6>
                         </div>
                     </div>
                     <div class="rooms public grid-x grid-margin-x grid-margin-y b15">
@@ -109,8 +124,10 @@
         </div>
     </div>
 </div>
-<%@ include file="includes/lobby-room-create.jsp" %>
-<%@ include file="includes/lobby-room-create-complete.jsp" %>
+<%@ include file="includes/lobby-public-room-create.jsp" %>
+<%@ include file="includes/lobby-public-room-create-complete.jsp" %>
+<%@ include file="includes/lobby-private-room-create.jsp" %>
+<%@ include file="includes/lobby-private-room-create-complete.jsp" %>
 <%@ include file="includes/chat-duplicate-join.jsp" %>
 <%@ include file="includes/common-wait-popup.jsp" %>
 <%@ include file="includes/common-connection-lost.jsp" %>

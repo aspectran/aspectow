@@ -17,8 +17,9 @@ package club.textchat.server;
 
 import club.textchat.redis.persistence.ChatersPersistence;
 import club.textchat.redis.persistence.InConvoUsersPersistence;
-import club.textchat.redis.persistence.LobbyChatPersistence;
+import club.textchat.redis.persistence.PublicChatPersistence;
 import club.textchat.redis.persistence.SignedInUsersPersistence;
+import club.textchat.room.PublicRoomManager;
 import club.textchat.server.message.ChatMessage;
 import club.textchat.server.message.payload.BroadcastPayload;
 import club.textchat.server.message.payload.JoinPayload;
@@ -37,18 +38,20 @@ import java.util.Set;
  */
 @Component
 @Bean
-public class LobbyChatHandler extends AbstractChatHandler {
+public class PublicChatHandler extends AbstractChatHandler {
 
-    public final static String USER_MESSAGE_PREFIX = "say:";
+    private final PublicChatPersistence publicChatPersistence;
 
-    private final LobbyChatPersistence lobbyChatPersistence;
+    private final PublicRoomManager publicRoomManager;
 
-    public LobbyChatHandler(SignedInUsersPersistence signedInUsersPersistence,
-                            InConvoUsersPersistence inConvoUsersPersistence,
-                            ChatersPersistence chatersPersistence,
-                            LobbyChatPersistence lobbyChatPersistence) {
+    public PublicChatHandler(SignedInUsersPersistence signedInUsersPersistence,
+                             InConvoUsersPersistence inConvoUsersPersistence,
+                             ChatersPersistence chatersPersistence,
+                             PublicChatPersistence publicChatPersistence,
+                             PublicRoomManager publicRoomManager) {
         super(signedInUsersPersistence, inConvoUsersPersistence, chatersPersistence);
-        this.lobbyChatPersistence = lobbyChatPersistence;
+        this.publicChatPersistence = publicChatPersistence;
+        this.publicRoomManager = publicRoomManager;
     }
 
     protected void handle(Session session, ChatMessage chatMessage) {
@@ -60,7 +63,7 @@ public class LobbyChatHandler extends AbstractChatHandler {
             ChaterInfo chaterInfo = getChaterInfo(session);
             switch (payload.getType()) {
                 case CHAT:
-                    broadcastMessage(chaterInfo, USER_MESSAGE_PREFIX + payload.getContent());
+                    broadcastMessage(chaterInfo, payload.getContent());
                     break;
                 case JOIN:
                     String username = chaterInfo.getUsername();
@@ -109,9 +112,11 @@ public class LobbyChatHandler extends AbstractChatHandler {
             JoinPayload payload = new JoinPayload();
             payload.setUsername(chaterInfo.getUsername());
             payload.setChaters(roomChaters);
+            payload.setRecentConvo(publicChatPersistence.getRecentConvo(chaterInfo.getRoomId()));
             payload.setRejoin(rejoin);
             ChatMessage message = new ChatMessage(payload);
             send(session, message);
+            publicRoomManager.checkIn(chaterInfo.getRoomId());
         }
         return replaced;
     }
@@ -122,6 +127,7 @@ public class LobbyChatHandler extends AbstractChatHandler {
             signedInUsersPersistence.tryAbandon(chaterInfo.getUsername(), chaterInfo.getHttpSessionId());
             inConvoUsersPersistence.remove(chaterInfo.getUsername());
             broadcastUserLeft(chaterInfo);
+            publicRoomManager.checkOut(chaterInfo.getRoomId());
         }
     }
 
@@ -133,7 +139,7 @@ public class LobbyChatHandler extends AbstractChatHandler {
         payload.setPrevUsername(chaterInfo.getPrevUsername());
         payload.setDatetime(getCurrentDatetime(chaterInfo));
         ChatMessage message = new ChatMessage(payload);
-        lobbyChatPersistence.publish(message);
+        publicChatPersistence.publish(chaterInfo.getRoomId(), message);
     }
 
     private void broadcastUserLeft(ChaterInfo chaterInfo) {
@@ -143,7 +149,7 @@ public class LobbyChatHandler extends AbstractChatHandler {
         payload.setUsername(chaterInfo.getUsername());
         payload.setDatetime(getCurrentDatetime(chaterInfo));
         ChatMessage message = new ChatMessage(payload);
-        lobbyChatPersistence.publish(message);
+        publicChatPersistence.publish(chaterInfo.getRoomId(), message);
     }
 
     private void broadcastMessage(ChaterInfo chaterInfo, String content) {
@@ -155,7 +161,7 @@ public class LobbyChatHandler extends AbstractChatHandler {
         payload.setDatetime(getCurrentDatetime(chaterInfo));
         payload.setColor(chaterInfo.getColor());
         ChatMessage message = new ChatMessage(payload);
-        lobbyChatPersistence.publish(message);
+        publicChatPersistence.publish(chaterInfo.getRoomId(), message);
     }
 
 }

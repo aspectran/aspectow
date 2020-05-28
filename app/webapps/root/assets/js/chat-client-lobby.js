@@ -63,7 +63,7 @@ function handleSystemMessage(message) {
     if (!message) {
         return;
     }
-    if (message.startsWith("newRoom:")) {
+    if (message.startsWith("newPublicRoom:")) {
         let roomInfo = deserialize(message.substring(8));
         let room = $(".new-room-template").clone().removeClass("new-room-template");
         room.find("a").attr("href", "/rooms/" + roomInfo.roomId);

@@ -34,33 +34,30 @@ import java.io.IOException;
 import java.util.List;
 
 @Component
-public class RoomAction {
+public class PublicRoomAction {
 
-    private static final Logger logger = LoggerFactory.getLogger(RoomAction.class);
+    private static final Logger logger = LoggerFactory.getLogger(PublicRoomAction.class);
 
     private final UserManager userManager;
 
-    private final RoomManager roomManager;
+    private final PublicRoomManager publicRoomManager;
 
     @Autowired
-    public RoomAction(UserManager userManager,
-                      RoomManager roomManager) {
+    public PublicRoomAction(UserManager userManager,
+                            PublicRoomManager publicRoomManager) {
         this.userManager = userManager;
-        this.roomManager = roomManager;
+        this.publicRoomManager = publicRoomManager;
     }
 
     @RequestToPost("/rooms")
     @Transform(FormatType.JSON)
-    public String createChatroom(@Required String recaptchaResponse,
-                                 @Required @Qualifier("room_nm") String roomName,
-                                 @Required @Qualifier("lang_cd") String language) throws Exception {
-        boolean success = false;
+    public String createPublicChatroom(@Required String recaptchaResponse,
+                                       @Required @Qualifier("room_nm") String roomName,
+                                       @Required @Qualifier("lang_cd") String language) throws Exception {
         try {
-            success = ReCaptchaVerifier.verifySuccess(recaptchaResponse);
+            ReCaptchaVerifier.verifySuccess(recaptchaResponse);
         } catch (IOException e) {
             logger.warn("reCAPTCHA verification failed", e);
-        }
-        if (!success) {
             return "-1";
         }
 
@@ -71,15 +68,19 @@ public class RoomAction {
         roomInfo.setLanguage(language);
         roomInfo.setUserNo(userInfo.getUserNo());
 
-        Integer roomId = roomManager.createRoom(roomInfo);
-        return (roomId != null ? roomId.toString() : null);
+        Integer roomId = publicRoomManager.createRoom(roomInfo);
+        if (roomId == null) {
+            return "-2";
+        }
+
+        return roomId.toString();
     }
 
     @Request("/rooms")
     @Transform(FormatType.JSON)
-    public List<RoomInfo> rooms() throws LoginRequiredException {
+    public List<RoomInfo> getPublicChatRooms() throws LoginRequiredException {
         userManager.checkSignedIn();
-        return roomManager.getRoomList();
+        return publicRoomManager.getRoomList();
     }
 
 }

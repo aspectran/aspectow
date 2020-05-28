@@ -36,6 +36,9 @@
             <c:when test="${translet.rootCauseOfRaisedException.message eq 'invalid-room-id'}">
                 <p>Invalid Chat Room ID: ${error.roomId}</p>
             </c:when>
+            <c:when test="${translet.rootCauseOfRaisedException.message eq 'room-not-found'}">
+                <p>Non-existent chat room: ${error.roomId}</p>
+            </c:when>
             <c:otherwise>
                 <p class="lead">An unexpected error has occurred.</p>
             </c:otherwise>

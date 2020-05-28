@@ -25,6 +25,13 @@
 .rooms .room.random .card-section:hover {
     border: 1px solid #f1a5bc;
 }
+.rooms .room.private {
+    border: 1px solid #ffa83c;
+    background-color: #fae9d5;
+}
+.rooms .room.private .card-section:hover {
+    border: 1px solid #fcd4a3;
+}
 .rooms .card.guide {
     border: none;
 }
@@ -34,13 +41,19 @@
     border-radius: 10px;
     font-size: .93em;
 }
-.rooms .create.guide .card-section {
+.rooms .private.guide .card-section {
+    background-color: #fdf1e3;
+}
+.rooms .public.guide .card-section {
     background-color: azure;
 }
 .rooms .room.random h4 {
     color: #d45472;
 }
-.rooms .room.create h4 {
+.rooms .room.private h4 {
+    color: #d27512;
+}
+.rooms .room.public h4 {
     color: #1691cf;
 }
 .rooms .room h5 {
@@ -51,7 +64,7 @@
 .rooms .room p {
     margin-bottom: 1.3em;
 }
-.rooms .room.random p, .rooms .room.create p {
+.rooms .room.random p, .rooms .room.private p, .rooms .room.public p {
     margin-bottom: 1.8em;
 }
 .rooms .room .curr-users {
@@ -87,10 +100,13 @@
     background-color: #bee2f6;
 }
 .rooms .room.random .card-section:hover .button.start {
-    background-color: #ea6b8a;
+    background-color: #f56386;
 }
-.rooms .room.create .card-section:hover .button.start {
-    background-color: #54b3e0;
+.rooms .room.private .card-section:hover .button.start {
+    background-color: #f8a03d;
+}
+.rooms .room.public .card-section:hover .button.start {
+    background-color: #44bbf5;
 }
 .rooms .room.random .button.start {
     min-width: 11em;
@@ -99,11 +115,18 @@
     font-size: .8em;
     font-weight: bold;
 }
-.rooms .room.create {
+.rooms .room.private .button.start {
+    min-width: 11em;
+    background-color: #ea9f4b;
+    color: #fff;
+    font-size: .8em;
+    font-weight: bold;
+}
+.rooms .room.public {
     border: 1px solid #58aed9;
     background-color: azure;
 }
-.rooms .room.create .button.start {
+.rooms .room.public .button.start {
     min-width: 11em;
     background-color: #6eb4d5;
     color: #fff;

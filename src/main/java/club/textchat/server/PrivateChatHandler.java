@@ -17,9 +17,9 @@ package club.textchat.server;
 
 import club.textchat.redis.persistence.ChatersPersistence;
 import club.textchat.redis.persistence.InConvoUsersPersistence;
-import club.textchat.redis.persistence.PublicConvoPersistence;
+import club.textchat.redis.persistence.PrivateChatPersistence;
 import club.textchat.redis.persistence.SignedInUsersPersistence;
-import club.textchat.room.RoomManager;
+import club.textchat.room.PrivateRoomManager;
 import club.textchat.server.message.ChatMessage;
 import club.textchat.server.message.payload.BroadcastPayload;
 import club.textchat.server.message.payload.JoinPayload;
@@ -38,20 +38,20 @@ import java.util.Set;
  */
 @Component
 @Bean
-public class DefaultChatHandler extends AbstractChatHandler {
+public class PrivateChatHandler extends AbstractChatHandler {
 
-    private final PublicConvoPersistence publicConvoPersistence;
+    private final PrivateChatPersistence privateChatPersistence;
 
-    private final RoomManager roomManager;
+    private final PrivateRoomManager privateRoomManager;
 
-    public DefaultChatHandler(SignedInUsersPersistence signedInUsersPersistence,
+    public PrivateChatHandler(SignedInUsersPersistence signedInUsersPersistence,
                               InConvoUsersPersistence inConvoUsersPersistence,
                               ChatersPersistence chatersPersistence,
-                              PublicConvoPersistence publicConvoPersistence,
-                              RoomManager roomManager) {
+                              PrivateChatPersistence privateChatPersistence,
+                              PrivateRoomManager privateRoomManager) {
         super(signedInUsersPersistence, inConvoUsersPersistence, chatersPersistence);
-        this.publicConvoPersistence = publicConvoPersistence;
-        this.roomManager = roomManager;
+        this.privateChatPersistence = privateChatPersistence;
+        this.privateRoomManager = privateRoomManager;
     }
 
     protected void handle(Session session, ChatMessage chatMessage) {
@@ -112,11 +112,10 @@ public class DefaultChatHandler extends AbstractChatHandler {
             JoinPayload payload = new JoinPayload();
             payload.setUsername(chaterInfo.getUsername());
             payload.setChaters(roomChaters);
-            payload.setRecentConvo(publicConvoPersistence.getRecentConvo(chaterInfo.getRoomId()));
             payload.setRejoin(rejoin);
             ChatMessage message = new ChatMessage(payload);
             send(session, message);
-            roomManager.checkIn(chaterInfo.getRoomId());
+            privateRoomManager.checkIn(chaterInfo.getRoomId());
         }
         return replaced;
     }
@@ -127,7 +126,7 @@ public class DefaultChatHandler extends AbstractChatHandler {
             signedInUsersPersistence.tryAbandon(chaterInfo.getUsername(), chaterInfo.getHttpSessionId());
             inConvoUsersPersistence.remove(chaterInfo.getUsername());
             broadcastUserLeft(chaterInfo);
-            roomManager.checkOut(chaterInfo.getRoomId());
+            privateRoomManager.checkOut(chaterInfo.getRoomId());
         }
     }
 
@@ -139,7 +138,7 @@ public class DefaultChatHandler extends AbstractChatHandler {
         payload.setPrevUsername(chaterInfo.getPrevUsername());
         payload.setDatetime(getCurrentDatetime(chaterInfo));
         ChatMessage message = new ChatMessage(payload);
-        publicConvoPersistence.put(chaterInfo.getRoomId(), message);
+        privateChatPersistence.publish(message);
     }
 
     private void broadcastUserLeft(ChaterInfo chaterInfo) {
@@ -149,7 +148,7 @@ public class DefaultChatHandler extends AbstractChatHandler {
         payload.setUsername(chaterInfo.getUsername());
         payload.setDatetime(getCurrentDatetime(chaterInfo));
         ChatMessage message = new ChatMessage(payload);
-        publicConvoPersistence.put(chaterInfo.getRoomId(), message);
+        privateChatPersistence.publish(message);
     }
 
     private void broadcastMessage(ChaterInfo chaterInfo, String content) {
@@ -161,7 +160,7 @@ public class DefaultChatHandler extends AbstractChatHandler {
         payload.setDatetime(getCurrentDatetime(chaterInfo));
         payload.setColor(chaterInfo.getColor());
         ChatMessage message = new ChatMessage(payload);
-        publicConvoPersistence.put(chaterInfo.getRoomId(), message);
+        privateChatPersistence.publish(message);
     }
 
 }

@@ -18,41 +18,28 @@ package club.textchat.redis.persistence;
 import club.textchat.redis.RedisConnectionPool;
 import club.textchat.redis.subscribe.ChannelManager;
 import club.textchat.server.message.ChatMessage;
-import club.textchat.server.message.payload.BroadcastPayload;
 import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Bean;
 import com.aspectran.core.component.bean.annotation.Component;
-
-import static club.textchat.server.LobbyChatHandler.USER_MESSAGE_PREFIX;
 
 /**
  * <p>Created: 2020/05/03</p>
  */
 @Component
 @Bean
-public class LobbyConvoPersistence extends AbstractPersistence {
+public class RandomChatPersistence extends AbstractPersistence {
 
     private final ChannelManager channelManager;
 
     @Autowired
-    public LobbyConvoPersistence(RedisConnectionPool connectionPool,
+    public RandomChatPersistence(RedisConnectionPool connectionPool,
                                  ChannelManager channelManager) {
         super(connectionPool);
         this.channelManager = channelManager;
     }
 
     public void publish(ChatMessage message) {
-        publish(channelManager.getLobbyChatChannel(), message.toString());
-    }
-
-    public void publish(String content) {
-        BroadcastPayload payload = new BroadcastPayload();
-        payload.setContent(content);
-        publish(new ChatMessage(payload));
-    }
-
-    public void say(String content) {
-        publish(USER_MESSAGE_PREFIX + content);
+        publish(channelManager.getRandomChatChannel(), message.toString());
     }
 
 }

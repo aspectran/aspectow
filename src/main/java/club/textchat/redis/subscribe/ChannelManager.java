@@ -31,6 +31,8 @@ public class ChannelManager implements EnvironmentAware {
 
     private String publicChatChannel;
 
+    private String privateChatChannel;
+
     private String randomChatChannel;
 
     private String lobbyChatChannel;
@@ -38,6 +40,11 @@ public class ChannelManager implements EnvironmentAware {
     @NonNull
     public String getPublicChatChannel() {
         return publicChatChannel;
+    }
+
+    @NonNull
+    public String getPrivateChatChannel() {
+        return privateChatChannel;
     }
 
     @NonNull
@@ -53,14 +60,18 @@ public class ChannelManager implements EnvironmentAware {
     @Override
     public void setEnvironment(Environment environment) {
         publicChatChannel = environment.getProperty("redis.channel.public_chat");
-        randomChatChannel = environment.getProperty("redis.channel.random_chat");
-        lobbyChatChannel = environment.getProperty("redis.channel.lobby_chat");
         if (!StringUtils.hasText(publicChatChannel)) {
             throw new IllegalArgumentException("Undefined environment property: redis.channel.public_chat");
         }
+        privateChatChannel = environment.getProperty("redis.channel.private_chat");
+        if (!StringUtils.hasText(privateChatChannel)) {
+            throw new IllegalArgumentException("Undefined environment property: redis.channel.private_chat");
+        }
+        randomChatChannel = environment.getProperty("redis.channel.random_chat");
         if (!StringUtils.hasText(randomChatChannel)) {
             throw new IllegalArgumentException("Undefined environment property: redis.channel.random_chat");
         }
+        lobbyChatChannel = environment.getProperty("redis.channel.lobby_chat");
         if (!StringUtils.hasText(lobbyChatChannel)) {
             throw new IllegalArgumentException("Undefined environment property: redis.channel.lobby_chat");
         }

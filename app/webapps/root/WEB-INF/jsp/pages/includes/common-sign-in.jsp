@@ -13,13 +13,15 @@
         </c:otherwise>
     </c:choose>
     <form id="form-sign-in" method="post">
-        <div class="grid-x grid-padding-x">
+        <div class="grid-x">
             <div class="cell content">
                 <c:if test="${page.roomId eq '0'}">
                     <p>TextChatClub is a place to chat with your friends, meet new people and discover conversations.</p>
                 </c:if>
                 <c:if test="${page.roomId eq '-1'}">
-                    <p>You must be 18+ to start random chat with strangers.</p>
+                    <p>Our random chat service lets you text chat with randomly selected people.
+                        To chat with strangers on the Internet is a great way to find new friends.
+                        Please note that you must be 18+ to start random chats with strangers. </p>
                 </c:if>
                 <label class="title">Please enter your name.</label>
                 <div class="input-group">
@@ -46,10 +48,12 @@
                 </div>
             </div>
         </div>
-        <div class="grid-x grid-padding-x t15">
-            <div class="cell">
+        <div class="grid-x t10">
+            <div class="cell small-12">
                 <label class="title">Remember me</label>
             </div>
+        </div>
+        <div class="grid-x">
             <div class="cell auto">
                 <div class="switch">
                     <input class="switch-input" id="remember-me-yes-no" type="checkbox" name="remember-me">
@@ -65,7 +69,7 @@
             </div>
         </div>
     </form>
-    <div class="grid-x grid-padding-x grid-margin-y">
+    <div class="grid-x grid-margin-y t5">
         <div class="cell">
             <div id="captcha-container-sign-in"></div>
         </div>

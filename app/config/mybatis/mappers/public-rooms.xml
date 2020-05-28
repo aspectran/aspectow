@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="rooms">
+<mapper namespace="public.rooms">
 
-	<resultMap id="roomInfoMap" type="club.textchat.room.RoomInfo">
+	<resultMap id="publicRoomInfoMap" type="club.textchat.room.RoomInfo">
 		<result property="roomId" column="room_id" />
 		<result property="roomName" column="room_nm" />
 		<result property="language" column="lang_cd" />
@@ -12,38 +12,41 @@
 		<result property="pastDays" column="past_days" />
 	</resultMap>
 
-	<select id="getRoomInfo" parameterType="string" resultMap="roomInfoMap">
+	<select id="getRoomInfo" parameterType="string" resultMap="publicRoomInfoMap">
 		select
 		    room_id,
 		    room_nm,
 		    lang_cd
-		from rooms
+		from public_rooms
 		where room_id = #{roomId}
+			and del_yn = 'N'
 	</select>
 
-	<select id="getRoomList" resultMap="roomInfoMap">
+	<select id="getRoomList" resultMap="publicRoomInfoMap">
 		select
 			room_id,
 			room_nm,
 			cumu_users,
 			curr_users,
 			datediff(now(), reg_dt) as past_days
-		from rooms
+		from public_rooms
 		where del_yn = 'N'
 		order by if(past_days &lt;= 1, 1, 2), curr_users desc, cumu_users desc
 		limit 99
 	</select>
 
 	<select id="getRoomCountByName" parameterType="string" resultType="int">
-		select count(1) from rooms where room_nm = #{roomId}
+		select count(1) from public_rooms
+		where room_nm = #{roomName} and del_yn = 'N'
 	</select>
 
     <insert id="insertRoom" parameterType="club.textchat.room.RoomInfo" useGeneratedKeys="true" keyProperty="roomId">
-        insert into rooms (room_nm, lang_cd, user_no) values (#{roomName}, #{language}, #{userNo})
+        insert into public_rooms (room_nm, lang_cd, user_no)
+        values (#{roomName}, #{language}, #{userNo})
     </insert>
 
 	<update id="updateRoomForCheckIn" parameterType="string">
-        update rooms set
+        update public_rooms set
         	cumu_users = cumu_users + 1,
         	curr_users = curr_users + 1,
         	used_dt = now()
@@ -51,7 +54,7 @@
     </update>
 
 	<update id="updateRoomForCheckOut" parameterType="string">
-        update rooms set
+        update public_rooms set
         	curr_users = curr_users - 1,
         	used_dt = now()
         where room_id = #{roomId}

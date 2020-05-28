@@ -63,21 +63,16 @@ public class UserManager extends InstantActivitySupport {
         getUserInfo();
     }
 
-    public void checkSignedInPage() throws LoginRequiredException {
+    public UserInfo getUserInfoOnPage() throws LoginRequiredException {
         try {
-            getUserInfo();
+            return getUserInfo();
         } catch (LoginRequiredException e) {
             Translet translet = getCurrentActivity().getTranslet();
             if (translet == null) {
                 throw e;
             }
-            if (!"/".equals(translet.getRequestName()) && !"/signout".equals(translet.getRequestName())) {
-                translet.redirect("/", new HashMap<String, String>() {{
-                    put("referrer", translet.getRequestName());
-                }});
-            } else {
-                translet.redirect("/");
-            }
+            translet.redirect("/");
+            return null;
         }
     }
 

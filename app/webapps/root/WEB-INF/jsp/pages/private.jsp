@@ -5,7 +5,7 @@
 <script src="/assets/js/chat-client-public.js?v1.3"></script>
 <script>
     const chatClientSettings = {
-        serverEndpoint: "/chat/public/",
+        serverEndpoint: "/chat/private/",
         autoConnectEnabled: true,
         admissionToken: "${page.token}",
         homepage: "/"

@@ -17,7 +17,7 @@ package club.textchat.redis.subscribe;
 
 import club.textchat.redis.RedisConnectionPool;
 import club.textchat.server.ChatHandler;
-import club.textchat.server.PublicChatHandler;
+import club.textchat.server.PrivateChatHandler;
 import club.textchat.server.message.ChatMessage;
 import club.textchat.server.message.payload.BroadcastPayload;
 import club.textchat.server.message.payload.UserJoinedPayload;
@@ -40,10 +40,10 @@ import java.io.IOException;
  */
 @Component
 @Bean
-public class PublicMessageSubscriber extends RedisPubSubAdapter<String, String>
+public class PrivateMessageSubscriber extends RedisPubSubAdapter<String, String>
         implements InitializableBean, DisposableBean {
 
-    private static final Logger logger = LoggerFactory.getLogger(PublicMessageSubscriber.class);
+    private static final Logger logger = LoggerFactory.getLogger(PrivateMessageSubscriber.class);
 
     private final StatefulRedisPubSubConnection<String, String> connection;
 
@@ -52,9 +52,9 @@ public class PublicMessageSubscriber extends RedisPubSubAdapter<String, String>
     private final ChannelManager channelManager;
 
     @Autowired
-    public PublicMessageSubscriber(RedisConnectionPool connectionPool,
-                                   PublicChatHandler chatHandler,
-                                   ChannelManager channelManager) {
+    public PrivateMessageSubscriber(RedisConnectionPool connectionPool,
+                                    PrivateChatHandler chatHandler,
+                                    ChannelManager channelManager) {
         this.connection = connectionPool.getPubSubConnection();
         this.chatHandler = chatHandler;
         this.channelManager = channelManager;
@@ -94,7 +94,7 @@ public class PublicMessageSubscriber extends RedisPubSubAdapter<String, String>
     public void initialize() throws Exception {
         connection.addListener(this);
         RedisPubSubCommands<String, String> sync = connection.sync();
-        sync.subscribe(channelManager.getPublicChatChannel());
+        sync.subscribe(channelManager.getPrivateChatChannel());
     }
 
     @Override

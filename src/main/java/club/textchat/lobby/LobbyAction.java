@@ -16,7 +16,7 @@
 package club.textchat.lobby;
 
 import club.textchat.room.RoomInfo;
-import club.textchat.room.RoomManager;
+import club.textchat.room.PublicRoomManager;
 import club.textchat.server.AdmissionToken;
 import club.textchat.user.LoginRequiredException;
 import club.textchat.user.UserInfo;
@@ -26,8 +26,6 @@ import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Component;
 import com.aspectran.core.component.bean.annotation.Dispatch;
 import com.aspectran.core.component.bean.annotation.Request;
-import com.aspectran.core.component.bean.annotation.Transform;
-import com.aspectran.core.context.rule.type.FormatType;
 import com.aspectran.core.util.security.TimeLimitedPBTokenIssuer;
 
 import java.util.HashMap;
@@ -41,20 +39,20 @@ public class LobbyAction {
 
     private final UserManager userManager;
 
-    private final RoomManager roomManager;
+    private final PublicRoomManager publicRoomManager;
 
     @Autowired
     public LobbyAction(UserManager userManager,
-                       RoomManager roomManager) {
+                       PublicRoomManager publicRoomManager) {
         this.userManager = userManager;
-        this.roomManager = roomManager;
+        this.publicRoomManager = publicRoomManager;
     }
 
     @Request("/")
     @Dispatch("templates/default")
     @Action("page")
     public Map<String, Object> lobby() {
-        List<RoomInfo> rooms = roomManager.getRoomList();
+        List<RoomInfo> rooms = publicRoomManager.getRoomList();
 
         UserInfo userInfo = null;
         try {

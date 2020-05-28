@@ -16,10 +16,9 @@
 package club.textchat.room;
 
 import club.textchat.common.mybatis.SimpleSqlSession;
-import club.textchat.redis.persistence.LobbyConvoPersistence;
+import club.textchat.redis.persistence.LobbyChatPersistence;
 import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Component;
-import com.aspectran.core.util.PBEncryptionUtils;
 import com.aspectran.core.util.json.JsonWriter;
 import org.apache.ibatis.session.SqlSession;
 
@@ -30,52 +29,48 @@ import java.util.List;
  * <p>Created: 2020/05/18</p>
  */
 @Component
-public class RoomManager {
+public class PublicRoomManager {
 
-    private static final String NEW_ROOM_MESSAGE_PREFIX = "newRoom:";
+    private static final String NEW_ROOM_MESSAGE_PREFIX = "newPublicRoom:";
 
     private final SqlSession sqlSession;
 
-    private final LobbyConvoPersistence lobbyConvoPersistence;
+    private final LobbyChatPersistence lobbyChatPersistence;
 
     @Autowired
-    public RoomManager(SimpleSqlSession sqlSession, LobbyConvoPersistence lobbyConvoPersistence) {
+    public PublicRoomManager(SimpleSqlSession sqlSession, LobbyChatPersistence lobbyChatPersistence) {
         this.sqlSession = sqlSession;
-        this.lobbyConvoPersistence = lobbyConvoPersistence;
+        this.lobbyChatPersistence = lobbyChatPersistence;
+    }
+
+    public RoomInfo getRoomInfo(String roomId) {
+        return sqlSession.selectOne("public.rooms.getRoomInfo", roomId);
     }
 
     public Integer createRoom(RoomInfo roomInfo) throws IOException {
-        Integer count = sqlSession.selectOne("rooms.getRoomCountByName", roomInfo.getRoomName());
+        Integer count = sqlSession.selectOne("public.rooms.getRoomCountByName", roomInfo.getRoomName());
         if (count != null && count > 0) {
             return null;
         }
 
-        sqlSession.insert("rooms.insertRoom", roomInfo);
-
-//        String encryptedRoomId = PBEncryptionUtils.encrypt(Integer.toString(roomInfo.getRoomId()));
-//        roomInfo.setRoomId(0);
-//        roomInfo.setEncryptedRoomId(encryptedRoomId);
+        sqlSession.insert("public.rooms.insertRoom", roomInfo);
 
         String json = new JsonWriter().prettyPrint(false).nullWritable(false).write(roomInfo).toString();
-        lobbyConvoPersistence.publish(NEW_ROOM_MESSAGE_PREFIX + json);
+        lobbyChatPersistence.publish(NEW_ROOM_MESSAGE_PREFIX + json);
 
         return roomInfo.getRoomId();
     }
 
     public List<RoomInfo> getRoomList() {
-        List<RoomInfo> list = sqlSession.selectList("rooms.getRoomList");
-//        for (RoomInfo roomInfo : list) {
-//            roomInfo.setEncryptedRoomId(PBEncryptionUtils.encrypt(Integer.toString(roomInfo.getRoomId())));
-//        }
-        return list;
+        return sqlSession.selectList("public.rooms.getRoomList");
     }
 
     public void checkIn(String roomId) {
-        sqlSession.update("rooms.updateRoomForCheckIn", roomId);
+        sqlSession.update("public.rooms.updateRoomForCheckIn", roomId);
     }
 
     public void checkOut(String roomId) {
-        sqlSession.update("rooms.updateRoomForCheckOut", roomId);
+        sqlSession.update("public.rooms.updateRoomForCheckOut", roomId);
     }
 
 }

@@ -40,7 +40,8 @@
     <mappers>
         <mapper resource="mybatis/mappers/common.xml"/>
         <mapper resource="mybatis/mappers/users.xml"/>
-        <mapper resource="mybatis/mappers/rooms.xml"/>
+        <mapper resource="mybatis/mappers/public-rooms.xml"/>
+        <mapper resource="mybatis/mappers/private-rooms.xml"/>
     </mappers>
 
 </configuration>
