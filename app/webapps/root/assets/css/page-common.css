@@ -309,7 +309,7 @@ input#for-automata-clear {
 @-webkit-keyframes spin { 100% { -webkit-transform: rotate(360deg); } }
 @keyframes spin { 100% { -webkit-transform: rotate(360deg); transform:rotate(360deg); } }
 form label {
-    font-size: 1em;
+    font-size: .95em;
 }
 form .form-error {
     font-size: .9em;
