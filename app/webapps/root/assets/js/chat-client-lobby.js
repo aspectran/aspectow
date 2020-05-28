@@ -66,7 +66,7 @@ function handleSystemMessage(message) {
     if (message.startsWith("newRoom:")) {
         let roomInfo = deserialize(message.substring(8));
         let room = $(".new-room-template").clone().removeClass("new-room-template");
-        room.find("a").attr("href", "/rooms/" + roomInfo.encryptedRoomId);
+        room.find("a").attr("href", "/rooms/" + roomInfo.roomId);
         room.find("h5").text(roomInfo.roomName);
         room.find(".new").show();
         room.prependTo($(".rooms.public")).fadeIn();

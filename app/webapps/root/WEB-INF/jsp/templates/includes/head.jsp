@@ -32,6 +32,10 @@
     gtag('js', new Date());
     gtag('config', 'UA-150079188-1');
     gtag('config', 'AW-798244126');
+<c:if test="${not empty user}">
+    <!-- Event snippet for Website traffic conversion page -->
+    gtag('event', 'conversion', {'send_to': 'AW-798244126/VV_4CKaBwNEBEJ760PwC'});
+</c:if>
 </script>
 <script>
     const userInfo = {

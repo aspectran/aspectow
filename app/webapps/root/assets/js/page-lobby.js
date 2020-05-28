@@ -105,7 +105,7 @@ function refreshRooms() {
                     for (let i in list) {
                         let roomInfo = list[i];
                         let room = $(".new-room-template").clone().removeClass("new-room-template");
-                        room.find("a").attr("href", "/rooms/" + roomInfo.encryptedRoomId);
+                        room.find("a").attr("href", "/rooms/" + roomInfo.roomId);
                         room.find("h5").text(roomInfo.roomName);
                         room.find(".curr-users span").text(roomInfo.currentUsers);
                         if (roomInfo.currentUsers > 0) {

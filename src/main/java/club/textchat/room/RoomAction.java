@@ -71,8 +71,8 @@ public class RoomAction {
         roomInfo.setLanguage(language);
         roomInfo.setUserNo(userInfo.getUserNo());
 
-        String encryptedRoomId = roomManager.createRoom(roomInfo);
-        return (encryptedRoomId != null ? encryptedRoomId : "-2");
+        Integer roomId = roomManager.createRoom(roomInfo);
+        return (roomId != null ? roomId.toString() : null);
     }
 
     @Request("/rooms")

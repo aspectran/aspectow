@@ -71,11 +71,11 @@ public class ChatAction {
     @Dispatch("templates/default")
     @Action("page")
     public Map<String, String> startPublicChat(@Required String roomId) {
-        try {
-            roomId = PBEncryptionUtils.decrypt(roomId);
-        } catch (Exception e) {
-            throw new InvalidChatRoomException(roomId, "invalid-room-id");
-        }
+//        try {
+//            roomId = PBEncryptionUtils.decrypt(roomId);
+//        } catch (Exception e) {
+//            throw new InvalidChatRoomException(roomId, "invalid-room-id");
+//        }
 
         UserInfo userInfo = null;
         try {

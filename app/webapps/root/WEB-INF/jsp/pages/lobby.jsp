@@ -4,8 +4,8 @@
 <link rel="stylesheet" type="text/css" href="/assets/css/chat-lobby.css?v15" />
 <link rel="stylesheet" type="text/css" href="/assets/css/page-lobby.css?v17" />
 <script src="/assets/js/chat-client-default.js?v1.3"></script>
-<script src="/assets/js/chat-client-lobby.js?v1.3"></script>
-<script src="/assets/js/page-lobby.js?v1.3"></script>
+<script src="/assets/js/chat-client-lobby.js?v1.4"></script>
+<script src="/assets/js/page-lobby.js?v1.4"></script>
 <script>
     const chatClientSettings = {
         serverEndpoint: "/chat/lobby/",
@@ -67,10 +67,10 @@
                     <c:forEach items="${page.rooms}" var="roomInfo">
                         <div class="cell small-12 medium-6 large-4 card room<c:if test="${roomInfo.currentUsers gt 0}"> active</c:if>">
                             <div class="card-section">
-                                <a class="start" href="/rooms/${roomInfo.encryptedRoomId}"><h5>${roomInfo.roomName}</h5></a>
+                                <a class="start" href="/rooms/${roomInfo.roomId}"><h5>${roomInfo.roomName}</h5></a>
                                 <i class="curr-users fi-torsos-all"> <span>${roomInfo.currentUsers}</span></i>
                                 <c:if test="${roomInfo.pastDays le 1}"><i class="new fi-burst-new"></i></c:if>
-                                <a class="button small start" href="/rooms/${roomInfo.encryptedRoomId}">Start chat</a>
+                                <a class="button small start" href="/rooms/${roomInfo.roomId}">Start chat</a>
                             </div>
                         </div>
                     </c:forEach>

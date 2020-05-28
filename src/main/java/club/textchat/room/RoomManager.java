@@ -44,7 +44,7 @@ public class RoomManager {
         this.lobbyConvoPersistence = lobbyConvoPersistence;
     }
 
-    public String createRoom(RoomInfo roomInfo) throws IOException {
+    public Integer createRoom(RoomInfo roomInfo) throws IOException {
         Integer count = sqlSession.selectOne("rooms.getRoomCountByName", roomInfo.getRoomName());
         if (count != null && count > 0) {
             return null;
@@ -52,21 +52,21 @@ public class RoomManager {
 
         sqlSession.insert("rooms.insertRoom", roomInfo);
 
-        String encryptedRoomId = PBEncryptionUtils.encrypt(Integer.toString(roomInfo.getRoomId()));
-        roomInfo.setRoomId(0);
-        roomInfo.setEncryptedRoomId(encryptedRoomId);
+//        String encryptedRoomId = PBEncryptionUtils.encrypt(Integer.toString(roomInfo.getRoomId()));
+//        roomInfo.setRoomId(0);
+//        roomInfo.setEncryptedRoomId(encryptedRoomId);
 
         String json = new JsonWriter().prettyPrint(false).nullWritable(false).write(roomInfo).toString();
         lobbyConvoPersistence.publish(NEW_ROOM_MESSAGE_PREFIX + json);
 
-        return encryptedRoomId;
+        return roomInfo.getRoomId();
     }
 
     public List<RoomInfo> getRoomList() {
         List<RoomInfo> list = sqlSession.selectList("rooms.getRoomList");
-        for (RoomInfo roomInfo : list) {
-            roomInfo.setEncryptedRoomId(PBEncryptionUtils.encrypt(Integer.toString(roomInfo.getRoomId())));
-        }
+//        for (RoomInfo roomInfo : list) {
+//            roomInfo.setEncryptedRoomId(PBEncryptionUtils.encrypt(Integer.toString(roomInfo.getRoomId())));
+//        }
         return list;
     }
 
