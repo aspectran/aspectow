@@ -194,6 +194,7 @@ input#for-automata-clear {
     text-overflow: ellipsis;
     white-space: nowrap !important;
     color: #217aa6;
+    font-size: 1em;
 }
 .user.my-col-1 .avatar .iconfont {
     color: #fcbdbd;
