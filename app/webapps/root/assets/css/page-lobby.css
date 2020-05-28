@@ -54,6 +54,8 @@
     border-radius: 20px 0 7px 0;
     background-color: #a1d2ea;
     color: #444;
+    border-top: 1px solid #fff;
+    border-left: 1px solid #fff;
 }
 .rooms .room .card-section:hover .button.start {
     background-color: #bee2f6;
