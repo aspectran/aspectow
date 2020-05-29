@@ -24,8 +24,8 @@
         document.documentElement.style.setProperty("--vh", (window.innerHeight * 0.01) + "px");
     });
 </script>
-<!-- Global site tag (gtag.js) - Google Analytics -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=UA-150079188-1"></script>
+<script data-ad-client="ca-pub-8543949924656308" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=AW-798244126"></script>
 <script>
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
@@ -33,7 +33,6 @@
     gtag('config', 'UA-150079188-1');
     gtag('config', 'AW-798244126');
 <c:if test="${not empty user}">
-    <!-- Event snippet for Website traffic conversion page -->
     gtag('event', 'conversion', {'send_to': 'AW-798244126/VV_4CKaBwNEBEJ760PwC'});
 </c:if>
 </script>
