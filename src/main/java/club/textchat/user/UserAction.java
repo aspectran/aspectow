@@ -51,7 +51,7 @@ public class UserAction {
 
     @RequestToPost("/guest/signin")
     @Transform(FormatType.JSON)
-    public String signin(Translet translet,
+    public String signIn(Translet translet,
                          @Required String username,
                          String favoriteColor,
                          @Required String recaptchaResponse,
@@ -93,7 +93,7 @@ public class UserAction {
             userInfo.setIpAddr(((HttpServletRequest)translet.getRequestAdaptee()).getRemoteAddr());
         }
 
-        if (!chaterManager.createGuestChater(userInfo)) {
+        if (!chaterManager.createChater(userInfo)) {
             return "-9";
         }
 
@@ -103,7 +103,7 @@ public class UserAction {
 
     @Request("/signout")
     @Redirect("/")
-    public void signout() {
+    public void signOut() {
         userManager.removeUserInfo();
     }
 

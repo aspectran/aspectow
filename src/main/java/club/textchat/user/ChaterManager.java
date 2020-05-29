@@ -54,8 +54,8 @@ public class ChaterManager extends InstantActivitySupport implements Initializab
         this.inConvoUsersPersistence = inConvoUsersPersistence;
     }
 
-    public boolean createGuestChater(UserInfo userInfo) {
-        sqlSession.insert("users.insertGuest", userInfo);
+    public boolean createChater(UserInfo userInfo) {
+        sqlSession.insert("users.insertUser", userInfo);
         return (userInfo.getUserNo() > 0);
     }
 
