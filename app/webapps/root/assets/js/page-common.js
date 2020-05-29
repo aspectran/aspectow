@@ -97,7 +97,7 @@ function doSignIn(username, favoriteColor) {
         return;
     }
     $.ajax({
-        url: '/guest/signin',
+        url: '/signin',
         type: 'post',
         dataType: 'json',
         data: {

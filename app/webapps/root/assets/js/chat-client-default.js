@@ -451,16 +451,6 @@ function printEvent(text, restored) {
     }
 }
 
-function printError(text, restored) {
-    let convo = $("#convo");
-    let div = $("<div/>").addClass("message event error");
-    $("<p/>").addClass("content").html(text).appendTo(div);
-    convo.append(div);
-    if (!restored) {
-        scrollToBottom(convo);
-    }
-}
-
 function printRecentConvo(chatMessages) {
     for (let i in chatMessages) {
         let chatMessage = chatMessages[i];
@@ -488,7 +478,7 @@ function toggleSidebar() {
     $(".sidebar").toggleClass("hide-for-small-only").toggleClass("show-for-small-only");
 }
 
-function hideSidebar(force) {
+function hideSidebar() {
     let sidebar = $(".sidebar");
     if (sidebar.is(":visible") && !sidebar.hasClass("hide-for-small-only")) {
         toggleSidebar();

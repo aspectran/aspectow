@@ -1,11 +1,11 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
-<link rel="stylesheet" type="text/css" href="/assets/css/chat-common.css?v18" />
-<link rel="stylesheet" type="text/css" href="/assets/css/chat-lobby.css?v18" />
-<link rel="stylesheet" type="text/css" href="/assets/css/page-lobby.css?v18" />
-<script src="/assets/js/chat-client-default.js?v1.5"></script>
-<script src="/assets/js/chat-client-lobby.js?v1.6"></script>
-<script src="/assets/js/page-lobby.js?v1.5"></script>
+<link rel="stylesheet" type="text/css" href="/assets/css/chat-common.css?v19" />
+<link rel="stylesheet" type="text/css" href="/assets/css/chat-lobby.css?v19" />
+<link rel="stylesheet" type="text/css" href="/assets/css/page-lobby.css?v19" />
+<script src="/assets/js/chat-client-default.js?v17"></script>
+<script src="/assets/js/chat-client-lobby.js?v17"></script>
+<script src="/assets/js/page-lobby.js?v17"></script>
 <script>
     const chatClientSettings = {
         serverEndpoint: "/chat/lobby/",

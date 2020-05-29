@@ -120,10 +120,6 @@
 #convo .message.event .content strong {
     font-weight: bold;
 }
-#convo .message.event.error .content {
-    background-color: palevioletred;
-    color: yellow;
-}
 #convo .message.received {
     left: 0;
 }

@@ -49,7 +49,7 @@ public class UserAction {
         this.chaterManager = chaterManager;
     }
 
-    @RequestToPost("/guest/signin")
+    @RequestToPost("/signin")
     @Transform(FormatType.JSON)
     public String signIn(Translet translet,
                          @Required String username,
