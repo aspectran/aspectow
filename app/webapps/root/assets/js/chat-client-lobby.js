@@ -4,7 +4,7 @@ $(function () {
     if (!Modernizr.websockets) {
         $("#message").blur();
         $("#message, #form-send-message button").prop("disabled", true);
-        $("#common-browser-not-supported").foundation('open');
+        location.href = "/error/browser-not-supported";
         return;
     }
     if (!userInfo.userNo) {

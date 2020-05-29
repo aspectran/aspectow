@@ -46,7 +46,6 @@
 <%@ include file="includes/common-wait-popup.jsp" %>
 <%@ include file="includes/common-notice-popup.jsp" %>
 <%@ include file="includes/common-connection-lost.jsp" %>
-<%@ include file="includes/common-browser-not-supported.jsp" %>
 <c:if test="${empty user}">
     <%@ include file="includes/common-sign-in.jsp" %>
 </c:if>

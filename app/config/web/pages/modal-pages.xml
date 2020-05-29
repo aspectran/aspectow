@@ -3,7 +3,7 @@
         "http://aspectran.github.io/dtd/aspectran-6.dtd">
 <aspectran>
 
-    <bean id="testJspTemplate" class="com.aspectran.web.support.view.JspTemplateViewDispatcher">
+    <bean id="pagesModalJspTemplate" class="com.aspectran.web.support.view.JspTemplateViewDispatcher">
         <description>
             Register a JSP Template View Dispatcher.
         </description>
@@ -14,19 +14,8 @@
         </properties>
     </bean>
 
-    <aspect id="testTransletSettings">
-        <joinpoint>
-            pointcut: {
-                +: /modal/**
-            }
-        </joinpoint>
-        <settings>
-            <setting name="viewDispatcher" value="testJspTemplate"/>
-        </settings>
-    </aspect>
-
-    <translet name="/modal/${filename}">
-        <dispatch name="includes/${filename}"/>
+    <translet name="/pages/modal/${filename}">
+        <dispatch name="includes/${filename}" dispatcher="pagesModalJspTemplate"/>
     </translet>
 
 </aspectran>

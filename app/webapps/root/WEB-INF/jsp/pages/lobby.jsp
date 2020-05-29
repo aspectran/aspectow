@@ -4,7 +4,7 @@
 <link rel="stylesheet" type="text/css" href="/assets/css/chat-lobby.css?v18" />
 <link rel="stylesheet" type="text/css" href="/assets/css/page-lobby.css?v18" />
 <script src="/assets/js/chat-client-default.js?v1.5"></script>
-<script src="/assets/js/chat-client-lobby.js?v1.5"></script>
+<script src="/assets/js/chat-client-lobby.js?v1.6"></script>
 <script src="/assets/js/page-lobby.js?v1.5"></script>
 <script>
     const chatClientSettings = {
@@ -134,7 +134,6 @@
 <%@ include file="includes/common-wait-popup.jsp" %>
 <%@ include file="includes/common-connection-lost.jsp" %>
 <%@ include file="includes/common-service-not-available.jsp" %>
-<%@ include file="includes/common-browser-not-supported.jsp" %>
 <c:if test="${empty user}">
     <%@ include file="includes/common-sign-in.jsp" %>
 </c:if>

@@ -10,4 +10,11 @@
         <dispatch name="templates/default"/>
     </translet>
 
+    <translet name="/error/@{errorCode}">
+        <echo id="page">
+            <item name="include">pages/index</item>
+        </echo>
+        <dispatch name="templates/error"/>
+    </translet>
+
 </aspectran>
