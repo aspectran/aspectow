@@ -169,7 +169,7 @@ public class ChatAction {
         return map;
     }
 
-    private String createAdmissionToken(String roomId, UserInfo userInfo) {
+    public static String createAdmissionToken(String roomId, UserInfo userInfo) {
         AdmissionToken admissionToken = new AdmissionToken();
         admissionToken.setUserNo(userInfo.getUserNo());
         admissionToken.setUsername(userInfo.getUsername());

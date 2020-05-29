@@ -15,9 +15,9 @@
  */
 package club.textchat.lobby;
 
+import club.textchat.chat.ChatAction;
 import club.textchat.room.PublicRoomManager;
 import club.textchat.room.RoomInfo;
-import club.textchat.server.AdmissionToken;
 import club.textchat.user.LoginRequiredException;
 import club.textchat.user.UserInfo;
 import club.textchat.user.UserManager;
@@ -28,7 +28,6 @@ import com.aspectran.core.component.bean.annotation.Dispatch;
 import com.aspectran.core.component.bean.annotation.Request;
 import com.aspectran.core.component.bean.annotation.Transform;
 import com.aspectran.core.context.rule.type.FormatType;
-import com.aspectran.core.util.security.TimeLimitedPBTokenIssuer;
 
 import java.util.HashMap;
 import java.util.List;
@@ -65,11 +64,7 @@ public class LobbyAction {
 
         String token = null;
         if (userInfo != null) {
-            AdmissionToken admissionToken = new AdmissionToken();
-            admissionToken.setUserNo(userInfo.getUserNo());
-            admissionToken.setUsername(userInfo.getUsername());
-            admissionToken.setRoomId(LOBBY_CHATROOM_ID);
-            token = TimeLimitedPBTokenIssuer.getToken(admissionToken);
+            token = ChatAction.createAdmissionToken(LOBBY_CHATROOM_ID, userInfo);
         }
 
         Map<String, Object> map = new HashMap<>();
