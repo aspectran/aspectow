@@ -1,6 +1,6 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
-<link rel="stylesheet" type="text/css" href="/assets/css/chat-common.css?v19" />
+<link rel="stylesheet" type="text/css" href="/assets/css/chat-common.css?v20" />
 <link rel="stylesheet" type="text/css" href="/assets/css/chat-lobby.css?v19" />
 <link rel="stylesheet" type="text/css" href="/assets/css/page-lobby.css?v19" />
 <script src="/assets/js/chat-client-default.js?v17"></script>

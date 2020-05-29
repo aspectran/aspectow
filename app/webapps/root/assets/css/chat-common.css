@@ -6,7 +6,7 @@
 #contacts .contact {
     position: relative;
     margin: 4px;
-    padding: .6em .6em .6em 2.4em;
+    padding: .3em .6em .4em 2.4em;
     color: #217aa6;
     font-size: .95em;
     background-color: #a8e0fd;
@@ -21,8 +21,8 @@
 }
 #contacts .contact .status {
     position: absolute;
-    left: .4em;
-    top: .4em;
+    left: .5em;
+    top: .45em;
     width: 2em;
     padding: .2em .64em;
     border-radius: 50%;
@@ -36,7 +36,6 @@
     background-color: #fbd27e;
 }
 #contacts .contact .name {
-    line-height: 1.1;
     overflow: hidden !important;
     text-overflow: ellipsis;
     white-space: nowrap !important;

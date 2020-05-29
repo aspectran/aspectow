@@ -11,9 +11,9 @@
                 We highly recommend that you update your browser.</p>
             <p class="lead">These are the ones we recommend:</p>
             <div class="grid-x grid-margin-y small-up-2">
-                <div class="cell"><strong>Mozilla Firefox</strong></div>
-                <div class="cell text-right"><a href="https://www.google.com/intl/en/chrome" target="_blank">Download latest</a></div>
                 <div class="cell"><strong>Google Chrome</strong></div>
+                <div class="cell text-right"><a href="https://www.google.com/intl/en/chrome" target="_blank">Download latest</a></div>
+                <div class="cell"><strong>Mozilla Firefox</strong></div>
                 <div class="cell text-right"><a href="https://www.google.com/intl/en/chrome" target="_blank">Download latest</a></div>
                 <div class="cell"><strong>Microsoft Edge</strong></div>
                 <div class="cell text-right"><a href="https://www.microsoft.com/edge" target="_blank">Download latest</a></div>
