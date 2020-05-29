@@ -15,7 +15,6 @@
  */
 package club.textchat.chat;
 
-import club.textchat.common.mybatis.SimpleSqlSession;
 import club.textchat.room.PrivateRoomManager;
 import club.textchat.room.PublicRoomManager;
 import club.textchat.room.RoomInfo;
@@ -30,7 +29,6 @@ import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Component;
 import com.aspectran.core.component.bean.annotation.Dispatch;
 import com.aspectran.core.component.bean.annotation.Request;
-import com.aspectran.core.component.bean.annotation.Required;
 import com.aspectran.core.component.bean.annotation.Transform;
 import com.aspectran.core.context.rule.type.FormatType;
 import com.aspectran.core.util.PBEncryptionUtils;
@@ -38,7 +36,6 @@ import com.aspectran.core.util.StringUtils;
 import com.aspectran.core.util.logging.Logger;
 import com.aspectran.core.util.logging.LoggerFactory;
 import com.aspectran.core.util.security.TimeLimitedPBTokenIssuer;
-import org.apache.ibatis.session.SqlSession;
 
 import java.util.HashMap;
 import java.util.Map;

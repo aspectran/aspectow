@@ -16,13 +16,11 @@
 package club.textchat.room;
 
 import club.textchat.recaptcha.ReCaptchaVerifier;
-import club.textchat.user.LoginRequiredException;
 import club.textchat.user.UserInfo;
 import club.textchat.user.UserManager;
 import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Component;
 import com.aspectran.core.component.bean.annotation.Qualifier;
-import com.aspectran.core.component.bean.annotation.Request;
 import com.aspectran.core.component.bean.annotation.RequestToPost;
 import com.aspectran.core.component.bean.annotation.Required;
 import com.aspectran.core.component.bean.annotation.Transform;
@@ -31,7 +29,6 @@ import com.aspectran.core.util.logging.Logger;
 import com.aspectran.core.util.logging.LoggerFactory;
 
 import java.io.IOException;
-import java.util.List;
 
 @Component
 public class PrivateRoomAction {

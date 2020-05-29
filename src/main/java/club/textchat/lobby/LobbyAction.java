@@ -15,8 +15,8 @@
  */
 package club.textchat.lobby;
 
-import club.textchat.room.RoomInfo;
 import club.textchat.room.PublicRoomManager;
+import club.textchat.room.RoomInfo;
 import club.textchat.server.AdmissionToken;
 import club.textchat.user.LoginRequiredException;
 import club.textchat.user.UserInfo;

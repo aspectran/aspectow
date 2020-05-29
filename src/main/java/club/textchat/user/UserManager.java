@@ -23,8 +23,6 @@ import com.aspectran.core.component.bean.annotation.Bean;
 import com.aspectran.core.component.bean.annotation.Component;
 import com.aspectran.core.lang.NonNull;
 
-import java.util.HashMap;
-
 @Component
 @Bean("userManager")
 @AvoidAdvice
