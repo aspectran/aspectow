@@ -56,16 +56,12 @@ public class ChaterManager extends InstantActivitySupport implements Initializab
 
     public boolean createGuestChater(UserInfo userInfo) {
         sqlSession.insert("users.insertGuest", userInfo);
-        if (userInfo.getUserNo() <= 0) {
-            return false;
-        }
-        userInfo.setUserNo(-userInfo.getUserNo());
-        return true;
+        return (userInfo.getUserNo() > 0);
     }
 
     public void discardUsername(UserInfo userInfo) {
         if (userInfo.getUserNo() < 0) {
-            sqlSession.update("users.discardUsername", -userInfo.getUserNo());
+            sqlSession.update("users.discardUsername", userInfo.getUserNo());
             if (logger.isDebugEnabled()) {
                 logger.debug("Discarded username " + userInfo);
             }

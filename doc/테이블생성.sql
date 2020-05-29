@@ -1,5 +1,5 @@
 # drop table user_login_hist;
-create table guests
+create table users
 (
     user_no    int auto_increment comment '사용자 번호' primary key,
     user_nm    varchar(100) not null comment '사용자명',
@@ -9,7 +9,7 @@ create table guests
     discarded_dt  datetime null comment '사용자명 폐기일',
     reg_dt     datetime default now() not null comment '등록일자'
 )
-comment '게스트 사용자명' engine=MyISAM charset=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+comment '대화방 이용자' engine=MyISAM charset=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 create table public_rooms
 (
