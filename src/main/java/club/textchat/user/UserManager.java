@@ -47,7 +47,7 @@ public class UserManager extends InstantActivitySupport {
         sessionAdapter.setAttribute(PREV_USERNAME, userInfo.getUsername());
     }
 
-    public void removeUserInfo() {
+    public UserInfo removeUserInfo() {
         SessionAdapter sessionAdapter = getSessionAdapter();
         UserInfo userInfo = sessionAdapter.getAttribute(USER_INFO_SESSION_KEY);
         if (userInfo != null) {
@@ -55,6 +55,7 @@ public class UserManager extends InstantActivitySupport {
             sessionAdapter.setAttribute(PREV_USERNAME, userInfo.getUsername());
             sessionAdapter.setAttribute(EXPIRED_TIME, System.currentTimeMillis());
         }
+        return userInfo;
     }
 
     public void checkSignedIn() throws LoginRequiredException {

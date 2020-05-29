@@ -104,7 +104,10 @@ public class UserAction {
     @Request("/signout")
     @Redirect("/")
     public void signOut() {
-        userManager.removeUserInfo();
+        UserInfo userInfo = userManager.removeUserInfo();
+        if (userInfo != null) {
+            chaterManager.discardUsername(userInfo);
+        }
     }
 
 }

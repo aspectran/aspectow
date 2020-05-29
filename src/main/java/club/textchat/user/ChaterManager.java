@@ -60,11 +60,9 @@ public class ChaterManager extends InstantActivitySupport implements Initializab
     }
 
     public void discardUsername(UserInfo userInfo) {
-        if (userInfo.getUserNo() < 0) {
-            sqlSession.update("users.discardUsername", userInfo.getUserNo());
-            if (logger.isDebugEnabled()) {
-                logger.debug("Discarded username " + userInfo);
-            }
+        int affected = sqlSession.update("users.discardUsername", userInfo.getUserNo());
+        if (affected > 0 && logger.isDebugEnabled()) {
+            logger.debug("Discarded username " + userInfo);
         }
     }
 

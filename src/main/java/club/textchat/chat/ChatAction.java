@@ -81,11 +81,7 @@ public class ChatAction {
         } catch (LoginRequiredException e) {
             return "-1";
         }
-        AdmissionToken admissionToken = new AdmissionToken();
-        admissionToken.setUserNo(userInfo.getUserNo());
-        admissionToken.setUsername(userInfo.getUsername());
-        admissionToken.setRoomId(RANDOM_CHATROOM_ID);
-        return TimeLimitedPBTokenIssuer.getToken(admissionToken);
+        return createAdmissionToken(RANDOM_CHATROOM_ID, userInfo);
     }
 
     @Request("/rooms/${roomId}")
