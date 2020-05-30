@@ -19,17 +19,20 @@
 <script>
     /* Set a custom property that contains the height value of the viewport */
     document.documentElement.style.setProperty("--vh", (window.innerHeight * 0.01) + "px");
-    let windowResizeTimer;
-    window.addEventListener("resize", function () {
-        if (windowResizeTimer) {
-            clearTimeout(windowResizeTimer);
-        }
-        windowResizeTimer = setTimeout(function() {
+    let currentWindowSize = {
+        width: window.outerWidth,
+        height: window.outerHeight,
+        innerWidth: window.innerWidth,
+        innerHeight: window.innerHeight
+    };
+    window.addEventListener("resize", function() {
+        if (window.outerWidth !== currentWindowSize.width || window.outerHeight !== currentWindowSize.height) {
+            currentWindowSize.width = window.outerWidth;
+            currentWindowSize.height = window.outerHeight;
+            currentWindowSize.innerWidth = window.innerWidth;
+            currentWindowSize.innerHeight = window.innerHeight;
             document.documentElement.style.setProperty("--vh", (window.innerHeight * 0.01) + "px");
-            windowResizeTimer = setTimeout(function() {
-                document.documentElement.style.setProperty("--vh", (window.innerHeight * 0.01) + "px");
-            }, 1500);
-        }, 100);
+        }
     });
 </script>
 <script data-ad-client="ca-pub-8543949924656308" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
