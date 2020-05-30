@@ -28,7 +28,7 @@
             document.documentElement.style.setProperty("--vh", (window.innerHeight * 0.01) + "px");
             windowResizeTimer = setTimeout(function() {
                 document.documentElement.style.setProperty("--vh", (window.innerHeight * 0.01) + "px");
-            }, 2000);
+            }, 1500);
         }, 100);
     });
 </script>
