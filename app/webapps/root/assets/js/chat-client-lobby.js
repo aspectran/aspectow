@@ -84,6 +84,9 @@ function printUserLeftMessage(payload, restored) {
 }
 
 function printEvent(text, timeout) {
+    if (!lobbyChatEnabled) {
+        return;
+    }
     let convo = $("#convo");
     let content = $("<p class='content'/>").html(text);
     let message = $("<div/>").addClass("message").append(content);
