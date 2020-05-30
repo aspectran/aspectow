@@ -117,21 +117,23 @@ function heartbeatPing() {
             };
             socket.send(serialize(chatMessage));
             heartbeatPing();
-            heartbeatCount++;
-            if (heartbeatCount % 15 === 0) {
-                $.ajax({
-                    url: '/ping',
-                    type: 'get',
-                    dataType: 'text',
-                    success: function (result) {
-                        if (result !== "pong") {
+            if (chatClientSettings.pingPerHeartbeats) {
+                heartbeatCount++;
+                if (heartbeatCount % chatClientSettings.pingPerHeartbeats === 0) {
+                    $.ajax({
+                        url: '/ping',
+                        type: 'get',
+                        dataType: 'text',
+                        success: function (result) {
+                            if (result !== "pong") {
+                                leaveRoom();
+                            }
+                        },
+                        error: function () {
                             leaveRoom();
                         }
-                    },
-                    error: function () {
-                        leaveRoom();
-                    }
-                });
+                    });
+                }
             }
         }
     }, 57000);

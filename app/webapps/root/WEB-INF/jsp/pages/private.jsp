@@ -1,13 +1,14 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <link rel="stylesheet" type="text/css" href="/assets/css/chat-common.css?20" />
-<script src="/assets/js/chat-client-default.js?v18"></script>
+<script src="/assets/js/chat-client-default.js?v19"></script>
 <script src="/assets/js/chat-client-public.js?v18"></script>
 <script>
     const chatClientSettings = {
         serverEndpoint: "/chat/private/",
-        autoConnectEnabled: true,
         admissionToken: "${page.token}",
+        autoConnectEnabled: true,
+        pingPerHeartbeats: 15,
         homepage: "/"
     }
 </script>

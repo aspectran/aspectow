@@ -62,7 +62,11 @@ $(function () {
             refreshRooms();
         }
     });
-
+    if (userInfo.userNo) {
+        setInterval(function () {
+            refreshRooms();
+        }, 1000 * 60 * 5);
+    }
 });
 
 function doCreatePublicRoom() {
