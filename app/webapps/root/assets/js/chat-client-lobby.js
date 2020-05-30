@@ -19,7 +19,6 @@ $(function () {
             $(this).removeClass("pause");
             $("#message, #form-send-message button.send").prop("disabled", false);
             $("#convo").show();
-            readyToType();
         } else {
             $(this).addClass("pause");
             $("#message, #form-send-message button.send").prop("disabled", true);
