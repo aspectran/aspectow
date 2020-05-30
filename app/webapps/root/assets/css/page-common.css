@@ -291,7 +291,7 @@ input#for-automata-clear {
 .reveal.popup .banner {
     display: block;
     font-size: 10em;
-    line-height: 1.2;
+    line-height: 1;
     text-align: center;
     width: 1em;
     margin: 0 auto;

@@ -7,7 +7,7 @@
 <meta name="description" content="Chat with anyone. Meet new people at random. No registration. No logs.">
 <meta name="keywords" content="chat, online chat, random chat, stranger chat, chat with anyone, talk to strangers, chat with strangers">
 <link rel="stylesheet" type="text/css" href="/assets/css/aspectran.css?v1.2">
-<link rel="stylesheet" type="text/css" href="/assets/css/page-common.css?v21">
+<link rel="stylesheet" type="text/css" href="/assets/css/page-common.css?v22">
 <script src="/assets/js/modernizr-custom.js?v2"></script>
 <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
 <script src="/assets/js/foundation.min.js"></script>
