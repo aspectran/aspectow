@@ -2,7 +2,7 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <link rel="stylesheet" type="text/css" href="/assets/css/chat-common.css?v20" />
 <link rel="stylesheet" type="text/css" href="/assets/css/chat-random.css?v19" />
-<script src="/assets/js/chat-client-default.js?v17"></script>
+<script src="/assets/js/chat-client-default.js?v18"></script>
 <script src="/assets/js/chat-client-random.js?v17"></script>
 <script>
     const chatClientSettings = {

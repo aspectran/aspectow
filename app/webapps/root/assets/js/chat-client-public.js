@@ -7,4 +7,5 @@ $(function () {
         $("#message").blur();
         $("#message, #form-send-message button").prop("disabled", true);
     }
+    readyToType();
 });

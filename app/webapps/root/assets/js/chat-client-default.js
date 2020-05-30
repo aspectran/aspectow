@@ -54,7 +54,6 @@ $(function () {
         }, 1000);
         return false;
     });
-    readyToType();
     if (chatClientSettings.admissionToken && chatClientSettings.autoConnectEnabled !== false) {
         setTimeout(function () {
             openSocket(chatClientSettings.admissionToken);
