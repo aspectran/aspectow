@@ -3,7 +3,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
 <meta name="google" content="notranslate">
-<title>Text Chat Club<c:if test="${not empty page.title}"> - ${page.title}</c:if></title>
+<title><c:if test="${not empty page.title}">${page.title} - </c:if>Text Chat Club</title>
 <meta name="description" content="Chat with anyone. Meet new people at random. No registration. No logs.">
 <meta name="keywords" content="chat, online chat, random chat, stranger chat, chat with anyone, talk to strangers, chat with strangers">
 <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
