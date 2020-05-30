@@ -8,7 +8,7 @@
 <meta name="keywords" content="chat, online chat, random chat, stranger chat, chat with anyone, talk to strangers, chat with strangers">
 <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" type="text/css" href="/assets/css/aspectran.css?v1.2">
-<link rel="stylesheet" type="text/css" href="/assets/css/page-common.css?v20">
+<link rel="stylesheet" type="text/css" href="/assets/css/page-common.css?v21">
 <script src="/assets/js/modernizr-custom.js?v2"></script>
 <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
 <script src="/assets/js/foundation.min.js"></script>
@@ -20,8 +20,17 @@
 <script>
     /* Set a custom property that contains the height value of the viewport */
     document.documentElement.style.setProperty("--vh", (window.innerHeight * 0.01) + "px");
+    let windowResizeTimer;
     window.addEventListener("resize", function () {
-        document.documentElement.style.setProperty("--vh", (window.innerHeight * 0.01) + "px");
+        if (windowResizeTimer) {
+            clearTimeout(windowResizeTimer);
+        }
+        windowResizeTimer = setTimeout(function() {
+            document.documentElement.style.setProperty("--vh", (window.innerHeight * 0.01) + "px");
+            windowResizeTimer = setTimeout(function() {
+                document.documentElement.style.setProperty("--vh", (window.innerHeight * 0.01) + "px");
+            }, 2000);
+        }, 100);
     });
 </script>
 <script data-ad-client="ca-pub-8543949924656308" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
