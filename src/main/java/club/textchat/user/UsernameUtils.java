@@ -40,7 +40,7 @@ public class UsernameUtils {
     }
 
     public static String condense(String username) {
-        return USERNAME_CONDENSATION_PATTERN.matcher(username).replaceAll("");
+        return USERNAME_CONDENSATION_PATTERN.matcher(username.toLowerCase()).replaceAll("");
     }
 
 }
