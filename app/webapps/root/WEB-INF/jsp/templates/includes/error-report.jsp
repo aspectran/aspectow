@@ -11,9 +11,19 @@
                 <c:choose>
                     <c:when test="${translet.rootCauseOfRaisedException.message eq 'invalid-room-id'}">
                         <p>Invalid Chat Room ID: ${translet.rootCauseOfRaisedException.roomId}</p>
+                        <script>
+                            setTimeout(function() {
+                                location.href = "/";
+                            }, 3500);
+                        </script>
                     </c:when>
                     <c:when test="${translet.rootCauseOfRaisedException.message eq 'room-not-found'}">
                         <p>Non-existent chat room: ${translet.rootCauseOfRaisedException.roomId}</p>
+                        <script>
+                            setTimeout(function() {
+                                location.href = "/";
+                            }, 3500);
+                        </script>
                     </c:when>
                     <c:otherwise>
                         <p class="lead">An unexpected error has occurred.</p>
