@@ -5,11 +5,41 @@
         <loc>https://textchat.club/</loc>
         <lastmod>2020-05-25T23:30:00+09:00</lastmod>
         <changefreq>weekly</changefreq>
-        <priority>0.3</priority>
+        <priority>0.5</priority>
     </url>
     <url>
         <loc>https://textchat.club/random</loc>
         <lastmod>2020-05-26T02:50:00+09:00</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.5</priority>
+    </url>
+    <url>
+        <loc>https://textchat.club/rooms/43</loc>
+        <lastmod>2020-05-30T19:00:00+09:00</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.3</priority>
+    </url>
+    <url>
+        <loc>https://textchat.club/rooms/44</loc>
+        <lastmod>2020-05-30T19:00:00+09:00</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.3</priority>
+    </url>
+    <url>
+        <loc>https://textchat.club/rooms/47</loc>
+        <lastmod>2020-05-30T19:00:00+09:00</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.3</priority>
+    </url>
+    <url>
+        <loc>https://textchat.club/rooms/48</loc>
+        <lastmod>2020-05-30T19:00:00+09:00</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.3</priority>
+    </url>
+    <url>
+        <loc>https://textchat.club/rooms/49</loc>
+        <lastmod>2020-05-30T19:00:00+09:00</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.3</priority>
     </url>
