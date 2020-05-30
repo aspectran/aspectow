@@ -57,7 +57,6 @@
         }, 150);
     });
 </script>
-<script data-ad-client="ca-pub-8543949924656308" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 <script async src="https://www.googletagmanager.com/gtag/js?id=AW-798244126"></script>
 <script>
     window.dataLayer = window.dataLayer || [];
