@@ -80,6 +80,18 @@
 #convo .message:nth-last-child(5) {
     opacity: .5;
 }
+#convo .message:nth-last-child(6) {
+    opacity: .5;
+}
+#convo .message:nth-last-child(7) {
+    opacity: .5;
+}
+#convo .message:nth-last-child(8) {
+    opacity: .5;
+}
+#convo .message:nth-last-child(9) {
+    opacity: .5;
+}
 .message-box button.quiet {
     margin-left: 5px;
     padding-left: 7px;
