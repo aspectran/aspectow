@@ -20,7 +20,6 @@ import club.textchat.room.PublicRoomManager;
 import club.textchat.room.RoomInfo;
 import club.textchat.server.AdmissionToken;
 import club.textchat.user.LoginRequiredException;
-import club.textchat.user.UserAction;
 import club.textchat.user.UserInfo;
 import club.textchat.user.UserManager;
 import com.aspectran.core.activity.Translet;
@@ -33,8 +32,6 @@ import com.aspectran.core.component.bean.annotation.Transform;
 import com.aspectran.core.context.rule.type.FormatType;
 import com.aspectran.core.util.PBEncryptionUtils;
 import com.aspectran.core.util.StringUtils;
-import com.aspectran.core.util.logging.Logger;
-import com.aspectran.core.util.logging.LoggerFactory;
 import com.aspectran.core.util.security.TimeLimitedPBTokenIssuer;
 
 import java.util.HashMap;
@@ -42,8 +39,6 @@ import java.util.Map;
 
 @Component
 public class ChatAction {
-
-    private static final Logger logger = LoggerFactory.getLogger(UserAction.class);
 
     public static final String RANDOM_CHATROOM_ID = "-1";
 
