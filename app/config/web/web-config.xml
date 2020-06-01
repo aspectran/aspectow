@@ -34,6 +34,8 @@
             <setting name="format.dateFormat" value="yyyy-MM-dd"/>
             <setting name="format.dateTimeFormat" value="yyyy-MM-dd HH:mm:ss"/>
             <setting name="format.nullWritable" value="true"/>
+            <setting name="localeResolver" value="localeResolver"/>
+            <setting name="localeChangeInterceptor" value="localeChangeInterceptor"/>
         </settings>
     </aspect>
 
@@ -53,7 +55,6 @@
 <!--        </advice>-->
 <!--    </aspect>-->
 
-    <append file="/config/web/common/locale.xml"/>
     <append file="/config/web/common/xss-prevent.xml"/>
     <append file="/config/web/pages/pages.xml"/>
     <append file="/config/web/pages/modal-pages.xml" profile="!prod"/>

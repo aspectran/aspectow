@@ -69,7 +69,7 @@ function handleSystemMessage(message) {
         room.find("h5").text(roomInfo.roomName);
         room.find(".new").show();
         room.prependTo($(".rooms.public")).fadeIn();
-        printEvent("<code>" + roomInfo.roomName + "</code> chatroom has been created.");
+        printEvent(chatClientMessages.roomCreated.replace("[roomName]", "<code>" + roomInfo.roomName + "</code>"));
     }
 }
 
@@ -77,7 +77,7 @@ function printJoinMessage(payload, restored) {
 }
 
 function printUserJoinedMessage(payload, restored) {
-    printEvent("<code>" + payload.username + "</code> has entered.");
+    printEvent(chatClientMessages.userJoined.replace("[username]", "<strong>" + payload.username + "</strong>"));
 }
 
 function printUserLeftMessage(payload, restored) {

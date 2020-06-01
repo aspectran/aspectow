@@ -6,12 +6,13 @@ $(function () {
             return false;
         }
         $("#lobby-public-room-create").foundation('open');
+        $("#form-public-room-create .form-error").hide();
         $("#form-public-room-create").each(function () {
             this.reset();
         });
         $("#form-public-room-create select[name=lang_cd] option").each(function () {
             if ($(this).val() === userInfo.language) {
-                $(this).attr("selected", true);
+                $("#form-public-room-create select[name=lang_cd]").val(userInfo.language);
             }
         });
         loadCaptcha("public_room_create", "captcha-container-public-room-create");

@@ -1,5 +1,6 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib uri="http://aspectran.com/tags" prefix="aspectran" %>
 <link rel="stylesheet" type="text/css" href="/assets/css/chat-common.css?20" />
 <script src="/assets/js/chat-client-default.js?v19"></script>
 <script src="/assets/js/chat-client-public.js?v18"></script>
@@ -10,6 +11,13 @@
         autoConnectEnabled: true,
         pingPerHeartbeats: 15,
         homepage: "/"
+    }
+    const chatClientMessages = {
+        "welcome": "<aspectran:message code='chat.common.welcome'/>",
+        "userJoined": "<aspectran:message code='chat.common.user_joined'/>",
+        "userLeft": "<aspectran:message code='chat.common.user_left'/>",
+        "pleaseNote": "<aspectran:message code='common.please_note'/>",
+        "serviceNotAvailable": "<aspectran:message code='common.service_not_available'/>",
     }
 </script>
 <div class="grid-y grid-frame">
@@ -32,10 +40,10 @@
             <div class="message-box cell auto cell-block-y">
                 <form id="form-send-message">
                     <div class="input-group">
-                        <input id="message" class="input-group-field" type="text" maxlength="150" autocomplete="off" placeholder="Enter your message"/>
+                        <input id="message" class="input-group-field" type="text" maxlength="150" autocomplete="off" placeholder="<aspectran:message code='chat.common.enter_message'/>"/>
                         <input id="for-automata-clear" type="text"/>
                         <div class="input-group-button">
-                            <button type="submit" class="button send" title="Send message"><i class="icon-paper-plane"></i></button>
+                            <button type="submit" class="button send" title="<aspectran:message code='chat.common.send_message'/>"><i class="icon-paper-plane"></i></button>
                         </div>
                     </div>
                 </form>

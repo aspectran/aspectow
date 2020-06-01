@@ -23,7 +23,7 @@
 <meta name="msapplication-TileColor" content="#138484">
 <meta name="msapplication-TileImage" content="/assets/favicons/ms-icon-144x144.png">
 <meta name="theme-color" content="#138484">
-<link rel="stylesheet" type="text/css" href="/assets/css/aspectran.css?v1.2">
+<link rel="stylesheet" type="text/css" href="/assets/css/aspectran.css?v1.3">
 <link rel="stylesheet" type="text/css" href="/assets/css/page-common.css?v22">
 <script src="/assets/js/modernizr-custom.js?v2"></script>
 <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
@@ -32,7 +32,7 @@
 <script src="https://www.google.com/recaptcha/api.js?render=explicit"></script>
 <script src="/assets/js/recaptcha.js?v1"></script>
 <script src="/assets/js/utils.js?v1.1"></script>
-<script src="/assets/js/page-common.js?v17"></script>
+<script src="/assets/js/page-common.js?v18"></script>
 <script>
     /* Set a custom property that contains the height value of the viewport */
     document.documentElement.style.setProperty("--vh", (window.innerHeight * 0.01) + "px");

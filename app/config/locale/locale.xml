@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE aspectran PUBLIC "-//ASPECTRAN//DTD Aspectran Configuration 6.0//EN"
+        "http://aspectran.github.io/dtd/aspectran-6.dtd">
+<aspectran>
+
+    <bean id="messageSource" class="com.aspectran.core.support.i18n.message.ResourceBundleMessageSource">
+        <description>
+            Defines a bean for multilingual processing.
+        </description>
+        <properties>
+            <item name="basename">locale.messages</item>
+        </properties>
+    </bean>
+
+    <bean id="localeResolver" class="com.aspectran.core.support.i18n.locale.SessionLocaleResolver">
+        <description>
+            Use the session to determine the locale.
+        </description>
+        <properties>
+            <item name="defaultLocale" value="en" />
+        </properties>
+    </bean>
+
+    <bean id="localeChangeInterceptor" class="com.aspectran.core.support.i18n.locale.LocaleChangeInterceptor">
+        <description>
+            Defines an interceptor bean for changing the locale.
+        </description>
+        <properties>
+            <item name="ignoreInvalidLocale" valueType="boolean" value="true" />
+        </properties>
+    </bean>
+
+</aspectran>

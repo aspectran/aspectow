@@ -86,7 +86,7 @@ function stopLooking(convoClear) {
 
 function drawSearchBar() {
     let text = "<i class='iconfont fi-shuffle banner'></i>" +
-        "<button type='button' class='success button next'>Search for another stranger</button>";
+        "<button type='button' class='success button next'>" + chatClientMessages.searchAnother + "</button>";
     printEvent(text);
 }
 
@@ -95,14 +95,14 @@ function drawLookingBar(intermission) {
     let title;
     if (intermission) {
         banner = "<i class='iconfont fi-shuffle banner'></i>";
-        title = "<h3 class='wait'>Please wait a moment.</h3>";
+        title = "<h3 class='wait'>" + chatClientMessages.wait + "</h3>";
     } else {
         banner = "<i class='iconfont fi-shuffle banner active'></i>";
-        title = "<h3>Looking for stranger...</h3>";
+        title = "<h3>" + chatClientMessages.looking + "</h3>";
     }
     let text = banner + title +
         "<div class='progress-bar'><div class='cylon_eye'></div></div>" +
-        "<button type='button' class='success button cancel'>Cancel</button>";
+        "<button type='button' class='success button cancel'>" + chatClientMessages.cancel + "</button>";
     printEvent(text);
     if (intermission) {
         setTimeout(function () {
@@ -118,8 +118,7 @@ function printJoinMessage(payload, restored) {
 
 function printUserJoinedMessage(payload, restored) {
     clearConvo();
-    let text = "<i class='fi-microphone'></i> Chat started. Feel free to say hello to <strong>" +
-        payload.username + "</strong>.";
+    let text =chatClientMessages.userJoined.replace("[username]", "<strong>" + payload.username + "</strong>")
     printEvent(text, restored);
     $(".message-box button.send").prop("disabled", false).removeClass("pause");
     readyToType();
@@ -129,7 +128,7 @@ function printUserJoinedMessage(payload, restored) {
 }
 
 function printUserLeftMessage(payload, restored) {
-    let text = "<strong>" + payload.username + "</strong> has left this chat.";
+    let text = chatClientMessages.userLeft.replace("[username]", "<strong>" + payload.username + "</strong>")
     printEvent(text, restored);
     $(".message-box button.send").prop("disabled", true).addClass("pause");
     stopLooking();
@@ -139,8 +138,8 @@ function serviceNotAvailable() {
     closeSocket();
     clearChaters();
     clearConvo();
-    openNoticePopup("Please note",
-        "Sorry. Our random chat service is not available at this time.",
+    openNoticePopup(chatClientMessages.pleaseNote,
+        chatClientMessages.serviceNotAvailable,
         function () {
             gotoHomepage();
     });

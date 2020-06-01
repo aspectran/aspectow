@@ -69,6 +69,7 @@
     <append file="/config/redis/redis-config.xml"/>
     <append file="/config/server/undertow-config.xml"/>
     <append file="/config/server/undertow-support.xml"/>
+    <append file="/config/locale/locale.xml"/>
     <append file="/config/web/web-config.xml"/>
 
 </aspectran>

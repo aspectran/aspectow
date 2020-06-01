@@ -334,7 +334,7 @@ function clearConvo() {
 }
 
 function printJoinMessage(payload, restored) {
-    let text = "Welcome <strong>" + payload.username + "</strong>";
+    let text = chatClientMessages.welcome.replace("[username]", "<strong>" + payload.username + "</strong>");
     printEvent(text, restored);
 }
 
@@ -357,13 +357,12 @@ function printUserEvent(payload, event, restored) {
         }
     }
     let content = $("<p class='content'/>").addClass(event).data("event", event);
-    content.append("<strong>" + payload.username + "</strong> ");
     switch (event) {
         case "user-joined":
-            content.append("joined this chat");
+            content.append(chatClientMessages.userJoined.replace("[username]", "<strong>" + payload.username + "</strong>"));
             break;
         case "user-left":
-            content.append("has left this chat");
+            content.append(chatClientMessages.userLeft.replace("[username]", "<strong>" + payload.username + "</strong>"));
             break;
         default:
             console.error("Unknown user event: " + event);
@@ -406,9 +405,7 @@ function printUserEvent(payload, event, restored) {
 }
 
 function printMessage(payload, restored) {
-    let myself = (userInfo.userNo === payload.userNo);
-    let sender = $("<span class='username'/>")
-        .text(myself ? "You" : payload.username);
+    let sender = $("<span class='username'/>").text(payload.username);
     let content = $("<p class='content'/>").text(payload.content);
     if (payload.datetime) {
         let datetime = moment.utc(payload.datetime).local();
@@ -424,6 +421,7 @@ function printMessage(payload, restored) {
         }
         last.append(content);
     } else {
+        let myself = (userInfo.userNo === payload.userNo);
         let message = $("<div/>")
             .addClass(myself ? "message sent" : "message received")
             .data("user-no", payload.userNo)
@@ -505,8 +503,8 @@ function gotoHomepage() {
 }
 
 function serviceNotAvailable() {
-    openNoticePopup("Please note",
-        "Sorry. Our service is unavailable due to a system error.",
+    openNoticePopup(chatClientMessages.pleaseNote,
+        chatClientMessages.serviceNotAvailable,
         function () {
             gotoHomepage();
         });

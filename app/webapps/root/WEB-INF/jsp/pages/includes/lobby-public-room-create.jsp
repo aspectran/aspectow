@@ -1,24 +1,23 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <div id="lobby-public-room-create" class="reveal popup" data-reveal data-close-on-click="false" data-close-on-esc="false">
-    <h3>Create an open chat room</h3>
+    <h3><aspectran:message code="modal.public_room_create.title"/></h3>
     <form id="form-public-room-create">
     <div class="grid-x grid-margin-y">
         <fieldset class="cell">
             <ul>
-                <li>You can chat with people of similar interests by creating chat rooms.</li>
-                <li>If no one is in the chat room, it is automatically deleted after a certain period of time.</li>
+                <li><aspectran:message code="modal.public_room_create.guide_1"/></li>
+                <li><aspectran:message code="modal.public_room_create.guide_2"/></li>
             </ul>
-            <label>Chatroom name:
+            <label><aspectran:message code="modal.public_room_create.chatroom_name"/>
                 <input type="text" name="room_nm" maxlength="40" autocomplete="off"/>
             </label>
             <p class="form-error already-in-use">
-                A chat room with the same name already exists.<br/>
-                Please enter a different chat room name.
+                <aspectran:message code="modal.public_room_create.error.already_in_use"/>
             </p>
             <p class="form-error room-name-required">
-                Please enter your chat room name.
+                <aspectran:message code="modal.public_room_create.error.enter_chatroom_name"/>
             </p>
-            <label>Language:
+            <label><aspectran:message code="modal.public_room_create.language"/>
                 <select name="lang_cd">
                     <option value="en">English</option>
                     <option value="cs">Čeština</option>
@@ -50,8 +49,8 @@
     </div>
     <div class="grid-x grid-margin-y medium-up-2">
         <div class="cell medium-order-2 text-right">
-            <button type="button" class="alert button" data-close aria-label="Cancel creating a chat room">Cancel</button>
-            <button type="submit" class="success button">OK</button>
+            <button type="button" class="alert button" data-close aria-label="Cancel creating a chat room"><aspectran:message code="common.button.cancel"/></button>
+            <button type="submit" class="success button"><aspectran:message code="common.button.ok"/></button>
         </div>
         <div class="cell medium-order-1">
             <div id="captcha-container-public-room-create"></div>

@@ -1,15 +1,16 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ taglib uri="http://aspectran.com/tags" prefix="aspectran" %>
 <div id="common-connection-lost" class="reveal popup error" data-reveal data-close-on-click="false" data-close-on-esc="false">
-    <h3>Connection lost</h3>
+    <h3><aspectran:message code="modal.connection_lost.title"/></h3>
     <div class="grid-x grid-margin-y">
         <div class="cell text-center">
             <i class="banner fi-unlink"></i>
         </div>
         <div class="cell text-center">
-            <p>You have lost connection with the server.</p>
+            <p><aspectran:message code="modal.connection_lost.guide"/></p>
         </div>
         <div class="cell text-center">
-            <a class="warning button" href="">Refresh this page</a>
+            <a class="warning button" href=""><aspectran:message code="modal.connection_lost.button.refresh"/></a>
         </div>
     </div>
 </div>

@@ -52,6 +52,7 @@ function checkSignedIn() {
 
 function openSignInPopup() {
     $("#common-sign-in").foundation('open');
+    $("#form-sign-in .form-error").hide();
     loadCaptcha("sign_in", "captcha-container-sign-in");
     let username = getCookie("username");
     if (username) {
@@ -83,7 +84,7 @@ function startSignIn() {
             setCookie("username", "", 0);
             setCookie("favoriteColor", "", 0);
         }
-        openWaitPopup("Signing in...", function () {
+        openWaitPopup(modalMessages.signingIn, function () {
             location.reload();
         }, 10000);
         startSignInTimer = setTimeout(function () {
@@ -118,7 +119,7 @@ function doSignIn(username, favoriteColor) {
                 case "-2":
                     closeWaitPopup();
                     openSignInPopup();
-                    $(".form-error.already-in-use").show();
+                    $("#form-sign-in .form-error.already-in-use").show();
                     $("#form-sign-in input[name=username]").val(username).focus();
                     break;
                 default:
