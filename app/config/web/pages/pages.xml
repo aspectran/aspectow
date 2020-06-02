@@ -10,6 +10,13 @@
         <dispatch name="templates/default"/>
     </translet>
 
+    <translet name="/about">
+        <echo id="page">
+            <item name="include">pages/about</item>
+        </echo>
+        <dispatch name="templates/default"/>
+    </translet>
+
     <translet name="/error/@{errorCode}">
         <echo id="page">
             <item name="include">pages/index</item>

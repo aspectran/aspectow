@@ -66,15 +66,15 @@ input#for-automata-clear {
 }
 .header .button {
     margin: 0;
+    padding: 0 6px;
     border-radius: 6px;
     vertical-align: baseline;
-    height: 30px;
     line-height: 28px;
-    padding: 0 6px;
+    height: 30px;
 }
 .header .button .iconfont {
     font-size: 24px;
-    vertical-align: sub;
+    vertical-align: bottom;
 }
 .header .button.people {
     float: left;
@@ -104,14 +104,12 @@ input#for-automata-clear {
     cursor: wait;
 }
 .header .button.signin {
-    display: none;
     background-color: #2D844D;
 }
 .header .button.signin .iconfont {
     color: #fff;
 }
 .header .button.signout {
-    display: none;
     background-color: #C45A4F;
 }
 .header .button.signout:disabled {

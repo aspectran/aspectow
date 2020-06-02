@@ -1,13 +1,6 @@
 $(function () {
     $(document).foundation();
 
-    if (userInfo.userNo) {
-        $(".header .signin").hide();
-        $(".header .signout").show();
-    } else {
-        $(".header .signin").show();
-        $(".header .signout").hide();
-    }
     $(".button.signin").on("click", function () {
         openSignInPopup();
     });

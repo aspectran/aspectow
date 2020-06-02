@@ -7,28 +7,31 @@
             <button type="button" class="button people" title="<aspectran:message code="header.button.people"/>">
                 <i class="iconfont fi-results-demographics"></i>
                 <span id="totalPeople"></span></button>
-            <c:choose>
-                <c:when test="${not empty page.roomName}">
-                    <h2 class="text-truncate">${page.roomName}</h2>
-                </c:when>
-                <c:when test="${page.roomId eq '-1'}">
-                    <h2 class="text-truncate">Random Chat</h2>
-                </c:when>
-                <c:otherwise>
-                    <h2>Text Chat Club</h2>
-                </c:otherwise>
-            </c:choose>
+                <c:choose>
+                    <c:when test="${not empty page.roomName}">
+                        <h2 class="text-truncate">${page.roomName}</h2>
+                    </c:when>
+                    <c:when test="${page.roomId eq '-1'}">
+                        <h2 class="text-truncate">Random Chat</h2>
+                    </c:when>
+                    <c:otherwise>
+                        <h2>Text Chat Club</h2>
+                    </c:otherwise>
+                </c:choose>
         </div>
         <div class="cell shrink align-self-middle text-right">
-        <c:choose>
-            <c:when test="${not empty user and not empty page.roomId and page.roomId ne '0'}">
-                <button type="button" class="button leave" title="<aspectran:message code="header.button.leave"/>"><i class="iconfont fi-power"></i></button>
-            </c:when>
-            <c:otherwise>
-                <button type="button" class="button signin" title="Sign in"><i class="iconfont fi-arrow-right"></i> <aspectran:message code="common.button.sign_in"/></button>
-                <button type="button" class="button signout" title="Sign out"><aspectran:message code="common.button.sign_out"/></button>
-            </c:otherwise>
-        </c:choose>
+            <c:choose>
+                <c:when test="${not empty user and not empty page.roomId and page.roomId ne '0'}">
+                    <button type="button" class="button leave" title="<aspectran:message code="header.button.leave"/>"><i class="iconfont fi-power"></i></button>
+                </c:when>
+                <c:when test="${not empty user}">
+                    <button type="button" class="button signout" title="Sign out"><aspectran:message code="common.button.sign_out"/></button>
+                </c:when>
+                <c:otherwise>
+                    <button type="button" class="button signin" title="Sign in"><i class="iconfont fi-arrow-right"></i> <aspectran:message code="common.button.sign_in"/></button>
+                </c:otherwise>
+            </c:choose>
+            <a class="button about" href="/about" title="About Text Chat Club"><i class="iconfont fi-info"></i></a>
         </div>
     </div>
 </div>
