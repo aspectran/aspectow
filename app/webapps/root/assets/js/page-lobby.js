@@ -51,7 +51,7 @@ $(function () {
     });
     $("#lobby-private-room-create-complete").on("click", ".copy-to-clipboard", function () {
         copyToClipboard("#lobby-private-room-create-complete .private-chatroom-url");
-        $(this).data("old-text", $(this).text()).text("Copied!").addClass("alert");
+        $(this).data("old-text", $(this).text()).text(modalMessages.copied).addClass("alert");
     });
     $(".rooms a.start[href]").on("click", function (event) {
         event.stopPropagation();
