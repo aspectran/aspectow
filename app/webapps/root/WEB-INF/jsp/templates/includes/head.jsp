@@ -24,7 +24,7 @@
 <meta name="msapplication-TileColor" content="#FFFFFF"/>
 <meta name="msapplication-TileImage" content="/assets/favicons/ms-icon-144x144.png"/>
 <link rel="stylesheet" type="text/css" href="/assets/css/aspectran.css?v1.3"/>
-<link rel="stylesheet" type="text/css" href="/assets/css/page-common.css?v23"/>
+<link rel="stylesheet" type="text/css" href="/assets/css/page-common.css?v24"/>
 <script src="/assets/js/modernizr-custom.js?v2"></script>
 <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
 <script src="/assets/js/foundation.min.js"></script>
@@ -36,9 +36,9 @@
 <script>
     /* Set a custom property that contains the height value of the viewport */
     document.documentElement.style.setProperty("--vh", (window.innerHeight * 0.01) + "px");
-    let currentWindowSize = {
-        height: window.outerHeight,
-        innerHeight: window.innerHeight
+    let oldWindowHeight = {
+        outer: window.outerHeight,
+        inner: window.innerHeight
     };
     let windowResizeTimer;
     window.addEventListener("resize", function() {
@@ -46,9 +46,9 @@
             clearTimeout(windowResizeTimer);
         }
         windowResizeTimer = setTimeout(function () {
-            if (window.outerHeight !== currentWindowSize.height) {
-                currentWindowSize.height = window.outerHeight;
-                currentWindowSize.innerHeight = window.innerHeight;
+            if (window.outerHeight !== oldWindowHeight.outer || window.innerHeight !== oldWindowHeight.inner) {
+                oldWindowHeight.outer = window.outerHeight;
+                oldWindowHeight.inner = window.innerHeight;
                 document.documentElement.style.setProperty("--vh", (window.innerHeight * 0.01) + "px");
                 setTimeout(function () {
                     document.documentElement.style.setProperty("--vh", (window.innerHeight * 0.01) + "px");
