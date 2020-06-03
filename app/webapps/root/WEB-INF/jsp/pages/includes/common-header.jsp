@@ -7,10 +7,10 @@
             <h2>Text Chat Club</h2>
         </div>
         <div class="cell shrink align-self-middle text-right">
-            <c:if test="${translet.requestName eq '/'}">
+            <c:if test="${translet.requestName ne '/nfo'}">
                 <a class="button about" href="/info" title="About Text Chat Club"><i class="iconfont fi-info"></i></a>
             </c:if>
-            <c:if test="${translet.requestName ne '/'}">
+            <c:if test="${translet.requestName eq '/info'}">
                 <button type="button" class="button back" onclick="history.back();" title="Back to previous page"><i class="iconfont fi-arrow-left"></i></button>
             </c:if>
         </div>
