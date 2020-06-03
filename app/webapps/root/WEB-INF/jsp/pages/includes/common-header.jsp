@@ -8,7 +8,7 @@
         </div>
         <div class="cell shrink align-self-middle text-right">
             <c:if test="${translet.requestName eq '/'}">
-                <a class="button about" href="/about" title="About Text Chat Club"><i class="iconfont fi-info"></i></a>
+                <a class="button about" href="/info" title="About Text Chat Club"><i class="iconfont fi-info"></i></a>
             </c:if>
             <c:if test="${translet.requestName ne '/'}">
                 <button type="button" class="button back" onclick="history.back();" title="Back to previous page"><i class="iconfont fi-arrow-left"></i></button>

@@ -10,9 +10,9 @@
         <dispatch name="templates/default"/>
     </translet>
 
-    <translet name="/about">
+    <translet name="/info">
         <echo id="page">
-            <item name="include">pages/about</item>
+            <item name="include">pages/info</item>
         </echo>
         <dispatch name="templates/default"/>
     </translet>
