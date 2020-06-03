@@ -11,7 +11,7 @@
                 <a class="button about" href="/info" title="<aspectran:message code="common.about_us"/>"><i class="iconfont fi-info"></i></a>
             </c:if>
             <c:if test="${translet.requestName ne '/'}">
-                <button type="button" class="button back" onclick="history.back();" title="<aspectran:message code="common.button.back_prev"/>"><i class="iconfont fi-arrow-left"></i></button>
+                <a type="button" class="button back" href="/" title="<aspectran:message code="common.button.back_prev"/>"><i class="iconfont fi-arrow-left"></i></a>
             </c:if>
         </div>
     </div>
