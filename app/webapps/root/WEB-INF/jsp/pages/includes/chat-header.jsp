@@ -29,7 +29,7 @@
                     <button type="button" class="button signout" title="Sign out"><aspectran:message code="common.button.sign_out"/></button>
                 </c:when>
                 <c:otherwise>
-                    <button type="button" class="button signin" title="Sign in"><i class="iconfont fi-arrow-right"></i> <aspectran:message code="common.button.sign_in"/></button>
+                    <button type="button" class="button signin" title="Sign in"><aspectran:message code="common.button.sign_in"/></button>
                     <a class="button about" href="/about" title="About Text Chat Club"><i class="iconfont fi-info"></i></a>
                 </c:otherwise>
             </c:choose>
