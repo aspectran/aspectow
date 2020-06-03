@@ -24,7 +24,7 @@
 <meta name="msapplication-TileColor" content="#FFFFFF"/>
 <meta name="msapplication-TileImage" content="/assets/favicons/ms-icon-144x144.png"/>
 <link rel="stylesheet" type="text/css" href="/assets/css/aspectran.css?v1.3"/>
-<link rel="stylesheet" type="text/css" href="/assets/css/page-common.css?v25"/>
+<link rel="stylesheet" type="text/css" href="/assets/css/page-common.css?v26"/>
 <script src="/assets/js/modernizr-custom.js?v2"></script>
 <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
 <script src="/assets/js/foundation.min.js"></script>
