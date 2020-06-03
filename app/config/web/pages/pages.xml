@@ -11,9 +11,8 @@
     </translet>
 
     <translet name="/info">
-        <action id="language" bean="commonAction" method="getLanguage"/>
         <echo id="page">
-            <item name="include">pages/info_@{language}</item>
+            <item name="include">pages/info_#{currentLang}</item>
         </echo>
         <dispatch name="templates/default"/>
     </translet>
