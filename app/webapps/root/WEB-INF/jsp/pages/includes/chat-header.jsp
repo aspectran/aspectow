@@ -15,7 +15,7 @@
                         <h2 class="text-truncate">Random Chat</h2>
                     </c:when>
                     <c:otherwise>
-                        <h2>Text Chat Club</h2>
+                        <h2 title="<aspectran:message code="common.text_chat_club"/>">Text Chat Club</h2>
                     </c:otherwise>
                 </c:choose>
         </div>
@@ -25,12 +25,12 @@
                     <button type="button" class="button leave" title="<aspectran:message code="header.button.leave"/>"><i class="iconfont fi-power"></i></button>
                 </c:when>
                 <c:when test="${not empty user}">
-                    <a class="button about" href="/info" title="About Text Chat Club"><i class="iconfont fi-info"></i></a>
+                    <a class="button about" href="/info" title="<aspectran:message code="common.about_us"/>"><i class="iconfont fi-info"></i></a>
                     <button type="button" class="button signout" title="Sign out"><aspectran:message code="common.button.sign_out"/></button>
                 </c:when>
                 <c:otherwise>
                     <button type="button" class="button signin" title="Sign in"><aspectran:message code="common.button.sign_in"/></button>
-                    <a class="button about" href="/info" title="About Text Chat Club"><i class="iconfont fi-info"></i></a>
+                    <a class="button about" href="/info" title="<aspectran:message code="common.about_us"/>"><i class="iconfont fi-info"></i></a>
                 </c:otherwise>
             </c:choose>
         </div>

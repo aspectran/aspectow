@@ -4,14 +4,14 @@
     <div class="grid-x">
         <div class="cell auto align-self-middle">
             <a class="button people" href="/" title="Text Chat Club"><i class="iconfont fi-results-demographics"></i></a>
-            <h2>Text Chat Club</h2>
+            <h2 title="<aspectran:message code="common.text_chat_club"/>">Text Chat Club</h2>
         </div>
         <div class="cell shrink align-self-middle text-right">
             <c:if test="${translet.requestName ne '/nfo'}">
-                <a class="button about" href="/info" title="About Text Chat Club"><i class="iconfont fi-info"></i></a>
+                <a class="button about" href="/info" title="<aspectran:message code="common.about_us"/>"><i class="iconfont fi-info"></i></a>
             </c:if>
             <c:if test="${translet.requestName eq '/info'}">
-                <button type="button" class="button back" onclick="history.back();" title="Back to previous page"><i class="iconfont fi-arrow-left"></i></button>
+                <button type="button" class="button back" onclick="history.back();" title="<aspectran:message code="common.button.back_prev"/>"><i class="iconfont fi-arrow-left"></i></button>
             </c:if>
         </div>
     </div>
