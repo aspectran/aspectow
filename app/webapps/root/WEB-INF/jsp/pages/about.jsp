@@ -9,7 +9,10 @@
             </div>
             <div class="cell auto cell-block-y">
                 <div class="grid-container grid-x t15">
-                    <div class="cell">
+                    <div class="cell small-12 large-4 large-order-2 text-center large-text-right">
+                        <img src="/assets/images/textchat-heartbeat.svg" width="60%"/>
+                    </div>
+                    <div class="cell small-12 large-8 large-order-1 t15">
                         <h3>텍스트챗클럽 소개</h3>
                         <ul>
                             <li>온라인에서 새로운 사람들과 대화할 수 있는 채팅 서비스를 제공합니다.</li>
@@ -17,7 +20,7 @@
                             <li>사진, 동영상은 주고 받을 수 없으며, 오직 문자로만 대화할 수 있습니다.</li>
                         </ul>
                     </div>
-                    <div class="cell t15">
+                    <div class="cell t15 large-order-3">
                         <h3>개인 정보 처리 방침</h3>
                         <h4>1. 개인정보 수집 목적</h4>
                         <p>텍스트챗클럽은 서비스 제공을 위한 필요 최소한의 개인정보를 수집하고 있습니다.</p>

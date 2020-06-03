@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 20010904//EN"
               "http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd">
-
 <svg xmlns="http://www.w3.org/2000/svg"
      width="5.68889in" height="5.68889in"
      viewBox="0 0 512 512">
   <path id="path0"
-        fill="#7b878c" stroke="#314046" stroke-width="1"
+        fill="#7b878c" stroke="#eee" stroke-width="1"
         d="M 26.00,25.53
            C 19.06,27.82 18.10,31.07 18.00,38.00
              18.00,38.00 18.00,62.00 18.00,62.00
@@ -122,5 +121,7 @@
              464.00,436.00 384.00,436.00 384.00,436.00
              384.00,436.00 145.00,436.00 145.00,436.00
              145.00,436.00 67.00,436.00 67.00,436.00
-             67.00,436.00 27.00,436.53 27.00,436.53 Z" />
+             67.00,436.00 27.00,436.53 27.00,436.53 Z">
+    <animate dur="3s" values="#707D83; #fff; #707D83" keyTimes="0; 0.5; 1" attributeName="fill" repeatCount="indefinite"/>
+  </path>
 </svg>
