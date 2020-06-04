@@ -2,8 +2,8 @@
 <div id="browser-not-supported" class="reveal popup" data-reveal data-close-on-click="false" data-close-on-esc="false">
     <h3>Oops -.-;;</h3>
     <div class="grid-x grid-margin-y">
-        <div class="cell text-center">
-            <i class="banner icon-browser"></i>
+        <div class="cell t30">
+            <img class="banner animate denial" src="/assets/images/textchat.svg" width="50%" alt="Text Chat Club"/>
         </div>
         <div class="cell content">
             <p class="lead">We don't support this version of your browser.</p>

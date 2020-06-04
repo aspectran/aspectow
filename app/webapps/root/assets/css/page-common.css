@@ -291,8 +291,12 @@ input#for-automata-clear {
 .reveal.popup .banner.animate {
     position: relative;
     margin: 0 auto;
-    -webkit-animation: shake 6s infinite;
+    -webkit-animation: shake 4.7s infinite;
     animation: shake 4.7s infinite;
+}
+.reveal.popup .banner.animate.denial {
+    -webkit-animation: shake-denial 7.7s infinite;
+    animation: shake-denial 7.7s infinite;
 }
 @-webkit-keyframes shake {
     0%, 10%, 20%, 30%, 40%, 50%, 60%, 70%, 80%, 90%, 100% {
@@ -308,6 +312,22 @@ input#for-automata-clear {
     }
     5%, 15%, 25%, 35%, 45%, 55%, 65%, 75%, 85%, 95% {
         top: -15px;
+    }
+}
+@-webkit-keyframes shake-denial {
+    0%, 10%, 20%, 30%, 40%, 50%, 60%, 70%, 80%, 90%, 100% {
+        left: 50px;
+    }
+    5%, 15%, 25%, 35%, 45%, 55%, 65%, 75%, 85%, 95% {
+        left: -50px;
+    }
+}
+@keyframes shake-denial {
+    0%, 10%, 20%, 30%, 40%, 50%, 60%, 70%, 80%, 90%, 100% {
+        left: 50px;
+    }
+    5%, 15%, 25%, 35%, 45%, 55%, 65%, 75%, 85%, 95% {
+        left: -50px;
     }
 }
 @-webkit-keyframes spin {
