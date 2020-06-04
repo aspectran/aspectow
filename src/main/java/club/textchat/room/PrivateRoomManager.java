@@ -42,7 +42,9 @@ public class PrivateRoomManager {
 
     public RoomInfo getRoomInfo(String roomId) {
         RoomInfo roomInfo = sqlSession.selectOne("private.rooms.getRoomInfo", roomId);
-        roomInfo.setEncryptedRoomId(PBEncryptionUtils.encrypt(Integer.toString(roomInfo.getRoomId())));
+        if (roomInfo != null) {
+            roomInfo.setEncryptedRoomId(PBEncryptionUtils.encrypt(Integer.toString(roomInfo.getRoomId())));
+        }
         return roomInfo;
     }
 
