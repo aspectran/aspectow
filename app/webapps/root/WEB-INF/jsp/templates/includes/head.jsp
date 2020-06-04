@@ -1,11 +1,12 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib uri="http://aspectran.com/tags" prefix="aspectran" %>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
 <meta name="google" content="notranslate"/>
-<title><c:if test="${not empty page.title}">${page.title} - </c:if>Text Chat Club</title>
-<meta name="description" content="Chat with anyone. Meet new people at random. No registration. No logs."/>
-<meta name="keywords" content="chat, online chat, random chat, stranger chat, chat with anyone, talk to strangers, chat with strangers"/>
+<title><c:if test="${not empty page.title}">${page.title} - </c:if><aspectran:message code="site.title"/></title>
+<meta name="description" content="<aspectran:message code="site.description"/>"/>
+<meta name="keywords" content="<aspectran:message code="site.keywords"/>"/>
 <link rel="mask-icon" href="/assets/favicons/textchat.svg" color="#FFFFFF"/>
 <link rel="apple-touch-icon" sizes="57x57" href="/assets/favicons/apple-icon-57x57.png"/>
 <link rel="apple-touch-icon" sizes="60x60" href="/assets/favicons/apple-icon-60x60.png"/>
@@ -23,6 +24,11 @@
 <link rel="manifest" href="/assets/favicons/manifest.json"/>
 <meta name="msapplication-TileColor" content="#FFFFFF"/>
 <meta name="msapplication-TileImage" content="/assets/favicons/ms-icon-144x144.png"/>
+<meta property="og:type" content="website">
+<meta property="og:title" content="<aspectran:message code="site.title"/>">
+<meta property="og:description" content="<aspectran:message code="site.description"/>">
+<meta property="og:image" content="https://textchat.club/assets/favicons/android-icon-192x192.png">
+<meta property="og:url" content="https://textchat.club">
 <link rel="stylesheet" type="text/css" href="/assets/css/aspectran.css?v1.3"/>
 <link rel="stylesheet" type="text/css" href="/assets/css/page-common.css?v26"/>
 <script src="/assets/js/modernizr-custom.js?v2"></script>

@@ -26,7 +26,10 @@
     <%@ include file="includes/chat-header.jsp" %>
     <div class="body shadow cell auto cell-block-container">
         <div class="grid-x full-height">
-            <div class="sidebar cell medium-4 large-3 cell-block-y hide-for-small-only">
+            <div class="sidebar cell medium-4 large-3 cell-block-y hide-for-small-only text-center">
+                <c:if test="${empty user}">
+                    <img class="t30" src="/assets/images/textchat-heartbeat.svg" width="70%" alt="Text Chat Club"/>
+                </c:if>
                 <ul id="contacts"></ul>
             </div>
             <div class="convo-container cell auto cell-block-y">

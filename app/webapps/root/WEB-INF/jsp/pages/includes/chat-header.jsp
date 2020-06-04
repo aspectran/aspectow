@@ -15,7 +15,7 @@
                         <h2 class="text-truncate">Random Chat</h2>
                     </c:when>
                     <c:otherwise>
-                        <h2 title="<aspectran:message code="common.text_chat_club"/>">Text Chat Club</h2>
+                        <h2 title="<aspectran:message code="site.title"/>">Text Chat Club</h2>
                     </c:otherwise>
                 </c:choose>
         </div>
