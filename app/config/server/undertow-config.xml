@@ -138,6 +138,13 @@
                     </properties>
                 </bean>
             </item>
+            <item name="errorPages" type="array">
+                <bean class="io.undertow.servlet.api.ErrorPage">
+                    <arguments>
+                        <item>/error</item>
+                    </arguments>
+                </bean>
+            </item>
             <item name="derived" valueType="boolean">true</item>
         </properties>
     </bean>
@@ -216,6 +223,7 @@
                             +: /favicon.ico
                             +: /robots.txt
                             +: /ads.txt
+                            +: /sitemap.xml
                         </item>
                     </arguments>
                 </bean>
