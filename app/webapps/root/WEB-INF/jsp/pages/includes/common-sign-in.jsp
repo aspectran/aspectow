@@ -2,9 +2,9 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://aspectran.com/tags" prefix="aspectran" %>
 <script>
-    const modalMessages = {
+    $.extend(modalMessages, {
         "signingIn": "<aspectran:message code='modal.sign_in.signing_in'/>"
-    }
+    });
 </script>
 <div id="common-sign-in" class="reveal popup" data-reveal data-close-on-click="false" data-close-on-esc="false">
     <c:choose>

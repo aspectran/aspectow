@@ -5,8 +5,8 @@
     <div class="grid-x grid-margin-y">
         <div class="cell show-for-small-only t30">
         </div>
-        <div class="cell text-center t20">
-            <img src="/assets/images/textchat-heartbeat.svg" width="50%" alt="Text Chat Club"/>
+        <div class="cell t20">
+            <img class="banner" src="/assets/images/textchat.svg" width="50%" alt="Text Chat Club"/>
         </div>
         <div class="cell content text-center">
             <p></p>

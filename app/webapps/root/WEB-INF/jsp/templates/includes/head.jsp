@@ -7,7 +7,7 @@
 <title><c:if test="${not empty page.title}">${page.title} - </c:if><aspectran:message code="site.title"/></title>
 <meta name="description" content="<aspectran:message code="site.description"/>"/>
 <meta name="keywords" content="<aspectran:message code="site.keywords"/>"/>
-<link rel="mask-icon" href="/assets/favicons/textchat.svg" color="#FFFFFF"/>
+<link rel="mask-icon" href="/assets/images/textchat.svg" color="#FFFFFF"/>
 <link rel="apple-touch-icon" sizes="57x57" href="/assets/favicons/apple-icon-57x57.png"/>
 <link rel="apple-touch-icon" sizes="60x60" href="/assets/favicons/apple-icon-60x60.png"/>
 <link rel="apple-touch-icon" sizes="72x72" href="/assets/favicons/apple-icon-72x72.png"/>
@@ -30,7 +30,7 @@
 <meta property="og:image" content="https://textchat.club/assets/favicons/android-icon-192x192.png">
 <meta property="og:url" content="https://textchat.club">
 <link rel="stylesheet" type="text/css" href="/assets/css/aspectran.css?v1.3"/>
-<link rel="stylesheet" type="text/css" href="/assets/css/page-common.css?v26"/>
+<link rel="stylesheet" type="text/css" href="/assets/css/page-common.css?v27"/>
 <script src="/assets/js/modernizr-custom.js?v2"></script>
 <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
 <script src="/assets/js/foundation.min.js"></script>
@@ -38,7 +38,7 @@
 <script src="https://www.google.com/recaptcha/api.js?render=explicit"></script>
 <script src="/assets/js/recaptcha.js?v1"></script>
 <script src="/assets/js/utils.js?v1.1"></script>
-<script src="/assets/js/page-common.js?v19"></script>
+<script src="/assets/js/page-common.js?v20"></script>
 <script>
     /* Set a custom property that contains the height value of the viewport */
     document.documentElement.style.setProperty("--vh", (window.innerHeight * 0.01) + "px");
@@ -81,4 +81,5 @@
         country: "${user.country}",
         language: "${user.language}"
     }
+    const modalMessages = {}
 </script>

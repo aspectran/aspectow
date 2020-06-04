@@ -155,7 +155,7 @@ function openWaitPopup(message, action, timeout) {
         if (action) {
             action();
         }
-        popup.foundation('close');
+        closeWaitPopup();
     });
     popup.foundation('open');
     popup.find(".banner").addClass("animate");
@@ -170,6 +170,6 @@ function openWaitPopup(message, action, timeout) {
 
 function closeWaitPopup() {
     let popup = $("#common-wait-popup");
-    popup.find(".banner").addClass("animate");
+    popup.find(".banner").removeClass("animate");
     popup.foundation('close');
 }
