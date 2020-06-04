@@ -30,7 +30,7 @@
 <meta property="og:image" content="https://textchat.club/assets/favicons/android-icon-192x192.png">
 <meta property="og:url" content="https://textchat.club">
 <link rel="stylesheet" type="text/css" href="/assets/css/aspectran.css?v1.3"/>
-<link rel="stylesheet" type="text/css" href="/assets/css/page-common.css?v27"/>
+<link rel="stylesheet" type="text/css" href="/assets/css/page-common.css?v28"/>
 <script src="/assets/js/modernizr-custom.js?v2"></script>
 <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
 <script src="/assets/js/foundation.min.js"></script>
