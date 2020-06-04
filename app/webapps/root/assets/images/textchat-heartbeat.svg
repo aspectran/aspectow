@@ -5,7 +5,7 @@
      width="5.68889in" height="5.68889in"
      viewBox="0 0 512 512">
   <path id="person1"
-        fill="#1ca6a6" stroke="#1b8e8e" stroke-width="1"
+        fill="#1ca6a6" stroke="#1ca6a6" stroke-width="0"
         d="M 181.00,255.00
            C 175.63,258.80 162.54,264.30 156.00,267.31
              156.00,267.31 118.00,285.14 118.00,285.14
@@ -29,7 +29,7 @@
              236.23,112.24 194.03,109.63 169.17,136.04
              146.60,160.02 142.21,198.90 156.76,228.00
              162.19,238.87 170.02,249.35 181.00,255.00 Z">
-    <animate dur="3.5s" values="#1ca6a6; #fff; #1ca6a6" keyTimes="0; 0.5; 1"
+    <animate dur="3.5s" values="#1ca6a6; #b8e8ff; #1ca6a6" keyTimes="0; 0.5; 1"
              attributeName="fill" repeatCount="indefinite"/>
   </path>
   <path id="person2"
