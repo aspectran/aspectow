@@ -8,7 +8,7 @@
         <div class="cell t20">
             <img class="banner" src="/assets/images/textchat.svg" width="50%" alt="Text Chat Club"/>
         </div>
-        <div class="cell content text-center">
+        <div class="cell content text-center t30">
             <p></p>
         </div>
         <div class="cell text-center">

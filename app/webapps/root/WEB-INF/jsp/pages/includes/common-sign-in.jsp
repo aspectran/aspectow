@@ -23,7 +23,10 @@
         <div class="grid-x">
             <div class="cell content">
                 <c:if test="${page.roomId eq '0'}">
-                    <p><aspectran:message code="modal.sign_in.intro.from_lobby"/></p>
+                    <ul>
+                        <li><aspectran:message code="modal.sign_in.intro.from_lobby_1"/></li>
+                        <li><aspectran:message code="modal.sign_in.intro.from_lobby_2"/></li>
+                    </ul>
                 </c:if>
                 <c:if test="${page.roomId eq '-1'}">
                     <ul>
@@ -31,6 +34,12 @@
                         <li><aspectran:message code="modal.sign_in.intro.from_random_chat_2"/></li>
                         <li><aspectran:message code="modal.sign_in.intro.from_random_chat_3"/></li>
                     </ul>
+                </c:if>
+                <c:if test="${page.roomId gt '0'}">
+                <ul>
+                    <li><aspectran:message code="modal.sign_in.intro.from_public_chat_1"/></li>
+                    <li><aspectran:message code="modal.sign_in.intro.from_public_chat_2"/></li>
+                </ul>
                 </c:if>
                 <label class="title"><aspectran:message code="modal.sign_in.enter_name"/></label>
                 <div class="input-group">
@@ -73,7 +82,7 @@
                 </div>
             </div>
             <div class="cell auto text-right">
-                <button type="button" class="button small alert cancel" title="Cancel"><aspectran:message code="common.button.cancel"/></button>
+                <button type="button" class="button alert cancel" title="Cancel"><aspectran:message code="common.button.cancel"/></button>
             </div>
         </div>
     </form>
