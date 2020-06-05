@@ -32,7 +32,7 @@
 <link rel="stylesheet" type="text/css" href="/assets/css/aspectran.css?v1.3"/>
 <link rel="stylesheet" type="text/css" href="/assets/css/page-common.css?v28"/>
 <script src="/assets/js/modernizr-custom.js?v2"></script>
-<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script src="/assets/js/jquery-3.5.1.min.js"></script>
 <script src="/assets/js/foundation.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.25.3/moment.min.js"></script>
 <script src="https://www.google.com/recaptcha/api.js?render=explicit"></script>

@@ -13,7 +13,7 @@
             <h3><i class="fi-results-demographics"></i> ${page.roomName}</h3>
         </c:when>
         <c:when test="${page.roomId eq '-1'}">
-            <h3><i class="fi-results-demographics"></i> Random Chat</h3>
+            <h3><i class="fi-results-demographics"></i> <aspectran:message code="lobby.random_chat"/></h3>
         </c:when>
         <c:otherwise>
             <h3><aspectran:message code="modal.sign_in.title"/></h3>
@@ -23,10 +23,14 @@
         <div class="grid-x">
             <div class="cell content">
                 <c:if test="${page.roomId eq '0'}">
-                    <p><aspectran:message code="modal.sign_in.intro.lobby"/></p>
+                    <p><aspectran:message code="modal.sign_in.intro.from_lobby"/></p>
                 </c:if>
                 <c:if test="${page.roomId eq '-1'}">
-                    <p><aspectran:message code="modal.sign_in.intro.random_chat"/></p>
+                    <ul>
+                        <li><aspectran:message code="modal.sign_in.intro.from_random_chat_1"/></li>
+                        <li><aspectran:message code="modal.sign_in.intro.from_random_chat_2"/></li>
+                        <li><aspectran:message code="modal.sign_in.intro.from_random_chat_3"/></li>
+                    </ul>
                 </c:if>
                 <label class="title"><aspectran:message code="modal.sign_in.enter_name"/></label>
                 <div class="input-group">
