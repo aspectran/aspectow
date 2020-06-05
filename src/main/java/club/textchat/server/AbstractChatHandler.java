@@ -101,7 +101,7 @@ public abstract class AbstractChatHandler extends InstantActivitySupport impleme
         if (chaters.remove(chaterInfo, session)) {
             chatersPersistence.remove(chaterInfo);
             signedInUsersPersistence.tryAbandon(chaterInfo.getUsername(), chaterInfo.getHttpSessionId());
-            inConvoUsersPersistence.remove(chaterInfo.getUsername());
+            inConvoUsersPersistence.remove(chaterInfo.getHttpSessionId());
         }
         AbortPayload payload = new AbortPayload();
         payload.setCause(cause);

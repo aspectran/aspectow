@@ -16,7 +16,6 @@
 package club.textchat.redis.persistence;
 
 import club.textchat.redis.RedisConnectionPool;
-import club.textchat.user.UsernameUtils;
 import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Bean;
 import com.aspectran.core.component.bean.annotation.Component;
@@ -40,31 +39,35 @@ public class InConvoUsersPersistence extends AbstractPersistence {
     }
 
     @Override
-    public String get(String username) {
-        return super.get(makeKey(username));
+    public String get(String httpSessionId) {
+        return super.get(makeKey(httpSessionId));
     }
 
-    public void put(String username, String httpSessionId) {
-        set(makeKey(username), httpSessionId);
+    public void put(String httpSessionId, String roomId) {
+        set(makeKey(httpSessionId), roomId);
     }
 
-    public void remove(String username) {
-        del(makeKey(username));
+    public void remove(String httpSessionId) {
+        del(makeKey(httpSessionId));
     }
 
-    public boolean exists(String username, String httpSessionId) {
-        String httpSessionId2 = get(username);
-        if (httpSessionId2 != null) {
-            return httpSessionId.equals(httpSessionId2);
+    public boolean exists(String httpSessionId) {
+        return (get(httpSessionId) != null);
+    }
+
+    public boolean exists(String httpSessionId, String roomId) {
+        String roomId2 = get(httpSessionId);
+        if (roomId2 != null) {
+            return roomId2.equals(roomId);
         }
         return false;
     }
 
-    private String makeKey(String username) {
-        if (username == null) {
-            throw new IllegalArgumentException("username must not be null");
+    private String makeKey(String httpSessionId) {
+        if (httpSessionId == null) {
+            throw new IllegalArgumentException("httpSessionId must not be null");
         }
-        return KEY_PREFIX + UsernameUtils.condense(username);
+        return KEY_PREFIX + httpSessionId;
     }
 
 }

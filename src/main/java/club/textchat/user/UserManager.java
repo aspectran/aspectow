@@ -22,6 +22,7 @@ import com.aspectran.core.component.bean.annotation.AvoidAdvice;
 import com.aspectran.core.component.bean.annotation.Bean;
 import com.aspectran.core.component.bean.annotation.Component;
 import com.aspectran.core.lang.NonNull;
+import com.aspectran.core.lang.Nullable;
 
 @Component
 @Bean("userManager")
@@ -90,7 +91,7 @@ public class UserManager extends InstantActivitySupport {
         }
     }
 
-    @NonNull
+    @Nullable
     public String getSessionId() {
         return getSessionAdapter().getId();
     }

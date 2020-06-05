@@ -72,6 +72,10 @@ public class UserAction {
             return "-2";
         }
 
+        if (chaterManager.isInConvoUser()) {
+            return "-3";
+        }
+
         UserInfo userInfo = new UserInfo();
         userInfo.setUsername(username);
         if (!StringUtils.isEmpty(favoriteColor)) {

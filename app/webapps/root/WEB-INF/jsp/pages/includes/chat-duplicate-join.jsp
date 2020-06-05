@@ -8,9 +8,8 @@
         <div class="cell t20">
             <img class="banner animate denial" src="/assets/images/textchat.svg" width="50%" alt="Text Chat Club"/>
         </div>
-        <div class="cell">
-            <p><aspectran:message code="modal.chat_duplicate_join.guide_1"/><br/>
-                <aspectran:message code="modal.chat_duplicate_join.guide_2"/></p>
+        <div class="cell text-center">
+            <p><aspectran:message code="modal.chat_duplicate_join.guide"/></p>
         </div>
         <div class="cell text-center">
             <h4><aspectran:message code="modal.chat_duplicate_join.please_close"/></h4>

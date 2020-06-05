@@ -115,6 +115,11 @@ function doSignIn(username, favoriteColor) {
                     $("#form-sign-in .form-error.already-in-use").show();
                     $("#form-sign-in input[name=username]").val(username).focus();
                     break;
+                case "-3":
+                    closeWaitPopup();
+                    alert(modalMessages.alreadySignedIn);
+                    location.reload();
+                    break;
                 default:
                     closeWaitPopup();
                     console.error(result);

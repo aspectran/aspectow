@@ -122,7 +122,7 @@ public class RandomChatHandler extends AbstractChatHandler {
         if (session.isOpen()) {
             chaters.put(chaterInfo, session);
             chatersPersistence.put(chaterInfo);
-            inConvoUsersPersistence.put(chaterInfo.getUsername(), chaterInfo.getHttpSessionId());
+            inConvoUsersPersistence.put(chaterInfo.getHttpSessionId(), chaterInfo.getRoomId());
             Set<String> roomChaters = Collections.singleton(ChatersPersistence.makeValue(chaterInfo));
             JoinPayload payload = new JoinPayload();
             payload.setUsername(chaterInfo.getUsername());
@@ -140,7 +140,7 @@ public class RandomChatHandler extends AbstractChatHandler {
         if (chaters.remove(chaterInfo, session)) {
             chatersPersistence.remove(chaterInfo);
             signedInUsersPersistence.tryAbandon(chaterInfo.getUsername(), chaterInfo.getHttpSessionId());
-            inConvoUsersPersistence.remove(chaterInfo.getUsername());
+            inConvoUsersPersistence.remove(chaterInfo.getHttpSessionId());
             ChaterInfo chaterInfo2 = getPartner(chaterInfo.getUserNo());
             if (chaterInfo2 != null) {
                 randomChaterPersistence.unset(chaterInfo.getUserNo(), chaterInfo2.getUserNo());

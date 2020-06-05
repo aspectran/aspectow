@@ -106,7 +106,7 @@ public class PublicChatHandler extends AbstractChatHandler {
             if (chaters.put(chaterInfo, session) != null) {
                 replaced = true;
             }
-            inConvoUsersPersistence.put(chaterInfo.getUsername(), chaterInfo.getHttpSessionId());
+            inConvoUsersPersistence.put(chaterInfo.getHttpSessionId(), chaterInfo.getRoomId());
             chatersPersistence.put(chaterInfo);
             Set<String> roomChaters = chatersPersistence.getChaters(chaterInfo.getRoomId());
             JoinPayload payload = new JoinPayload();
@@ -125,7 +125,7 @@ public class PublicChatHandler extends AbstractChatHandler {
         if (chaters.remove(chaterInfo, session)) {
             chatersPersistence.remove(chaterInfo);
             signedInUsersPersistence.tryAbandon(chaterInfo.getUsername(), chaterInfo.getHttpSessionId());
-            inConvoUsersPersistence.remove(chaterInfo.getUsername());
+            inConvoUsersPersistence.remove(chaterInfo.getHttpSessionId());
             broadcastUserLeft(chaterInfo);
             publicRoomManager.checkOut(chaterInfo.getRoomId());
         }
