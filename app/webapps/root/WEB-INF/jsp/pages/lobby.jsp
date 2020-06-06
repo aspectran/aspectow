@@ -90,7 +90,7 @@
                                 <a class="start" href="/rooms/${roomInfo.roomId}"><h5>${roomInfo.roomName}</h5></a>
                                 <i class="curr-users fi-torsos-all"> <span>${roomInfo.currentUsers}</span></i>
                                 <c:if test="${roomInfo.pastDays le 1}"><i class="new fi-burst-new"></i></c:if>
-                                <a class="button small start" href="/rooms/${roomInfo.roomId}"><aspectran:message code="lobby.rooms.button.start"/></a>
+                                <a class="button small start" href="/rooms/${roomInfo.roomId}"><aspectran:message code="lobby.rooms.button.enter_chatroom"/></a>
                             </div>
                         </div>
                     </c:forEach>
@@ -99,7 +99,7 @@
                                 <a class="start"><h5></h5></a>
                                 <i class="curr-users fi-torsos-all"> <span>0</span></i>
                                 <i class="new fi-burst-new" style="display: none"></i>
-                                <a class="button small start"><aspectran:message code="lobby.rooms.button.start"/></a>
+                                <a class="button small start"><aspectran:message code="lobby.rooms.button.enter_chatroom"/></a>
                             </div>
                         </div>
                     </div>

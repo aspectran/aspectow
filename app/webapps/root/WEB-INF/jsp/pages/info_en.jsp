@@ -16,7 +16,7 @@
                         <h3>About Text Chat Club</h3>
                         <ul>
                             <li>We offer a chat service that lets you chat with new people online.</li>
-                            <li>There is no separate sign-up process to use the chat service, just enter your nickname.</li>
+                            <li>No separate sign-up process is required to use our chat service. Just enter your nickname and go.</li>
                             <li>You cannot send or receive photos or videos, you can only chat with text.</li>
                         </ul>
                     </div>
