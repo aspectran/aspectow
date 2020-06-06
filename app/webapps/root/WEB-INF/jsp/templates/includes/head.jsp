@@ -46,21 +46,26 @@
         outer: window.outerHeight,
         inner: window.innerHeight
     };
-    let windowResizeTimer;
-    window.addEventListener("resize", function() {
-        if (windowResizeTimer) {
-            clearTimeout(windowResizeTimer);
-        }
-        windowResizeTimer = setTimeout(function () {
+    function resizeWindowHeight(timeout) {
+        return setTimeout(function () {
             if (window.outerHeight !== oldWindowHeight.outer || window.innerHeight !== oldWindowHeight.inner) {
                 oldWindowHeight.outer = window.outerHeight;
                 oldWindowHeight.inner = window.innerHeight;
                 document.documentElement.style.setProperty("--vh", (window.innerHeight * 0.01) + "px");
-                setTimeout(function () {
-                    document.documentElement.style.setProperty("--vh", (window.innerHeight * 0.01) + "px");
-                }, 1000);
             }
-        }, 150);
+        }, timeout);
+    }
+    let windowResizeTimers = [];
+    window.addEventListener("resize", function() {
+        for (let i in windowResizeTimers) {
+            if (windowResizeTimers[i]) {
+                clearTimeout(windowResizeTimers[i]);
+            }
+        }
+        for (let i = 0; i < 31; i++) {
+            console.log(i > 0 ? i * 100 : 10);
+            windowResizeTimers[i] = resizeWindowHeight(i > 0 ? i * 100 : 10);
+        }
     });
 </script>
 <script async src="https://www.googletagmanager.com/gtag/js?id=AW-798244126"></script>
