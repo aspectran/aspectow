@@ -503,7 +503,7 @@ function gotoHomepage() {
 }
 
 function serviceNotAvailable() {
-    openNoticePopup(chatClientMessages.pleaseNote,
+    openNoticePopup(chatClientMessages.systemError,
         chatClientMessages.serviceNotAvailable,
         function () {
             gotoHomepage();

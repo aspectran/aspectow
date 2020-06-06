@@ -18,8 +18,8 @@
     const chatClientMessages = {
         "userJoined": "<aspectran:message code='chat.lobby.user_joined'/>",
         "roomCreated": "<aspectran:message code='chat.lobby.room_created'/>",
-        "pleaseNote": "<aspectran:message code='common.please_note'/>",
-        "serviceNotAvailable": "<aspectran:message code='common.service_not_available'/>",
+        "systemError": "<aspectran:message code='chat.common.system_error'/>",
+        "serviceNotAvailable": "<aspectran:message code='chat.common.service_not_available'/>"
     }
 </script>
 <div class="grid-y grid-frame">

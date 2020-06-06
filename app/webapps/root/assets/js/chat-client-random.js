@@ -138,7 +138,7 @@ function serviceNotAvailable() {
     closeSocket();
     clearChaters();
     clearConvo();
-    openNoticePopup(chatClientMessages.pleaseNote,
+    openNoticePopup(chatClientMessages.systemError,
         chatClientMessages.serviceNotAvailable,
         function () {
             gotoHomepage();
