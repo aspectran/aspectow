@@ -13,4 +13,7 @@
             <a class="secondary button ok"><aspectran:message code="common.button.ok"/></a>
         </div>
     </div>
+    <button type="button" class="close-button ok" aria-label="Close modal">
+        <span aria-hidden="true">&times;</span>
+    </button>
 </div>

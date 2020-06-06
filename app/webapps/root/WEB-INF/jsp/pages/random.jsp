@@ -3,8 +3,8 @@
 <%@ taglib uri="http://aspectran.com/tags" prefix="aspectran" %>
 <link rel="stylesheet" type="text/css" href="/assets/css/chat-common.css?v20" />
 <link rel="stylesheet" type="text/css" href="/assets/css/chat-random.css?v19" />
-<script src="/assets/js/chat-client-default.js?v19"></script>
-<script src="/assets/js/chat-client-random.js?v17"></script>
+<script src="/assets/js/chat-client-default.js?v20"></script>
+<script src="/assets/js/chat-client-random.js?v18"></script>
 <script>
     const chatClientSettings = {
         serverEndpoint: "/chat/random/",

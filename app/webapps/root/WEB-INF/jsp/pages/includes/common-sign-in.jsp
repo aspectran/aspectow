@@ -91,4 +91,7 @@
             <div id="captcha-container-sign-in"></div>
         </div>
     </div>
+    <button type="button" class="close-button cancel" aria-label="Close modal">
+        <span aria-hidden="true">&times;</span>
+    </button>
 </div>

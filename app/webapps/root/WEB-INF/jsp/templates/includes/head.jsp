@@ -38,7 +38,7 @@
 <script src="https://www.google.com/recaptcha/api.js?render=explicit"></script>
 <script src="/assets/js/recaptcha.js?v1"></script>
 <script src="/assets/js/utils.js?v1.1"></script>
-<script src="/assets/js/page-common.js?v21"></script>
+<script src="/assets/js/page-common.js?v22"></script>
 <script>
     /* Set a custom property that contains the height value of the viewport */
     document.documentElement.style.setProperty("--vh", (window.innerHeight * 0.01) + "px");

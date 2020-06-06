@@ -26,7 +26,7 @@ $(function () {
         $("#common-sign-in .my-col-block").removeClass("selected");
         $(this).addClass("selected");
     });
-    $("#common-sign-in .button.cancel").on("click", function () {
+    $("#common-sign-in .cancel").on("click", function () {
         if (location.pathname !== "/") {
             location.href = "/";
         } else {
@@ -138,7 +138,7 @@ function openNoticePopup(title, message, action) {
     let popup = $("#common-notice-popup");
     popup.find("h3").text(title);
     popup.find(".content").html("").append(p);
-    popup.find(".button.ok").off().on("click", function () {
+    popup.find(".ok").off().on("click", function () {
         if (action) {
             action();
         }
