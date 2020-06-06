@@ -4,7 +4,7 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
 <meta name="google" content="notranslate"/>
-<title><c:if test="${not empty page.title}">${page.title} - </c:if><aspectran:message code="site.title"/></title>
+<title><c:if test="${not empty page.title}">${page.title}</c:if><c:if test="${empty page.title}"><aspectran:message code="page.default.title"/></c:if> - <aspectran:message code="site.title"/></title>
 <meta name="description" content="<aspectran:message code="site.description"/>"/>
 <meta name="keywords" content="<aspectran:message code="site.keywords"/>"/>
 <link rel="mask-icon" href="/assets/images/textchat.svg" color="#FFFFFF"/>
