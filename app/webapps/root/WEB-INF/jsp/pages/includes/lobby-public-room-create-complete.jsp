@@ -9,7 +9,7 @@
         <div class="cell text-center">
             <button type="button" class="button alert" title="Close" data-close><aspectran:message code="common.button.close"/></button>
             <button type="button" class="success button go-created-public-room" data-close aria-label="Go to the chat room you created">
-                <aspectran:message code="modal.public_room_create_complete.enter_chatroom_now"/> <i class="iconfont fi-arrow-right"></i></button>
+                <aspectran:message code="modal.public_room_create_complete.join_chatroom_now"/></button>
         </div>
     </div>
     <button class="close-button" data-close aria-label="Close modal" type="button">

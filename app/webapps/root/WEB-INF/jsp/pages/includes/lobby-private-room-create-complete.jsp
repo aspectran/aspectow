@@ -9,11 +9,11 @@
     <h3><aspectran:message code="modal.private_room_create_complete.title"/></h3>
     <div class="grid-x">
         <div class="cell">
-            <p><aspectran:message code="modal.private_room_create_complete.url_is"/></p>
+            <p><aspectran:message code="modal.private_room_create_complete.share_this_link"/></p>
         </div>
         <div class="cell card">
             <div class="card-section">
-                <p class="private-chatroom-url">http://textchat.club/private/</p>
+                <p class="private-chatroom-url">https://textchat.club/private/</p>
             </div>
         </div>
         <div class="cell text-right">
@@ -22,7 +22,7 @@
         <div class="cell text-center t10">
             <button type="button" class="button alert" title="Close" data-close><aspectran:message code="common.button.close"/></button>
             <button type="button" class="success button go-created-private-room" data-close aria-label="Go to the chat room you created">
-                <aspectran:message code="modal.private_room_create_complete.enter_chatroom_now"/> <i class="iconfont fi-arrow-right"></i></button>
+                <aspectran:message code="modal.private_room_create_complete.join_chatroom_now"/></button>
         </div>
     </div>
     <button class="close-button" data-close aria-label="Close modal" type="button">

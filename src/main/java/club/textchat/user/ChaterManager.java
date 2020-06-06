@@ -68,7 +68,7 @@ public class ChaterManager extends InstantActivitySupport implements Initializab
 
     public boolean isInUseUsername(String username) {
         String httpSessionId = signedInUsersPersistence.get(username);
-        return (httpSessionId != null && httpSessionId.equals(userManager.getSessionId()));
+        return (httpSessionId != null && !httpSessionId.equals(userManager.getSessionId()));
     }
 
     public boolean isInConvoUser() {

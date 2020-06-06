@@ -3,8 +3,8 @@
 <%@ taglib uri="http://aspectran.com/tags" prefix="aspectran" %>
 <script>
     $.extend(modalMessages, {
-        "alreadySignedIn": "<aspectran:message code="modal.sign_in.already_signed_in"/>",
-        "signingIn": "<aspectran:message code='modal.sign_in.signing_in'/>"
+        "signingIn": "<aspectran:message code='modal.sign_in.signing_in'/>",
+        "alreadySignedIn": "<aspectran:message code="modal.sign_in.already_signed_in"/>"
     });
 </script>
 <div id="common-sign-in" class="reveal popup" data-reveal data-close-on-click="false" data-close-on-esc="false">
