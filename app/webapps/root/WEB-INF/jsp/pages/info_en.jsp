@@ -6,6 +6,7 @@
     <div class="body shadow cell auto cell-block-container">
         <div class="grid-x full-height">
             <div class="sidebar cell medium-4 large-3 cell-block-y hide-for-small-only">
+                <p style="position: absolute; bottom: 0; right: 20px;"><a href="?locale=ko">한국어</a></p>
             </div>
             <div class="cell auto cell-block-y">
                 <div class="grid-container grid-x t15">
