@@ -5,7 +5,7 @@
 <link rel="stylesheet" type="text/css" href="/assets/css/chat-lobby.css?v19" />
 <link rel="stylesheet" type="text/css" href="/assets/css/page-lobby.css?v19" />
 <script src="/assets/js/chat-client-default.js?v20"></script>
-<script src="/assets/js/chat-client-lobby.js?v21"></script>
+<script src="/assets/js/chat-client-lobby.js?v22"></script>
 <script src="/assets/js/page-lobby.js?v18"></script>
 <script>
     const chatClientSettings = {
@@ -138,7 +138,6 @@
 <%@ include file="includes/chat-duplicate-join.jsp" %>
 <%@ include file="includes/common-wait-popup.jsp" %>
 <%@ include file="includes/common-connection-lost.jsp" %>
-<%@ include file="includes/common-service-not-available.jsp" %>
 <c:if test="${empty user}">
     <%@ include file="includes/common-sign-in.jsp" %>
 </c:if>

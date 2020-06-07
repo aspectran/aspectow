@@ -108,5 +108,5 @@ function leaveRoom(force) {
 }
 
 function gotoHomepage() {
-    $("#common-service-not-available").foundation('open');
+    leaveRoom();
 }
