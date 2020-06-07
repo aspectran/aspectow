@@ -96,6 +96,7 @@ public class UserManager extends InstantActivitySupport {
         return getSessionAdapter().getId();
     }
 
+    @NonNull
     private SessionAdapter getSessionAdapter() {
         SessionAdapter sessionAdapter = getCurrentActivity().getSessionAdapter();
         if (sessionAdapter == null) {

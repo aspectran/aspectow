@@ -100,13 +100,12 @@ function printEvent(text, timeout) {
 function leaveRoom(force) {
     closeSocket();
     if (force) {
-        $("#common-service-not-available").foundation('close');
         location.href = "/signout";
     } else {
-        gotoHomepage();
+        gotoHome();
     }
 }
 
-function gotoHomepage() {
-    leaveRoom();
+function gotoHome() {
+    leaveRoom(true);
 }

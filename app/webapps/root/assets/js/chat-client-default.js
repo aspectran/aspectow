@@ -63,7 +63,7 @@ $(function () {
 
 function openSocket(token) {
     if (!token || token.length > 100) {
-        gotoHomepage();
+        gotoHome();
         return;
     }
     closeSocket();
@@ -92,7 +92,7 @@ function openSocket(token) {
         if (chatAborted ) {
             closeSocket();
             if (!justStayHere) {
-                gotoHomepage();
+                gotoHome();
             }
         } else {
             closeSocket();
@@ -150,7 +150,7 @@ function checkConnection(delay) {
                 if (result === "pong" && !chatAborted) {
                     reloadPage();
                 } else {
-                    gotoHomepage();
+                    gotoHome();
                 }
             },
             error: function () {
@@ -179,7 +179,7 @@ function closeSocket() {
 
 function leaveRoom(force) {
     closeSocket();
-    gotoHomepage();
+    gotoHome();
 }
 
 function handleMessage(chatMessage) {
@@ -496,7 +496,7 @@ function reloadPage() {
     location.reload();
 }
 
-function gotoHomepage() {
+function gotoHome() {
     if (chatClientSettings.homepage) {
         location.href = chatClientSettings.homepage;
     }
@@ -506,7 +506,7 @@ function serviceNotAvailable() {
     openNoticePopup(chatClientMessages.systemError,
         chatClientMessages.serviceNotAvailable,
         function () {
-            gotoHomepage();
+            gotoHome();
         });
 }
 

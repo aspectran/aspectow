@@ -4,15 +4,15 @@
 <link rel="stylesheet" type="text/css" href="/assets/css/chat-common.css?v20" />
 <link rel="stylesheet" type="text/css" href="/assets/css/chat-lobby.css?v19" />
 <link rel="stylesheet" type="text/css" href="/assets/css/page-lobby.css?v19" />
-<script src="/assets/js/chat-client-default.js?v20"></script>
-<script src="/assets/js/chat-client-lobby.js?v22"></script>
-<script src="/assets/js/page-lobby.js?v18"></script>
+<script src="/assets/js/chat-client-default.js?v21"></script>
+<script src="/assets/js/chat-client-lobby.js?v23"></script>
+<script src="/assets/js/page-lobby.js?v19"></script>
 <script>
     const chatClientSettings = {
         serverEndpoint: "/chat/lobby/",
         admissionToken: "${page.token}",
         autoConnectEnabled: true,
-        pingPerHeartbeats: 0,
+        pingPerHeartbeats: 15,
         homepage: "/"
     }
     const chatClientMessages = {

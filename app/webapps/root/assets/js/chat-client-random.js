@@ -3,7 +3,7 @@ let tokenIssuanceCanceled;
 
 $(function () {
     if (!Modernizr.websockets) {
-        gotoHomepage();
+        gotoHome();
         return;
     }
     if (!checkSignedIn()) {
@@ -141,6 +141,6 @@ function serviceNotAvailable() {
     openNoticePopup(chatClientMessages.systemError,
         chatClientMessages.serviceNotAvailable,
         function () {
-            gotoHomepage();
+            gotoHome();
     });
 }

@@ -1,6 +1,6 @@
 $(function () {
     if (!Modernizr.websockets) {
-        gotoHomepage();
+        gotoHome();
         return;
     }
     if (!checkSignedIn()) {

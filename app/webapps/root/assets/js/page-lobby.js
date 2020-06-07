@@ -96,6 +96,7 @@ function doCreatePublicRoom() {
             switch (result) {
                 case "-1":
                     alert("reCAPTCHA verification failed");
+                    location.reload();
                     break;
                 case "-2":
                     $("#form-public-room-create .form-error.already-in-use").show();
@@ -104,6 +105,7 @@ function doCreatePublicRoom() {
                 default:
                     if (!result) {
                         alert("Unexpected error occurred.");
+                        location.reload();
                         return;
                     }
                     $("#form-public-room-create input[name=room_nm]").val("");
@@ -142,10 +144,12 @@ function doCreatePrivateRoom() {
             switch (result) {
                 case "-1":
                     alert("reCAPTCHA verification failed");
+                    location.reload();
                     break;
                 default:
                     if (!result) {
                         alert("Unexpected error occurred.");
+                        location.reload();
                         return;
                     }
                     recentlyCreatedRoomId = result;
@@ -197,7 +201,7 @@ function refreshRooms() {
                 }
             },
             error: function (request, status, error) {
-                alert("An error has occurred making the request: " + error);
+                location.reload();
             }
         });
     }, 400);
