@@ -12,10 +12,10 @@
                         <h2 class="text-truncate">${page.roomName}</h2>
                     </c:when>
                     <c:when test="${page.roomId eq '-1'}">
-                        <h2 class="text-truncate">Random Chat</h2>
+                        <h2 class="text-truncate"><aspectran:message code="lobby.random_chat"/></h2>
                     </c:when>
                     <c:otherwise>
-                        <h2 title="<aspectran:message code="site.title"/>">Text Chat Club</h2>
+                        <h2 class="text-truncate" title="<aspectran:message code="site.title"/>">Text Chat Club</h2>
                     </c:otherwise>
                 </c:choose>
         </div>
