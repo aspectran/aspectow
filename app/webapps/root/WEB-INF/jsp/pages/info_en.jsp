@@ -31,7 +31,7 @@
                         <h4>3. Processing and retention period of personal information</h4>
                         <p>Text Chat Club uses personal information for the following purposes.<br/>
                             - Prevent personal identification and nickname duplication</p>
-                        <p>The personal information used is stored for at least one year to prevent misuse, misuse or
+                        <p>The personal information used is stored for at least one year to prevent misuse or
                             leakage, and to determine the cause of the accident in the event of an accident.
                             Personal information older than one year is periodically discarded.</p>
                         <h4>4. Cookies and other technologies</h4>
