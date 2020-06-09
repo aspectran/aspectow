@@ -45,9 +45,7 @@
                         <h4>5. Privacy questions</h4>
                         <p>If you have any questions or concerns about Text Chat Club’s Privacy Policy,
                             please contact us at the following email address:</p>
-                        <ul>
-                            <li><img src="/assets/images/email-help.jpg"/></li>
-                        </ul>
+                        <p><img src="/assets/images/email-help.jpg"/></p>
                     </div>
                 </div>
             </div>
