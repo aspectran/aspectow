@@ -31,6 +31,12 @@
                     <div class="text-center t30">
                         <img src="/assets/images/textchat-heartbeat.svg" width="70%" alt="Text Chat Club"/>
                     </div>
+                    <div class="text-center t10">
+                        <a href="?locale=en">English</a>
+                    </div>
+                    <div class="text-center t5">
+                        <a href="?locale=ko">한국어</a>
+                    </div>
                 </c:if>
                 <ul id="contacts"></ul>
             </div>
