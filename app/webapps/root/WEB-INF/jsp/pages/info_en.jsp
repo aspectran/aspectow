@@ -46,7 +46,7 @@
                         <p>If you have any questions or concerns about Text Chat Club’s Privacy Policy,
                             please contact us at the following email address:</p>
                         <ul>
-                            <li><i>aspectran@gmail.com</i></li>
+                            <li><img src="/assets/images/email-help.jpg"/></li>
                         </ul>
                     </div>
                 </div>
