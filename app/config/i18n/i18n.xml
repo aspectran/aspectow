@@ -8,15 +8,19 @@
             Defines a bean for multilingual processing.
         </description>
         <properties>
-            <item name="basename">locale.messages</item>
+            <item name="basename">i18n.messages</item>
         </properties>
     </bean>
 
-    <bean id="localeResolver" class="com.aspectran.core.support.i18n.locale.SessionLocaleResolver">
+    <bean id="localeResolver" class="com.aspectran.web.support.i18n.locale.CookieLocaleResolver">
         <description>
             Use the session to determine the locale.
         </description>
         <properties>
+            <item name="supportedLocales" type="array">
+                <value>en</value>
+                <value>ko</value>
+            </item>
             <item name="defaultLocale" value="en" />
         </properties>
     </bean>

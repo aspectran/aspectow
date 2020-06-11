@@ -63,7 +63,6 @@
             }
         }
         for (let i = 0; i < 31; i++) {
-            console.log(i > 0 ? i * 100 : 10);
             windowResizeTimers[i] = resizeWindowHeight(i > 0 ? i * 100 : 10);
         }
     });
