@@ -9,7 +9,7 @@
         <div class="nameplate">
             <div class="country" title="${user.country}">
                 <c:if test="${not empty user.country}">
-                    <img src="https://github.com/hjnilsson/country-flags/blob/master/svg/${fn:toLowerCase(user.country)}.svg"/>
+                    <img src="https://raw.githubusercontent.com/topframe/country-flags/master/svg/${fn:toLowerCase(user.country)}.svg"/>
                 </c:if>
             </div>
             <h5 class="username">${user.username}</h5>
