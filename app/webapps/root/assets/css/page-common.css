@@ -163,7 +163,12 @@ input#for-automata-clear {
     height: 60px;
     border-radius: 8px;
 }
-.user .nameplate .icon {
+.user .nameplate .country {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+}
+.user .nameplate .country .icon {
     display: inline-block;
     color: #fff;
     background-color: #72bde2;
@@ -172,10 +177,9 @@ input#for-automata-clear {
     padding: 0 6px;
     border-radius: 10px 0 10px 0;
 }
-.user .nameplate .country {
-    position: absolute;
-    right: 0;
-    bottom: 0;
+.user .nameplate .country img {
+    height: 24px;
+    border-radius: 10px 0 10px 0;
 }
 .user .nameplate .username {
     padding: 6px 10px;

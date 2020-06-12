@@ -5,7 +5,11 @@
     </div>
     <div class="cell auto">
         <div class="nameplate">
-            <div class="icon country">${user.country}</div>
+            <div class="country" title="${user.country}">
+                <c:if test="${not empty user.country}">
+                    <img src="https://github.com/hjnilsson/country-flags/blob/master/svg/${fn:toLowerCase(user.country)}.svg"/>
+                </c:if>
+            </div>
             <h5 class="username">${user.username}</h5>
         </div>
     </div>
