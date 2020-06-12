@@ -175,11 +175,11 @@ input#for-automata-clear {
     line-height: 24px;
     font-size: 13px;
     padding: 0 6px;
-    border-radius: 10px 0 10px 0;
+    border-radius: 8px 0 8px 0;
 }
 .user .nameplate .country img {
     height: 24px;
-    border-radius: 10px 0 10px 0;
+    border-radius: 8px 0 8px 0;
 }
 .user .nameplate .username {
     padding: 6px 10px;
