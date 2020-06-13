@@ -54,12 +54,13 @@
     border-radius: 20px;
     padding: 6px 16px;
     margin: 0 0 2px;
+    line-height: 1.2;
     word-wrap: anywhere;
 }
 #convo .message .content .datetime {
     font-size: .8em;
     color: #555;
-    padding-left: 1em;
+    padding-left: .6em;
 }
 #convo .message.event {
     position: relative;
@@ -68,7 +69,6 @@
 }
 #convo .message.event .content {
     margin: 0;
-    padding: 3px 16px;
     border-radius: 6px;
     width: 100%;
     background-color: #f1f1f1;
@@ -90,7 +90,7 @@
     display: none;
     font-size: .85em;
     padding-left: 2em;
-    padding-top: 0;
+    padding-top: 4px;
     padding-bottom: 0;
     color: #555;
 }
