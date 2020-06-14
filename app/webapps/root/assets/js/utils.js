@@ -19,6 +19,14 @@ function getCookie(name) {
     return null;
 }
 
+function getLanguage() {
+    if (navigator.languages && navigator.languages.length) {
+        return navigator.languages[0];
+    } else {
+        return navigator.language;
+    }
+}
+
 function getTimeZone() {
     try {
         return Intl.DateTimeFormat().resolvedOptions().timeZone;

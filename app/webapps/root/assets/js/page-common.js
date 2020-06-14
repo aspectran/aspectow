@@ -98,6 +98,7 @@ function doSignIn(username, favoriteColor) {
             username: username,
             favoriteColor: favoriteColor,
             recaptchaResponse: recaptchaResponse,
+            language: getLanguage(),
             timeZone: getTimeZone()
         },
         success: function (result) {

@@ -55,6 +55,7 @@ public class UserAction {
                          @Required String username,
                          String favoriteColor,
                          @Required String recaptchaResponse,
+                         String language,
                          String timeZone) {
         username = UsernameUtils.normalize(username);
 
@@ -84,10 +85,18 @@ public class UserAction {
 
         Locale locale = translet.getRequestAdapter().getLocale();
         if (locale != null) {
-            userInfo.setCountry(locale.getCountry());
+            if (locale.getCountry().isEmpty()) {
+                try {
+                    Locale altLocale = StringUtils.parseLocale(language);
+                    userInfo.setCountry(altLocale.getCountry());
+                } catch (Exception e) {
+                    // ignore
+                }
+            } else {
+                userInfo.setCountry(locale.getCountry());
+            }
             userInfo.setLanguage(locale.getLanguage());
         }
-
         userInfo.setTimeZone(timeZone);
 
         String remoteAddr = translet.getRequestAdapter().getHeader("X-FORWARDED-FOR");
