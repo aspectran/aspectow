@@ -29,12 +29,12 @@ import com.aspectran.core.util.StringUtils;
 import com.aspectran.core.util.logging.Logger;
 import com.aspectran.core.util.logging.LoggerFactory;
 import com.aspectran.web.support.http.HttpHeaders;
-import io.undertow.util.LocaleUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
+import java.util.Locale.LanguageRange;
 
 @Component
 public class UserAction {
@@ -58,7 +58,6 @@ public class UserAction {
                          @Required String username,
                          String favoriteColor,
                          @Required String recaptchaResponse,
-                         String language,
                          String timeZone) {
         username = UsernameUtils.normalize(username);
 
@@ -91,8 +90,9 @@ public class UserAction {
             if (locale.getCountry().isEmpty()) {
                 try {
                     String al = translet.getRequestAdapter().getHeader(HttpHeaders.ACCEPT_LANGUAGE);
-                    List<Locale> localeList = LocaleUtils.getLocalesFromHeader(al);
-                    for (Locale loc : localeList) {
+                    List<LanguageRange> languageRanges = LanguageRange.parse(al);
+                    for (LanguageRange languageRange : languageRanges) {
+                        Locale loc = Locale.forLanguageTag(languageRange.getRange());
                         if (!loc.getCountry().isEmpty()) {
                             userInfo.setCountry(loc.getCountry());
                             break;
