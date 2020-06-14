@@ -28,9 +28,12 @@ import com.aspectran.core.context.rule.type.FormatType;
 import com.aspectran.core.util.StringUtils;
 import com.aspectran.core.util.logging.Logger;
 import com.aspectran.core.util.logging.LoggerFactory;
+import com.aspectran.web.support.http.HttpHeaders;
+import io.undertow.util.LocaleUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.util.List;
 import java.util.Locale;
 
 @Component
@@ -87,8 +90,14 @@ public class UserAction {
         if (locale != null) {
             if (locale.getCountry().isEmpty()) {
                 try {
-                    Locale altLocale = StringUtils.parseLocale(language);
-                    userInfo.setCountry(altLocale.getCountry());
+                    String al = translet.getRequestAdapter().getHeader(HttpHeaders.ACCEPT_LANGUAGE);
+                    List<Locale> localeList = LocaleUtils.getLocalesFromHeader(al);
+                    for (Locale loc : localeList) {
+                        if (!loc.getCountry().isEmpty()) {
+                            userInfo.setCountry(loc.getCountry());
+                            break;
+                        }
+                    }
                 } catch (Exception e) {
                     // ignore
                 }
