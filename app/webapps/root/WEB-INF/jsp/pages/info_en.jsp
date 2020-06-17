@@ -14,15 +14,15 @@
                         <img src="/assets/images/textchat-heartbeat.svg" width="60%" alt="Text Chat Club"/>
                     </div>
                     <div class="cell small-12 large-8 large-order-1 t15">
-                        <h3>About Text Chat Club</h3>
+                        <h3><strong>About Text Chat Club</strong></h3>
                         <ul>
-                            <li>We offer a chat service that lets you chat with new people online.</li>
+                            <li>We provide a chat service that allows you to chat with new people online using only a web browser.</li>
                             <li>No separate sign-up process is required to use our chat service. Just enter your nickname and go.</li>
                             <li>You cannot send or receive photos or videos, you can only chat with text.</li>
                         </ul>
                     </div>
-                    <div class="cell t15 large-order-3">
-                        <h3>Privacy Policy</h3>
+                    <div class="cell t20 large-order-3">
+                        <h3><strong>Privacy Policy</strong></h3>
                         <h4>1. Purpose for collection of personal information</h4>
                         <p>Text Chat Club collects the minimum amount of personal information necessary to provide services.</p>
                         <h4>2. Collected items of personal information</h4>
@@ -46,6 +46,11 @@
                         <p>If you have any questions or concerns about Text Chat Club’s Privacy Policy,
                             please contact us at the following email address:</p>
                         <p><img src="/assets/images/email-help.jpg"/></p>
+                    </div>
+                </div>
+                <div class="grid-container grid-x grid-padding-y t10">
+                    <div class="cell">
+                        (c) 2020, Text Chat Club
                     </div>
                 </div>
             </div>

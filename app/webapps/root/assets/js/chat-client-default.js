@@ -405,7 +405,7 @@ function printUserEvent(payload, event, restored) {
 }
 
 function printMessage(payload, restored) {
-    let sender = $("<span class='username'/>").text(payload.username);
+    let convo = $("#convo");
     let content = $("<p class='content'/>").text(payload.content);
     if (payload.datetime) {
         let datetime = moment.utc(payload.datetime).local();
@@ -413,7 +413,6 @@ function printMessage(payload, restored) {
         content.append("<span class='datetime'>" +
             datetime.format(hours < 24 ? "LTS" : "L LT") + "</span>");
     }
-    let convo = $("#convo");
     let last = convo.find(".message").last();
     if (last.length && !last.hasClass("event") && last.data("user-no") === payload.userNo) {
         if (restored) {
@@ -422,6 +421,7 @@ function printMessage(payload, restored) {
         last.append(content);
     } else {
         let myself = (userInfo.userNo === payload.userNo);
+        let sender = $("<span class='username'/>").text(payload.username);
         let message = $("<div/>")
             .addClass(myself ? "message sent" : "message received")
             .data("user-no", payload.userNo)
