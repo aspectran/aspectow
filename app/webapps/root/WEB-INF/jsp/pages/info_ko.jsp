@@ -46,6 +46,11 @@
                         <p><img src="/assets/images/email-help.jpg"/></p>
                     </div>
                 </div>
+                <div class="grid-container grid-x grid-padding-y t10">
+                    <div class="cell">
+                        (c) 2020, Text Chat Club
+                    </div>
+                </div>
             </div>
         </div>
     </div>
