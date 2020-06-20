@@ -3,10 +3,10 @@
 <%@ taglib uri="http://aspectran.com/tags" prefix="aspectran" %>
 <link rel="stylesheet" type="text/css" href="/assets/css/chat-common.css?v21" />
 <link rel="stylesheet" type="text/css" href="/assets/css/chat-lobby.css?v19" />
-<link rel="stylesheet" type="text/css" href="/assets/css/page-lobby.css?v20" />
+<link rel="stylesheet" type="text/css" href="/assets/css/page-lobby.css?v21" />
 <script src="/assets/js/chat-client-default.js?v21"></script>
 <script src="/assets/js/chat-client-lobby.js?v24"></script>
-<script src="/assets/js/page-lobby.js?v19"></script>
+<script src="/assets/js/page-lobby.js?v20"></script>
 <script>
     const chatClientSettings = {
         serverEndpoint: "/chat/lobby/",
@@ -47,24 +47,27 @@
                     </c:if>
                     <div class="grid-x grid-margin-x grid-margin-y grid-padding-x grid-padding-y t15">
                         <div class="cell service random">
-                            <a class="start" href="/random"><h4><aspectran:message code="lobby.random_chat"/></h4></a>
-                            <p class="feature"><aspectran:message code="lobby.random_chat.teaser"/></p>
+                            <a class="title start" href="/random"><h4><aspectran:message code="lobby.random_chat"/></h4></a>
+                            <p class="feature"><aspectran:message code="lobby.random_chat.feature"/></p>
                             <p class="guide show-for-large"><aspectran:message code="lobby.random_chat.guide"/></p>
                             <p class="dummy hide-for-large"></p>
+                            <a class="guide hide-for-large" title="<aspectran:message code="lobby.random_chat.button.guide"/>"><i class="fi-info"></i></a>
                             <a class="button small start" href="/random"><aspectran:message code="lobby.random_chat.button.start"/></a>
                         </div>
                         <div class="cell service private create">
-                            <a class="private-room-create"><h4><aspectran:message code="lobby.private_chat"/></h4></a>
-                            <p class="feature"><aspectran:message code="lobby.private_chat.teaser"/></p>
+                            <a class="title private-room-create"><h4><aspectran:message code="lobby.private_chat"/></h4></a>
+                            <p class="feature"><aspectran:message code="lobby.private_chat.feature"/></p>
                             <p class="guide show-for-large"><aspectran:message code="lobby.private_chat.guide"/></p>
                             <p class="dummy hide-for-large"></p>
+                            <a class="guide hide-for-large" title="<aspectran:message code="lobby.private_chat.button.guide"/>"><i class="fi-info"></i></a>
                             <a class="button small start private-room-create" title="Create a private chat room"><aspectran:message code="lobby.private_chat.button.create"/></a>
                         </div>
                         <div class="cell service public create">
-                            <a class="public-room-create"><h4><aspectran:message code="lobby.public_chat"/></h4></a>
-                            <p class="feature"><aspectran:message code="lobby.public_chat.teaser"/></p>
+                            <a class="title public-room-create"><h4><aspectran:message code="lobby.public_chat"/></h4></a>
+                            <p class="feature"><aspectran:message code="lobby.public_chat.feature"/></p>
                             <p class="guide show-for-large"><aspectran:message code="lobby.public_chat.guide"/></p>
                             <p class="dummy hide-for-large"></p>
+                            <a class="guide hide-for-large" title="<aspectran:message code="lobby.public_chat.button.guide"/>"><i class="fi-info"></i></a>
                             <a class="button small start public-room-create" title="Create an open chat room"><aspectran:message code="lobby.public_chat.button.create"/></a>
                         </div>
                     </div>

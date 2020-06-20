@@ -32,7 +32,7 @@
 		from public_rooms
 		where del_yn = 'N'
 		order by if(past_days &lt;= 1, 1, 2), curr_users desc, cumu_users desc
-		limit 99
+		limit 28
 	</select>
 
 	<select id="getRoomCountByName" parameterType="string" resultType="int">

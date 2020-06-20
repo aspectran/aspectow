@@ -1,6 +1,9 @@
 let recentlyCreatedRoomId;
 
 $(function () {
+    $(".service a.guide").on("click", function () {
+       $(this).parent().find("p.guide").toggleClass("show-for-large");
+    });
     $(".public-room-create").on("click", function () {
         if (!checkSignedIn()) {
             return false;

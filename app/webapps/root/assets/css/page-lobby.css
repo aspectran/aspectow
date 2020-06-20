@@ -1,5 +1,5 @@
 .lobby.user {
-    background-color: #dbf2fd;
+    background-color: #eee;
     border-radius: 10px;
 }
 .service {
@@ -12,22 +12,33 @@
 .service.cell {
     margin-top: 0;
 }
-.service h4 {
+.service a.title {
+    display: block;
+    width: 85%;
+}
+.service a.title h4 {
     font-weight: bold;
 }
 .service p {
     margin-bottom: .3em;
     color: #444;
 }
-.service p.feature {
-    font-weight: bold;
-    color: #666;
-}
 .service p.guide {
     font-size: .9em;
+    padding-left: .7em;
+    border-left: 3px solid #eee;
+    border-radius: 8px;
 }
 .service p.dummy {
     margin-bottom: 1.6em;
+}
+.service a.guide {
+    position: absolute;
+    top: 11px;
+    right: 11px;
+    font-size: 1.5em;
+    line-height: 1;
+    padding: 0;
 }
 .service .button.start {
     position: absolute;
@@ -50,6 +61,12 @@
 .service.random h4 {
     color: #d45472;
 }
+.service.random p.guide {
+    border-left: 2px solid #d26881;
+}
+.service.random a.guide {
+    color: #d26881;
+}
 .service.random .button.start {
     min-width: 11em;
     background-color: #d97c92;
@@ -63,6 +80,12 @@
 }
 .service.private h4 {
     color: #d27512;
+}
+.service.private p.guide {
+    border-left: 2px solid #ffa83c;
+}
+.service.private a.guide {
+    color: #ffa83c;
 }
 .service.private .button.start {
     min-width: 11em;
@@ -80,6 +103,12 @@
 }
 .service.public h4 {
     color: #1691cf;
+}
+.service.public p.guide {
+    border-left: 2px solid #58aed9;
+}
+.service.public a.guide {
+    color: #58aed9;
 }
 .service.public .button.start {
     min-width: 11em;
