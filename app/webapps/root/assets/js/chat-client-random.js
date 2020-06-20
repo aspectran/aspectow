@@ -2,7 +2,7 @@ let tokenIssuanceTimer;
 let tokenIssuanceCanceled;
 
 $(function () {
-    if (!Modernizr.websockets) {
+    if (!Modernizr.websockets || detectIE()) {
         gotoHome();
         return;
     }

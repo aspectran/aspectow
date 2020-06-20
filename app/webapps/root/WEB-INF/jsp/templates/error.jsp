@@ -11,27 +11,6 @@
 </script>
 </head>
 <body>
-    <div class="grid-y grid-frame">
-        <div class="header cell cell-block-container">
-            <div class="grid-x">
-                <div class="cell auto align-self-middle">
-                    <a class="button people" href="/" title="Text Chat Club"><i class="iconfont fi-results-demographics"></i></a>
-                    <h2>Text Chat Club</h2>
-                </div>
-                <div class="cell shrink align-self-middle text-right">
-                </div>
-            </div>
-        </div>
-        <div class="body shadow cell auto cell-block-container">
-            <div class="grid-x grid-padding-x grid-padding-y full-height">
-                <div class="sidebar cell medium-4 large-3 cell-block-y show-for-medium">
-                </div>
-                <div class="cell auto cell-block-y">
-                </div>
-            </div>
-        </div>
-    </div>
-    fdsfsa
     <c:if test="${not empty errorCode}">
         <jsp:include page="/WEB-INF/jsp/templates/includes/${errorCode}.jsp"/>
     </c:if>

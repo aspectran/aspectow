@@ -4,7 +4,7 @@
 <link rel="stylesheet" type="text/css" href="/assets/css/chat-common.css?v21" />
 <link rel="stylesheet" type="text/css" href="/assets/css/chat-random.css?v19" />
 <script src="/assets/js/chat-client-default.js?v21"></script>
-<script src="/assets/js/chat-client-random.js?v19"></script>
+<script src="/assets/js/chat-client-random.js?v20"></script>
 <script>
     const chatClientSettings = {
         serverEndpoint: "/chat/random/",

@@ -37,7 +37,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.25.3/moment.min.js"></script>
 <script src="https://www.google.com/recaptcha/api.js?render=explicit"></script>
 <script src="/assets/js/recaptcha.js?v1"></script>
-<script src="/assets/js/utils.js?v3"></script>
+<script src="/assets/js/utils.js?v4"></script>
 <script src="/assets/js/page-common.js?v23"></script>
 <script>
     /* Set a custom property that contains the height value of the viewport */

@@ -1,7 +1,7 @@
 let lobbyChatEnabled = false;
 
 $(function () {
-    if (!Modernizr.websockets) {
+    if (!Modernizr.websockets || detectIE()) {
         $("#message").blur();
         $("#message, #form-send-message button").prop("disabled", true);
         location.href = "/error/browser-not-supported";
