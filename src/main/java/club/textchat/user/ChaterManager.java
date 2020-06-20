@@ -54,18 +54,6 @@ public class ChaterManager extends InstantActivitySupport implements Initializab
         this.inConvoUsersPersistence = inConvoUsersPersistence;
     }
 
-    public boolean createChater(UserInfo userInfo) {
-        sqlSession.insert("users.insertUser", userInfo);
-        return (userInfo.getUserNo() > 0);
-    }
-
-    public void discardUsername(UserInfo userInfo) {
-        int affected = sqlSession.update("users.discardUsername", userInfo.getUserNo());
-        if (affected > 0 && logger.isDebugEnabled()) {
-            logger.debug("Discarded username " + userInfo);
-        }
-    }
-
     public boolean isInUseUsername(String username) {
         String httpSessionId = signedInUsersPersistence.get(username);
         return (httpSessionId != null && !httpSessionId.equals(userManager.getSessionId()));
@@ -79,25 +67,41 @@ public class ChaterManager extends InstantActivitySupport implements Initializab
         return inConvoUsersPersistence.exists(httpSessionId);
     }
 
+    private void acquireUsername(String sessionId, UserInfo userInfo) {
+        int affected = sqlSession.insert("users.insertUser", userInfo);
+        if (affected > 0 && logger.isDebugEnabled()) {
+            logger.debug("New user " + userInfo);
+        }
+        signedInUsersPersistence.put(userInfo.getUsername(), sessionId);
+    }
+
+    private void discardUsername(String sessionId, UserInfo userInfo) {
+        signedInUsersPersistence.abandon(userInfo.getUsername(), sessionId);
+        int affected = sqlSession.update("users.discardUsername", userInfo.getUserNo());
+        if (affected > 0 && logger.isDebugEnabled()) {
+            logger.debug("Discarded user " + userInfo);
+        }
+    }
+
     @Override
     public void initialize() throws Exception {
         SessionListenerRegistration sessionListenerRegistration = getBeanRegistry().getBean(SessionListenerRegistration.class);
         if (sessionListenerRegistration == null) {
             throw new IllegalStateException("Bean for SessionListenerRegistration must be defined");
         }
-        sessionListenerRegistration.register(new UserInfoUnboundListener(signedInUsersPersistence));
+        sessionListenerRegistration.register(new UserInfoUnboundListener(this));
     }
 
-    public class UserInfoUnboundListener implements SessionListener {
+    private static class UserInfoUnboundListener implements SessionListener {
 
-        private final SignedInUsersPersistence signedInUsersPersistence;
+        private final ChaterManager chaterManager;
 
-        public UserInfoUnboundListener(SignedInUsersPersistence signedInUsersPersistence) {
-            this.signedInUsersPersistence = signedInUsersPersistence;
+        public UserInfoUnboundListener(ChaterManager chaterManager) {
+            this.chaterManager = chaterManager;
         }
 
         public void sessionDestroyed(Session session) {
-            abandonUsername(session);
+            discardUsername(session);
         }
 
         public void attributeAdded(Session session, String name, Object value) {
@@ -107,36 +111,34 @@ public class ChaterManager extends InstantActivitySupport implements Initializab
         @Override
         public void attributeUpdated(Session session, String name, Object newValue, Object oldValue) {
             if (oldValue != null && oldValue != newValue) {
-                abandonUsername(name, oldValue, session.getId());
+                discardUsername(name, oldValue, session.getId());
             }
             acquireUsername(name, newValue, session.getId());
         }
 
         @Override
         public void attributeRemoved(Session session, String name, Object oldValue) {
-            abandonUsername(name, oldValue, session.getId());
+            discardUsername(name, oldValue, session.getId());
         }
 
         private void acquireUsername(String name, Object value, String sessionId) {
             if (UserManager.USER_INFO_SESSION_KEY.equals(name)) {
                 UserInfo userInfo = (UserInfo)value;
-                signedInUsersPersistence.put(userInfo.getUsername(), sessionId);
+                chaterManager.acquireUsername(sessionId, userInfo);
             }
         }
 
-        private void abandonUsername(String name, Object value, String sessionId) {
+        private void discardUsername(String name, Object value, String sessionId) {
             if (UserManager.USER_INFO_SESSION_KEY.equals(name)) {
                 UserInfo userInfo = (UserInfo)value;
-                signedInUsersPersistence.abandon(userInfo.getUsername(), sessionId);
-                discardUsername(userInfo);
+                chaterManager.discardUsername(sessionId, userInfo);
             }
         }
 
-        private void abandonUsername(Session session) {
+        private void discardUsername(Session session) {
             UserInfo userInfo = session.getAttribute(UserManager.USER_INFO_SESSION_KEY);
             if (userInfo != null) {
-                signedInUsersPersistence.abandon(userInfo.getUsername(), session.getId());
-                discardUsername(userInfo);
+                chaterManager.discardUsername(session.getId(), userInfo);
             }
         }
 

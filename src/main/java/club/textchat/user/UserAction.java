@@ -115,10 +115,6 @@ public class UserAction {
             userInfo.setIpAddr(((HttpServletRequest)translet.getRequestAdaptee()).getRemoteAddr());
         }
 
-        if (!chaterManager.createChater(userInfo)) {
-            return "-9";
-        }
-
         userManager.saveUserInfo(userInfo);
         return "0";
     }
@@ -126,10 +122,7 @@ public class UserAction {
     @Request("/signout")
     @Redirect("/")
     public void signOut() {
-        UserInfo userInfo = userManager.removeUserInfo();
-        if (userInfo != null) {
-            chaterManager.discardUsername(userInfo);
-        }
+        userManager.removeUserInfo();
     }
 
 }

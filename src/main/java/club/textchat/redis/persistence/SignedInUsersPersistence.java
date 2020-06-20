@@ -34,7 +34,7 @@ public class SignedInUsersPersistence extends AbstractPersistence {
 
     private static final String KEY_PREFIX = "signed:";
 
-    private static final int EXPIRY_PERIOD_IN_SECONDS = 5;
+    private static final int EXPIRY_PERIOD_IN_SECONDS = 3;
 
     @Autowired
     public SignedInUsersPersistence(RedisConnectionPool connectionPool) {
@@ -66,7 +66,7 @@ public class SignedInUsersPersistence extends AbstractPersistence {
         return false;
     }
 
-    private String  makeKey(String username) {
+    private String makeKey(String username) {
         if (username == null) {
             throw new IllegalArgumentException("username must not be null");
         }
