@@ -6,7 +6,7 @@
 <link rel="stylesheet" type="text/css" href="/assets/css/page-lobby.css?v19" />
 <script src="/assets/js/chat-client-default.js?v21"></script>
 <script src="/assets/js/chat-client-lobby.js?v24"></script>
-<script src="/assets/js/page-lobby.js?v19"></script>
+<script src="/assets/js/page-lobby.js?v20"></script>
 <script>
     const chatClientSettings = {
         serverEndpoint: "/chat/lobby/",
@@ -45,42 +45,27 @@
                     <c:if test="${not empty user}">
                         <%@ include file="includes/lobby-user.jsp" %>
                     </c:if>
-                    <div class="rooms grid-x grid-margin-x t15">
-                        <div class="cell medium-12 large-4 card room random">
-                            <div class="card-section">
-                                <a class="start" href="/random"><h4><aspectran:message code="lobby.random_chat"/></h4></a>
-                                <p><aspectran:message code="lobby.random_chat.teaser"/></p>
-                                <a class="button small start" href="/random"><aspectran:message code="lobby.random_chat.button.start"/></a>
-                            </div>
+                    <div class="grid-x grid-margin-x grid-margin-y grid-padding-x grid-padding-y t15">
+                        <div class="cell service random">
+                            <a class="start" href="/random"><h4><aspectran:message code="lobby.random_chat"/></h4></a>
+                            <p class="feature"><aspectran:message code="lobby.random_chat.teaser"/></p>
+                            <p class="guide show-for-large"><aspectran:message code="lobby.random_chat.guide"/></p>
+                            <p class="dummy hide-for-large"></p>
+                            <a class="button small start" href="/random"><aspectran:message code="lobby.random_chat.button.start"/></a>
                         </div>
-                        <div class="cell medium-12 large-8 card random guide show-for-large">
-                            <div class="card-section">
-                                <aspectran:message code="lobby.random_chat.guide"/>
-                            </div>
+                        <div class="cell service private create">
+                            <a class="private-room-create"><h4><aspectran:message code="lobby.private_chat"/></h4></a>
+                            <p class="feature"><aspectran:message code="lobby.private_chat.teaser"/></p>
+                            <p class="guide show-for-large"><aspectran:message code="lobby.private_chat.guide"/></p>
+                            <p class="dummy hide-for-large"></p>
+                            <a class="button small start private-room-create" title="Create a private chat room"><aspectran:message code="lobby.private_chat.button.create"/></a>
                         </div>
-                        <div class="cell medium-12 large-4 card room private create">
-                            <div class="card-section">
-                                <a class="private-room-create"><h4><aspectran:message code="lobby.private_chat"/></h4></a>
-                                <p><aspectran:message code="lobby.private_chat.teaser"/></p>
-                                <a class="button small start private-room-create" title="Create a private chat room"><aspectran:message code="lobby.private_chat.button.create"/></a>
-                            </div>
-                        </div>
-                        <div class="cell medium-12 large-8 card private guide show-for-large">
-                            <div class="card-section">
-                                <aspectran:message code="lobby.private_chat.guide"/>
-                            </div>
-                        </div>
-                        <div class="cell medium-12 large-4 card room public create">
-                            <div class="card-section">
-                                <a class="public-room-create"><h4><aspectran:message code="lobby.public_chat"/></h4></a>
-                                <p><aspectran:message code="lobby.public_chat.teaser"/></p>
-                                <a class="button small start public-room-create" title="Create an open chat room"><aspectran:message code="lobby.public_chat.button.create"/></a>
-                            </div>
-                        </div>
-                        <div class="cell medium-12 large-8 card public guide show-for-large">
-                            <div class="card-section">
-                                <aspectran:message code="lobby.public_chat.guide"/>
-                            </div>
+                        <div class="cell service public create">
+                            <a class="public-room-create"><h4><aspectran:message code="lobby.public_chat"/></h4></a>
+                            <p class="feature"><aspectran:message code="lobby.public_chat.teaser"/></p>
+                            <p class="guide show-for-large"><aspectran:message code="lobby.public_chat.guide"/></p>
+                            <p class="dummy hide-for-large"></p>
+                            <a class="button small start public-room-create" title="Create an open chat room"><aspectran:message code="lobby.public_chat.button.create"/></a>
                         </div>
                     </div>
                     <div class="grid-x grid-margin-y">
