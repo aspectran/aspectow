@@ -40,10 +40,10 @@ import java.io.IOException;
  */
 @Component
 @Bean
-public class LobbyMessageSubscriber extends RedisPubSubAdapter<String, String>
+public class LobbyChatMessageSubscriber extends RedisPubSubAdapter<String, String>
         implements InitializableBean, DisposableBean {
 
-    private static final Logger logger = LoggerFactory.getLogger(LobbyMessageSubscriber.class);
+    private static final Logger logger = LoggerFactory.getLogger(LobbyChatMessageSubscriber.class);
 
     private final StatefulRedisPubSubConnection<String, String> connection;
 
@@ -52,9 +52,9 @@ public class LobbyMessageSubscriber extends RedisPubSubAdapter<String, String>
     private final ChannelManager channelManager;
 
     @Autowired
-    public LobbyMessageSubscriber(RedisConnectionPool connectionPool,
-                                  LobbyChatHandler chatHandler,
-                                  ChannelManager channelManager) {
+    public LobbyChatMessageSubscriber(RedisConnectionPool connectionPool,
+                                      LobbyChatHandler chatHandler,
+                                      ChannelManager channelManager) {
         this.connection = connectionPool.getPubSubConnection();
         this.chatHandler = chatHandler;
         this.channelManager = channelManager;

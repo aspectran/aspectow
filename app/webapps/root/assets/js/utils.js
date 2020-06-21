@@ -56,3 +56,7 @@ function detectIE() {
     // other browser
     return false;
 }
+
+function isTouchDevice() {
+    return 'ontouchstart' in window || /iphone|ipod|ipad|android|iphone|ipad|ipod|blackberry|bada/i.test(navigator.userAgent);
+}

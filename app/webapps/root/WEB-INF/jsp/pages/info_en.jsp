@@ -9,7 +9,7 @@
                 <div class="text-center t30">
                     <img src="/assets/images/textchat-heartbeat.svg" width="70%" alt="Text Chat Club"/>
                 </div>
-                <div class="text-center t10">
+                <div class="text-center t20">
                     <a href="?locale=ko">한국어</a>
                 </div>
             </div>

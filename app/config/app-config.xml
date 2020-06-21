@@ -19,6 +19,7 @@
             <item name="redis.channel.public_chat" value="%{classpath:redis-dev.properties^channel.public_chat}"/>
             <item name="redis.channel.private_chat" value="%{classpath:redis-dev.properties^channel.private_chat}"/>
             <item name="redis.channel.random_chat" value="%{classpath:redis-dev.properties^channel.random_chat}"/>
+            <item name="redis.channel.stranger_chat" value="%{classpath:redis-dev.properties^channel.stranger_chat}"/>
             <item name="redis.channel.lobby_chat" value="%{classpath:redis-dev.properties^channel.lobby_chat}"/>
         </properties>
     </environment>
@@ -31,6 +32,7 @@
             <item name="redis.channel.public_chat" value="%{classpath:redis-prod.properties^channel.public_chat}"/>
             <item name="redis.channel.private_chat" value="%{classpath:redis-prod.properties^channel.private_chat}"/>
             <item name="redis.channel.random_chat" value="%{classpath:redis-prod.properties^channel.random_chat}"/>
+            <item name="redis.channel.stranger_chat" value="%{classpath:redis-prod.properties^channel.stranger_chat}"/>
             <item name="redis.channel.lobby_chat" value="%{classpath:redis-prod.properties^channel.lobby_chat}"/>
         </properties>
     </environment>
@@ -43,6 +45,7 @@
             <item name="redis.channel.public_chat" value="%{classpath:redis-prod-gcp.properties^channel.public_chat}"/>
             <item name="redis.channel.private_chat" value="%{classpath:redis-prod-gcp.properties^channel.private_chat}"/>
             <item name="redis.channel.random_chat" value="%{classpath:redis-prod-gcp.properties^channel.random_chat}"/>
+            <item name="redis.channel.stranger_chat" value="%{classpath:redis-prod-gcp.properties^channel.stranger_chat}"/>
             <item name="redis.channel.lobby_chat" value="%{classpath:redis-prod-gcp.properties^channel.lobby_chat}"/>
         </properties>
     </environment>

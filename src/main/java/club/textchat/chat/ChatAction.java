@@ -42,6 +42,8 @@ public class ChatAction {
 
     public static final String RANDOM_CHATROOM_ID = "-1";
 
+    public static final String STRANGER_CHATROOM_ID = "-2";
+
     private final UserManager userManager;
 
     private final PublicRoomManager publicRoomManager;
@@ -77,6 +79,31 @@ public class ChatAction {
             return "-1";
         }
         return createAdmissionToken(RANDOM_CHATROOM_ID, userInfo);
+    }
+
+    @Request("/strangers")
+    @Dispatch("templates/default")
+    @Action("page")
+    public Map<String, Object> startStrangerChat() {
+        UserInfo userInfo = null;
+        try {
+            userInfo = userManager.getUserInfo();
+        } catch (LoginRequiredException e) {
+            // ignore
+        }
+
+        String token = null;
+        if (userInfo != null) {
+            token = ChatAction.createAdmissionToken(STRANGER_CHATROOM_ID, userInfo);
+        }
+
+        Map<String, Object> map = new HashMap<>();
+        if (token != null) {
+            map.put("token", token);
+        }
+        map.put("roomId", STRANGER_CHATROOM_ID);
+        map.put("include", "pages/strangers");
+        return map;
     }
 
     @Request("/rooms/${roomId}")

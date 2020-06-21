@@ -33,23 +33,23 @@ import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
 
 /**
- * WebSocket endpoint for the lobby chat server.
+ * WebSocket endpoint for the stranger chat server.
  *
  * <p>Created: 29/09/2019</p>
  */
 @Component
 @ServerEndpoint(
-        value = "/chat/lobby/{token}",
+        value = "/chat/stranger/{token}",
         encoders = ChatMessageEncoder.class,
         decoders = ChatMessageDecoder.class,
         configurator = ChatServerConfigurator.class
 )
-public class LobbyChatServer {
+public class StrangerChatServer {
 
-    private final LobbyChatHandler chatHandler;
+    private final StrangerChatHandler chatHandler;
 
     @Autowired
-    public LobbyChatServer(LobbyChatHandler chatHandler) {
+    public StrangerChatServer(StrangerChatHandler chatHandler) {
         this.chatHandler = chatHandler;
     }
 

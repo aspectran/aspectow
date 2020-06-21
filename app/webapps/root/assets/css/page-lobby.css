@@ -5,8 +5,7 @@
 .service {
     position: relative;
     border-radius: 10px;
-    background-color: #fbfbfb;
-    border: 1px solid #6eb4d5;
+    background-color: #f3f3f3;
     margin-top: 0;
 }
 .service.cell {
@@ -52,14 +51,9 @@
     border-left: 1px solid #fff;
 }
 .service.random {
-    border: 1px solid #d26881;
-    background-color: #fbf0f3;
-}
-.service.random:hover .button.start {
-    background-color: #f56386;
 }
 .service.random h4 {
-    color: #d45472;
+    color: #e75f7f;
 }
 .service.random p.guide {
     border-left: 2px solid #d26881;
@@ -69,37 +63,57 @@
 }
 .service.random .button.start {
     min-width: 11em;
-    background-color: #d97c92;
+    background-color: #e07a91;
     color: #fff;
     font-size: .8em;
     font-weight: bold;
 }
-.service.private {
-    border: 1px solid #ffa83c;
-    background-color: #fae9d5;
+.service.random:hover .button.start {
+    background-color: #ea6887;
 }
-.service.private h4 {
-    color: #d27512;
+.service.strangers {
 }
-.service.private p.guide {
+.service.strangers h4 {
+    color: #e5831b;
+}
+.service.strangers p.guide {
     border-left: 2px solid #ffa83c;
 }
-.service.private a.guide {
+.service.strangers a.guide {
     color: #ffa83c;
 }
-.service.private .button.start {
+.service.strangers .button.start {
     min-width: 11em;
     background-color: #ea9f4b;
     color: #fff;
     font-size: .8em;
     font-weight: bold;
 }
-.service.private:hover .button.start {
+.service.strangers:hover .button.start {
     background-color: #f8a03d;
 }
+.service.private {
+}
+.service.private h4 {
+    color: #5fb440;
+}
+.service.private p.guide {
+    border-left: 2px solid #84d268;
+}
+.service.private a.guide {
+    color: #84d268;
+}
+.service.private .button.start {
+    min-width: 11em;
+    background-color: #78cd59;
+    color: #fff;
+    font-size: .8em;
+    font-weight: bold;
+}
+.service.private:hover .button.start {
+    background-color: #6dd746;
+}
 .service.public {
-    border: 1px solid #58aed9;
-    background-color: #e5f9f9;
 }
 .service.public h4 {
     color: #1691cf;
@@ -112,7 +126,7 @@
 }
 .service.public .button.start {
     min-width: 11em;
-    background-color: #6eb4d5;
+    background-color: #64bce5;
     color: #fff;
     font-size: .8em;
     font-weight: bold;
@@ -123,27 +137,18 @@
 .rooms .room {
     position: relative;
     border-radius: 10px;
-    background-color: #fbfbfb;
-    border: 1px solid #6eb4d5;
+    border: 1px solid #99ddfc;
+    padding: .5em .7em 1.5em;
+    color: #333;
+    font-size: .93em;
 }
 .rooms .room.cell {
     margin-bottom: 0;
 }
 .rooms .room h5 {
     color: #1691cf;
-    padding-right: 1em;
+    margin-right: 1em;
     margin-bottom: .5em;
-}
-.rooms .room .card-section {
-    margin: 1px;
-    padding: .5em .7em 1.5em;
-    color: #333;
-    font-size: .93em;
-}
-.rooms .room .card-section:hover {
-    border: 1px solid #99ddfc;
-    border-radius: 9px;
-    margin: 0;
 }
 .rooms .room .curr-users {
     position: absolute;
@@ -158,7 +163,7 @@
 }
 .rooms .room .new {
     position: absolute;
-    right: 0;
+    right: .1em;
     top: 0;
     padding: .1em;
     color: #ff8f18;
@@ -169,14 +174,14 @@
     position: absolute;
     right: 0;
     bottom: 0;
-    margin: 0 1px 1px 0;
-    border-radius: 20px 0 7px 0;
+    margin: 0;
+    border-radius: 10px 0 7px 0;
     background-color: #a1d2ea;
-    color: #444;
+    color: #003478;
     border-top: 1px solid #fff;
     border-left: 1px solid #fff;
 }
-.rooms .room .card-section:hover .button.start {
+.rooms .room:hover .button.start {
     background-color: #bee2f6;
 }
 h6.bar {

@@ -92,3 +92,46 @@
 #convo .message:nth-last-child(9) {
     opacity: .5;
 }
+.selection-info {
+    background-color: aliceblue;
+}
+.selection-info .fi-arrow-up {
+    float: left;
+    display: block;
+    font-size: 2em;
+    vertical-align: middle;
+    margin: .3em .3em 0 .5em;
+    color: #138484;
+    -webkit-animation: pointing-up .5s infinite alternate;
+    animation: pointing-up .5s infinite alternate;
+}
+.selection-info .fi-arrow-left {
+    float: left;
+    display: block;
+    font-size: 2em;
+    vertical-align: middle;
+    margin: 0 .3em 0 .5em;
+    color: #138484;
+    -webkit-animation: pointing-left .5s infinite alternate;
+    animation: pointing-left .5s infinite alternate;
+}
+.selection-info p {
+    padding: .7em;
+    margin: 0;
+}
+@-webkit-keyframes pointing-up {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(-10px); }
+}
+@keyframes pointing-up {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(-10px); }
+}
+@-webkit-keyframes pointing-left {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-10px); }
+}
+@keyframes pointing-left {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-10px); }
+}

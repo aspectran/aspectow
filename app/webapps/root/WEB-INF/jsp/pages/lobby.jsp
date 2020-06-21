@@ -1,10 +1,10 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://aspectran.com/tags" prefix="aspectran" %>
-<link rel="stylesheet" type="text/css" href="/assets/css/chat-common.css?v21" />
+<link rel="stylesheet" type="text/css" href="/assets/css/chat-core.css?v21" />
 <link rel="stylesheet" type="text/css" href="/assets/css/chat-lobby.css?v19" />
 <link rel="stylesheet" type="text/css" href="/assets/css/page-lobby.css?v21" />
-<script src="/assets/js/chat-client-default.js?v21"></script>
+<script src="/assets/js/chat-client-core.js?v21"></script>
 <script src="/assets/js/chat-client-lobby.js?v24"></script>
 <script src="/assets/js/page-lobby.js?v20"></script>
 <script>
@@ -28,14 +28,8 @@
         <div class="grid-x full-height">
             <div class="sidebar cell medium-4 large-3 cell-block-y hide-for-small-only">
                 <c:if test="${empty user}">
-                    <div class="text-center t30">
+                    <div class="text-center t30 b20">
                         <img src="/assets/images/textchat-heartbeat.svg" width="70%" alt="Text Chat Club"/>
-                    </div>
-                    <div class="text-center t10">
-                        <a href="?locale=en">English</a>
-                    </div>
-                    <div class="text-center t5">
-                        <a href="?locale=ko">한국어</a>
                     </div>
                 </c:if>
                 <ul id="contacts"></ul>
@@ -45,30 +39,38 @@
                     <c:if test="${not empty user}">
                         <%@ include file="includes/lobby-user.jsp" %>
                     </c:if>
-                    <div class="grid-x grid-margin-x grid-margin-y grid-padding-x grid-padding-y t15">
+                    <div class="services grid-x grid-margin-x grid-margin-y grid-padding-x grid-padding-y large-up-2 t15">
                         <div class="cell service random">
-                            <a class="title start" href="/random"><h4><aspectran:message code="lobby.random_chat"/></h4></a>
-                            <p class="feature"><aspectran:message code="lobby.random_chat.feature"/></p>
-                            <p class="guide show-for-large"><aspectran:message code="lobby.random_chat.guide"/></p>
-                            <p class="dummy hide-for-large"></p>
-                            <a class="guide hide-for-large" title="<aspectran:message code="lobby.random_chat.button.guide"/>"><i class="fi-info"></i></a>
-                            <a class="button small start" href="/random"><aspectran:message code="lobby.random_chat.button.start"/></a>
+                            <a class="title start" href="/random"><h4><aspectran:message code="service.random_chat"/></h4></a>
+                            <p class="feature"><aspectran:message code="service.random_chat.feature"/></p>
+                            <p class="guide show-for-large"><aspectran:message code="service.random_chat.guide"/></p>
+                            <p class="dummy"></p>
+                            <a class="guide hide-for-large" title="<aspectran:message code="service.random_chat.button.guide"/>"><i class="fi-info"></i></a>
+                            <a class="button small start" href="/random"><aspectran:message code="service.random_chat.button.start"/></a>
+                        </div>
+                        <div class="cell service strangers">
+                            <a class="title start" href="/strangers"><h4><aspectran:message code="service.stranger_chat"/></h4></a>
+                            <p class="feature"><aspectran:message code="service.stranger_chat.feature"/></p>
+                            <p class="guide show-for-large"><aspectran:message code="service.stranger_chat.guide"/></p>
+                            <p class="dummy"></p>
+                            <a class="guide hide-for-large" title="<aspectran:message code="service.stranger_chat.button.guide"/>"><i class="fi-info"></i></a>
+                            <a class="button small start" href="/strangers"><aspectran:message code="service.stranger_chat.button.start"/></a>
                         </div>
                         <div class="cell service private create">
-                            <a class="title private-room-create"><h4><aspectran:message code="lobby.private_chat"/></h4></a>
-                            <p class="feature"><aspectran:message code="lobby.private_chat.feature"/></p>
-                            <p class="guide show-for-large"><aspectran:message code="lobby.private_chat.guide"/></p>
-                            <p class="dummy hide-for-large"></p>
-                            <a class="guide hide-for-large" title="<aspectran:message code="lobby.private_chat.button.guide"/>"><i class="fi-info"></i></a>
-                            <a class="button small start private-room-create" title="Create a private chat room"><aspectran:message code="lobby.private_chat.button.create"/></a>
+                            <a class="title private-room-create"><h4><aspectran:message code="service.private_chat"/></h4></a>
+                            <p class="feature"><aspectran:message code="service.private_chat.feature"/></p>
+                            <p class="guide show-for-large"><aspectran:message code="service.private_chat.guide"/></p>
+                            <p class="dummy"></p>
+                            <a class="guide hide-for-large" title="<aspectran:message code="service.private_chat.button.guide"/>"><i class="fi-info"></i></a>
+                            <a class="button small start private-room-create" title="Create a private chat room"><aspectran:message code="service.private_chat.button.create"/></a>
                         </div>
                         <div class="cell service public create">
-                            <a class="title public-room-create"><h4><aspectran:message code="lobby.public_chat"/></h4></a>
-                            <p class="feature"><aspectran:message code="lobby.public_chat.feature"/></p>
-                            <p class="guide show-for-large"><aspectran:message code="lobby.public_chat.guide"/></p>
-                            <p class="dummy hide-for-large"></p>
-                            <a class="guide hide-for-large" title="<aspectran:message code="lobby.public_chat.button.guide"/>"><i class="fi-info"></i></a>
-                            <a class="button small start public-room-create" title="Create an open chat room"><aspectran:message code="lobby.public_chat.button.create"/></a>
+                            <a class="title public-room-create"><h4><aspectran:message code="service.public_chat"/></h4></a>
+                            <p class="feature"><aspectran:message code="service.public_chat.feature"/></p>
+                            <p class="guide show-for-large"><aspectran:message code="service.public_chat.guide"/></p>
+                            <p class="dummy"></p>
+                            <a class="guide hide-for-large" title="<aspectran:message code="service.public_chat.button.guide"/>"><i class="fi-info"></i></a>
+                            <a class="button small start public-room-create" title="Create an open chat room"><aspectran:message code="service.public_chat.button.create"/></a>
                         </div>
                     </div>
                     <div class="grid-x grid-margin-y">
@@ -77,29 +79,24 @@
                                 <a class="refresh-rooms float-right"><i class="fi-refresh"> <aspectran:message code="lobby.rooms.button.refresh"/></i></a></h6>
                         </div>
                     </div>
-                    <div class="rooms public grid-x grid-margin-x grid-margin-y b15">
+                    <div class="rooms public grid-x grid-margin-x grid-margin-y medium-up-2 large-up-3 b15">
                     <c:forEach items="${page.rooms}" var="roomInfo">
-                        <div class="cell small-12 medium-6 large-4 card room<c:if test="${roomInfo.currentUsers gt 0}"> active</c:if>">
-                            <div class="card-section">
-                                <a class="start" href="/rooms/${roomInfo.roomId}"><h5>${roomInfo.roomName}</h5></a>
-                                <i class="curr-users fi-torsos-all"> <span>${roomInfo.currentUsers}</span></i>
-                                <c:if test="${roomInfo.pastDays le 1}"><i class="new fi-burst-new"></i></c:if>
-                                <a class="button small start" href="/rooms/${roomInfo.roomId}"><aspectran:message code="lobby.rooms.button.enter_chatroom"/></a>
-                            </div>
+                        <div class="cell room<c:if test="${roomInfo.currentUsers gt 0}"> active</c:if>">
+                            <a class="title start" href="/rooms/${roomInfo.roomId}"><h5>${roomInfo.roomName}</h5></a>
+                            <i class="curr-users fi-torsos-all"> <span>${roomInfo.currentUsers}</span></i>
+                            <c:if test="${roomInfo.pastDays le 1}"><i class="new fi-burst-new"></i></c:if>
+                            <a class="button small start" href="/rooms/${roomInfo.roomId}"><aspectran:message code="lobby.rooms.button.enter_chatroom"/></a>
                         </div>
                     </c:forEach>
-                        <div class="new-room-template cell small-12 medium-6 large-4 card room" style="display: none">
-                            <div class="card-section">
-                                <a class="start"><h5></h5></a>
-                                <i class="curr-users fi-torsos-all"> <span>0</span></i>
-                                <i class="new fi-burst-new" style="display: none"></i>
-                                <a class="button small start"><aspectran:message code="lobby.rooms.button.enter_chatroom"/></a>
-                            </div>
+                        <div class="new-room-template cell room" style="display: none">
+                            <a class="title start"><h5></h5></a>
+                            <i class="curr-users fi-torsos-all"> <span>0</span></i>
+                            <i class="new fi-burst-new" style="display: none"></i>
+                            <a class="button small start"><aspectran:message code="lobby.rooms.button.enter_chatroom"/></a>
                         </div>
                     </div>
                 </div>
-                <div id="convo">
-                </div>
+                <div id="convo"></div>
             </div>
         </div>
     </div>

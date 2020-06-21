@@ -56,7 +56,7 @@ $(function () {
         copyToClipboard("#lobby-private-room-create-complete .private-chatroom-url");
         $(this).data("old-text", $(this).text()).text(modalMessages.copied).addClass("alert");
     });
-    $(".rooms a.start[href]").on("click", function (event) {
+    $("a.start[href]").on("click", function (event) {
         event.stopPropagation();
         closeSocket();
         location.href = $(this).attr("href");

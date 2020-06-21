@@ -46,6 +46,9 @@ $(function () {
         }
         frequentlySentCount++;
         $("#form-send-message button.send").addClass("busy");
+        if (isTouchDevice()) {
+            $("#form-send-message button.send").focus().blur();
+        }
         setTimeout(function () {
             $("#form-send-message button.send").removeClass("busy");
         }, 500);
@@ -291,7 +294,7 @@ function addChater(userNo, username) {
         .data("user-no", userNo)
         .data("username", username);
     let status = $("<div/>").addClass("status");
-    let badge = $("<i class='iconfont fi-record'/>");
+    let badge = $("<i class='iconfont fi-mountains'/>");
     let name = $("<div class='name'/>").text(username);
     contact.append(status.append(badge)).append(name).appendTo($("#contacts"));
     if (userInfo.userNo === userNo) {

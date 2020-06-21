@@ -6,7 +6,7 @@
 #contacts .contact {
     position: relative;
     margin: 4px;
-    padding: .3em .6em .4em 2.4em;
+    padding: .26em .6em .26em 2.2em;
     color: #217aa6;
     font-size: .95em;
     background-color: #a8e0fd;
@@ -19,10 +19,14 @@
     background-color: #95d6f6;
     cursor: pointer;
 }
+#contacts .contact.me:hover {
+    background-color: #95d6f6;
+    cursor: default;
+}
 #contacts .contact .status {
     position: absolute;
-    left: .5em;
-    top: .45em;
+    left: .3em;
+    top: .285em;
     width: 2em;
     padding: .2em .64em;
     border-radius: 50%;
@@ -51,8 +55,8 @@
     overflow: auto;
 }
 #convo .message .content {
-    border-radius: 20px;
-    padding: 6px 16px;
+    border-radius: 1em;
+    padding: .38em .9em;
     margin: 0 0 2px;
     line-height: 1.2;
     word-wrap: anywhere;
@@ -74,6 +78,9 @@
     background-color: #f1f1f1;
     color: #333;
     text-align: center;
+    font-size: .9em;
+    padding-left: 1.1em;
+    padding-right: 1.1em;
 }
 #convo .message.event.group {
     border-radius: 6px;
@@ -108,7 +115,7 @@
 }
 #convo .message.event.group .more {
     position: absolute;
-    top: 4px;
+    top: .24em;
     left: 0;
     color: #ff5900;
     cursor: pointer;
@@ -178,6 +185,12 @@
 }
 .message-box button.pause {
     color: #aaa;
+}
+.message-box button.quiet {
+    margin-left: 5px;
+    padding-left: 7px;
+    padding-right: 7px;
+    border-radius: 5px !important;
 }
 @media screen and (max-width: 39.9375em) {
     .message-box {

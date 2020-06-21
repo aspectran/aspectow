@@ -79,7 +79,7 @@ public class LobbyAction {
 
     @Request("/lobby/rooms")
     @Transform(FormatType.JSON)
-    public List<RoomInfo> getMostPopularPublicChatRooms() throws LoginRequiredException {
+    public List<RoomInfo> getPopularPublicChatRooms() throws LoginRequiredException {
         userManager.checkSignedIn();
         return publicRoomManager.getRoomList();
     }

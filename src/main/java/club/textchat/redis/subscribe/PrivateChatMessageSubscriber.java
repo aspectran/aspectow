@@ -17,7 +17,7 @@ package club.textchat.redis.subscribe;
 
 import club.textchat.redis.RedisConnectionPool;
 import club.textchat.server.ChatHandler;
-import club.textchat.server.RandomChatHandler;
+import club.textchat.server.PrivateChatHandler;
 import club.textchat.server.message.ChatMessage;
 import club.textchat.server.message.payload.BroadcastPayload;
 import club.textchat.server.message.payload.UserJoinedPayload;
@@ -40,10 +40,10 @@ import java.io.IOException;
  */
 @Component
 @Bean
-public class RandomMessageSubscriber extends RedisPubSubAdapter<String, String>
+public class PrivateChatMessageSubscriber extends RedisPubSubAdapter<String, String>
         implements InitializableBean, DisposableBean {
 
-    private static final Logger logger = LoggerFactory.getLogger(RandomMessageSubscriber.class);
+    private static final Logger logger = LoggerFactory.getLogger(PrivateChatMessageSubscriber.class);
 
     private final StatefulRedisPubSubConnection<String, String> connection;
 
@@ -52,9 +52,9 @@ public class RandomMessageSubscriber extends RedisPubSubAdapter<String, String>
     private final ChannelManager channelManager;
 
     @Autowired
-    public RandomMessageSubscriber(RedisConnectionPool connectionPool,
-                                   RandomChatHandler chatHandler,
-                                   ChannelManager channelManager) {
+    public PrivateChatMessageSubscriber(RedisConnectionPool connectionPool,
+                                        PrivateChatHandler chatHandler,
+                                        ChannelManager channelManager) {
         this.connection = connectionPool.getPubSubConnection();
         this.chatHandler = chatHandler;
         this.channelManager = channelManager;
@@ -74,18 +74,19 @@ public class RandomMessageSubscriber extends RedisPubSubAdapter<String, String>
         }
         BroadcastPayload broadcastPayload = chatMessage.getBroadcastPayload();
         if (broadcastPayload != null) {
-            chatHandler.broadcast(chatMessage, broadcastPayload.getUserNo());
-            chatHandler.broadcast(chatMessage, chatMessage.getReceiver());
+            chatHandler.broadcast(chatMessage, broadcastPayload.getRoomId());
             return;
         }
         UserJoinedPayload userJoinedPayload = chatMessage.getUserJoinedPayload();
         if (userJoinedPayload != null) {
-            chatHandler.broadcast(chatMessage, chatMessage.getReceiver());
+            chatHandler.broadcast(chatMessage, (targetRoomId, targetUserNo) ->
+                    (targetRoomId.equals(userJoinedPayload.getRoomId()) &&
+                            targetUserNo != userJoinedPayload.getUserNo()));
             return;
         }
         UserLeftPayload userLeftPayload = chatMessage.getUserLeftPayload();
         if (userLeftPayload != null) {
-            chatHandler.broadcast(chatMessage, chatMessage.getReceiver());
+            chatHandler.broadcast(chatMessage, userLeftPayload.getRoomId()); // talker already left
         }
     }
 
@@ -93,7 +94,7 @@ public class RandomMessageSubscriber extends RedisPubSubAdapter<String, String>
     public void initialize() throws Exception {
         connection.addListener(this);
         RedisPubSubCommands<String, String> sync = connection.sync();
-        sync.subscribe(channelManager.getRandomChatChannel());
+        sync.subscribe(channelManager.getPrivateChatChannel());
     }
 
     @Override
