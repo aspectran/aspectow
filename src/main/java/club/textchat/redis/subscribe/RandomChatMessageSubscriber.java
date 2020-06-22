@@ -73,19 +73,15 @@ public class RandomChatMessageSubscriber extends RedisPubSubAdapter<String, Stri
             return;
         }
         BroadcastPayload broadcastPayload = chatMessage.getBroadcastPayload();
-        if (broadcastPayload != null) {
-            chatHandler.broadcast(chatMessage, broadcastPayload.getUserNo());
-            chatHandler.broadcast(chatMessage, chatMessage.getReceiver());
-            return;
-        }
         UserJoinedPayload userJoinedPayload = chatMessage.getUserJoinedPayload();
-        if (userJoinedPayload != null) {
-            chatHandler.broadcast(chatMessage, chatMessage.getReceiver());
-            return;
-        }
         UserLeftPayload userLeftPayload = chatMessage.getUserLeftPayload();
-        if (userLeftPayload != null) {
-            chatHandler.broadcast(chatMessage, chatMessage.getReceiver());
+        if (broadcastPayload != null) {
+            chatHandler.send(chatMessage, broadcastPayload.getUserNo());
+            chatHandler.send(chatMessage, chatMessage.getReceiver());
+        } else if (userJoinedPayload != null) {
+            chatHandler.send(chatMessage, chatMessage.getReceiver());
+        } else if (userLeftPayload != null) {
+            chatHandler.send(chatMessage, chatMessage.getReceiver());
         }
     }
 

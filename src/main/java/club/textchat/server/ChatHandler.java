@@ -21,14 +21,14 @@ import java.util.function.BiPredicate;
 
 public interface ChatHandler {
 
-    void broadcast(ChatMessage message);
+    void send(ChatMessage message);
 
-    void broadcast(ChatMessage message, String roomId);
+    void send(ChatMessage message, String roomId);
 
-    void broadcast(ChatMessage message, int userNo);
+    void send(ChatMessage message, int userNo);
 
-    void broadcast(ChatMessage message, String roomId, int userNo);
+    void send(ChatMessage message, String roomId, int userNo);
 
-    void broadcast(ChatMessage message, BiPredicate<String, Integer> predicate);
+    void send(ChatMessage message, BiPredicate<String, Integer> predicate);
 
 }

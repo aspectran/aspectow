@@ -82,7 +82,7 @@ public class RandomChatHandler extends AbstractChatHandler {
                 return;
             }
             switch (payload.getType()) {
-                case CHAT:
+                case POST:
                     ChaterInfo chaterInfo2 = getPartner(payload.getUserNo());
                     broadcastMessage(chaterInfo, chaterInfo2, payload.getContent());
                     break;
@@ -164,7 +164,7 @@ public class RandomChatHandler extends AbstractChatHandler {
         payload.setUsername(chaterInfo2.getUsername());
         ChatMessage message = new ChatMessage(payload);
         message.setReceiver(chaterInfo.getUserNo());
-        broadcast(message, chaterInfo.getUserNo());
+        send(message, chaterInfo.getUserNo());
         broadcastUserJoined(chaterInfo, chaterInfo2.getUserNo());
     }
 

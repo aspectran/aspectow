@@ -73,20 +73,16 @@ public class LobbyChatMessageSubscriber extends RedisPubSubAdapter<String, Strin
             return;
         }
         BroadcastPayload broadcastPayload = chatMessage.getBroadcastPayload();
-        if (broadcastPayload != null) {
-            chatHandler.broadcast(chatMessage);
-            return;
-        }
         UserJoinedPayload userJoinedPayload = chatMessage.getUserJoinedPayload();
-        if (userJoinedPayload != null) {
-            chatHandler.broadcast(chatMessage, (targetRoomId, targetUserNo) ->
+        UserLeftPayload userLeftPayload = chatMessage.getUserLeftPayload();
+        if (broadcastPayload != null) {
+            chatHandler.send(chatMessage);
+        } else if (userJoinedPayload != null) {
+            chatHandler.send(chatMessage, (targetRoomId, targetUserNo) ->
                     (targetRoomId.equals(userJoinedPayload.getRoomId()) &&
                             targetUserNo != userJoinedPayload.getUserNo()));
-            return;
-        }
-        UserLeftPayload userLeftPayload = chatMessage.getUserLeftPayload();
-        if (userLeftPayload != null) {
-            chatHandler.broadcast(chatMessage); // talker already left
+        } else if (userLeftPayload != null) {
+            chatHandler.send(chatMessage); // talker already left
         }
     }
 

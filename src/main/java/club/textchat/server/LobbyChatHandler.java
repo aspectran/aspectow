@@ -27,6 +27,7 @@ import club.textchat.server.message.payload.UserJoinedPayload;
 import club.textchat.server.message.payload.UserLeftPayload;
 import com.aspectran.core.component.bean.annotation.Bean;
 import com.aspectran.core.component.bean.annotation.Component;
+import com.aspectran.core.util.StringUtils;
 
 import javax.websocket.CloseReason;
 import javax.websocket.Session;
@@ -39,7 +40,7 @@ import java.util.Set;
 @Bean
 public class LobbyChatHandler extends AbstractChatHandler {
 
-    public final static String USER_MESSAGE_PREFIX = "say:";
+    public static final String BROADCAST_MESSAGE_PREFIX = "broadcast:";
 
     private final LobbyChatPersistence lobbyChatPersistence;
 
@@ -59,8 +60,11 @@ public class LobbyChatHandler extends AbstractChatHandler {
         if (payload != null) {
             ChaterInfo chaterInfo = getChaterInfo(session);
             switch (payload.getType()) {
-                case CHAT:
-                    broadcastMessage(chaterInfo, USER_MESSAGE_PREFIX + payload.getContent());
+                case POST:
+                    String content = payload.getContent();
+                    if (!StringUtils.isEmpty(content)) {
+                        broadcastMessage(chaterInfo, BROADCAST_MESSAGE_PREFIX + payload.getContent());
+                    }
                     break;
                 case JOIN:
                     String username = chaterInfo.getUsername();

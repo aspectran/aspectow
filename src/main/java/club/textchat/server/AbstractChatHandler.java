@@ -120,28 +120,28 @@ public abstract class AbstractChatHandler extends InstantActivitySupport impleme
     }
 
     @Override
-    public void broadcast(ChatMessage message) {
-        broadcast(message, (targetRoomId, targetUserNo) -> true);
+    public void send(ChatMessage message) {
+        send(message, (targetRoomId, targetUserNo) -> true);
     }
 
     @Override
-    public void broadcast(ChatMessage message, String roomId) {
-        broadcast(message, (targetRoomId, targetUserNo) -> targetRoomId.equals(roomId));
+    public void send(ChatMessage message, String roomId) {
+        send(message, (targetRoomId, targetUserNo) -> targetRoomId.equals(roomId));
     }
 
     @Override
-    public void broadcast(ChatMessage message, int userNo) {
-        broadcast(message, (targetRoomId, targetUserNo) -> (targetUserNo == userNo));
+    public void send(ChatMessage message, int userNo) {
+        send(message, (targetRoomId, targetUserNo) -> (targetUserNo == userNo));
     }
 
     @Override
-    public void broadcast(ChatMessage message, String roomId, int userNo) {
-        broadcast(message, (targetRoomId, targetUserNo) ->
+    public void send(ChatMessage message, String roomId, int userNo) {
+        send(message, (targetRoomId, targetUserNo) ->
                 (targetRoomId.equals(roomId) && (targetUserNo == userNo)));
     }
 
     @Override
-    public void broadcast(ChatMessage message, BiPredicate<String, Integer> predicate) {
+    public void send(ChatMessage message, BiPredicate<String, Integer> predicate) {
         for (Map.Entry<ChaterInfo, Session> entry : chaters.entrySet()) {
             ChaterInfo chaterInfo = entry.getKey();
             Session session = entry.getValue();

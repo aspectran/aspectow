@@ -23,8 +23,6 @@ import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Bean;
 import com.aspectran.core.component.bean.annotation.Component;
 
-import static club.textchat.server.LobbyChatHandler.USER_MESSAGE_PREFIX;
-
 /**
  * <p>Created: 2020/05/03</p>
  */
@@ -49,10 +47,6 @@ public class LobbyChatPersistence extends AbstractPersistence {
         BroadcastPayload payload = new BroadcastPayload();
         payload.setContent(content);
         publish(new ChatMessage(payload));
-    }
-
-    public void say(String content) {
-        publish(USER_MESSAGE_PREFIX + content);
     }
 
 }

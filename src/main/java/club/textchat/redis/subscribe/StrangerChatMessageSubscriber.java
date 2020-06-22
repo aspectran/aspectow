@@ -17,7 +17,6 @@ package club.textchat.redis.subscribe;
 
 import club.textchat.redis.RedisConnectionPool;
 import club.textchat.server.ChatHandler;
-import club.textchat.server.LobbyChatHandler;
 import club.textchat.server.StrangerChatHandler;
 import club.textchat.server.message.ChatMessage;
 import club.textchat.server.message.payload.BroadcastPayload;
@@ -35,6 +34,10 @@ import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
 import io.lettuce.core.pubsub.api.sync.RedisPubSubCommands;
 
 import java.io.IOException;
+
+import static club.textchat.server.StrangerChatHandler.CHAT_REQUEST;
+import static club.textchat.server.StrangerChatHandler.CHAT_REQUEST_CANCELED;
+import static club.textchat.server.StrangerChatHandler.CHAT_REQUEST_REFUSED;
 
 /**
  * <p>Created: 2020/05/10</p>
@@ -74,20 +77,36 @@ public class StrangerChatMessageSubscriber extends RedisPubSubAdapter<String, St
             return;
         }
         BroadcastPayload broadcastPayload = chatMessage.getBroadcastPayload();
-        if (broadcastPayload != null) {
-            chatHandler.broadcast(chatMessage);
-            return;
-        }
         UserJoinedPayload userJoinedPayload = chatMessage.getUserJoinedPayload();
-        if (userJoinedPayload != null) {
-            chatHandler.broadcast(chatMessage, (targetRoomId, targetUserNo) ->
+        UserLeftPayload userLeftPayload = chatMessage.getUserLeftPayload();
+        if (broadcastPayload != null) {
+            String content = broadcastPayload.getContent();
+            if (content.startsWith(CHAT_REQUEST)) {
+                int targetUserNo = StrangerChatHandler.parseTargetUserNo(content);
+                if (targetUserNo > 0) {
+                    chatHandler.send(chatMessage, targetUserNo);
+                }
+            } else if (content.startsWith(CHAT_REQUEST_REFUSED)) {
+                int targetUserNo = StrangerChatHandler.parseTargetUserNo(content);
+                if (targetUserNo > 0) {
+                    broadcastPayload.setContent(CHAT_REQUEST_REFUSED + broadcastPayload.getUserNo());
+                    chatHandler.send(chatMessage, targetUserNo);
+                }
+            } else if (content.startsWith(CHAT_REQUEST_CANCELED)) {
+                int targetUserNo = StrangerChatHandler.parseTargetUserNo(content);
+                if (targetUserNo > 0) {
+                    broadcastPayload.setContent(CHAT_REQUEST_CANCELED + broadcastPayload.getUserNo());
+                    chatHandler.send(chatMessage, targetUserNo);
+                }
+            } else {
+                chatHandler.send(chatMessage);
+            }
+        } else if (userJoinedPayload != null) {
+            chatHandler.send(chatMessage, (targetRoomId, targetUserNo) ->
                     (targetRoomId.equals(userJoinedPayload.getRoomId()) &&
                             targetUserNo != userJoinedPayload.getUserNo()));
-            return;
-        }
-        UserLeftPayload userLeftPayload = chatMessage.getUserLeftPayload();
-        if (userLeftPayload != null) {
-            chatHandler.broadcast(chatMessage); // talker already left
+        } else if (userLeftPayload != null) {
+            chatHandler.send(chatMessage); // talker already left
         }
     }
 

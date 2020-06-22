@@ -52,13 +52,16 @@ public class ChatersPersistence extends AbstractPersistence {
     }
 
     public boolean isChater(ChaterInfo chaterInfo) {
-        Set<String> chaters = getChaters(chaterInfo.getRoomId());
+        return isChater(chaterInfo.getRoomId(), chaterInfo.getUserNo());
+    }
+
+    public boolean isChater(String roomId, int userNo) {
+        Set<String> chaters = getChaters(roomId);
         if (chaters != null) {
             for (String str : chaters) {
                 int index = str.indexOf(VALUE_SEPARATOR);
                 if (index > -1) {
-                    String userNo = str.substring(0, index);
-                    if (chaterInfo.getUserNo() == Integer.parseInt(userNo)) {
+                    if (Integer.parseInt(str.substring(0, index)) == userNo) {
                         return true;
                     }
                 }

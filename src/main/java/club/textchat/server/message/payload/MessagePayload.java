@@ -48,7 +48,7 @@ public class MessagePayload extends AbstractParameters {
     }
 
     public enum MessageType {
-        CHAT,
+        POST,
         JOIN
     }
 

@@ -260,7 +260,7 @@ function sendMessage() {
     let text = $msg.val().trim();
     if (text) {
         let message = {
-            type: 'CHAT',
+            type: 'POST',
             userNo: userInfo.userNo,
             username: userInfo.username,
             content: text

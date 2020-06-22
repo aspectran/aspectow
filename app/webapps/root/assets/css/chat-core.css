@@ -70,6 +70,7 @@
     position: relative;
     margin-top: 0;
     margin-bottom: 6px;
+    border-radius: 6px;
 }
 #convo .message.event .content {
     margin: 0;
@@ -79,8 +80,8 @@
     color: #333;
     text-align: center;
     font-size: .9em;
-    padding-left: 1.1em;
-    padding-right: 1.1em;
+    padding-left: 1.2em;
+    padding-right: 1em;
 }
 #convo .message.event.group {
     border-radius: 6px;
@@ -119,9 +120,6 @@
     left: 0;
     color: #ff5900;
     cursor: pointer;
-}
-#convo .message.event.group.all-visible .more {
-    color: #aaa;
 }
 #convo .message.event .content strong {
     font-weight: bold;

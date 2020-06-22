@@ -1,4 +1,4 @@
-let lobbyChatEnabled = false;
+let broadcastEnabled = false;
 
 $(function () {
     if (!Modernizr.websockets || detectIE()) {
@@ -12,10 +12,10 @@ $(function () {
         $("#message, #form-send-message button").prop("disabled", true);
         return;
     }
-    lobbyChatEnabled = true;
+    broadcastEnabled = true;
     $("#form-send-message button.quiet").on("click", function () {
-        lobbyChatEnabled = !lobbyChatEnabled;
-        if (lobbyChatEnabled) {
+        broadcastEnabled = !broadcastEnabled;
+        if (broadcastEnabled) {
             $(this).removeClass("pause");
             $("#message, #form-send-message button.send").prop("disabled", false);
             $("#convo").show();
@@ -28,20 +28,23 @@ $(function () {
 });
 
 function printMessage(payload, restored) {
-    if (!lobbyChatEnabled) {
-        return;
-    }
-    if (!payload.content.startsWith("say:")) {
+    if (payload.content.startsWith("broadcast:")) {
+        if (broadcastEnabled) {
+            printBroadcastMessage(payload);
+        }
+    } else {
         handleSystemMessage(payload.content);
-        return;
     }
+}
+
+function printBroadcastMessage(payload) {
     let convo = $("#convo");
     if (convo.find(".message").length >= 5) {
         convo.find(".message").first().remove();
     }
     let sender = $("<code class='sender'/>").text(payload.username);
     let content = $("<p class='content'/>")
-        .text(payload.content.substring(4))
+        .text(payload.content.substring(10))
         .prepend(sender);
     let message = $("<div/>")
         .addClass("message")
@@ -84,7 +87,7 @@ function printUserLeftMessage(payload, restored) {
 }
 
 function printEvent(text, timeout) {
-    if (!lobbyChatEnabled) {
+    if (!broadcastEnabled) {
         return;
     }
     let convo = $("#convo");

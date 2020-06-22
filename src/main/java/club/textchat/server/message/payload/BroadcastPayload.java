@@ -81,6 +81,10 @@ public class BroadcastPayload extends AbstractParameters {
         putValue(BroadcastPayload.username, username);
     }
 
+    public String getContent() {
+        return getString(content);
+    }
+
     public void setContent(String content) {
         putValue(BroadcastPayload.content, content);
     }

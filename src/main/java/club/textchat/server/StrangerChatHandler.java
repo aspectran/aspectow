@@ -27,10 +27,15 @@ import club.textchat.server.message.payload.UserJoinedPayload;
 import club.textchat.server.message.payload.UserLeftPayload;
 import com.aspectran.core.component.bean.annotation.Bean;
 import com.aspectran.core.component.bean.annotation.Component;
+import com.aspectran.core.util.StringUtils;
+import com.aspectran.core.util.json.JsonWriter;
 
 import javax.websocket.CloseReason;
 import javax.websocket.Session;
+import java.io.IOException;
 import java.util.Set;
+
+import static club.textchat.chat.ChatAction.STRANGER_CHATROOM_ID;
 
 /**
  * <p>Created: 2020/05/14</p>
@@ -39,7 +44,13 @@ import java.util.Set;
 @Bean
 public class StrangerChatHandler extends AbstractChatHandler {
 
-    public final static String USER_MESSAGE_PREFIX = "say:";
+    public static final String CHAT_REQUEST = "request:";
+
+    public static final String CHAT_REQUEST_REFUSED = "request-refused:";
+
+    public static final String CHAT_REQUEST_CANCELED = "request-canceled:";
+
+    public static final String BROADCAST_MESSAGE_PREFIX = "broadcast:";
 
     private final StrangerChatPersistence strangerChatPersistence;
 
@@ -59,8 +70,22 @@ public class StrangerChatHandler extends AbstractChatHandler {
         if (payload != null) {
             ChaterInfo chaterInfo = getChaterInfo(session);
             switch (payload.getType()) {
-                case CHAT:
-                    broadcastMessage(chaterInfo, USER_MESSAGE_PREFIX + payload.getContent());
+                case POST:
+                    String content = payload.getContent();
+                    if (!StringUtils.isEmpty(content)) {
+                        if (content.startsWith(CHAT_REQUEST)) {
+                            int targetUserNo = parseTargetUserNo(content);
+                            if (!chatersPersistence.isChater(STRANGER_CHATROOM_ID, targetUserNo)) {
+                                sendChatRequestMessage(chaterInfo, "request-canceled", targetUserNo);
+                            } else {
+                                broadcastChatRequestMessage(chaterInfo, content);
+                            }
+                        } else if (content.startsWith(CHAT_REQUEST_REFUSED) || content.startsWith(CHAT_REQUEST_CANCELED)) {
+                            broadcastMessage(chaterInfo, content);
+                        } else {
+                            broadcastMessage(chaterInfo, BROADCAST_MESSAGE_PREFIX + payload.getContent());
+                        }
+                    }
                     break;
                 case JOIN:
                     String username = chaterInfo.getUsername();
@@ -156,6 +181,44 @@ public class StrangerChatHandler extends AbstractChatHandler {
         payload.setColor(chaterInfo.getColor());
         ChatMessage message = new ChatMessage(payload);
         strangerChatPersistence.publish(message);
+    }
+
+    private void broadcastChatRequestMessage(ChaterInfo chaterInfo, String content) {
+        try {
+            JsonWriter writer = new JsonWriter().prettyPrint(false);
+            writer.beginObject();
+            writer.writeName("userNo").writeValue(chaterInfo.getUserNo());
+            writer.writeName("username").writeValue(chaterInfo.getUsername());
+            writer.writeName("country").writeValue(chaterInfo.getCountry());
+            writer.endObject();
+            broadcastMessage(chaterInfo, content + ":" + writer.toString());
+        } catch (IOException e) {
+            // ignore
+        }
+    }
+
+    private void sendChatRequestMessage(ChaterInfo chaterInfo, String requestType, int userNo) {
+        BroadcastPayload payload = new BroadcastPayload();
+        payload.setRoomId(chaterInfo.getRoomId());
+        payload.setUserNo(chaterInfo.getUserNo());
+        payload.setUsername(chaterInfo.getUsername());
+        payload.setContent(requestType + ":" + userNo);
+        ChatMessage message = new ChatMessage(payload);
+        send(message, chaterInfo.getUserNo());
+    }
+
+    public static int parseTargetUserNo(String content) {
+        try {
+            String prefix = content.substring(0, content.indexOf(":") + 1);
+            int start = prefix.length();
+            int end = content.indexOf(":", start);
+            if (end == -1) {
+                end = content.length();
+            }
+            return Integer.parseInt(content.substring(start, end));
+        } catch (NumberFormatException e) {
+            return 0;
+        }
     }
 
 }

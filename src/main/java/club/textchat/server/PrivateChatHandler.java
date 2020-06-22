@@ -62,7 +62,7 @@ public class PrivateChatHandler extends AbstractChatHandler {
         if (payload != null) {
             ChaterInfo chaterInfo = getChaterInfo(session);
             switch (payload.getType()) {
-                case CHAT:
+                case POST:
                     broadcastMessage(chaterInfo, payload.getContent());
                     break;
                 case JOIN:
