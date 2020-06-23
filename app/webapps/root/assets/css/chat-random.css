@@ -1,5 +1,5 @@
 .random #convo .message.event .content {
-    padding: 1em;
+    text-align: left;
 }
 .random #convo .message.event .content .button {
     border: none;

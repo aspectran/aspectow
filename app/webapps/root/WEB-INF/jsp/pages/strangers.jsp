@@ -14,7 +14,7 @@
         homepage: "/"
     }
     const chatClientMessages = {
-        "userJoined": "<aspectran:message code='chat.common.user_joined'/>",
+        "userJoined": "<aspectran:message code='chat.stranger.user_joined'/>",
         "userLeft": "<aspectran:message code='chat.common.user_left'/>",
         "systemError": "<aspectran:message code='chat.common.system_error'/>",
         "serviceNotAvailable": "<aspectran:message code='chat.common.service_not_available'/>"
@@ -32,81 +32,75 @@
                     <div class="choose-info grid-x grid-margin-x show-for-small-only">
                         <div class="cell">
                             <i class="iconfont fi-arrow-up"></i>
-                            <p>위 버튼을 클릭하면 낯선 사람을 선택할 수 있습니다.</p>
+                            <p><aspectran:message code='chat.stranger.choose_info_small'/></p>
                         </div>
                     </div>
                     <div class="choose-info grid-x grid-margin-x show-for-medium">
                         <div class="cell">
                             <i class="iconfont fi-arrow-left"></i>
-                            <p>낯선 사람을 선택하세요.</p>
+                            <p><aspectran:message code='chat.stranger.choose_info_large'/></p>
                         </div>
                     </div>
                     <div class="chat-requests grid-x grid-margin-x t15">
-                        <div class="confirm-request template cell grid-x">
-                            <div class="cell auto">
-                                <p class="title">[username]님에게 채팅 요청을 하시겠습니까?</p>
+                        <div class="confirm-request template cell grid-x medium-up-1 large-up-2">
+                            <div class="cell">
+                                <p class="title"><aspectran:message code='chat.stranger.confirm_request'/></p>
                             </div>
-                            <div class="cell shrink align-self-bottom text-right">
+                            <div class="cell align-self-bottom text-right">
                                 <button type="button" class="button small alert cancel"><aspectran:message code="common.button.cancel"/></button>
                                 <button type="button" class="button small success ok"><aspectran:message code="common.button.ok"/></button>
                             </div>
                         </div>
-                        <div class="request active template cell grid-x">
-                            <div class="cell auto">
-                                <p class="title">[username]님의 수락을 기다리고 있습니다.</p>
-                                <p><i class="icon-heart"></i> 남은 시간: <span class="remains">35</span>초</p>
-                                <p class="done">새로운 채팅방으로 이동하겠습니다.</p>
+                        <div class="request active template cell grid-x medium-up-1 large-up-2">
+                            <div class="cell">
+                                <p class="title"><aspectran:message code='chat.stranger.request'/></p>
+                                <p><i class="icon-heart"></i> <aspectran:message code='chat.stranger.time_left'/>: <span class="remains">35</span><aspectran:message code='chat.stranger.time_left_secs'/></p>
+                                <p class="done"><aspectran:message code='chat.stranger.request_done'/></p>
                             </div>
-                            <div class="cell shrink align-self-bottom text-right">
+                            <div class="cell align-self-bottom text-right">
                                 <button type="button" class="button small alert cancel"><aspectran:message code="common.button.cancel"/></button>
                             </div>
                         </div>
-                        <div class="request-received active template cell grid-x">
-                            <div class="cell auto">
-                                <p class="title">[username]님으로부터 채팅 요청을 받았습니다.</p>
-                                <p>제한 시간이 만료되면 채팅 요청을 자동으로 거절합니다.</p>
-                                <p><i class="icon-heart"></i> 남은 시간: <span class="remains">30</span>초</p>
-                                <p class="done">새로운 채팅방으로 이동하겠습니다.</p>
+                        <div class="request-received active template cell grid-x medium-up-1 large-up-2">
+                            <div class="cell">
+                                <p class="title"><aspectran:message code='chat.stranger.request_received'/></p>
+                                <p><aspectran:message code='chat.stranger.request_received_1'/></p>
+                                <p><i class="icon-heart"></i> <aspectran:message code='chat.stranger.time_left'/>: <span class="remains">30</span><aspectran:message code='chat.stranger.time_left_secs'/></p>
+                                <p class="done"><aspectran:message code='chat.stranger.request_done'/></p>
                             </div>
-                            <div class="cell shrink align-self-bottom text-right">
-                                <button type="button" class="button small alert decline">거절</button>
-                                <button type="button" class="button small success accept">수락</button>
+                            <div class="cell align-self-bottom text-right">
+                                <button type="button" class="button small alert decline"><aspectran:message code='common.button.decline'/></button>
+                                <button type="button" class="button small success accept"><aspectran:message code='common.button.accept'/></button>
                             </div>
                         </div>
                         <div class="canceled-request template cell grid-x">
                             <div class="cell auto">
-                                <p class="title">[username]님에게 보낸 채팅 요청을 취소했습니다.</p>
+                                <p class="title"><aspectran:message code='chat.stranger.canceled_request'/></p>
                             </div>
                         </div>
                         <div class="request-canceled template cell grid-x">
                             <div class="cell auto">
-                                <p class="title">[username]님이 채팅 요청을 취소했습니다.</p>
+                                <p class="title"><aspectran:message code='chat.stranger.request_canceled'/></p>
                             </div>
                         </div>
                         <div class="declined-request template cell grid-x">
                             <div class="cell auto">
-                                <p class="title">[username]님의 채팅 요청을 거절했습니다.</p>
+                                <p class="title"><aspectran:message code='chat.stranger.declined_request'/></p>
                             </div>
                         </div>
                         <div class="request-declined template cell grid-x">
                             <div class="cell auto">
-                                <p class="title">[username]님에게 보낸 채팅 요청은 거절되었습니다.</p>
+                                <p class="title"><aspectran:message code='chat.stranger.request_declined'/></p>
                             </div>
                         </div>
-<%--                        <div class="request-accepted template cell grid-x">--%>
-<%--                            <div class="cell auto">--%>
-<%--                                <p class="title">[username]님이 채팅 요청을 수락했습니다.</p>--%>
-<%--                                <p>지금 대화방으로 이동합니다.</p>--%>
-<%--                            </div>--%>
-<%--                        </div>--%>
                         <div class="request-timeout template cell grid-x">
                             <div class="cell auto">
-                                <p class="title">[username]님을 기다리는 중에 제한시간이 만료되었습니다.</p>
+                                <p class="title"><aspectran:message code='chat.stranger.request_timeout'/></p>
                             </div>
                         </div>
                         <div class="exceeded-requests template cell grid-x">
                             <div class="cell auto">
-                                <p class="title">동시 요청은 최대 3번까지 허용됩니다.</p>
+                                <p class="title"><aspectran:message code='chat.stranger.exceeded_requests'/></p>
                             </div>
                         </div>
                     </div>

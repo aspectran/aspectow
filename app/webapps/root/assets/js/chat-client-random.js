@@ -85,9 +85,11 @@ function stopLooking(convoClear) {
 }
 
 function drawSearchBar() {
-    let text = "<i class='iconfont fi-shuffle banner'></i>" +
-        "<button type='button' class='success button next'>" + chatClientMessages.searchAnother + "</button>";
-    printEvent(text);
+    let html = "<div class='text-center'>" +
+        "<i class='iconfont fi-shuffle banner'></i>" +
+        "<button type='button' class='success button next'>" + chatClientMessages.searchAnother + "</button>" +
+        "</div>";
+    printEvent(html);
 }
 
 function drawLookingBar(intermission) {
@@ -100,10 +102,11 @@ function drawLookingBar(intermission) {
         banner = "<i class='iconfont fi-shuffle banner active'></i>";
         title = "<h3>" + chatClientMessages.looking + "</h3>";
     }
-    let text = banner + title +
+    let html = "<div class='text-center'>" + banner + title +
         "<div class='progress-bar'><div class='cylon_eye'></div></div>" +
-        "<button type='button' class='success button cancel'>" + chatClientMessages.cancel + "</button>";
-    printEvent(text);
+        "<button type='button' class='success button cancel'>" + chatClientMessages.cancel + "</button>" +
+        "</div>";
+    printEvent(html);
     if (intermission) {
         setTimeout(function () {
             $("#convo .message.event .content .banner").addClass("animate");

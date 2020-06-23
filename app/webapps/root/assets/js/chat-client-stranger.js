@@ -31,13 +31,23 @@ $(function () {
         if (ele.hasClass("me")) {
             return;
         }
-        $(".choose-info").hide();
         hideSidebar();
+        $(".choose-info").hide();
         let userNo = ele.data("user-no");
         let username = ele.data("username");
-        let t = newChatRequestTemplate("confirm-request", null, username);
-        t.data("user-no", userNo);
-        t.data("username", username);
+        let cnt = $(".chat-requests .confirm-request:visible, .chat-requests .request:visible").length;
+        if (cnt >= 3) {
+            newChatRequestTemplate("exceeded-requests", null);
+            setTimeout(function () {
+                $(".chat-requests .exceeded-requests:visible").fadeOut(1000);
+            }, 3000);
+            return;
+        }
+        if (!isRequestingChat(userNo)) {
+            let t = newChatRequestTemplate("confirm-request", null, username);
+            t.data("user-no", userNo);
+            t.data("username", username);
+        }
     });
 
     $(".chat-requests").on("click", ".confirm-request:visible .ok", function () {
@@ -81,6 +91,18 @@ $(function () {
     });
 });
 
+function isRequestingChat(targetUserNo) {
+    let result = false;
+    $(".chat-requests .confirm-request:visible, .chat-requests .request:visible, .chat-requests .request-received:visible").each(function () {
+        let ele = $(this);
+        let userNo = ele.data("user-no");
+        if (userNo && userNo === targetUserNo) {
+            result = true;
+        }
+    });
+    return result;
+}
+
 function newChatRequestTemplate(requestType, before, username) {
     let t = $(".chat-requests ." + requestType + ".template").clone().removeClass("template");
     if (username) {
@@ -88,11 +110,13 @@ function newChatRequestTemplate(requestType, before, username) {
         title = title.replace("[username]", "<strong>" + username + "</strong>");
         t.find(".title").html(title);
     }
+    t.hide();
     if (before) {
         before.after(t);
     } else {
         t.appendTo(".chat-requests");
     }
+    t.fadeIn();
     return t;
 }
 
@@ -101,11 +125,12 @@ function handleChatRequestMessage(content) {
         return;
     }
     if (content.startsWith("request:")) {
+        $(".choose-info").hide();
         let userNo = parseTargetUserNo(content);
         if (userNo === userInfo.userNo) {
             let prefix = "request:" + userNo + ":";
-            let requestUserInfo = deserialize(content.substring(prefix.length));
-            chatRequest(requestUserInfo);
+            let targetUserInfo = deserialize(content.substring(prefix.length));
+            chatRequest(targetUserInfo);
         }
     } else if (content.startsWith("request-canceled:")) {
         let userNo = parseTargetUserNo(content);
@@ -125,6 +150,7 @@ function handleChatRequestMessage(content) {
 }
 
 function chatRequest(targetUserInfo) {
+    hideSidebar();
     let t = newChatRequestTemplate("request-received", null, targetUserInfo.username);
     t.data("user-no", targetUserInfo.userNo);
     t.data("username", targetUserInfo.username);
@@ -134,7 +160,7 @@ function chatRequest(targetUserInfo) {
 }
 
 function chatRequestCanceled(targetUserNo) {
-    $(".chat-requests .request-received").each(function () {
+    $(".chat-requests .request-received:visible").each(function () {
         let ele = $(this);
         let userNo = ele.data("user-no");
         let username = ele.data("username");
@@ -146,7 +172,7 @@ function chatRequestCanceled(targetUserNo) {
 }
 
 function chatRequestDeclined(targetUserNo) {
-    $(".chat-requests .request").each(function () {
+    $(".chat-requests .request:visible").each(function () {
         let ele = $(this);
         let userNo = ele.data("user-no");
         let username = ele.data("username");
@@ -158,10 +184,10 @@ function chatRequestDeclined(targetUserNo) {
 }
 
 function chatRequestAccepted(targetUserNo) {
-    $(".chat-requests .request, .chat-requests .request-received").each(function () {
+    $(".chat-requests .request:visible, .chat-requests .request-received:visible").each(function () {
         let ele = $(this);
         let userNo = ele.data("user-no");
-        if (userNo === targetUserNo) {
+        if (userNo && userNo === targetUserNo) {
             chatRequestEstablished = true;
             ele.data("done", true);
             ele.find("button").prop("disabled", true);
