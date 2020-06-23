@@ -167,8 +167,7 @@ input#for-automata-clear {
     position: absolute;
     right: 0;
     bottom: 0;
-    max-width: 36px;
-    max-height: 26px;
+    width: 40px;
     border-radius: 6px 0 6px 0;
 }
 .user .nameplate .username {

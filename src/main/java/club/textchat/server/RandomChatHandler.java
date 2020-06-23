@@ -186,10 +186,8 @@ public class RandomChatHandler extends AbstractChatHandler {
     private void broadcastMessage(ChaterInfo chaterInfo, ChaterInfo chaterInfo2, String content) {
         if (chaterInfo2 != null) {
             BroadcastPayload payload = new BroadcastPayload();
-            payload.setUserNo(chaterInfo.getUserNo());
-            payload.setUsername(chaterInfo.getUsername());
+            payload.setChater(chaterInfo);
             payload.setContent(content);
-            payload.setColor(chaterInfo.getColor());
             ChatMessage message = new ChatMessage(payload);
             message.setReceiver(chaterInfo2.getUserNo());
             randomChatPersistence.publish(message);

@@ -19,10 +19,16 @@ import club.textchat.user.UserInfo;
 import com.aspectran.core.lang.NonNull;
 import com.aspectran.core.lang.Nullable;
 import com.aspectran.core.util.ToStringBuilder;
+import com.aspectran.core.util.apon.JsonToApon;
+import com.aspectran.core.util.apon.Parameter;
+import com.aspectran.core.util.apon.Parameters;
+import com.aspectran.core.util.apon.ValueType;
+import com.aspectran.core.util.json.JsonReader;
 import com.aspectran.core.util.json.JsonWriter;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.io.StringReader;
 import java.time.ZoneId;
 import java.util.Objects;
 
@@ -41,18 +47,17 @@ public class ChaterInfo extends UserInfo implements Serializable {
 
     private ZoneId zoneId;
 
-    public ChaterInfo(String roomId, int userNo, String username) {
-        setRoomId(roomId);
-        setUserNo(userNo);
-        setUsername(username);
-    }
-
     public ChaterInfo(@NonNull UserInfo userInfo) {
         setUserNo(userInfo.getUserNo());
         setUsername(userInfo.getUsername());
         setCountry(userInfo.getCountry());
         setColor(userInfo.getColor());
         setZoneId(userInfo.getTimeZone());
+    }
+
+    public ChaterInfo(String roomId, String json) {
+        setRoomId(roomId);
+        deserialize(json);
     }
 
     @NonNull
@@ -123,7 +128,7 @@ public class ChaterInfo extends UserInfo implements Serializable {
 
     public String serialize() {
         try {
-            JsonWriter writer = new JsonWriter().prettyPrint(false);
+            JsonWriter writer = new JsonWriter().prettyPrint(false).nullWritable(false);
             writer.beginObject();
             writer.writeName("userNo").writeValue(getUserNo());
             writer.writeName("username").writeValue(getUsername());
@@ -133,6 +138,18 @@ public class ChaterInfo extends UserInfo implements Serializable {
             return writer.toString();
         } catch (IOException e) {
             return "";
+        }
+    }
+
+    private void deserialize(String json) {
+        try {
+            Parameters parameters = JsonToApon.from(json);
+            setUserNo(parameters.getInt("userNo"));
+            setUsername(parameters.getString("username"));
+            setCountry(parameters.getString("country"));
+            setColor(parameters.getString("color"));
+        } catch (IOException e) {
+            // ignore
         }
     }
 

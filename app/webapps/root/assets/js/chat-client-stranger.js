@@ -224,21 +224,22 @@ function printMessage(payload, restored) {
 }
 
 function printBroadcastMessage(payload) {
+    let chater = deserialize(payload.chater);
     let convo = $("#convo");
     if (convo.find(".message").length >= 5) {
         convo.find(".message").first().remove();
     }
-    let sender = $("<code class='sender'/>").text(payload.username);
+    let sender = $("<code class='sender'/>").text(chater.username);
     let content = $("<p class='content'/>")
         .text(payload.content.substring(10))
         .prepend(sender);
     let message = $("<div/>")
         .addClass("message")
-        .data("user-no", payload.userNo)
-        .data("username", payload.username)
+        .data("user-no", chater.userNo)
+        .data("username", chater.username)
         .append(content);
-    if (payload.color) {
-        message.addClass("my-col-" + payload.color);
+    if (chater.color) {
+        message.addClass("my-col-" + chater.color);
     }
     convo.append(message);
     scrollToBottom(convo, false);

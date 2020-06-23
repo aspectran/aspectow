@@ -149,12 +149,9 @@ public class PublicChatHandler extends AbstractChatHandler {
 
     private void broadcastMessage(ChaterInfo chaterInfo, String content) {
         BroadcastPayload payload = new BroadcastPayload();
-        payload.setRoomId(chaterInfo.getRoomId());
-        payload.setUserNo(chaterInfo.getUserNo());
-        payload.setUsername(chaterInfo.getUsername());
+        payload.setChater(chaterInfo);
         payload.setContent(content);
         payload.setDatetime(getCurrentDatetime(chaterInfo));
-        payload.setColor(chaterInfo.getColor());
         ChatMessage message = new ChatMessage(payload);
         publicChatPersistence.publish(chaterInfo.getRoomId(), message);
     }

@@ -174,12 +174,9 @@ public class StrangerChatHandler extends AbstractChatHandler {
 
     private void broadcastMessage(ChaterInfo chaterInfo, String content) {
         BroadcastPayload payload = new BroadcastPayload();
-        payload.setRoomId(chaterInfo.getRoomId());
-        payload.setUserNo(chaterInfo.getUserNo());
-        payload.setUsername(chaterInfo.getUsername());
+        payload.setChater(chaterInfo);
         payload.setContent(content);
         payload.setDatetime(getCurrentDatetime(chaterInfo));
-        payload.setColor(chaterInfo.getColor());
         ChatMessage message = new ChatMessage(payload);
         strangerChatPersistence.publish(message);
     }
@@ -190,9 +187,7 @@ public class StrangerChatHandler extends AbstractChatHandler {
 
     private void sendChatRequestMessage(ChaterInfo chaterInfo, String requestType, int userNo) {
         BroadcastPayload payload = new BroadcastPayload();
-        payload.setRoomId(chaterInfo.getRoomId());
-        payload.setUserNo(chaterInfo.getUserNo());
-        payload.setUsername(chaterInfo.getUsername());
+        payload.setChater(chaterInfo);
         payload.setContent(requestType + ":" + userNo);
         ChatMessage message = new ChatMessage(payload);
         send(message, chaterInfo.getUserNo());

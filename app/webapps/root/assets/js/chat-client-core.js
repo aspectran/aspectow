@@ -194,23 +194,27 @@ function handleMessage(chatMessage) {
         let payload = chatMessage[val];
         if (payload) {
             switch (val) {
-                case "heartBeat":
+                case "heartBeat": {
                     if (payload === "-pong-") {
                         heartbeatPing();
                     }
                     break;
-                case "broadcast":
+                }
+                case "broadcast": {
                     printMessage(payload);
                     break;
-                case "userJoined":
+                }
+                case "userJoined": {
                     addChater(deserialize(payload.chater));
                     printUserJoinedMessage(payload);
                     break;
-                case "userLeft":
+                }
+                case "userLeft": {
                     removeChater(payload.userNo);
                     printUserLeftMessage(payload);
                     break;
-                case "join":
+                }
+                case "join": {
                     pendedMessages = [];
                     setChaters(payload.chaters);
                     if (payload.recentConvo) {
@@ -223,7 +227,8 @@ function handleMessage(chatMessage) {
                     }
                     pendedMessages = null;
                     break;
-                case "abort":
+                }
+                case "abort": {
                     chatAborted = true;
                     justStayHere = false;
                     switch (payload.cause) {
@@ -243,6 +248,7 @@ function handleMessage(chatMessage) {
                             serviceNotAvailable();
                     }
                     break;
+                }
             }
         }
     });
@@ -418,6 +424,7 @@ function printUserEvent(payload, event, restored) {
 }
 
 function printMessage(payload, restored) {
+    let chater = deserialize(payload.chater);
     let convo = $("#convo");
     let content = $("<p class='content'/>").text(payload.content);
     if (payload.datetime) {
@@ -427,23 +434,23 @@ function printMessage(payload, restored) {
             datetime.format(hours < 24 ? "LTS" : "L LT") + "</span>");
     }
     let last = convo.find(".message").last();
-    if (last.length && !last.hasClass("event") && last.data("user-no") === payload.userNo) {
+    if (last.length && !last.hasClass("event") && last.data("user-no") === chater.userNo) {
         if (restored) {
             last.addClass("restored");
         }
         last.append(content);
     } else {
-        let myself = (userInfo.userNo === payload.userNo);
-        let sender = $("<span class='username'/>").text(payload.username);
+        let myself = (userInfo.userNo === chater.userNo);
+        let sender = $("<span class='username'/>").text(chater.username);
         let message = $("<div/>")
             .addClass(myself ? "message sent" : "message received")
-            .data("user-no", payload.userNo)
-            .data("username", payload.username)
+            .data("user-no", chater.userNo)
+            .data("username", chater.username)
             .append(sender).append(content);
         if (restored) {
             message.addClass("restored");
-        } else if (payload.color) {
-            message.addClass("my-col-" + payload.color);
+        } else if (chater.color) {
+            message.addClass("my-col-" + chater.color);
         }
         convo.append(message);
     }
@@ -470,15 +477,18 @@ function printRecentConvo(chatMessages) {
             let payload = chatMessage[val];
             if (payload) {
                 switch (val) {
-                    case "broadcast":
+                    case "broadcast": {
                         printMessage(payload, true);
                         break;
-                    case "userJoined":
+                    }
+                    case "userJoined": {
                         printUserJoinedMessage(payload, true);
                         break;
-                    case "userLeft":
+                    }
+                    case "userLeft": {
                         printUserLeftMessage(payload, true);
                         break;
+                    }
                 }
             }
         });

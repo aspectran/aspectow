@@ -15,6 +15,7 @@
  */
 package club.textchat.server.message.payload;
 
+import club.textchat.server.ChaterInfo;
 import com.aspectran.core.util.apon.AbstractParameters;
 import com.aspectran.core.util.apon.ParameterKey;
 import com.aspectran.core.util.apon.ValueType;
@@ -28,7 +29,7 @@ public class BroadcastPayload extends AbstractParameters {
 
     private static final ParameterKey roomId;
     private static final ParameterKey userNo;
-    private static final ParameterKey username;
+    private static final ParameterKey chater;
     private static final ParameterKey content;
     private static final ParameterKey datetime;
     private static final ParameterKey color;
@@ -38,7 +39,7 @@ public class BroadcastPayload extends AbstractParameters {
     static {
         roomId = new ParameterKey("roomId", ValueType.STRING);
         userNo = new ParameterKey("userNo", ValueType.INT);
-        username = new ParameterKey("username", ValueType.STRING);
+        chater = new ParameterKey("chater", ValueType.STRING);
         content = new ParameterKey("content", ValueType.STRING);
         datetime = new ParameterKey("datetime", ValueType.STRING);
         color = new ParameterKey("color", ValueType.STRING);
@@ -46,7 +47,7 @@ public class BroadcastPayload extends AbstractParameters {
         parameterKeys = new ParameterKey[] {
                 roomId,
                 userNo,
-                username,
+                chater,
                 content,
                 datetime,
                 color
@@ -61,7 +62,7 @@ public class BroadcastPayload extends AbstractParameters {
         return getString(roomId);
     }
 
-    public void setRoomId(String roomId) {
+    private void setRoomId(String roomId) {
         putValue(BroadcastPayload.roomId, roomId);
     }
 
@@ -69,16 +70,14 @@ public class BroadcastPayload extends AbstractParameters {
         return getInt(userNo);
     }
 
-    public void setUserNo(int userNo) {
+    private void setUserNo(int userNo) {
         putValue(BroadcastPayload.userNo, userNo);
     }
 
-    public String getUsername() {
-        return getString(username);
-    }
-
-    public void setUsername(String username) {
-        putValue(BroadcastPayload.username, username);
+    public void setChater(ChaterInfo chaterInfo) {
+        setRoomId(chaterInfo.getRoomId());
+        setUserNo(chaterInfo.getUserNo());
+        putValue(BroadcastPayload.chater, chaterInfo.serialize());
     }
 
     public String getContent() {

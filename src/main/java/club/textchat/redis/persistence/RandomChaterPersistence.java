@@ -46,9 +46,8 @@ public class RandomChaterPersistence extends AbstractPersistence {
         if (str != null && !NONE.equals(str)) {
             int index = str.indexOf(VALUE_SEPARATOR);
             if (index > -1) {
-                String userNo2 = str.substring(0, index);
-                String username = str.substring(index + 1);
-                return new ChaterInfo(ChatAction.RANDOM_CHATROOM_ID, Integer.parseInt(userNo2), username);
+                String json = str.substring(index + 1);
+                return new ChaterInfo(ChatAction.RANDOM_CHATROOM_ID, json);
             }
         }
         return null;
@@ -84,7 +83,7 @@ public class RandomChaterPersistence extends AbstractPersistence {
     }
 
     private String makeValue(ChaterInfo chaterInfo) {
-        return chaterInfo.getUserNo() + VALUE_SEPARATOR + chaterInfo.getUsername();
+        return chaterInfo.getUserNo() + VALUE_SEPARATOR + chaterInfo.serialize();
     }
 
 }

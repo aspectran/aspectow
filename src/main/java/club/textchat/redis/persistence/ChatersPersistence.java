@@ -76,9 +76,8 @@ public class ChatersPersistence extends AbstractPersistence {
         if (str != null) {
             int index = str.indexOf(VALUE_SEPARATOR);
             if (index > -1) {
-                String userNo = str.substring(0, index);
-                String username = str.substring(index + 1);
-                return new ChaterInfo(roomId, Integer.parseInt(userNo), username);
+                String json = str.substring(index + 1);
+                return new ChaterInfo(roomId, json);
             }
         }
         return null;

@@ -7,20 +7,16 @@
     position: relative;
     margin: 4px;
     padding: .26em .6em .26em 2.2em;
-    color: #217aa6;
     font-size: .95em;
-    background-color: #a8e0fd;
+    color: #186286;
+    background-color: #99d9fc;
     border-radius: 8px 8px 5px 8px;
 }
-#contacts .contact.me {
-    background-color: #95d6f6;
-}
 #contacts .contact:hover {
-    background-color: #95d6f6;
+    background-color: #8dd5fa;
     cursor: pointer;
 }
 #contacts .contact.me:hover {
-    background-color: #95d6f6;
     cursor: default;
 }
 #contacts .contact .status {
@@ -64,8 +60,7 @@
     position: absolute;
     right: 0;
     bottom: 0;
-    max-width: 28px;
-    max-height: 20px;
+    width: 30px;
     border-radius: 5px 0 5px 0;
 }
 #convo {
