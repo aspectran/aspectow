@@ -62,7 +62,7 @@ public class ChatAction {
     @Request("/random")
     @Dispatch("templates/default")
     @Action("page")
-    public Map<String, String> startRandomChat() {
+    public Map<String, String> randomChat() {
         Map<String, String> map = new HashMap<>();
         map.put("roomId", RANDOM_CHATROOM_ID);
         map.put("include", "pages/random");
@@ -84,7 +84,7 @@ public class ChatAction {
     @Request("/strangers")
     @Dispatch("templates/default")
     @Action("page")
-    public Map<String, Object> startStrangerChat() {
+    public Map<String, Object> strangerChat() {
         UserInfo userInfo = null;
         try {
             userInfo = userManager.getUserInfo();
@@ -103,6 +103,42 @@ public class ChatAction {
         }
         map.put("roomId", STRANGER_CHATROOM_ID);
         map.put("include", "pages/strangers");
+        return map;
+    }
+
+    @Request("/strangers/${encryptedRoomId}")
+    @Dispatch("templates/default")
+    @Action("page")
+    public Map<String, String> startStrangerChat(Translet translet, String encryptedRoomId) {
+        if (StringUtils.isEmpty(encryptedRoomId)) {
+            translet.redirect("/");
+            return null;
+        }
+
+        String roomId;
+        try {
+            roomId = PBEncryptionUtils.decrypt(encryptedRoomId);
+        } catch (Exception e) {
+            throw new InvalidChatRoomException(encryptedRoomId, "room-not-found");
+        }
+
+        UserInfo userInfo;
+        try {
+            userInfo = userManager.getUserInfo();
+        } catch (LoginRequiredException e) {
+            translet.redirect("/");
+            return null;
+        }
+
+        String roomName = translet.getMessage("service.stranger_chat");
+
+        Map<String, String> map = new HashMap<>();
+        map.put("roomId", roomId);
+        map.put("roomName", roomName);
+        map.put("token", createAdmissionToken(roomId, userInfo));
+        map.put("title", roomName);
+        map.put("include", "pages/private");
+        map.put("homepage", "/strangers");
         return map;
     }
 
@@ -189,9 +225,9 @@ public class ChatAction {
 
     public static String createAdmissionToken(String roomId, UserInfo userInfo) {
         AdmissionToken admissionToken = new AdmissionToken();
+        admissionToken.setRoomId(roomId);
         admissionToken.setUserNo(userInfo.getUserNo());
         admissionToken.setUsername(userInfo.getUsername());
-        admissionToken.setRoomId(roomId);
         return TimeLimitedPBTokenIssuer.getToken(admissionToken);
     }
 

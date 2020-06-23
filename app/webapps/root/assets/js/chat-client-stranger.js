@@ -1,4 +1,5 @@
 let broadcastEnabled = false;
+let chatRequestEstablished = false;
 
 $(function () {
     if (!Modernizr.websockets || detectIE()) {
@@ -26,26 +27,30 @@ $(function () {
 
     $(".choose-info").fadeIn();
     $("#contacts").on("click", ".contact", function () {
-        if ($(this).hasClass("me")) {
+        let ele = $(this);
+        if (ele.hasClass("me")) {
             return;
         }
         $(".choose-info").hide();
         hideSidebar();
-        let userNo =  $(this).data("user-no");
-        let t = newChatRequestTemplate("confirm-request");
+        let userNo = ele.data("user-no");
+        let username = ele.data("username");
+        let t = newChatRequestTemplate("confirm-request", null, username);
         t.data("user-no", userNo);
+        t.data("username", username);
     });
 
     $(".chat-requests").on("click", ".confirm-request:visible .ok", function () {
         let ele = $(this).closest(".confirm-request");
         let userNo = ele.data("user-no");
+        let username = ele.data("username");
         sendChatRequestMessage("request", userNo);
-        let t = newChatRequestTemplate("request", ele);
+        let t = newChatRequestTemplate("request", ele, username);
         t.data("user-no", userNo);
+        t.data("username", username);
         ele.remove();
         chatRequestTimer(t, 35, function () {
-            let t2 = newChatRequestTemplate("request-timeout", t);
-            t2.data("user-no", userNo);
+            newChatRequestTemplate("request-timeout", t);
             t.remove();
             sendChatRequestMessage("request-canceled", userNo);
         });
@@ -54,20 +59,35 @@ $(function () {
     }).on("click", ".request:visible .cancel", function () {
         let ele = $(this).closest(".request");
         let userNo = ele.data("user-no");
-        newChatRequestTemplate("canceled-request", ele);
+        let username = ele.data("username");
+        let t = newChatRequestTemplate("canceled-request", ele, username);
+        t.data("user-no", userNo);
+        t.data("username", username);
         ele.remove();
         sendChatRequestMessage("request-canceled", userNo);
     }).on("click", ".request-received:visible .decline", function () {
         let ele = $(this).closest(".request-received");
         let userNo = ele.data("user-no");
-        newChatRequestTemplate("request-declined", ele);
+        let username = ele.data("username");
+        let t = newChatRequestTemplate("declined-request", ele, username);
+        t.data("user-no", userNo);
+        t.data("username", username);
         ele.remove();
         sendChatRequestMessage("request-declined", userNo);
+    }).on("click", ".request-received:visible .accept", function () {
+        let ele = $(this).closest(".request-received");
+        let userNo = ele.data("user-no");
+        sendChatRequestMessage("request-accepted", userNo);
     });
 });
 
-function newChatRequestTemplate(requestType, before) {
-    let t = $("." + requestType + ".template").clone().removeClass("template");
+function newChatRequestTemplate(requestType, before, username) {
+    let t = $(".chat-requests ." + requestType + ".template").clone().removeClass("template");
+    if (username) {
+        let title = t.find(".title").html();
+        title = title.replace("[username]", "<strong>" + username + "</strong>");
+        t.find(".title").html(title);
+    }
     if (before) {
         before.after(t);
     } else {
@@ -77,7 +97,7 @@ function newChatRequestTemplate(requestType, before) {
 }
 
 function handleChatRequestMessage(content) {
-    if (!content) {
+    if (!content || chatRequestEstablished) {
         return;
     }
     if (content.startsWith("request:")) {
@@ -93,48 +113,77 @@ function handleChatRequestMessage(content) {
     } else if (content.startsWith("request-declined:")) {
         let userNo = parseTargetUserNo(content);
         chatRequestDeclined(userNo);
+    } else if (content.startsWith("request-accepted:")) {
+        let userNo = parseTargetUserNo(content);
+        let prefix = "request-accepted:" + userNo + ":";
+        let roomId = content.substring(prefix.length);
+        chatRequestAccepted(userNo);
+        setTimeout(function () {
+            location.href = "/strangers/" + roomId;
+        }, 2000);
     }
 }
 
-function chatRequest(requestUserInfo) {
-    let t = newChatRequestTemplate("request-received");
-    t.data("user-no", requestUserInfo.userNo);
+function chatRequest(targetUserInfo) {
+    let t = newChatRequestTemplate("request-received", null, targetUserInfo.username);
+    t.data("user-no", targetUserInfo.userNo);
+    t.data("username", targetUserInfo.username);
     chatRequestTimer(t, 30, function () {
         t.find(".decline").click();
     });
 }
 
-function chatRequestCanceled(userNo) {
-    $(".request-received").each(function () {
+function chatRequestCanceled(targetUserNo) {
+    $(".chat-requests .request-received").each(function () {
         let ele = $(this);
-        if (ele.data("user-no") === userNo) {
-            newChatRequestTemplate("request-canceled", ele);
+        let userNo = ele.data("user-no");
+        let username = ele.data("username");
+        if (userNo === targetUserNo) {
+            newChatRequestTemplate("request-canceled", ele, username);
             ele.remove();
         }
     })
 }
 
-function chatRequestDeclined(userNo) {
-    $(".request").each(function () {
+function chatRequestDeclined(targetUserNo) {
+    $(".chat-requests .request").each(function () {
         let ele = $(this);
-        if (ele.data("user-no") === userNo) {
-            newChatRequestTemplate("request-declined", ele);
+        let userNo = ele.data("user-no");
+        let username = ele.data("username");
+        if (userNo === targetUserNo) {
+            newChatRequestTemplate("request-declined", ele, username);
             ele.remove();
+        }
+    })
+}
+
+function chatRequestAccepted(targetUserNo) {
+    $(".chat-requests .request, .chat-requests .request-received").each(function () {
+        let ele = $(this);
+        let userNo = ele.data("user-no");
+        if (userNo === targetUserNo) {
+            chatRequestEstablished = true;
+            ele.data("done", true);
+            ele.find("button").prop("disabled", true);
+            ele.find(".timer").hide();
+            ele.find(".done").show();
         }
     })
 }
 
 function chatRequestTimer(ele, timeoutInSecs, callback) {
     setTimeout(function () {
-        let remains = (ele.data("remains")||timeoutInSecs) - 1;
-        ele.find(".remains").text(remains);
-        if (remains > 0) {
-            ele.data("remains", remains);
-            chatRequestTimer(ele, timeoutInSecs, callback);
-        } else {
-            callback();
+        if (!ele.data("done")) {
+            let remains = (ele.data("remains") || timeoutInSecs) - 1;
+            ele.find(".remains").text(remains);
+            if (remains > 0) {
+                ele.data("remains", remains);
+                chatRequestTimer(ele, timeoutInSecs, callback);
+            } else {
+                callback();
+            }
         }
-    }, 1000);
+    }, 999);
 }
 
 function parseTargetUserNo(content) {

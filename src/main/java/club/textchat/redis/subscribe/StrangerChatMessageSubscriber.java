@@ -36,6 +36,7 @@ import io.lettuce.core.pubsub.api.sync.RedisPubSubCommands;
 import java.io.IOException;
 
 import static club.textchat.server.StrangerChatHandler.CHAT_REQUEST;
+import static club.textchat.server.StrangerChatHandler.CHAT_REQUEST_ACCEPTED;
 import static club.textchat.server.StrangerChatHandler.CHAT_REQUEST_CANCELED;
 import static club.textchat.server.StrangerChatHandler.CHAT_REQUEST_DECLINED;
 
@@ -96,6 +97,15 @@ public class StrangerChatMessageSubscriber extends RedisPubSubAdapter<String, St
                 int targetUserNo = StrangerChatHandler.parseTargetUserNo(content);
                 if (targetUserNo > 0) {
                     broadcastPayload.setContent(CHAT_REQUEST_CANCELED + broadcastPayload.getUserNo());
+                    chatHandler.send(chatMessage, targetUserNo);
+                }
+            } else if (content.startsWith(CHAT_REQUEST_ACCEPTED)) {
+                int targetUserNo = StrangerChatHandler.parseTargetUserNo(content);
+                if (targetUserNo > 0) {
+                    String roomId = StrangerChatHandler.nextRoomId();
+                    broadcastPayload.setContent(CHAT_REQUEST_ACCEPTED + targetUserNo + ":" + roomId);
+                    chatHandler.send(chatMessage, broadcastPayload.getUserNo());
+                    broadcastPayload.setContent(CHAT_REQUEST_ACCEPTED + broadcastPayload.getUserNo() + ":" + roomId);
                     chatHandler.send(chatMessage, targetUserNo);
                 }
             } else {

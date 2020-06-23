@@ -27,6 +27,7 @@ import club.textchat.server.message.payload.UserJoinedPayload;
 import club.textchat.server.message.payload.UserLeftPayload;
 import com.aspectran.core.component.bean.annotation.Bean;
 import com.aspectran.core.component.bean.annotation.Component;
+import com.aspectran.core.util.PBEncryptionUtils;
 import com.aspectran.core.util.StringUtils;
 import com.aspectran.core.util.json.JsonWriter;
 
@@ -34,6 +35,7 @@ import javax.websocket.CloseReason;
 import javax.websocket.Session;
 import java.io.IOException;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static club.textchat.chat.ChatAction.STRANGER_CHATROOM_ID;
 
@@ -50,7 +52,11 @@ public class StrangerChatHandler extends AbstractChatHandler {
 
     public static final String CHAT_REQUEST_CANCELED = "request-canceled:";
 
+    public static final String CHAT_REQUEST_ACCEPTED = "request-accepted:";
+
     public static final String BROADCAST_MESSAGE_PREFIX = "broadcast:";
+
+    private static final AtomicInteger roomNumber = new AtomicInteger();
 
     private final StrangerChatPersistence strangerChatPersistence;
 
@@ -80,7 +86,9 @@ public class StrangerChatHandler extends AbstractChatHandler {
                             } else {
                                 broadcastChatRequestMessage(chaterInfo, content);
                             }
-                        } else if (content.startsWith(CHAT_REQUEST_DECLINED) || content.startsWith(CHAT_REQUEST_CANCELED)) {
+                        } else if (content.startsWith(CHAT_REQUEST_DECLINED) ||
+                                content.startsWith(CHAT_REQUEST_CANCELED) ||
+                                content.startsWith(CHAT_REQUEST_ACCEPTED)) {
                             broadcastMessage(chaterInfo, content);
                         } else {
                             broadcastMessage(chaterInfo, BROADCAST_MESSAGE_PREFIX + payload.getContent());
@@ -219,6 +227,11 @@ public class StrangerChatHandler extends AbstractChatHandler {
         } catch (NumberFormatException e) {
             return 0;
         }
+    }
+
+    public static String nextRoomId() {
+        int newRoomNum = roomNumber.incrementAndGet();
+        return PBEncryptionUtils.encrypt(Integer.toString(newRoomNum));
     }
 
 }

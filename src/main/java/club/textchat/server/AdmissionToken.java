@@ -21,26 +21,34 @@ import com.aspectran.core.util.apon.ValueType;
 
 public class AdmissionToken extends AbstractParameters {
 
+    private static final ParameterKey roomId;
     private static final ParameterKey userNo;
     private static final ParameterKey username;
-    private static final ParameterKey roomId;
 
     private static final ParameterKey[] parameterKeys;
 
     static {
+        roomId = new ParameterKey("roomId", ValueType.STRING);
         userNo = new ParameterKey("userNo", ValueType.INT);
         username = new ParameterKey("username", ValueType.STRING);
-        roomId = new ParameterKey("roomId", ValueType.STRING);
 
         parameterKeys = new ParameterKey[] {
+                roomId,
                 userNo,
-                username,
-                roomId
+                username
         };
     }
 
     public AdmissionToken() {
         super(parameterKeys);
+    }
+
+    public String getRoomId() {
+        return getString(AdmissionToken.roomId);
+    }
+
+    public void setRoomId(String roomId) {
+        putValue(AdmissionToken.roomId, roomId);
     }
 
     public int getUserNo() {
@@ -57,14 +65,6 @@ public class AdmissionToken extends AbstractParameters {
 
     public void setUsername(String username) {
         putValue(AdmissionToken.username, username);
-    }
-
-    public String getRoomId() {
-        return getString(AdmissionToken.roomId);
-    }
-
-    public void setRoomId(String roomId) {
-        putValue(AdmissionToken.roomId, roomId);
     }
 
 }

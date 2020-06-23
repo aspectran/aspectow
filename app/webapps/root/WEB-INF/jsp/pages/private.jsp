@@ -10,7 +10,7 @@
         admissionToken: "${page.token}",
         autoConnectEnabled: true,
         pingPerHeartbeats: 15,
-        homepage: "/"
+        homepage: "${empty page.homepage ? "/" : page.homepage}"
     }
     const chatClientMessages = {
         "welcome": "<aspectran:message code='chat.common.welcome'/>",

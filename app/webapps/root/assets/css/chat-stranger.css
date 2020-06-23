@@ -164,3 +164,20 @@
 .chat-requests p.title {
     font-size: 1em;
 }
+.chat-requests p.done {
+    display: none;
+    color: green;
+}
+.chat-requests .icon-heart {
+    color: red;
+    -webkit-animation: heartbeat 1s infinite alternate;
+    animation: heartbeat 1s infinite alternate;
+}
+@-webkit-keyframes heartbeat {
+    0% { color: red; }
+    100% { color: beige; }
+}
+@keyframes heartbeat {
+    0% { color: red; }
+    100% { color: beige; }
+}
