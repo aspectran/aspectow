@@ -29,11 +29,9 @@ import com.aspectran.core.component.bean.annotation.Bean;
 import com.aspectran.core.component.bean.annotation.Component;
 import com.aspectran.core.util.PBEncryptionUtils;
 import com.aspectran.core.util.StringUtils;
-import com.aspectran.core.util.json.JsonWriter;
 
 import javax.websocket.CloseReason;
 import javax.websocket.Session;
-import java.io.IOException;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -140,7 +138,7 @@ public class StrangerChatHandler extends AbstractChatHandler {
             chatersPersistence.put(chaterInfo);
             Set<String> roomChaters = chatersPersistence.getChaters(chaterInfo.getRoomId());
             JoinPayload payload = new JoinPayload();
-            payload.setUsername(chaterInfo.getUsername());
+            payload.setChater(chaterInfo);
             payload.setChaters(roomChaters);
             payload.setRejoin(rejoin);
             ChatMessage message = new ChatMessage(payload);
@@ -160,10 +158,7 @@ public class StrangerChatHandler extends AbstractChatHandler {
 
     private void broadcastUserJoined(ChaterInfo chaterInfo) {
         UserJoinedPayload payload = new UserJoinedPayload();
-        payload.setRoomId(chaterInfo.getRoomId());
-        payload.setUserNo(chaterInfo.getUserNo());
-        payload.setUsername(chaterInfo.getUsername());
-        payload.setPrevUsername(chaterInfo.getPrevUsername());
+        payload.setChater(chaterInfo);
         payload.setDatetime(getCurrentDatetime(chaterInfo));
         ChatMessage message = new ChatMessage(payload);
         strangerChatPersistence.publish(message);
@@ -171,9 +166,7 @@ public class StrangerChatHandler extends AbstractChatHandler {
 
     private void broadcastUserLeft(ChaterInfo chaterInfo) {
         UserLeftPayload payload = new UserLeftPayload();
-        payload.setRoomId(chaterInfo.getRoomId());
-        payload.setUserNo(chaterInfo.getUserNo());
-        payload.setUsername(chaterInfo.getUsername());
+        payload.setChater(chaterInfo);
         payload.setDatetime(getCurrentDatetime(chaterInfo));
         ChatMessage message = new ChatMessage(payload);
         strangerChatPersistence.publish(message);
@@ -192,17 +185,7 @@ public class StrangerChatHandler extends AbstractChatHandler {
     }
 
     private void broadcastChatRequestMessage(ChaterInfo chaterInfo, String content) {
-        try {
-            JsonWriter writer = new JsonWriter().prettyPrint(false);
-            writer.beginObject();
-            writer.writeName("userNo").writeValue(chaterInfo.getUserNo());
-            writer.writeName("username").writeValue(chaterInfo.getUsername());
-            writer.writeName("country").writeValue(chaterInfo.getCountry());
-            writer.endObject();
-            broadcastMessage(chaterInfo, content + ":" + writer.toString());
-        } catch (IOException e) {
-            // ignore
-        }
+        broadcastMessage(chaterInfo, content + ":" + chaterInfo.serialize());
     }
 
     private void sendChatRequestMessage(ChaterInfo chaterInfo, String requestType, int userNo) {

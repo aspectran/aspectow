@@ -125,7 +125,7 @@ public class RandomChatHandler extends AbstractChatHandler {
             inConvoUsersPersistence.put(chaterInfo.getHttpSessionId(), chaterInfo.getRoomId());
             Set<String> roomChaters = Collections.singleton(ChatersPersistence.makeValue(chaterInfo));
             JoinPayload payload = new JoinPayload();
-            payload.setUsername(chaterInfo.getUsername());
+            payload.setChater(chaterInfo);
             payload.setChaters(roomChaters);
             payload.setRejoin(rejoin);
             ChatMessage message = new ChatMessage(payload);
@@ -160,8 +160,7 @@ public class RandomChatHandler extends AbstractChatHandler {
 
     private void broadcastUserJoined(ChaterInfo chaterInfo, ChaterInfo chaterInfo2) {
         UserJoinedPayload payload = new UserJoinedPayload();
-        payload.setUserNo(chaterInfo2.getUserNo());
-        payload.setUsername(chaterInfo2.getUsername());
+        payload.setChater(chaterInfo2);
         ChatMessage message = new ChatMessage(payload);
         message.setReceiver(chaterInfo.getUserNo());
         send(message, chaterInfo.getUserNo());
@@ -170,9 +169,7 @@ public class RandomChatHandler extends AbstractChatHandler {
 
     private void broadcastUserJoined(ChaterInfo chaterInfo, int userNo) {
         UserJoinedPayload payload = new UserJoinedPayload();
-        payload.setUserNo(chaterInfo.getUserNo());
-        payload.setUsername(chaterInfo.getUsername());
-        payload.setPrevUsername(chaterInfo.getPrevUsername());
+        payload.setChater(chaterInfo);
         ChatMessage message = new ChatMessage(payload);
         message.setReceiver(userNo);
         randomChatPersistence.publish(message);
@@ -180,8 +177,7 @@ public class RandomChatHandler extends AbstractChatHandler {
 
     private void broadcastUserLeft(ChaterInfo chaterInfo, int userNo) {
         UserLeftPayload payload = new UserLeftPayload();
-        payload.setUserNo(chaterInfo.getUserNo());
-        payload.setUsername(chaterInfo.getUsername());
+        payload.setChater(chaterInfo);
         ChatMessage message = new ChatMessage(payload);
         message.setReceiver(userNo);
         randomChatPersistence.publish(message);

@@ -7,12 +7,10 @@
     </div>
     <div class="cell auto">
         <div class="nameplate">
-            <div class="country" title="${user.country}">
-                <c:if test="${not empty user.country}">
-                    <img src="https://raw.githubusercontent.com/topframe/country-flags/master/svg/${fn:toLowerCase(user.country)}.svg"/>
-                </c:if>
-            </div>
             <h5 class="username">${user.username}</h5>
+            <c:if test="${not empty user.country}">
+                <img class="flag" src="https://raw.githubusercontent.com/topframe/country-flags/master/svg/${fn:toLowerCase(user.country)}.svg" title="${user.country}"/>
+            </c:if>
         </div>
     </div>
 </div>

@@ -27,8 +27,6 @@ public class UserInfo implements Serializable {
 
     private String username;
 
-    private String prevUsername;
-
     private String color;
 
     private String country;
@@ -53,14 +51,6 @@ public class UserInfo implements Serializable {
 
     public void setUsername(String username) {
         this.username = username;
-    }
-
-    public String getPrevUsername() {
-        return prevUsername;
-    }
-
-    public void setPrevUsername(String prevUsername) {
-        this.prevUsername = prevUsername;
     }
 
     public String getColor() {
@@ -108,7 +98,6 @@ public class UserInfo implements Serializable {
         ToStringBuilder tsb = new ToStringBuilder();
         tsb.append("userNo", userNo);
         tsb.append("username", username);
-        tsb.append("prevUsername", prevUsername);
         tsb.append("country", country);
         tsb.append("language", language);
         tsb.append("timeZone", timeZone);

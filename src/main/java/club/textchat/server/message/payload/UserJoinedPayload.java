@@ -15,6 +15,7 @@
  */
 package club.textchat.server.message.payload;
 
+import club.textchat.server.ChaterInfo;
 import com.aspectran.core.util.apon.AbstractParameters;
 import com.aspectran.core.util.apon.ParameterKey;
 import com.aspectran.core.util.apon.ValueType;
@@ -28,8 +29,7 @@ public class UserJoinedPayload extends AbstractParameters {
 
     private static final ParameterKey roomId;
     private static final ParameterKey userNo;
-    private static final ParameterKey username;
-    private static final ParameterKey prevUsername;
+    private static final ParameterKey chater;
     private static final ParameterKey datetime;
 
     private static final ParameterKey[] parameterKeys;
@@ -37,15 +37,13 @@ public class UserJoinedPayload extends AbstractParameters {
     static {
         roomId = new ParameterKey("roomId", ValueType.STRING);
         userNo = new ParameterKey("userNo", ValueType.INT);
-        username = new ParameterKey("username", ValueType.STRING);
-        prevUsername = new ParameterKey("prevUsername", ValueType.STRING);
+        chater = new ParameterKey("chater", ValueType.STRING);
         datetime = new ParameterKey("datetime", ValueType.STRING);
 
         parameterKeys = new ParameterKey[] {
                 roomId,
                 userNo,
-                username,
-                prevUsername,
+                chater,
                 datetime
         };
     }
@@ -58,7 +56,7 @@ public class UserJoinedPayload extends AbstractParameters {
         return getString(roomId);
     }
 
-    public void setRoomId(String roomId) {
+    private void setRoomId(String roomId) {
         putValue(UserJoinedPayload.roomId, roomId);
     }
 
@@ -66,20 +64,14 @@ public class UserJoinedPayload extends AbstractParameters {
         return getInt(userNo);
     }
 
-    public void setUserNo(int userNo) {
+    private void setUserNo(int userNo) {
         putValue(UserJoinedPayload.userNo, userNo);
     }
 
-    public String getUsername() {
-        return getString(username);
-    }
-
-    public void setUsername(String username) {
-        putValue(UserJoinedPayload.username, username);
-    }
-
-    public void setPrevUsername(String prevUsername) {
-        putValue(UserJoinedPayload.prevUsername, prevUsername);
+    public void setChater(ChaterInfo chaterInfo) {
+        setRoomId(chaterInfo.getRoomId());
+        setUserNo(chaterInfo.getUserNo());
+        putValue(UserJoinedPayload.chater, chaterInfo.serialize());
     }
 
     public void setDatetime(String datetime) {

@@ -203,7 +203,7 @@ function handleMessage(chatMessage) {
                     printMessage(payload);
                     break;
                 case "userJoined":
-                    addChater(payload.userNo, payload.username);
+                    addChater(deserialize(payload.chater));
                     printUserJoinedMessage(payload);
                     break;
                 case "userLeft":
@@ -216,7 +216,8 @@ function handleMessage(chatMessage) {
                     if (payload.recentConvo) {
                         printRecentConvo(payload.recentConvo);
                     }
-                    printJoinMessage(payload);
+                    let chater = deserialize(payload.chater);
+                    printJoinMessage(chater);
                     while (pendedMessages && pendedMessages.length > 0) {
                         handleMessage(pendedMessages.pop());
                     }
@@ -280,24 +281,32 @@ function setChaters(chaters) {
             let str = chaters[i];
             let index = str.indexOf(':');
             if (index > -1) {
-                let userNo = Number(str.substring(0, index));
-                let username = str.substring(index + 1);
-                addChater(userNo, username);
+                let chater = deserialize(str.substring(index + 1));
+                addChater(chater);
             }
         }
         updateTotalPeople();
     }
 }
 
-function addChater(userNo, username) {
+function addChater(chater) {
     let contact = $("<li class='contact'/>")
-        .data("user-no", userNo)
-        .data("username", username);
+        .data("user-no", chater.userNo)
+        .data("username", chater.username);
     let status = $("<div/>").addClass("status");
+    if (chater.color) {
+        status.addClass("my-col-" + chater.color);
+    }
     let badge = $("<i class='iconfont fi-mountains'/>");
-    let name = $("<div class='name'/>").text(username);
+    let name = $("<div class='name'/>").text(chater.username);
     contact.append(status.append(badge)).append(name).appendTo($("#contacts"));
-    if (userInfo.userNo === userNo) {
+    if (chater.country) {
+        let flag = $("<img class='flag'/>");
+        flag.attr("src", "https://raw.githubusercontent.com/topframe/country-flags/master/svg/" + chater.country.toLowerCase() + ".svg");
+        flag.attr("title", chater.country);
+        contact.append(flag);
+    }
+    if (userInfo.userNo === chater.userNo) {
         contact.addClass("me");
     }
     updateTotalPeople();
@@ -336,8 +345,8 @@ function clearConvo() {
     $("#convo").empty();
 }
 
-function printJoinMessage(payload, restored) {
-    let text = chatClientMessages.welcome.replace("[username]", "<strong>" + payload.username + "</strong>");
+function printJoinMessage(chater, restored) {
+    let text = chatClientMessages.welcome.replace("[username]", "<strong>" + chater.username + "</strong>");
     printEvent(text, restored);
 }
 
@@ -359,13 +368,14 @@ function printUserEvent(payload, event, restored) {
             container = last;
         }
     }
+    let chater = deserialize(payload.chater);
     let content = $("<p class='content'/>").addClass(event).data("event", event);
     switch (event) {
         case "user-joined":
-            content.append(chatClientMessages.userJoined.replace("[username]", "<strong>" + payload.username + "</strong>"));
+            content.append(chatClientMessages.userJoined.replace("[username]", "<strong>" + chater.username + "</strong>"));
             break;
         case "user-left":
-            content.append(chatClientMessages.userLeft.replace("[username]", "<strong>" + payload.username + "</strong>"));
+            content.append(chatClientMessages.userLeft.replace("[username]", "<strong>" + chater.username + "</strong>"));
             break;
         default:
             console.error("Unknown user event: " + event);

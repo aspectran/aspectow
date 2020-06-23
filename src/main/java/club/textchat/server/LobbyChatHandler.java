@@ -111,7 +111,7 @@ public class LobbyChatHandler extends AbstractChatHandler {
             chatersPersistence.put(chaterInfo);
             Set<String> roomChaters = chatersPersistence.getChaters(chaterInfo.getRoomId());
             JoinPayload payload = new JoinPayload();
-            payload.setUsername(chaterInfo.getUsername());
+            payload.setChater(chaterInfo);
             payload.setChaters(roomChaters);
             payload.setRejoin(rejoin);
             ChatMessage message = new ChatMessage(payload);
@@ -131,10 +131,7 @@ public class LobbyChatHandler extends AbstractChatHandler {
 
     private void broadcastUserJoined(ChaterInfo chaterInfo) {
         UserJoinedPayload payload = new UserJoinedPayload();
-        payload.setRoomId(chaterInfo.getRoomId());
-        payload.setUserNo(chaterInfo.getUserNo());
-        payload.setUsername(chaterInfo.getUsername());
-        payload.setPrevUsername(chaterInfo.getPrevUsername());
+        payload.setChater(chaterInfo);
         payload.setDatetime(getCurrentDatetime(chaterInfo));
         ChatMessage message = new ChatMessage(payload);
         lobbyChatPersistence.publish(message);
@@ -142,9 +139,7 @@ public class LobbyChatHandler extends AbstractChatHandler {
 
     private void broadcastUserLeft(ChaterInfo chaterInfo) {
         UserLeftPayload payload = new UserLeftPayload();
-        payload.setRoomId(chaterInfo.getRoomId());
-        payload.setUserNo(chaterInfo.getUserNo());
-        payload.setUsername(chaterInfo.getUsername());
+        payload.setChater(chaterInfo);
         payload.setDatetime(getCurrentDatetime(chaterInfo));
         ChatMessage message = new ChatMessage(payload);
         lobbyChatPersistence.publish(message);

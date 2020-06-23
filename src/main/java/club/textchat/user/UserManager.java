@@ -34,18 +34,11 @@ public class UserManager extends InstantActivitySupport {
      */
     public static final String USER_INFO_SESSION_KEY = "user";
 
-    public static final String PREV_USERNAME = "-prev-uname-";
-
     public static final String EXPIRED_TIME = "-expired-tm-";
 
     public void saveUserInfo(UserInfo userInfo) {
         SessionAdapter sessionAdapter = getSessionAdapter();
-        String prevUsername = sessionAdapter.getAttribute(PREV_USERNAME);
-        if (prevUsername != null && !prevUsername.equals(userInfo.getUsername())) {
-            userInfo.setPrevUsername(prevUsername);
-        }
         sessionAdapter.setAttribute(USER_INFO_SESSION_KEY, userInfo);
-        sessionAdapter.setAttribute(PREV_USERNAME, userInfo.getUsername());
     }
 
     public UserInfo removeUserInfo() {
@@ -53,7 +46,6 @@ public class UserManager extends InstantActivitySupport {
         UserInfo userInfo = sessionAdapter.getAttribute(USER_INFO_SESSION_KEY);
         if (userInfo != null) {
             sessionAdapter.removeAttribute(USER_INFO_SESSION_KEY);
-            sessionAdapter.setAttribute(PREV_USERNAME, userInfo.getUsername());
             sessionAdapter.setAttribute(EXPIRED_TIME, System.currentTimeMillis());
         }
         return userInfo;

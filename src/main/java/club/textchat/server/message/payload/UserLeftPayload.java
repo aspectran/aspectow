@@ -15,6 +15,7 @@
  */
 package club.textchat.server.message.payload;
 
+import club.textchat.server.ChaterInfo;
 import com.aspectran.core.util.apon.AbstractParameters;
 import com.aspectran.core.util.apon.ParameterKey;
 import com.aspectran.core.util.apon.ValueType;
@@ -28,7 +29,7 @@ public class UserLeftPayload extends AbstractParameters {
 
     private static final ParameterKey roomId;
     private static final ParameterKey userNo;
-    private static final ParameterKey username;
+    private static final ParameterKey chater;
     private static final ParameterKey datetime;
 
     private static final ParameterKey[] parameterKeys;
@@ -36,13 +37,13 @@ public class UserLeftPayload extends AbstractParameters {
     static {
         roomId = new ParameterKey("roomId", ValueType.STRING);
         userNo = new ParameterKey("userNo", ValueType.INT);
-        username = new ParameterKey("username", ValueType.STRING);
+        chater = new ParameterKey("chater", ValueType.STRING);
         datetime = new ParameterKey("datetime", ValueType.STRING);
 
         parameterKeys = new ParameterKey[] {
                 roomId,
                 userNo,
-                username,
+                chater,
                 datetime
         };
     }
@@ -55,7 +56,7 @@ public class UserLeftPayload extends AbstractParameters {
         return getString(roomId);
     }
 
-    public void setRoomId(String roomId) {
+    private void setRoomId(String roomId) {
         putValue(UserLeftPayload.roomId, roomId);
     }
 
@@ -63,16 +64,14 @@ public class UserLeftPayload extends AbstractParameters {
         return getInt(userNo);
     }
 
-    public void setUserNo(int userNo) {
+    private void setUserNo(int userNo) {
         putValue(UserLeftPayload.userNo, userNo);
     }
 
-    public String getUsername() {
-        return getString(username);
-    }
-
-    public void setUsername(String username) {
-        putValue(UserLeftPayload.username, username);
+    public void setChater(ChaterInfo chaterInfo) {
+        setRoomId(chaterInfo.getRoomId());
+        setUserNo(chaterInfo.getUserNo());
+        putValue(UserLeftPayload.chater, chaterInfo.serialize());
     }
 
     public void setDatetime(String datetime) {

@@ -10,7 +10,7 @@
     color: #217aa6;
     font-size: .95em;
     background-color: #a8e0fd;
-    border-radius: 8px;
+    border-radius: 8px 8px 5px 8px;
 }
 #contacts .contact.me {
     background-color: #95d6f6;
@@ -33,13 +33,40 @@
     font-size: .8em;
     background-color: #fff;
 }
-#contacts .contact.me .status {
-    background-color: #fbd27e;
+#contacts .contact .status.my-col-1 {
+    background-color: #fbd2d2;
+}
+#contacts .contact .status.my-col-2 {
+    background-color: #ffe0c5;
+}
+#contacts .contact .status.my-col-3 {
+    background-color: #f4ebac;
+}
+#contacts .contact .status.my-col-4 {
+    background-color: #c0eabe;
+}
+#contacts .contact .status.my-col-5 {
+    background-color: #c6e6fd;
+}
+#contacts .contact .status.my-col-6 {
+    background-color: #d4d4fc;
+}
+#contacts .contact .status.my-col-7 {
+    background-color: #f4cff3;
 }
 #contacts .contact .name {
+    padding-right: 20px;
     overflow: hidden !important;
     text-overflow: ellipsis;
     white-space: nowrap !important;
+}
+#contacts .contact .flag {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    max-width: 28px;
+    max-height: 20px;
+    border-radius: 5px 0 5px 0;
 }
 #convo {
     height: 100%;

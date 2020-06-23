@@ -247,11 +247,12 @@ function printBroadcastMessage(payload) {
     }, 10000);
 }
 
-function printJoinMessage(payload, restored) {
+function printJoinMessage(chater, restored) {
 }
 
 function printUserJoinedMessage(payload, restored) {
-    printEvent(chatClientMessages.userJoined.replace("[username]", "<strong>" + payload.username + "</strong>"));
+    let chater = deserialize(payload.chater);
+    printEvent(chatClientMessages.userJoined.replace("[username]", "<strong>" + chater.username + "</strong>"));
 }
 
 function printUserLeftMessage(payload, restored) {

@@ -111,14 +111,15 @@ function drawLookingBar(intermission) {
     }
 }
 
-function printJoinMessage(payload, restored) {
+function printJoinMessage(chater, restored) {
     clearConvo();
     drawLookingBar();
 }
 
 function printUserJoinedMessage(payload, restored) {
     clearConvo();
-    let text =chatClientMessages.userJoined.replace("[username]", "<strong>" + payload.username + "</strong>")
+    let chater = deserialize(payload.chater);
+    let text = chatClientMessages.userJoined.replace("[username]", "<strong>" + chater.username + "</strong>")
     printEvent(text, restored);
     $(".message-box button.send").prop("disabled", false).removeClass("pause");
     readyToType();
@@ -128,7 +129,8 @@ function printUserJoinedMessage(payload, restored) {
 }
 
 function printUserLeftMessage(payload, restored) {
-    let text = chatClientMessages.userLeft.replace("[username]", "<strong>" + payload.username + "</strong>")
+    let chater = deserialize(payload.chater);
+    let text = chatClientMessages.userLeft.replace("[username]", "<strong>" + chater.username + "</strong>")
     printEvent(text, restored);
     $(".message-box button.send").prop("disabled", true).addClass("pause");
     stopLooking();

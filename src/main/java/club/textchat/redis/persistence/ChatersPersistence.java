@@ -61,7 +61,8 @@ public class ChatersPersistence extends AbstractPersistence {
             for (String str : chaters) {
                 int index = str.indexOf(VALUE_SEPARATOR);
                 if (index > -1) {
-                    if (Integer.parseInt(str.substring(0, index)) == userNo) {
+                    int targetUserNo = Integer.parseInt(str.substring(0, index));
+                    if (targetUserNo == userNo) {
                         return true;
                     }
                 }
@@ -72,11 +73,13 @@ public class ChatersPersistence extends AbstractPersistence {
 
     public ChaterInfo randomChater(String roomId) {
         String str = srandmember(makeKey(roomId));
-        int index = str.indexOf(VALUE_SEPARATOR);
-        if (index > -1) {
-            String userNo = str.substring(0, index);
-            String username = str.substring(index + 1);
-            return new ChaterInfo(roomId, Integer.parseInt(userNo), username);
+        if (str != null) {
+            int index = str.indexOf(VALUE_SEPARATOR);
+            if (index > -1) {
+                String userNo = str.substring(0, index);
+                String username = str.substring(index + 1);
+                return new ChaterInfo(roomId, Integer.parseInt(userNo), username);
+            }
         }
         return null;
     }
@@ -89,7 +92,7 @@ public class ChatersPersistence extends AbstractPersistence {
     }
 
     public static String makeValue(ChaterInfo chaterInfo) {
-        return chaterInfo.getUserNo() + VALUE_SEPARATOR + chaterInfo.getUsername();
+        return chaterInfo.getUserNo() + VALUE_SEPARATOR + chaterInfo.serialize();
     }
 
 }

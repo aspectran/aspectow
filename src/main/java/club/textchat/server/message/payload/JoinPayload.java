@@ -15,6 +15,7 @@
  */
 package club.textchat.server.message.payload;
 
+import club.textchat.server.ChaterInfo;
 import club.textchat.server.message.ChatMessage;
 import com.aspectran.core.util.apon.AbstractParameters;
 import com.aspectran.core.util.apon.ParameterKey;
@@ -30,7 +31,7 @@ import java.util.Set;
  */
 public class JoinPayload extends AbstractParameters {
 
-    private static final ParameterKey username;
+    private static final ParameterKey chater;
     private static final ParameterKey chaters;
     private static final ParameterKey recentConvo;
     private static final ParameterKey rejoin;
@@ -38,13 +39,13 @@ public class JoinPayload extends AbstractParameters {
     private static final ParameterKey[] parameterKeys;
 
     static {
-        username = new ParameterKey("username", ValueType.STRING);
+        chater = new ParameterKey("chater", ValueType.STRING);
         chaters = new ParameterKey("chaters", ValueType.STRING, true);
         recentConvo = new ParameterKey("recentConvo", ChatMessage.class, true);
         rejoin = new ParameterKey("rejoin", ValueType.BOOLEAN);
 
         parameterKeys = new ParameterKey[] {
-                username,
+                chater,
                 chaters,
                 recentConvo,
                 rejoin
@@ -55,8 +56,8 @@ public class JoinPayload extends AbstractParameters {
         super(parameterKeys);
     }
 
-    public void setUsername(String username) {
-        putValue(JoinPayload.username, username);
+    public void setChater(ChaterInfo chaterInfo) {
+        putValue(JoinPayload.chater, chaterInfo.serialize());
     }
 
     public void setChaters(Set<String> chaters) {

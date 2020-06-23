@@ -19,7 +19,9 @@ import club.textchat.user.UserInfo;
 import com.aspectran.core.lang.NonNull;
 import com.aspectran.core.lang.Nullable;
 import com.aspectran.core.util.ToStringBuilder;
+import com.aspectran.core.util.json.JsonWriter;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.time.ZoneId;
 import java.util.Objects;
@@ -48,8 +50,8 @@ public class ChaterInfo extends UserInfo implements Serializable {
     public ChaterInfo(@NonNull UserInfo userInfo) {
         setUserNo(userInfo.getUserNo());
         setUsername(userInfo.getUsername());
+        setCountry(userInfo.getCountry());
         setColor(userInfo.getColor());
-        setPrevUsername(userInfo.getPrevUsername());
         setZoneId(userInfo.getTimeZone());
     }
 
@@ -60,16 +62,6 @@ public class ChaterInfo extends UserInfo implements Serializable {
 
     public void setRoomId(String roomId) {
         this.roomId = roomId;
-    }
-
-    @Override
-    @Nullable
-    public String getPrevUsername() {
-        if (getUsername() != null && getUsername().equals(super.getPrevUsername())) {
-            return null;
-        } else {
-            return super.getPrevUsername();
-        }
     }
 
     @NonNull
@@ -125,9 +117,23 @@ public class ChaterInfo extends UserInfo implements Serializable {
         tsb.append("roomId", roomId);
         tsb.append("userNo", getUserNo());
         tsb.append("username", getUsername());
-        tsb.append("prevUsername", getPrevUsername());
         tsb.append("httpSessionId", httpSessionId);
         return tsb.toString();
+    }
+
+    public String serialize() {
+        try {
+            JsonWriter writer = new JsonWriter().prettyPrint(false);
+            writer.beginObject();
+            writer.writeName("userNo").writeValue(getUserNo());
+            writer.writeName("username").writeValue(getUsername());
+            writer.writeName("country").writeValue(getCountry());
+            writer.writeName("color").writeValue(getColor());
+            writer.endObject();
+            return writer.toString();
+        } catch (IOException e) {
+            return "";
+        }
     }
 
 }
