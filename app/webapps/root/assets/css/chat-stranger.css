@@ -92,14 +92,15 @@
 #convo .message:nth-last-child(9) {
     opacity: .5;
 }
-.selection-info {
+.choose-info {
     background-color: #ececec;
     border-radius: 0 10px 0 0;
+    display: none;
 }
-.selection-info.show-for-small-only {
+.choose-info.show-for-small-only {
     border-radius: 10px 10px 0 0;
 }
-.selection-info .fi-arrow-up {
+.choose-info .fi-arrow-up {
     float: left;
     display: block;
     font-size: 2em;
@@ -109,7 +110,7 @@
     -webkit-animation: pointing-up .5s infinite alternate;
     animation: pointing-up .5s infinite alternate;
 }
-.selection-info .fi-arrow-left {
+.choose-info .fi-arrow-left {
     float: left;
     display: block;
     font-size: 2em;
@@ -119,7 +120,7 @@
     -webkit-animation: pointing-left .5s infinite alternate;
     animation: pointing-left .5s infinite alternate;
 }
-.selection-info p {
+.choose-info p {
     padding: .7em;
     margin: 0;
 }
@@ -146,6 +147,9 @@
     background-color: #f5f5f5;
     border: 1px solid #e0e0e0;
     border-right: 2px solid #ccc;
+}
+.chat-requests .active {
+    background-color: beige;
 }
 .chat-requests .template {
     display: none;

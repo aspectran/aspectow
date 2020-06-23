@@ -46,7 +46,7 @@ public class StrangerChatHandler extends AbstractChatHandler {
 
     public static final String CHAT_REQUEST = "request:";
 
-    public static final String CHAT_REQUEST_REFUSED = "request-refused:";
+    public static final String CHAT_REQUEST_DECLINED = "request-declined:";
 
     public static final String CHAT_REQUEST_CANCELED = "request-canceled:";
 
@@ -76,11 +76,11 @@ public class StrangerChatHandler extends AbstractChatHandler {
                         if (content.startsWith(CHAT_REQUEST)) {
                             int targetUserNo = parseTargetUserNo(content);
                             if (!chatersPersistence.isChater(STRANGER_CHATROOM_ID, targetUserNo)) {
-                                sendChatRequestMessage(chaterInfo, "request-canceled", targetUserNo);
+                                sendChatRequestMessage(chaterInfo, CHAT_REQUEST_CANCELED, targetUserNo);
                             } else {
                                 broadcastChatRequestMessage(chaterInfo, content);
                             }
-                        } else if (content.startsWith(CHAT_REQUEST_REFUSED) || content.startsWith(CHAT_REQUEST_CANCELED)) {
+                        } else if (content.startsWith(CHAT_REQUEST_DECLINED) || content.startsWith(CHAT_REQUEST_CANCELED)) {
                             broadcastMessage(chaterInfo, content);
                         } else {
                             broadcastMessage(chaterInfo, BROADCAST_MESSAGE_PREFIX + payload.getContent());

@@ -37,7 +37,7 @@ import java.io.IOException;
 
 import static club.textchat.server.StrangerChatHandler.CHAT_REQUEST;
 import static club.textchat.server.StrangerChatHandler.CHAT_REQUEST_CANCELED;
-import static club.textchat.server.StrangerChatHandler.CHAT_REQUEST_REFUSED;
+import static club.textchat.server.StrangerChatHandler.CHAT_REQUEST_DECLINED;
 
 /**
  * <p>Created: 2020/05/10</p>
@@ -86,10 +86,10 @@ public class StrangerChatMessageSubscriber extends RedisPubSubAdapter<String, St
                 if (targetUserNo > 0) {
                     chatHandler.send(chatMessage, targetUserNo);
                 }
-            } else if (content.startsWith(CHAT_REQUEST_REFUSED)) {
+            } else if (content.startsWith(CHAT_REQUEST_DECLINED)) {
                 int targetUserNo = StrangerChatHandler.parseTargetUserNo(content);
                 if (targetUserNo > 0) {
-                    broadcastPayload.setContent(CHAT_REQUEST_REFUSED + broadcastPayload.getUserNo());
+                    broadcastPayload.setContent(CHAT_REQUEST_DECLINED + broadcastPayload.getUserNo());
                     chatHandler.send(chatMessage, targetUserNo);
                 }
             } else if (content.startsWith(CHAT_REQUEST_CANCELED)) {

@@ -24,11 +24,12 @@ $(function () {
         }
     });
 
+    $(".choose-info").fadeIn();
     $("#contacts").on("click", ".contact", function () {
         if ($(this).hasClass("me")) {
             return;
         }
-        $(".selection-info").hide();
+        $(".choose-info").hide();
         hideSidebar();
         let userNo =  $(this).data("user-no");
         let t = newChatRequestTemplate("confirm-request");
@@ -42,33 +43,112 @@ $(function () {
         let t = newChatRequestTemplate("request", ele);
         t.data("user-no", userNo);
         ele.remove();
+        chatRequestTimer(t, 35, function () {
+            let t2 = newChatRequestTemplate("request-timeout", t);
+            t2.data("user-no", userNo);
+            t.remove();
+            sendChatRequestMessage("request-canceled", userNo);
+        });
     }).on("click", ".confirm-request:visible .cancel", function () {
         $(this).closest(".confirm-request").remove();
-
     }).on("click", ".request:visible .cancel", function () {
         let ele = $(this).closest(".request");
         let userNo = ele.data("user-no");
         newChatRequestTemplate("canceled-request", ele);
         ele.remove();
         sendChatRequestMessage("request-canceled", userNo);
-    }).on("click", ".request-received:visible .refuse", function () {
+    }).on("click", ".request-received:visible .decline", function () {
         let ele = $(this).closest(".request-received");
         let userNo = ele.data("user-no");
-        newChatRequestTemplate("refused-request", ele);
+        newChatRequestTemplate("request-declined", ele);
         ele.remove();
-        sendChatRequestMessage("request-refused", userNo);
+        sendChatRequestMessage("request-declined", userNo);
     });
-
 });
 
-function newChatRequestTemplate(requestType, ele) {
+function newChatRequestTemplate(requestType, before) {
     let t = $("." + requestType + ".template").clone().removeClass("template");
-    if (ele) {
-        ele.after(t);
+    if (before) {
+        before.after(t);
     } else {
         t.appendTo(".chat-requests");
     }
     return t;
+}
+
+function handleChatRequestMessage(content) {
+    if (!content) {
+        return;
+    }
+    if (content.startsWith("request:")) {
+        let userNo = parseTargetUserNo(content);
+        if (userNo === userInfo.userNo) {
+            let prefix = "request:" + userNo + ":";
+            let requestUserInfo = deserialize(content.substring(prefix.length));
+            chatRequest(requestUserInfo);
+        }
+    } else if (content.startsWith("request-canceled:")) {
+        let userNo = parseTargetUserNo(content);
+        chatRequestCanceled(userNo);
+    } else if (content.startsWith("request-declined:")) {
+        let userNo = parseTargetUserNo(content);
+        chatRequestDeclined(userNo);
+    }
+}
+
+function chatRequest(requestUserInfo) {
+    let t = newChatRequestTemplate("request-received");
+    t.data("user-no", requestUserInfo.userNo);
+    chatRequestTimer(t, 30, function () {
+        t.find(".decline").click();
+    });
+}
+
+function chatRequestCanceled(userNo) {
+    $(".request-received").each(function () {
+        let ele = $(this);
+        if (ele.data("user-no") === userNo) {
+            newChatRequestTemplate("request-canceled", ele);
+            ele.remove();
+        }
+    })
+}
+
+function chatRequestDeclined(userNo) {
+    $(".request").each(function () {
+        let ele = $(this);
+        if (ele.data("user-no") === userNo) {
+            newChatRequestTemplate("request-declined", ele);
+            ele.remove();
+        }
+    })
+}
+
+function chatRequestTimer(ele, timeoutInSecs, callback) {
+    setTimeout(function () {
+        let remains = (ele.data("remains")||timeoutInSecs) - 1;
+        ele.find(".remains").text(remains);
+        if (remains > 0) {
+            ele.data("remains", remains);
+            chatRequestTimer(ele, timeoutInSecs, callback);
+        } else {
+            callback();
+        }
+    }, 1000);
+}
+
+function parseTargetUserNo(content) {
+    try {
+        let prefix = content.substring(0, content.indexOf(":") + 1);
+        let start = prefix.length;
+        let end = content.indexOf(":", start);
+        if (end === -1) {
+            end = content.length;
+        }
+        return parseInt(content.substring(start, end));
+    } catch (e) {
+        return 0;
+    }
 }
 
 function sendChatRequestMessage(requestType, userNo) {
@@ -91,66 +171,6 @@ function printMessage(payload, restored) {
         }
     } else {
         handleChatRequestMessage(payload.content);
-    }
-}
-
-function handleChatRequestMessage(content) {
-    if (!content) {
-        return;
-    }
-    console.log(content);
-    if (content.startsWith("request:")) {
-        let userNo = parseTargetUserNo(content);
-        if (userNo === userInfo.userNo) {
-            let prefix = "request:" + userNo + ":";
-            let requestUserInfo = deserialize(content.substring(prefix.length));
-            chatRequest(requestUserInfo);
-        }
-    } else if (content.startsWith("request-canceled:")) {
-        let userNo = parseTargetUserNo(content);
-        chatRequestCanceled(userNo);
-    } else if (content.startsWith("request-refused:")) {
-        let userNo = parseTargetUserNo(content);
-        chatRequestRefused(userNo);
-    }
-}
-
-function chatRequest(requestUserInfo) {
-    let t = newChatRequestTemplate("request-received");
-    t.data("user-no", requestUserInfo.userNo);
-}
-
-function chatRequestCanceled(userNo) {
-    $(".request-received").each(function () {
-        let ele = $(this);
-        if (ele.data("user-no") === userNo) {
-            newChatRequestTemplate("request-canceled", ele);
-            ele.remove();
-        }
-    })
-}
-
-function chatRequestRefused(userNo) {
-    $(".request").each(function () {
-        let ele = $(this);
-        if (ele.data("user-no") === userNo) {
-            newChatRequestTemplate("request-refused", ele);
-            ele.remove();
-        }
-    })
-}
-
-function parseTargetUserNo(content) {
-    try {
-        let prefix = content.substring(0, content.indexOf(":") + 1);
-        let start = prefix.length;
-        let end = content.indexOf(":", start);
-        if (end === -1) {
-            end = content.length;
-        }
-        return parseInt(content.substring(start, end));
-    } catch (e) {
-        return 0;
     }
 }
 
