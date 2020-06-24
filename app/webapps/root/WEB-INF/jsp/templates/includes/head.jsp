@@ -83,7 +83,7 @@
         userNo: Number("${user.userNo}"),
         username: "${user.username}",
         country: "${user.country}",
-        language: "${user.language}"
+        language: "${user.language}"||"<aspectran:message code='site.lang'/>"
     }
     const modalMessages = {}
 </script>

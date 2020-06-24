@@ -31,6 +31,8 @@ public class RoomInfo implements Serializable {
 
     private String language;
 
+    private String languageName;
+
     private int userNo;
 
     private int cumulativeUsers;
@@ -69,6 +71,14 @@ public class RoomInfo implements Serializable {
 
     public void setLanguage(String language) {
         this.language = language;
+    }
+
+    public String getLanguageName() {
+        return languageName;
+    }
+
+    public void setLanguageName(String languageName) {
+        this.languageName = languageName;
     }
 
     public int getUserNo() {

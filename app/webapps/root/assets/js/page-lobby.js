@@ -13,13 +13,11 @@ $(function () {
         $("#form-public-room-create").each(function () {
             this.reset();
         });
-        /*
-        $("#form-public-room-create select[name=lang_cd] option").each(function () {
-            if ($(this).val() === userInfo.language) {
-                $("#form-public-room-create select[name=lang_cd]").val(userInfo.language);
-            }
+        $("#form-public-room-create select[name=lang_cd] option").filter(function () {
+            return $(this).val() === userInfo.language;
+        }).each(function () {
+            $("#form-public-room-create select[name=lang_cd]").val(userInfo.language);
         });
-        */
         loadCaptcha("public_room_create", "captcha-container-public-room-create");
         $("#form-public-room-create input[name=room_nm]").focus();
     });
@@ -68,11 +66,19 @@ $(function () {
             refreshRooms();
         }
     });
-    if (userInfo.userNo) {
-        setInterval(function () {
-            refreshRooms();
-        }, 1000 * 60 * 5);
-    }
+    $(".rooms-options select[name=room_lang_cd] option").filter(function () {
+        return $(this).val() === userInfo.language;
+    }).each(function () {
+        $(".rooms-options select[name=room_lang_cd]").val(userInfo.language);
+    });
+    $(".rooms-options select[name=room_lang_cd]").change(function () {
+        refreshRooms();
+        $(this).blur();
+    });
+    refreshRooms();
+    setInterval(function () {
+        refreshRooms();
+    }, 1000 * 60 * 5);
 });
 
 function doCreatePublicRoom() {
@@ -184,19 +190,22 @@ function refreshRooms() {
     refreshRoomsTimer = setTimeout(function () {
         $.ajax({
             url: '/lobby/rooms',
+            data: {
+                lang_cd: $(".rooms-options select[name=room_lang_cd]").val()
+            },
             type: 'get',
             dataType: 'json',
             success: function (list) {
                 if (list) {
-                    $(".rooms.public .room:visible").remove();
+                    $(".rooms .room:visible").remove();
                     for (let i in list) {
                         let roomInfo = list[i];
-                        let room = $(".rooms.public .room.template").clone().removeClass("template");
+                        let room = $(".rooms .room.template").clone().removeClass("template");
                         room.find("a").attr("href", "/rooms/" + roomInfo.roomId);
                         room.find("h5").text(roomInfo.roomName);
                         room.find(".curr-users span").text(roomInfo.currentUsers);
                         if (roomInfo.language) {
-                            room.find(".lang").text(roomInfo.language);
+                            room.find(".lang").data("lang-cd", roomInfo.language).text(roomInfo.languageName);
                         }
                         if (roomInfo.currentUsers > 0) {
                             room.addClass("active");
@@ -204,7 +213,7 @@ function refreshRooms() {
                         if (roomInfo.pastDays < 2) {
                             room.find(".new").show();
                         }
-                        room.appendTo($(".rooms.public")).hide().fadeIn();
+                        room.appendTo($(".rooms")).hide().fadeIn();
                     }
                 }
             },

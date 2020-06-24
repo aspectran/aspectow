@@ -32,8 +32,18 @@
 			datediff(now(), reg_dt) as past_days
 		from public_rooms
 		where del_yn = 'N'
+		<if test="lang_cd != null and lang_cd != ''">
+			and lang_cd = #{lang_cd}
+		</if>
 		order by if(past_days &lt;= 1, 1, 2), curr_users desc, cumu_users desc
 		limit 28
+	</select>
+
+	<select id="getRoomLangList" resultType="string">
+		select distinct
+			lang_cd
+		from public_rooms
+		where del_yn = 'N'
 	</select>
 
 	<select id="getRoomCountByName" parameterType="string" resultType="int">

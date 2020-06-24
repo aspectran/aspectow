@@ -17,19 +17,22 @@ package club.textchat.room;
 
 import club.textchat.common.mybatis.SimpleSqlSession;
 import club.textchat.redis.persistence.LobbyChatPersistence;
+import com.aspectran.core.activity.InstantActivitySupport;
 import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Component;
 import com.aspectran.core.util.json.JsonWriter;
 import org.apache.ibatis.session.SqlSession;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * <p>Created: 2020/05/18</p>
  */
 @Component
-public class PublicRoomManager {
+public class PublicRoomManager extends InstantActivitySupport {
 
     private static final String NEW_ROOM_MESSAGE_PREFIX = "newPublicRoom:";
 
@@ -62,7 +65,22 @@ public class PublicRoomManager {
     }
 
     public List<RoomInfo> getRoomList() {
-        return sqlSession.selectList("public.rooms.getRoomList");
+        List<RoomInfo> list = sqlSession.selectList("public.rooms.getRoomList");
+        Map<String, String> languages = getEnvironment().getProperty("languages");
+        for (RoomInfo roomInfo : list) {
+            roomInfo.setLanguageName(languages.get(roomInfo.getLanguage()));
+        }
+        return list;
+    }
+
+    public Map<String, String> getRoomLanguages() {
+        List<String> list = sqlSession.selectList("public.rooms.getRoomLangList");
+        Map<String, String> languages = getEnvironment().getProperty("languages");
+        Map<String, String> result = new HashMap<>();
+        for (String lang : list) {
+            result.put(lang, languages.get(lang));
+        }
+        return result;
     }
 
     public void checkIn(String roomId) {

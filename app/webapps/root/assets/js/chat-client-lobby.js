@@ -68,11 +68,11 @@ function handleSystemMessage(content) {
     }
     if (content.startsWith("newPublicRoom:")) {
         let roomInfo = deserialize(content.substring(14));
-        let room = $(".rooms.public .room.template").clone().removeClass("template");
+        let room = $(".rooms .room.template").clone().removeClass("template");
         room.find("a").attr("href", "/rooms/" + roomInfo.roomId);
         room.find("h5").text(roomInfo.roomName);
         room.find(".new").show();
-        room.prependTo($(".rooms.public")).fadeIn();
+        room.prependTo($(".rooms")).fadeIn();
         printEvent(chatClientMessages.roomCreated.replace("[roomName]", "<code>" + roomInfo.roomName + "</code>"));
     }
 }

@@ -20,31 +20,10 @@
             </p>
             <label><aspectran:message code="modal.public_room_create.language"/>
                 <select name="lang_cd">
-                    <option value=""></option>
-                    <option value="en">English</option>
-                    <option value="cs">Čeština</option>
-                    <option value="de">Deutsch</option>
-                    <option value="es">el español</option>
-                    <option value="fr">Français</option>
-                    <option value="it">Italiano</option>
-                    <option value="hu">magyar</option>
-                    <option value="ms">Malay</option>
-                    <option value="nl">Nederlands</option>
-                    <option value="no">Norsk</option>
-                    <option value="pl">Polski</option>
-                    <option value="pt">Português</option>
-                    <option value="ru">Русский</option>
-                    <option value="sv">Svenska</option>
-                    <option value="vi">Tiếng Việt</option>
-                    <option value="tr">Türkçe</option>
-                    <option value="ar">اللغة العربية</option>
-                    <option value="hi">हिन्दी‎</option>
-                    <option value="bn">বাংলা</option>
-                    <option value="zh-HK">中文 (香港)</option>
-                    <option value="zh-CN">中文 (简体)</option>
-                    <option value="zh-TW">中文 (繁體)</option>
-                    <option value="ja">日本語</option>
-                    <option value="ko">한국어</option>
+                    <aspectran:token type="property" expression="languages" var="languages"/>
+                    <c:forEach items="${languages}" var="entry">
+                        <option value="${entry.key}">${entry.value}</option>
+                    </c:forEach>
                 </select>
             </label>
         </fieldset>
