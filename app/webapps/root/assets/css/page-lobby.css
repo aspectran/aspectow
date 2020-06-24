@@ -149,9 +149,12 @@
 }
 .rooms-options select {
     margin: 0;
+    padding-left: 1em;
     width: auto;
+    font-size: 1em;
     background-color: #bee9f6;
     border: none;
+    border-left: 1px solid #b2e4f5;
     border-radius: 20px 8px 8px 0;
 }
 .rooms .room {
@@ -181,7 +184,7 @@
     line-height: 1;
 }
 .rooms .room .curr-users {
-    color: #ccc;
+    color: #888;
 }
 .rooms .room.active .curr-users {
     color: #0280be;

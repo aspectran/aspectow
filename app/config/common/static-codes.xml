@@ -9,11 +9,11 @@
         반대로 동적 코드는 데이터베이스 내에서 관리되며, 데이터베이스 질의에 의해 동적으로 불러올 수 있습니다.
     </description>
 
-    <!-- 자주 사용하는 코드 그룹 묶음-->
     <environment>
         <properties>
             <item name="languages" type="map">
                 <entry name="en">English</entry>
+                <entry name="ko">한국어</entry>
                 <entry name="cs">Čeština</entry>
                 <entry name="de">Deutsch</entry>
                 <entry name="es">el español</entry>
@@ -36,7 +36,6 @@
                 <entry name="zh-CN">中文 (简体)</entry>
                 <entry name="zh-TW">中文 (繁體)</entry>
                 <entry name="ja">日本語</entry>
-                <entry name="ko">한국어</entry>
             </item>
         </properties>
     </environment>

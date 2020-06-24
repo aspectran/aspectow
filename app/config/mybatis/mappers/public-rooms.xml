@@ -39,13 +39,6 @@
 		limit 28
 	</select>
 
-	<select id="getRoomLangList" resultType="string">
-		select distinct
-			lang_cd
-		from public_rooms
-		where del_yn = 'N'
-	</select>
-
 	<select id="getRoomCountByName" parameterType="string" resultType="int">
 		select count(1) from public_rooms
 		where room_nm = #{roomName} and del_yn = 'N'
