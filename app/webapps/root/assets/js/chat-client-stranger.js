@@ -310,3 +310,9 @@ function printEvent(text, timeout) {
         message.remove();
     }, timeout||3500);
 }
+
+function gotoHome() {
+    if (!chatRequestEstablished && chatClientSettings.homepage) {
+        location.href = chatClientSettings.homepage;
+    }
+}
