@@ -80,9 +80,10 @@
                         </div>
                         <div class="cell align-self-middle text-right">
                             <select name="room_lang_cd">
-                            <c:forEach items="${page.roomLanguages}" var="entry">
-                                <option value="${entry.key}">${entry.value}</option>
-                            </c:forEach>
+                                <aspectran:token type="property" expression="languages" var="languages"/>
+                                <c:forEach items="${languages}" var="entry">
+                                    <option value="${entry.key}">${entry.value}</option>
+                                </c:forEach>
                             </select>
                         </div>
                     </div>

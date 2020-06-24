@@ -66,16 +66,11 @@ $(function () {
             refreshRooms();
         }
     });
-    $(".rooms-options select[name=room_lang_cd] option").filter(function () {
-        return $(this).val() === userInfo.language;
-    }).each(function () {
-        $(".rooms-options select[name=room_lang_cd]").val(userInfo.language);
-    });
     $(".rooms-options select[name=room_lang_cd]").change(function () {
         refreshRooms();
         $(this).blur();
     });
-    refreshRooms();
+    refreshRooms(userInfo.language);
     setInterval(function () {
         refreshRooms();
     }, 1000 * 60 * 5);
@@ -182,10 +177,17 @@ function doCreatePrivateRoom() {
 }
 
 let refreshRoomsTimer;
-function refreshRooms() {
+function refreshRooms(lang) {
     if (refreshRoomsTimer) {
         clearTimeout(refreshRoomsTimer);
         refreshRoomsTimer = null;
+    }
+    if (lang) {
+        $(".rooms-options select[name=room_lang_cd] option").filter(function () {
+            return $(this).val() === lang;
+        }).each(function () {
+            $(".rooms-options select[name=room_lang_cd]").val(lang);
+        });
     }
     refreshRoomsTimer = setTimeout(function () {
         $.ajax({

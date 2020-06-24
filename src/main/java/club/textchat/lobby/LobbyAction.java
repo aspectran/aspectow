@@ -53,7 +53,6 @@ public class LobbyAction {
     @Dispatch("templates/default")
     @Action("page")
     public Map<String, Object> lobby() {
-        Map<String, String> roomLanguages = publicRoomManager.getRoomLanguages();
         List<RoomInfo> rooms = publicRoomManager.getRoomList();
 
         UserInfo userInfo = null;
@@ -72,7 +71,6 @@ public class LobbyAction {
         if (token != null) {
             map.put("token", token);
         }
-        map.put("roomLanguages", roomLanguages);
         map.put("rooms", rooms);
         map.put("roomId", LOBBY_CHATROOM_ID);
         map.put("include", "pages/lobby");
