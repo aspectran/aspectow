@@ -145,21 +145,43 @@
 .rooms .room.cell {
     margin-bottom: 0;
 }
+.rooms .room.template {
+    display: none;
+}
 .rooms .room h5 {
     color: #1691cf;
     margin-right: 1em;
     margin-bottom: .5em;
 }
-.rooms .room .curr-users {
+.rooms .room .room-info {
     position: absolute;
     left: 0;
     bottom: 0;
-    padding: .55em .65em;
+    padding: .35em .55em;
     line-height: 1;
+}
+.rooms .room .curr-users {
     color: #ccc;
 }
 .rooms .room.active .curr-users {
     color: #0280be;
+    font-size: 1.2em;
+}
+.rooms .room.active .curr-users:before {
+    -webkit-animation: in-chatting .8s infinite alternate;
+    animation: in-chatting .8s infinite alternate;
+}
+@-webkit-keyframes in-chatting {
+    0% { color: #0280be; }
+    100% { color: #92d3f3; }
+}
+@keyframes in-chatting {
+    0% { color: #0280be; }
+    100% { color: #92d3f3; }
+}
+.rooms .room .lang {
+    padding-left: 1em;
+    font-size: .8em;
 }
 .rooms .room .new {
     position: absolute;

@@ -104,8 +104,8 @@
     float: left;
     display: block;
     font-size: 2em;
-    vertical-align: middle;
     margin: 0 .3em 0 .5em;
+    padding: .35em 0;
     color: #138484;
     -webkit-animation: pointing-up .5s infinite alternate;
     animation: pointing-up .5s infinite alternate;
@@ -114,14 +114,14 @@
     float: left;
     display: block;
     font-size: 2em;
-    vertical-align: middle;
     margin: 0 .3em 0 0;
+    padding: .35em .1em .35em .3em;
     color: #138484;
     -webkit-animation: pointing-left .5s infinite alternate;
     animation: pointing-left .5s infinite alternate;
 }
 .choose-info p {
-    padding: .7em;
+    padding: 1.5em .7em;
     margin: 0;
 }
 @-webkit-keyframes pointing-up {

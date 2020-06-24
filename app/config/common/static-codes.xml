@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE aspectran PUBLIC "-//ASPECTRAN//DTD Aspectran Configuration 6.0//EN"
+        "http://aspectran.github.io/dtd/aspectran-6.dtd">
+<aspectran>
+
+    <description>
+        여기 정의된 각 빈은 정적 코드 그룹입니다.
+        변하지 않는 코드를 정적 코드라고 하며, 메모리 상에 HashMap 인스턴스로 적재되고, 빈으로 관리됩니다.
+        반대로 동적 코드는 데이터베이스 내에서 관리되며, 데이터베이스 질의에 의해 동적으로 불러올 수 있습니다.
+    </description>
+
+    <!-- 자주 사용하는 코드 그룹 묶음-->
+    <environment>
+        <properties>
+            <item name="languages" type="map">
+                <entry name="en">English</entry>
+                <entry name="cs">Čeština</entry>
+                <entry name="de">Deutsch</entry>
+                <entry name="es">el español</entry>
+                <entry name="fr">Français</entry>
+                <entry name="it">Italiano</entry>
+                <entry name="hu">magyar</entry>
+                <entry name="ms">Malay</entry>
+                <entry name="nl">Nederlands</entry>
+                <entry name="no">Norsk</entry>
+                <entry name="pl">Polski</entry>
+                <entry name="pt">Português</entry>
+                <entry name="ru">Русский</entry>
+                <entry name="sv">Svenska</entry>
+                <entry name="vi">Tiếng Việt</entry>
+                <entry name="tr">Türkçe</entry>
+                <entry name="ar">اللغة العربية</entry>
+                <entry name="hi">हिन्दी‎</entry>
+                <entry name="bn">বাংলা</entry>
+                <entry name="zh-HK">中文 (香港)</entry>
+                <entry name="zh-CN">中文 (简体)</entry>
+                <entry name="zh-TW">中文 (繁體)</entry>
+                <entry name="ja">日本語</entry>
+                <entry name="ko">한국어</entry>
+            </item>
+        </properties>
+    </environment>
+
+</aspectran>

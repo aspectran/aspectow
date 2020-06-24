@@ -20,6 +20,7 @@
             </p>
             <label><aspectran:message code="modal.public_room_create.language"/>
                 <select name="lang_cd">
+                    <option value=""></option>
                     <option value="en">English</option>
                     <option value="cs">Čeština</option>
                     <option value="de">Deutsch</option>

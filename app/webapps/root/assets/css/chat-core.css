@@ -29,26 +29,29 @@
     font-size: .8em;
     background-color: #fff;
 }
+#contacts .contact .status .iconfont {
+    color: #fff;
+}
 #contacts .contact .status.my-col-1 {
-    background-color: #fbd2d2;
+    background-color: #fc9999;
 }
 #contacts .contact .status.my-col-2 {
-    background-color: #ffe0c5;
+    background-color: #fcb274;
 }
 #contacts .contact .status.my-col-3 {
-    background-color: #f4ebac;
+    background-color: #f8e154;
 }
 #contacts .contact .status.my-col-4 {
-    background-color: #c0eabe;
+    background-color: #6ef56a;
 }
 #contacts .contact .status.my-col-5 {
-    background-color: #c6e6fd;
+    background-color: #6cb8fa;
 }
 #contacts .contact .status.my-col-6 {
-    background-color: #d4d4fc;
+    background-color: #8484f5;
 }
 #contacts .contact .status.my-col-7 {
-    background-color: #f4cff3;
+    background-color: #f890f5;
 }
 #contacts .contact .name {
     padding-right: 20px;

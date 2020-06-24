@@ -13,11 +13,13 @@ $(function () {
         $("#form-public-room-create").each(function () {
             this.reset();
         });
+        /*
         $("#form-public-room-create select[name=lang_cd] option").each(function () {
             if ($(this).val() === userInfo.language) {
                 $("#form-public-room-create select[name=lang_cd]").val(userInfo.language);
             }
         });
+        */
         loadCaptcha("public_room_create", "captcha-container-public-room-create");
         $("#form-public-room-create input[name=room_nm]").focus();
     });
@@ -189,17 +191,20 @@ function refreshRooms() {
                     $(".rooms.public .room:visible").remove();
                     for (let i in list) {
                         let roomInfo = list[i];
-                        let room = $(".new-room-template").clone().removeClass("new-room-template");
+                        let room = $(".rooms.public .room.template").clone().removeClass("template");
                         room.find("a").attr("href", "/rooms/" + roomInfo.roomId);
                         room.find("h5").text(roomInfo.roomName);
                         room.find(".curr-users span").text(roomInfo.currentUsers);
+                        if (roomInfo.language) {
+                            room.find(".lang").text(roomInfo.language);
+                        }
                         if (roomInfo.currentUsers > 0) {
                             room.addClass("active");
                         }
                         if (roomInfo.pastDays < 2) {
                             room.find(".new").show();
                         }
-                        room.appendTo($(".rooms.public")).fadeIn();
+                        room.appendTo($(".rooms.public")).hide().fadeIn();
                     }
                 }
             },

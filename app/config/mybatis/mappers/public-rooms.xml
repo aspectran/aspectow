@@ -26,6 +26,7 @@
 		select
 			room_id,
 			room_nm,
+			lang_cd,
 			cumu_users,
 			curr_users,
 			datediff(now(), reg_dt) as past_days

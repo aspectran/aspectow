@@ -11,45 +11,6 @@
         |
     </description>
 
-    <!-- Development -->
-    <environment profile="dev">
-        <properties>
-            <item name="redis.uri.session_db" value="%{classpath:redis-dev.properties^uri.session_db}"/>
-            <item name="redis.uri.chat_db" value="%{classpath:redis-dev.properties^uri.chat_db}"/>
-            <item name="redis.channel.public_chat" value="%{classpath:redis-dev.properties^channel.public_chat}"/>
-            <item name="redis.channel.private_chat" value="%{classpath:redis-dev.properties^channel.private_chat}"/>
-            <item name="redis.channel.random_chat" value="%{classpath:redis-dev.properties^channel.random_chat}"/>
-            <item name="redis.channel.stranger_chat" value="%{classpath:redis-dev.properties^channel.stranger_chat}"/>
-            <item name="redis.channel.lobby_chat" value="%{classpath:redis-dev.properties^channel.lobby_chat}"/>
-        </properties>
-    </environment>
-
-    <!-- Production - Oracle Cloud -->
-    <environment profile="prod">
-        <properties>
-            <item name="redis.uri.session_db" value="%{classpath:redis-prod.properties^uri.session_db}"/>
-            <item name="redis.uri.chat_db" value="%{classpath:redis-prod.properties^uri.chat_db}"/>
-            <item name="redis.channel.public_chat" value="%{classpath:redis-prod.properties^channel.public_chat}"/>
-            <item name="redis.channel.private_chat" value="%{classpath:redis-prod.properties^channel.private_chat}"/>
-            <item name="redis.channel.random_chat" value="%{classpath:redis-prod.properties^channel.random_chat}"/>
-            <item name="redis.channel.stranger_chat" value="%{classpath:redis-prod.properties^channel.stranger_chat}"/>
-            <item name="redis.channel.lobby_chat" value="%{classpath:redis-prod.properties^channel.lobby_chat}"/>
-        </properties>
-    </environment>
-
-    <!-- Production - GCP -->
-    <environment profile="prod-gcp">
-        <properties>
-            <item name="redis.uri.session_db" value="%{classpath:redis-prod-gp.properties^uri.session_db}"/>
-            <item name="redis.uri.chat_db" value="%{classpath:redis-prod-gcp.properties^uri.chat_db}"/>
-            <item name="redis.channel.public_chat" value="%{classpath:redis-prod-gcp.properties^channel.public_chat}"/>
-            <item name="redis.channel.private_chat" value="%{classpath:redis-prod-gcp.properties^channel.private_chat}"/>
-            <item name="redis.channel.random_chat" value="%{classpath:redis-prod-gcp.properties^channel.random_chat}"/>
-            <item name="redis.channel.stranger_chat" value="%{classpath:redis-prod-gcp.properties^channel.stranger_chat}"/>
-            <item name="redis.channel.lobby_chat" value="%{classpath:redis-prod-gcp.properties^channel.lobby_chat}"/>
-        </properties>
-    </environment>
-
     <bean id="basePath" class="com.aspectran.core.support.BasePathFactoryBean"/>
     <bean id="currentEnvironment" class="com.aspectran.core.support.CurrentEnvironmentFactoryBean"/>
     <bean id="currentTranslet" class="com.aspectran.core.support.CurrentTransletFactoryBean" scope="request"/>
@@ -73,6 +34,7 @@
     <append file="/config/server/undertow-config.xml"/>
     <append file="/config/server/undertow-support.xml"/>
     <append file="/config/i18n/i18n.xml"/>
+    <append file="/config/common/static-codes.xml"/>
     <append file="/config/web/web-config.xml"/>
 
 </aspectran>

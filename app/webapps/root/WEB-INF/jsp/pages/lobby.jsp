@@ -1,12 +1,12 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://aspectran.com/tags" prefix="aspectran" %>
-<link rel="stylesheet" type="text/css" href="/assets/css/chat-core.css?v22" />
-<link rel="stylesheet" type="text/css" href="/assets/css/chat-lobby.css?v20" />
-<link rel="stylesheet" type="text/css" href="/assets/css/page-lobby.css?v22" />
-<script src="/assets/js/chat-client-core.js?v22"></script>
-<script src="/assets/js/chat-client-lobby.js?v25"></script>
-<script src="/assets/js/page-lobby.js?v21"></script>
+<link rel="stylesheet" type="text/css" href="/assets/css/chat-core.css?v23" />
+<link rel="stylesheet" type="text/css" href="/assets/css/chat-lobby.css?v21" />
+<link rel="stylesheet" type="text/css" href="/assets/css/page-lobby.css?v23" />
+<script src="/assets/js/chat-client-core.js?v23"></script>
+<script src="/assets/js/chat-client-lobby.js?v26"></script>
+<script src="/assets/js/page-lobby.js?v22"></script>
 <script>
     const chatClientSettings = {
         serverEndpoint: "/chat/lobby/",
@@ -80,17 +80,24 @@
                         </div>
                     </div>
                     <div class="rooms public grid-x grid-margin-x grid-margin-y medium-up-2 large-up-3 b15">
-                    <c:forEach items="${page.rooms}" var="roomInfo">
+                        <aspectran:token type="property" expression="languages" var="languages"/>
+                        <c:forEach items="${page.rooms}" var="roomInfo">
                         <div class="cell room<c:if test="${roomInfo.currentUsers gt 0}"> active</c:if>">
                             <a class="title start" href="/rooms/${roomInfo.roomId}"><h5>${roomInfo.roomName}</h5></a>
-                            <i class="curr-users fi-torsos-all"> <span>${roomInfo.currentUsers}</span></i>
+                            <div class="room-info">
+                                <i class="curr-users fi-torsos-all"> <span>${roomInfo.currentUsers}</span></i>
+                                <c:if test="${not empty roomInfo.language}"><span class="lang">${languages[roomInfo.language]}</span></c:if>
+                            </div>
                             <c:if test="${roomInfo.pastDays le 1}"><i class="new fi-burst-new"></i></c:if>
                             <a class="button small start" href="/rooms/${roomInfo.roomId}"><aspectran:message code="lobby.rooms.button.enter_chatroom"/></a>
                         </div>
-                    </c:forEach>
-                        <div class="new-room-template cell room" style="display: none">
+                        </c:forEach>
+                        <div class="cell room template">
                             <a class="title start"><h5></h5></a>
-                            <i class="curr-users fi-torsos-all"> <span>0</span></i>
+                            <div class="room-info">
+                                <i class="curr-users fi-torsos-all"> <span>0</span></i>
+                                <span class="lang"></span>
+                            </div>
                             <i class="new fi-burst-new" style="display: none"></i>
                             <a class="button small start"><aspectran:message code="lobby.rooms.button.enter_chatroom"/></a>
                         </div>

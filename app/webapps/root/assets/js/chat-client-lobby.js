@@ -68,7 +68,7 @@ function handleSystemMessage(content) {
     }
     if (content.startsWith("newPublicRoom:")) {
         let roomInfo = deserialize(content.substring(14));
-        let room = $(".new-room-template").clone().removeClass("new-room-template");
+        let room = $(".rooms.public .room.template").clone().removeClass("template");
         room.find("a").attr("href", "/rooms/" + roomInfo.roomId);
         room.find("h5").text(roomInfo.roomName);
         room.find(".new").show();
