@@ -170,14 +170,18 @@
 }
 .chat-requests .icon-heart {
     color: red;
-    -webkit-animation: heartbeat 1s infinite alternate;
-    animation: heartbeat 1s infinite alternate;
+    -webkit-animation: heartbeat .8s infinite alternate;
+    animation: heartbeat .8s infinite alternate;
 }
 @-webkit-keyframes heartbeat {
     0% { color: red; }
-    100% { color: beige; }
+    100% { color: transparent; }
 }
 @keyframes heartbeat {
     0% { color: red; }
-    100% { color: beige; }
+    100% { color: transparent; }
+}
+#contacts .contact .status.heartbeat .iconfont {
+    -webkit-animation: heartbeat .8s infinite alternate;
+    animation: heartbeat .8s infinite alternate;
 }

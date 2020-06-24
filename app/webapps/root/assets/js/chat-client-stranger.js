@@ -59,6 +59,7 @@ $(function () {
         t.data("user-no", userNo);
         t.data("username", username);
         ele.remove();
+        heartbeatContact(userNo, true);
         chatRequestTimer(t, 35, function () {
             newChatRequestTemplate("request-timeout", t);
             t.remove();
@@ -74,6 +75,7 @@ $(function () {
         t.data("user-no", userNo);
         t.data("username", username);
         ele.remove();
+        heartbeatContact(userNo, false);
         sendChatRequestMessage("request-canceled", userNo);
     }).on("click", ".request-received:visible .decline", function () {
         let ele = $(this).closest(".request-received");
@@ -83,6 +85,7 @@ $(function () {
         t.data("user-no", userNo);
         t.data("username", username);
         ele.remove();
+        heartbeatContact(userNo, false);
         sendChatRequestMessage("request-declined", userNo);
     }).on("click", ".request-received:visible .accept", function () {
         let ele = $(this).closest(".request-received");
@@ -90,35 +93,6 @@ $(function () {
         sendChatRequestMessage("request-accepted", userNo);
     });
 });
-
-function isRequestingChat(targetUserNo) {
-    let result = false;
-    $(".chat-requests .confirm-request:visible, .chat-requests .request:visible, .chat-requests .request-received:visible").each(function () {
-        let ele = $(this);
-        let userNo = ele.data("user-no");
-        if (userNo && userNo === targetUserNo) {
-            result = true;
-        }
-    });
-    return result;
-}
-
-function newChatRequestTemplate(requestType, before, username) {
-    let t = $(".chat-requests ." + requestType + ".template").clone().removeClass("template");
-    if (username) {
-        let title = t.find(".title").html();
-        title = title.replace("[username]", "<strong>" + username + "</strong>");
-        t.find(".title").html(title);
-    }
-    t.hide();
-    if (before) {
-        before.after(t);
-    } else {
-        t.appendTo(".chat-requests");
-    }
-    t.fadeIn();
-    return t;
-}
 
 function handleChatRequestMessage(content) {
     if (!content || chatRequestEstablished) {
@@ -149,8 +123,34 @@ function handleChatRequestMessage(content) {
     }
 }
 
+function newChatRequestTemplate(requestType, before, username) {
+    let t = $(".chat-requests ." + requestType + ".template").clone().removeClass("template");
+    if (username) {
+        let title = t.find(".title").html();
+        title = title.replace("[username]", "<strong>" + username + "</strong>");
+        t.find(".title").html(title);
+    }
+    t.hide();
+    if (before) {
+        before.after(t);
+    } else {
+        t.appendTo(".chat-requests");
+    }
+    t.fadeIn();
+    return t;
+}
+
+function isRequestingChat(targetUserNo) {
+    return $(".chat-requests .confirm-request:visible, " +
+        ".chat-requests .request:visible, " +
+        ".chat-requests .request-received:visible").filter(function () {
+        return $(this).data("user-no") === targetUserNo;
+    }).length > 0;
+}
+
 function chatRequest(targetUserInfo) {
     hideSidebar();
+    heartbeatContact(targetUserInfo.userNo, true);
     let t = newChatRequestTemplate("request-received", null, targetUserInfo.username);
     t.data("user-no", targetUserInfo.userNo);
     t.data("username", targetUserInfo.username);
@@ -160,41 +160,40 @@ function chatRequest(targetUserInfo) {
 }
 
 function chatRequestCanceled(targetUserNo) {
-    $(".chat-requests .request-received:visible").each(function () {
+    heartbeatContact(targetUserNo, false);
+    $(".chat-requests .request-received:visible").filter(function () {
+        return $(this).data("user-no") === targetUserNo;
+    }).each(function () {
         let ele = $(this);
-        let userNo = ele.data("user-no");
         let username = ele.data("username");
-        if (userNo === targetUserNo) {
-            newChatRequestTemplate("request-canceled", ele, username);
-            ele.remove();
-        }
-    })
+        newChatRequestTemplate("request-canceled", ele, username);
+        ele.remove();
+    });
 }
 
 function chatRequestDeclined(targetUserNo) {
-    $(".chat-requests .request:visible").each(function () {
+    heartbeatContact(targetUserNo, false);
+    $(".chat-requests .request:visible").filter(function () {
+        return $(this).data("user-no") === targetUserNo;
+    }).each(function () {
         let ele = $(this);
-        let userNo = ele.data("user-no");
         let username = ele.data("username");
-        if (userNo === targetUserNo) {
-            newChatRequestTemplate("request-declined", ele, username);
-            ele.remove();
-        }
-    })
+        newChatRequestTemplate("request-declined", ele, username);
+        ele.remove();
+    });
 }
 
 function chatRequestAccepted(targetUserNo) {
-    $(".chat-requests .request:visible, .chat-requests .request-received:visible").each(function () {
+    $(".chat-requests .request:visible, .chat-requests .request-received:visible").filter(function () {
+        return $(this).data("user-no") === targetUserNo;
+    }).each(function () {
+        chatRequestEstablished = true;
         let ele = $(this);
-        let userNo = ele.data("user-no");
-        if (userNo && userNo === targetUserNo) {
-            chatRequestEstablished = true;
-            ele.data("done", true);
-            ele.find("button").prop("disabled", true);
-            ele.find(".timer").hide();
-            ele.find(".done").show();
-        }
-    })
+        ele.data("done", true);
+        ele.find("button").prop("disabled", true);
+        ele.find(".timer").hide();
+        ele.find(".done").show();
+    });
 }
 
 function chatRequestTimer(ele, timeoutInSecs, callback) {
@@ -210,6 +209,18 @@ function chatRequestTimer(ele, timeoutInSecs, callback) {
             }
         }
     }, 999);
+}
+
+function heartbeatContact(targetUserNo, active) {
+    $("#contacts .contact").filter(function () {
+        return $(this).data("user-no") === targetUserNo;
+    }).each(function () {
+        if (active) {
+            $(".status", this).addClass("heartbeat");
+        } else {
+            $(".status", this).removeClass("heartbeat");
+        }
+    });
 }
 
 function parseTargetUserNo(content) {

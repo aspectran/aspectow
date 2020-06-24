@@ -54,7 +54,7 @@
                         <div class="request active template cell grid-x medium-up-1 large-up-2">
                             <div class="cell">
                                 <p class="title"><aspectran:message code='chat.stranger.request'/></p>
-                                <p><i class="icon-heart"></i> <aspectran:message code='chat.stranger.time_left'/>: <span class="remains">35</span><aspectran:message code='chat.stranger.time_left_secs'/></p>
+                                <p><i class="icon-heart"></i> <aspectran:message code='chat.stranger.time_left'/>: <span class="remains">35 </span><aspectran:message code='chat.stranger.time_left_secs'/></p>
                                 <p class="done"><aspectran:message code='chat.stranger.request_done'/></p>
                             </div>
                             <div class="cell align-self-bottom text-right">
@@ -65,7 +65,7 @@
                             <div class="cell">
                                 <p class="title"><aspectran:message code='chat.stranger.request_received'/></p>
                                 <p><aspectran:message code='chat.stranger.request_received_1'/></p>
-                                <p><i class="icon-heart"></i> <aspectran:message code='chat.stranger.time_left'/>: <span class="remains">30</span><aspectran:message code='chat.stranger.time_left_secs'/></p>
+                                <p><i class="icon-heart"></i> <aspectran:message code='chat.stranger.time_left'/>: <span class="remains">30 </span><aspectran:message code='chat.stranger.time_left_secs'/></p>
                                 <p class="done"><aspectran:message code='chat.stranger.request_done'/></p>
                             </div>
                             <div class="cell align-self-bottom text-right">
