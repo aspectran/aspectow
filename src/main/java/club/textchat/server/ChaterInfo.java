@@ -117,6 +117,9 @@ public class ChaterInfo extends UserInfo implements Serializable {
         tsb.append("roomId", roomId);
         tsb.append("userNo", getUserNo());
         tsb.append("username", getUsername());
+        tsb.append("country", getCountry());
+        tsb.append("language", getLanguage());
+        tsb.append("color", getColor());
         tsb.append("httpSessionId", httpSessionId);
         return tsb.toString();
     }
@@ -128,6 +131,7 @@ public class ChaterInfo extends UserInfo implements Serializable {
             writer.writeName("userNo").writeValue(getUserNo());
             writer.writeName("username").writeValue(getUsername());
             writer.writeName("country").writeValue(getCountry());
+            writer.writeName("language").writeValue(getLanguage());
             writer.writeName("color").writeValue(getColor());
             writer.endObject();
             return writer.toString();
@@ -142,6 +146,7 @@ public class ChaterInfo extends UserInfo implements Serializable {
             setUserNo(parameters.getInt("userNo"));
             setUsername(parameters.getString("username"));
             setCountry(parameters.getString("country"));
+            setCountry(parameters.getString("language"));
             setColor(parameters.getString("color"));
         } catch (IOException e) {
             // ignore
