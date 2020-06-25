@@ -49,6 +49,10 @@
     color: #444;
     border-top: 1px solid #fff;
     border-left: 1px solid #fff;
+    min-width: 12em;
+}
+.service .button.start.en {
+    min-width: 16em;
 }
 .service.random {
 }
@@ -62,7 +66,6 @@
     color: #d26881;
 }
 .service.random .button.start {
-    min-width: 11em;
     background-color: #e07a91;
     color: #fff;
     font-size: .8em;
@@ -83,7 +86,6 @@
     color: #ffa83c;
 }
 .service.strangers .button.start {
-    min-width: 11em;
     background-color: #ea9f4b;
     color: #fff;
     font-size: .8em;
@@ -104,7 +106,6 @@
     color: #84d268;
 }
 .service.private .button.start {
-    min-width: 11em;
     background-color: #78cd59;
     color: #fff;
     font-size: .8em;
@@ -125,7 +126,6 @@
     color: #58aed9;
 }
 .service.public .button.start {
-    min-width: 11em;
     background-color: #64bce5;
     color: #fff;
     font-size: .8em;

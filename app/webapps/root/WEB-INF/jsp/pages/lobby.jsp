@@ -3,7 +3,7 @@
 <%@ taglib uri="http://aspectran.com/tags" prefix="aspectran" %>
 <link rel="stylesheet" type="text/css" href="/assets/css/chat-core.css?v23" />
 <link rel="stylesheet" type="text/css" href="/assets/css/chat-lobby.css?v21" />
-<link rel="stylesheet" type="text/css" href="/assets/css/page-lobby.css?v23" />
+<link rel="stylesheet" type="text/css" href="/assets/css/page-lobby.css?v24" />
 <script src="/assets/js/chat-client-core.js?v23"></script>
 <script src="/assets/js/chat-client-lobby.js?v26"></script>
 <script src="/assets/js/page-lobby.js?v23"></script>
@@ -68,7 +68,7 @@
                             <p class="guide show-for-large"><aspectran:message code="service.private_chat.guide"/></p>
                             <p class="dummy"></p>
                             <a class="guide hide-for-large" title="<aspectran:message code="service.private_chat.button.guide"/>"><i class="fi-info"></i></a>
-                            <a class="button small start private-room-create" title="Create a private chat room"><aspectran:message code="service.private_chat.button.create"/></a>
+                            <a class="button small wide start private-room-create <aspectran:message code="site.lang"/>"><aspectran:message code="service.private_chat.button.create"/></a>
                         </div>
                         <div class="cell service public create">
                             <a class="title public-room-create"><h4><aspectran:message code="service.public_chat"/></h4></a>
@@ -76,7 +76,7 @@
                             <p class="guide show-for-large"><aspectran:message code="service.public_chat.guide"/></p>
                             <p class="dummy"></p>
                             <a class="guide hide-for-large" title="<aspectran:message code="service.public_chat.button.guide"/>"><i class="fi-info"></i></a>
-                            <a class="button small start public-room-create" title="Create an open chat room"><aspectran:message code="service.public_chat.button.create"/></a>
+                            <a class="button small start public-room-create <aspectran:message code="site.lang"/>"><aspectran:message code="service.public_chat.button.create"/></a>
                         </div>
                     </div>
                     <div class="rooms-options grid-x small-up-2 t15 b10">
