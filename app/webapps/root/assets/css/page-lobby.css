@@ -39,19 +39,23 @@
     line-height: 1;
     padding: 0;
 }
-.service .button.start {
+.service .service-options {
     position: absolute;
     right: 0;
     bottom: 0;
-    margin: 0 1px 1px 0;
-    border-radius: 20px 0 7px 0;
+    text-align: right;
+}
+.service .service-options .button.start {
+    margin: 0;
+    border-radius: 18px 0 9px 0;
     background-color: #a1d2ea;
     color: #444;
     border-top: 1px solid #fff;
     border-left: 1px solid #fff;
     min-width: 12em;
+    vertical-align: bottom;
 }
-.service .button.start.en {
+.service .service-options .button.start.en {
     min-width: 16em;
 }
 .service.random {
@@ -65,13 +69,24 @@
 .service.random a.guide {
     color: #d26881;
 }
-.service.random .button.start {
+.service.random .service-options .chat-lang {
+    margin: 0;
+    width: auto;
+    height: 30px;
+    font-size: .9em;
+    background-color: #dfdfdf;
+    border: none;
+    border-radius: 10px 10px 0 0;
+    vertical-align: bottom;
+}
+
+.service.random .service-options .button.start {
     background-color: #e07a91;
     color: #fff;
     font-size: .8em;
     font-weight: bold;
 }
-.service.random:hover .button.start {
+.service.random:hover .service-options .button.start {
     background-color: #ea6887;
 }
 .service.strangers {
@@ -85,13 +100,13 @@
 .service.strangers a.guide {
     color: #ffa83c;
 }
-.service.strangers .button.start {
+.service.strangers .service-options .button.start {
     background-color: #ea9f4b;
     color: #fff;
     font-size: .8em;
     font-weight: bold;
 }
-.service.strangers:hover .button.start {
+.service.strangers:hover .service-options .button.start {
     background-color: #f8a03d;
 }
 .service.private {
@@ -105,13 +120,13 @@
 .service.private a.guide {
     color: #84d268;
 }
-.service.private .button.start {
+.service.private .service-options .button.start {
     background-color: #78cd59;
     color: #fff;
     font-size: .8em;
     font-weight: bold;
 }
-.service.private:hover .button.start {
+.service.private:hover .service-options .button.start {
     background-color: #6dd746;
 }
 .service.public {
@@ -125,13 +140,13 @@
 .service.public a.guide {
     color: #58aed9;
 }
-.service.public .button.start {
+.service.public .service-options .button.start {
     background-color: #64bce5;
     color: #fff;
     font-size: .8em;
     font-weight: bold;
 }
-.service.public:hover .button.start {
+.service.public:hover .service-options .button.start {
     background-color: #44bbf5;
 }
 .rooms-options {
@@ -147,15 +162,18 @@
 .rooms-options .refresh-rooms {
     white-space: nowrap;
 }
-.rooms-options select {
-    margin: 0;
+.rooms-options .room-lang {
+    margin: 7px 0 0 0;
     padding-left: 1em;
     width: auto;
+    height: 34px;
     font-size: 1em;
     background-color: #bee9f6;
     border: none;
     border-left: 1px solid #b2e4f5;
-    border-radius: 20px 8px 8px 0;
+    border-radius: 18px 8px 8px 0;
+    border-top: 1px solid #fff;
+    border-left: 1px solid #fff;
 }
 .rooms .room {
     position: relative;

@@ -42,10 +42,13 @@ public class ChaterInfo extends UserInfo implements Serializable {
 
     private ZoneId zoneId;
 
+    private String chatLanguage;
+
     public ChaterInfo(@NonNull UserInfo userInfo) {
         setUserNo(userInfo.getUserNo());
         setUsername(userInfo.getUsername());
         setCountry(userInfo.getCountry());
+        setLanguage(userInfo.getLanguage());
         setColor(userInfo.getColor());
         setZoneId(userInfo.getTimeZone());
     }
@@ -89,6 +92,14 @@ public class ChaterInfo extends UserInfo implements Serializable {
         return zoneId;
     }
 
+    public String getChatLanguage() {
+        return chatLanguage;
+    }
+
+    public void setChatLanguage(String chatLanguage) {
+        this.chatLanguage = chatLanguage;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -119,6 +130,7 @@ public class ChaterInfo extends UserInfo implements Serializable {
         tsb.append("username", getUsername());
         tsb.append("country", getCountry());
         tsb.append("language", getLanguage());
+        tsb.append("chatLang", getChatLanguage());
         tsb.append("color", getColor());
         tsb.append("httpSessionId", httpSessionId);
         return tsb.toString();
@@ -132,6 +144,7 @@ public class ChaterInfo extends UserInfo implements Serializable {
             writer.writeName("username").writeValue(getUsername());
             writer.writeName("country").writeValue(getCountry());
             writer.writeName("language").writeValue(getLanguage());
+            writer.writeName("chatLang").writeValue(getLanguage());
             writer.writeName("color").writeValue(getColor());
             writer.endObject();
             return writer.toString();
@@ -146,7 +159,8 @@ public class ChaterInfo extends UserInfo implements Serializable {
             setUserNo(parameters.getInt("userNo"));
             setUsername(parameters.getString("username"));
             setCountry(parameters.getString("country"));
-            setCountry(parameters.getString("language"));
+            setLanguage(parameters.getString("language"));
+            setChatLanguage(parameters.getString("chatLang"));
             setColor(parameters.getString("color"));
         } catch (IOException e) {
             // ignore

@@ -114,8 +114,7 @@ public class PublicChatHandler extends AbstractChatHandler {
             payload.setChaters(roomChaters);
             payload.setRecentConvo(publicChatPersistence.getRecentConvo(chaterInfo.getRoomId()));
             payload.setRejoin(rejoin);
-            ChatMessage message = new ChatMessage(payload);
-            send(session, message);
+            send(session, new ChatMessage(payload));
             publicRoomManager.checkIn(chaterInfo.getRoomId());
         }
         return replaced;

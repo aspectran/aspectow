@@ -21,29 +21,37 @@ import club.textchat.server.ChaterInfo;
 import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Bean;
 import com.aspectran.core.component.bean.annotation.Component;
-import com.aspectran.core.lang.NonNull;
+import com.aspectran.core.util.StringUtils;
 
 /**
- * <p>Created: 2020/05/03</p>
+ * <p>Created: 2020/06/25</p>
  */
 @Component
 @Bean
-public class RandomChaterPersistence extends AbstractPersistence {
+public class RandomChatersByLangPersistence extends AbstractPersistence {
 
-    private static final String KEY_PREFIX = "rchat:";
+    private static final String KEY_PREFIX = "rclang:";
 
     private static final String VALUE_SEPARATOR = ":";
 
-    private static final String NONE = "0";
+    private static final String ANY_LANGUAGE = "any";
 
     @Autowired
-    public RandomChaterPersistence(RedisConnectionPool connectionPool) {
+    public RandomChatersByLangPersistence(RedisConnectionPool connectionPool) {
         super(connectionPool);
     }
 
-    public ChaterInfo get(int userNo) {
-        String str = super.get(makeKey(userNo));
-        if (str != null && !NONE.equals(str)) {
+    public void put(ChaterInfo chaterInfo) {
+        sadd(makeKey(chaterInfo.getChatLanguage()), makeValue(chaterInfo));
+    }
+
+    public void remove(ChaterInfo chaterInfo) {
+        srem(makeKey(chaterInfo.getChatLanguage()), makeValue(chaterInfo));
+    }
+
+    public ChaterInfo randomChater(String chatLanguage) {
+        String str = srandmember(makeKey(chatLanguage));
+        if (str != null) {
             int index = str.indexOf(VALUE_SEPARATOR);
             if (index > -1) {
                 String json = str.substring(index + 1);
@@ -53,36 +61,15 @@ public class RandomChaterPersistence extends AbstractPersistence {
         return null;
     }
 
-    public void set(int userNo) {
-        super.set(makeKey(userNo), NONE);
-    }
-
-    public void set(@NonNull ChaterInfo chaterInfo, @NonNull ChaterInfo chaterInfo2) {
-        super.set(makeKey(chaterInfo.getUserNo()), makeValue(chaterInfo2));
-        super.set(makeKey(chaterInfo2.getUserNo()), makeValue(chaterInfo));
-    }
-
-    public void unset(int userNo1, int userNo2) {
-        ChaterInfo chaterInfo = get(userNo1);
-        if (chaterInfo != null && chaterInfo.getUserNo() == userNo2) {
-            set(chaterInfo.getUserNo());
+    private String makeKey(String language) {
+        if (StringUtils.isEmpty(language)) {
+            return KEY_PREFIX + ANY_LANGUAGE;
+        } else {
+            return KEY_PREFIX + language;
         }
     }
 
-    public void remove(int userNo) {
-        del(makeKey(userNo));
-    }
-
-    public boolean exists(int userNo) {
-        String str = super.get(makeKey(userNo));
-        return (str != null && !NONE.equals(str));
-    }
-
-    private String makeKey(int userNo) {
-        return KEY_PREFIX + userNo;
-    }
-
-    private String makeValue(ChaterInfo chaterInfo) {
+    private static String makeValue(ChaterInfo chaterInfo) {
         return chaterInfo.getUserNo() + VALUE_SEPARATOR + chaterInfo.serialize();
     }
 

@@ -41,7 +41,7 @@ public class RandomChatCoupler {
         this.randomChatHandler = randomChatHandler;
     }
 
-    public void request(ChaterInfo chaterInfo) {
+    public void join(ChaterInfo chaterInfo) {
         offer(chaterInfo);
         if (!queue.isEmpty() && !active) {
             run();
@@ -76,7 +76,7 @@ public class RandomChatCoupler {
             ChaterInfo chaterInfo1;
             while ((chaterInfo1 = poll()) != null) {
                 try {
-                    ChaterInfo chaterInfo2 = randomChatHandler.randomChater();
+                    ChaterInfo chaterInfo2 = randomChatHandler.randomChater(chaterInfo1.getChatLanguage());
                     if (chaterInfo2 != null) {
                         if (chaterInfo1.getUserNo() == chaterInfo2.getUserNo() ||
                                 randomChatHandler.hasPartner(chaterInfo2.getUserNo()) ||

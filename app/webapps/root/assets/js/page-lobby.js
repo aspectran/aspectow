@@ -57,9 +57,24 @@ $(function () {
         $(this).data("old-text", $(this).text()).text(modalMessages.copied).addClass("alert");
     });
     $("a.start[href]").on("click", function (event) {
-        event.stopPropagation();
+        event.preventDefault();
         closeSocket();
         location.href = $(this).attr("href");
+    });
+    $(".service.random a.start").off().on("click", function (event) {
+        event.preventDefault();
+        closeSocket();
+        let lang = $(".service-options select[name=chat_lang]").val();
+        if (lang) {
+            location.href = $(this).attr("href") + "?lang=" + lang;
+        } else {
+            location.href = $(this).attr("href");
+        }
+    });
+    $(".service-options select[name=chat_lang] option").filter(function () {
+        return $(this).val() === userInfo.language;
+    }).each(function () {
+        $(".service-options select[name=chat_lang]").val(userInfo.language);
     });
     $(".refresh-rooms").on("click", function () {
         if (checkSignedIn()) {

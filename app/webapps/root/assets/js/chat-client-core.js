@@ -70,7 +70,7 @@ function openSocket(token) {
         return;
     }
     closeSocket();
-    let url = new URL(chatClientSettings.serverEndpoint + token, location.href);
+    let url = new URL(chatClientSettings.serverEndpoint + token + location.search, location.href);
     url.protocol = url.protocol.replace('https:', 'wss:');
     url.protocol = url.protocol.replace('http:', 'ws:');
     socket = new WebSocket(url.href);

@@ -1,6 +1,7 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://aspectran.com/tags" prefix="aspectran" %>
+<aspectran:token type="property" expression="languages" var="languages"/>
 <link rel="stylesheet" type="text/css" href="/assets/css/chat-core.css?v24" />
 <link rel="stylesheet" type="text/css" href="/assets/css/chat-lobby.css?v21" />
 <link rel="stylesheet" type="text/css" href="/assets/css/page-lobby.css?v25" />
@@ -52,7 +53,15 @@
                             <p class="guide show-for-large"><aspectran:message code="service.random_chat.guide"/></p>
                             <p class="dummy"></p>
                             <a class="guide hide-for-large" title="<aspectran:message code="service.random_chat.button.guide"/>"><i class="fi-info"></i></a>
-                            <a class="button small start" href="/random"><aspectran:message code="service.random_chat.button.start"/></a>
+                            <div class="service-options">
+                                <select class="chat-lang" name="chat_lang">
+                                    <option value=""><aspectran:message code="service.random_chat.any_language"/></option>
+                                    <c:forEach items="${languages}" var="entry">
+                                        <option value="${entry.key}">${entry.value}</option>
+                                    </c:forEach>
+                                </select>
+                                <a class="button small start" href="/random"><aspectran:message code="service.random_chat.button.start"/></a>
+                            </div>
                         </div>
                         <div class="cell service strangers">
                             <a class="title start" href="/strangers"><h4><aspectran:message code="service.stranger_chat"/></h4></a>
@@ -60,7 +69,9 @@
                             <p class="guide show-for-large"><aspectran:message code="service.stranger_chat.guide"/></p>
                             <p class="dummy"></p>
                             <a class="guide hide-for-large" title="<aspectran:message code="service.stranger_chat.button.guide"/>"><i class="fi-info"></i></a>
-                            <a class="button small start" href="/strangers"><aspectran:message code="service.stranger_chat.button.start"/></a>
+                            <div class="service-options">
+                                <a class="button small start" href="/strangers"><aspectran:message code="service.stranger_chat.button.start"/></a>
+                            </div>
                         </div>
                         <div class="cell service private create">
                             <a class="title private-room-create"><h4><aspectran:message code="service.private_chat"/></h4></a>
@@ -68,7 +79,9 @@
                             <p class="guide show-for-large"><aspectran:message code="service.private_chat.guide"/></p>
                             <p class="dummy"></p>
                             <a class="guide hide-for-large" title="<aspectran:message code="service.private_chat.button.guide"/>"><i class="fi-info"></i></a>
-                            <a class="button small wide start private-room-create <aspectran:message code="site.lang"/>"><aspectran:message code="service.private_chat.button.create"/></a>
+                            <div class="service-options">
+                                <a class="button small wide start private-room-create <aspectran:message code="site.lang"/>"><aspectran:message code="service.private_chat.button.create"/></a>
+                            </div>
                         </div>
                         <div class="cell service public create">
                             <a class="title public-room-create"><h4><aspectran:message code="service.public_chat"/></h4></a>
@@ -76,7 +89,9 @@
                             <p class="guide show-for-large"><aspectran:message code="service.public_chat.guide"/></p>
                             <p class="dummy"></p>
                             <a class="guide hide-for-large" title="<aspectran:message code="service.public_chat.button.guide"/>"><i class="fi-info"></i></a>
-                            <a class="button small start public-room-create <aspectran:message code="site.lang"/>"><aspectran:message code="service.public_chat.button.create"/></a>
+                            <div class="service-options">
+                                <a class="button small start public-room-create <aspectran:message code="site.lang"/>"><aspectran:message code="service.public_chat.button.create"/></a>
+                            </div>
                         </div>
                     </div>
                     <div class="rooms-options grid-x small-up-2 t15 b10">
@@ -85,8 +100,7 @@
                             <a class="refresh-rooms"><i class="fi-refresh"> <aspectran:message code="lobby.rooms.button.refresh"/></i></a></h6>
                         </div>
                         <div class="cell align-self-middle text-right">
-                            <select name="room_lang">
-                                <aspectran:token type="property" expression="languages" var="languages"/>
+                            <select class="room-lang" name="room_lang">
                                 <c:forEach items="${languages}" var="entry">
                                     <option value="${entry.key}">${entry.value}</option>
                                 </c:forEach>

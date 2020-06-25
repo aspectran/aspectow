@@ -19,7 +19,8 @@ import club.textchat.chat.ChatAction;
 import club.textchat.redis.persistence.ChatersPersistence;
 import club.textchat.redis.persistence.InConvoUsersPersistence;
 import club.textchat.redis.persistence.RandomChatPersistence;
-import club.textchat.redis.persistence.RandomChaterPersistence;
+import club.textchat.redis.persistence.RandomChatersByLangPersistence;
+import club.textchat.redis.persistence.RandomCouplePersistence;
 import club.textchat.redis.persistence.RandomHistoryPersistence;
 import club.textchat.redis.persistence.SignedInUsersPersistence;
 import club.textchat.server.message.ChatMessage;
@@ -32,6 +33,7 @@ import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Bean;
 import com.aspectran.core.component.bean.annotation.Component;
 import com.aspectran.core.lang.NonNull;
+import com.aspectran.core.util.StringUtils;
 
 import javax.websocket.CloseReason;
 import javax.websocket.Session;
@@ -47,7 +49,9 @@ public class RandomChatHandler extends AbstractChatHandler {
 
     private final ChatersPersistence chatersPersistence;
 
-    private final RandomChaterPersistence randomChaterPersistence;
+    private final RandomChatersByLangPersistence randomChatersByLangPersistence;
+
+    private final RandomCouplePersistence randomCouplePersistence;
 
     private final RandomHistoryPersistence randomHistoryPersistence;
 
@@ -59,12 +63,14 @@ public class RandomChatHandler extends AbstractChatHandler {
     public RandomChatHandler(SignedInUsersPersistence signedInUsersPersistence,
                              InConvoUsersPersistence inConvoUsersPersistence,
                              ChatersPersistence chatersPersistence,
-                             RandomChaterPersistence randomChaterPersistence,
+                             RandomChatersByLangPersistence randomChatersByLangPersistence,
+                             RandomCouplePersistence randomCouplePersistence,
                              RandomHistoryPersistence randomHistoryPersistence,
                              RandomChatPersistence randomChatPersistence) {
         super(signedInUsersPersistence, inConvoUsersPersistence, chatersPersistence);
         this.chatersPersistence = chatersPersistence;
-        this.randomChaterPersistence = randomChaterPersistence;
+        this.randomChatersByLangPersistence = randomChatersByLangPersistence;
+        this.randomCouplePersistence = randomCouplePersistence;
         this.randomHistoryPersistence = randomHistoryPersistence;
         this.randomChatPersistence = randomChatPersistence;
         this.randomChatCoupler = new RandomChatCoupler(this);
@@ -122,16 +128,16 @@ public class RandomChatHandler extends AbstractChatHandler {
         if (session.isOpen()) {
             chaters.put(chaterInfo, session);
             chatersPersistence.put(chaterInfo);
+            randomChatersByLangPersistence.put(chaterInfo);
             inConvoUsersPersistence.put(chaterInfo.getHttpSessionId(), chaterInfo.getRoomId());
             Set<String> roomChaters = Collections.singleton(ChatersPersistence.makeValue(chaterInfo));
             JoinPayload payload = new JoinPayload();
             payload.setChater(chaterInfo);
             payload.setChaters(roomChaters);
             payload.setRejoin(rejoin);
-            ChatMessage message = new ChatMessage(payload);
-            send(session, message);
-            randomChaterPersistence.set(chaterInfo.getUserNo());
-            randomChatCoupler.request(chaterInfo);
+            send(session, new ChatMessage(payload));
+            randomCouplePersistence.set(chaterInfo.getUserNo());
+            randomChatCoupler.join(chaterInfo);
         }
     }
 
@@ -139,22 +145,23 @@ public class RandomChatHandler extends AbstractChatHandler {
         randomChatCoupler.withdraw(chaterInfo);
         if (chaters.remove(chaterInfo, session)) {
             chatersPersistence.remove(chaterInfo);
+            randomChatersByLangPersistence.remove(chaterInfo);
             signedInUsersPersistence.tryAbandon(chaterInfo.getUsername(), chaterInfo.getHttpSessionId());
             inConvoUsersPersistence.remove(chaterInfo.getHttpSessionId());
             ChaterInfo chaterInfo2 = getPartner(chaterInfo.getUserNo());
             if (chaterInfo2 != null) {
-                randomChaterPersistence.unset(chaterInfo.getUserNo(), chaterInfo2.getUserNo());
+                randomCouplePersistence.unset(chaterInfo.getUserNo(), chaterInfo2.getUserNo());
                 randomHistoryPersistence.set(chaterInfo.getUserNo(), chaterInfo2.getUserNo());
                 broadcastUserLeft(chaterInfo, chaterInfo2.getUserNo());
             }
-            randomChaterPersistence.remove(chaterInfo.getUserNo());
+            randomCouplePersistence.remove(chaterInfo.getUserNo());
         }
     }
 
     @Override
     protected void sendAbort(Session session, ChaterInfo chaterInfo, String cause) {
         randomChatCoupler.withdraw(chaterInfo);
-        randomChaterPersistence.remove(chaterInfo.getUserNo());
+        randomCouplePersistence.remove(chaterInfo.getUserNo());
         super.sendAbort(session, chaterInfo, cause);
     }
 
@@ -195,24 +202,24 @@ public class RandomChatHandler extends AbstractChatHandler {
     }
 
     public ChaterInfo getPartner(int userNo) {
-        return randomChaterPersistence.get(userNo);
+        return randomCouplePersistence.get(userNo);
     }
 
     public void setPartner(@NonNull ChaterInfo chaterInfo1, @NonNull ChaterInfo chaterInfo2) {
-        randomChaterPersistence.set(chaterInfo1, chaterInfo2);
+        randomCouplePersistence.set(chaterInfo1, chaterInfo2);
         broadcastUserJoined(chaterInfo1, chaterInfo2);
     }
 
     public boolean hasPartner(int userNo) {
-        return randomChaterPersistence.exists(userNo);
+        return randomCouplePersistence.exists(userNo);
     }
 
     public boolean isPastPartner(int userNo1, int userNo2) {
         return randomHistoryPersistence.exists(userNo1, userNo2);
     }
 
-    public ChaterInfo randomChater() {
-        return chatersPersistence.randomChater(ChatAction.RANDOM_CHATROOM_ID);
+    public ChaterInfo randomChater(String language) {
+        return randomChatersByLangPersistence.randomChater(language);
     }
 
 }

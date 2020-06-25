@@ -114,8 +114,7 @@ public class LobbyChatHandler extends AbstractChatHandler {
             payload.setChater(chaterInfo);
             payload.setChaters(roomChaters);
             payload.setRejoin(rejoin);
-            ChatMessage message = new ChatMessage(payload);
-            send(session, message);
+            send(session, new ChatMessage(payload));
         }
         return replaced;
     }

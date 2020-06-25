@@ -23,6 +23,8 @@ import javax.servlet.http.HttpSession;
 import javax.websocket.HandshakeResponse;
 import javax.websocket.server.HandshakeRequest;
 import javax.websocket.server.ServerEndpointConfig;
+import java.util.List;
+import java.util.Map;
 
 public class ChatServerConfigurator extends AspectranConfigurator {
 
@@ -37,8 +39,22 @@ public class ChatServerConfigurator extends AspectranConfigurator {
             if (userInfo != null) {
                 ChaterInfo chaterInfo = new ChaterInfo(userInfo);
                 chaterInfo.setHttpSessionId(httpSession.getId());
+                String language = getParameter(request, "lang");
+                if (language != null) {
+                    chaterInfo.setChatLanguage(language);
+                }
                 config.getUserProperties().put(ChaterInfo.CHATER_INFO_PROP, chaterInfo);
             }
+        }
+    }
+
+    private String getParameter(HandshakeRequest request, String name) {
+        Map<String, List<String>> parameterMap = request.getParameterMap();
+        List<String> params = parameterMap.get(name);
+        if (params != null && !params.isEmpty()) {
+            return params.get(0);
+        } else {
+            return null;
         }
     }
 
