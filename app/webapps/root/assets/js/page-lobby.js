@@ -66,7 +66,7 @@ $(function () {
             refreshRooms();
         }
     });
-    $(".rooms-options select[name=room_lang_cd]").change(function () {
+    $(".rooms-options select[name=room_lang]").change(function () {
         refreshRooms();
         $(this).blur();
     });
@@ -177,23 +177,25 @@ function doCreatePrivateRoom() {
 }
 
 let refreshRoomsTimer;
-function refreshRooms(lang) {
+function refreshRooms(roomLang) {
     if (refreshRoomsTimer) {
         clearTimeout(refreshRoomsTimer);
         refreshRoomsTimer = null;
     }
-    if (lang) {
-        $(".rooms-options select[name=room_lang_cd] option").filter(function () {
-            return $(this).val() === lang;
+    if (roomLang) {
+        $(".rooms-options select[name=room_lang] option").filter(function () {
+            return $(this).val() === roomLang;
         }).each(function () {
-            $(".rooms-options select[name=room_lang_cd]").val(lang);
+            $(".rooms-options select[name=room_lang]").val(roomLang);
         });
+    } else {
+        roomLang = $(".rooms-options select[name=room_lang]").val();
     }
     refreshRoomsTimer = setTimeout(function () {
         $.ajax({
             url: '/lobby/rooms',
             data: {
-                lang_cd: $(".rooms-options select[name=room_lang_cd]").val()
+                lang_cd: roomLang
             },
             type: 'get',
             dataType: 'json',
@@ -206,7 +208,7 @@ function refreshRooms(lang) {
                         room.find("a").attr("href", "/rooms/" + roomInfo.roomId);
                         room.find("h5").text(roomInfo.roomName);
                         room.find(".curr-users span").text(roomInfo.currentUsers);
-                        if (roomInfo.language) {
+                        if (!roomLang && roomInfo.language) {
                             room.find(".lang").data("lang-cd", roomInfo.language).text(roomInfo.languageName);
                         }
                         if (roomInfo.currentUsers > 0) {

@@ -3,10 +3,10 @@
 <%@ taglib uri="http://aspectran.com/tags" prefix="aspectran" %>
 <link rel="stylesheet" type="text/css" href="/assets/css/chat-core.css?v23" />
 <link rel="stylesheet" type="text/css" href="/assets/css/chat-lobby.css?v21" />
-<link rel="stylesheet" type="text/css" href="/assets/css/page-lobby.css?v24" />
+<link rel="stylesheet" type="text/css" href="/assets/css/page-lobby.css?v25" />
 <script src="/assets/js/chat-client-core.js?v23"></script>
 <script src="/assets/js/chat-client-lobby.js?v26"></script>
-<script src="/assets/js/page-lobby.js?v23"></script>
+<script src="/assets/js/page-lobby.js?v24"></script>
 <script>
     const chatClientSettings = {
         serverEndpoint: "/chat/lobby/",
@@ -85,7 +85,7 @@
                             <a class="refresh-rooms"><i class="fi-refresh"> <aspectran:message code="lobby.rooms.button.refresh"/></i></a></h6>
                         </div>
                         <div class="cell align-self-middle text-right">
-                            <select name="room_lang_cd">
+                            <select name="room_lang">
                                 <aspectran:token type="property" expression="languages" var="languages"/>
                                 <c:forEach items="${languages}" var="entry">
                                     <option value="${entry.key}">${entry.value}</option>

@@ -65,13 +65,13 @@
             <div class="cell">
                 <label class="title"><aspectran:message code="modal.sign_in.choose_color"/></label>
                 <div>
-                    <span class="my-col-block my-col-1">1</span>
-                    <span class="my-col-block my-col-2">2</span>
-                    <span class="my-col-block my-col-3">3</span>
-                    <span class="my-col-block my-col-4">4</span>
-                    <span class="my-col-block my-col-5 selected">5</span>
-                    <span class="my-col-block my-col-6">6</span>
-                    <span class="my-col-block my-col-7">7</span>
+                    <span class="my-col-box my-col-1">1</span>
+                    <span class="my-col-box my-col-2">2</span>
+                    <span class="my-col-box my-col-3">3</span>
+                    <span class="my-col-box my-col-4">4</span>
+                    <span class="my-col-box my-col-5 selected">5</span>
+                    <span class="my-col-box my-col-6">6</span>
+                    <span class="my-col-box my-col-7">7</span>
                 </div>
             </div>
         </div>

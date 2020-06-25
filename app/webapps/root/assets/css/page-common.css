@@ -229,16 +229,16 @@ input#for-automata-clear {
 #common-sign-in .my-col-7 {
     background-color: #f3c1f2;
 }
-#common-sign-in .my-col-block {
+#common-sign-in .my-col-box {
     display: inline-block;
     padding: .2em .7em;
     margin-bottom: .3em;
     border-radius: 5px;
     cursor: pointer;
-    border: 3px solid #fff;
+    border: 2px solid #fff;
 }
-#common-sign-in .my-col-block.selected {
-    border: 3px solid #1b8d8d;
+#common-sign-in .my-col-box.selected {
+    border: 4px solid #1b8d8d;
 }
 .reveal.popup {
     background-color: #e9f4f6;

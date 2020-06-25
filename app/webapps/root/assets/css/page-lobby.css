@@ -162,8 +162,7 @@
     border-radius: 10px;
     border: 1px solid #99ddfc;
     padding: .5em .7em 1.5em;
-    color: #333;
-    font-size: .93em;
+    color: #888;
 }
 .rooms .room.cell {
     margin-bottom: 0;
@@ -184,11 +183,10 @@
     line-height: 1;
 }
 .rooms .room .curr-users {
-    color: #888;
+    font-size: 1.1em;
 }
 .rooms .room.active .curr-users {
     color: #0280be;
-    font-size: 1.2em;
 }
 .rooms .room.active .curr-users:before {
     -webkit-animation: in-chatting .8s infinite alternate;
@@ -221,8 +219,8 @@
     bottom: 0;
     margin: 0;
     border-radius: 10px 0 7px 0;
-    background-color: #a1d2ea;
-    color: #003478;
+    background-color: #b1e1f9;
+    color: #21589f;
     border-top: 1px solid #fff;
     border-left: 1px solid #fff;
 }

@@ -22,8 +22,8 @@ $(function () {
             setCookie("username", "", 10);
         }
     });
-    $("#common-sign-in .my-col-block").on("click", function () {
-        $("#common-sign-in .my-col-block").removeClass("selected");
+    $("#common-sign-in .my-col-box").on("click", function () {
+        $("#common-sign-in .my-col-box").removeClass("selected");
         $(this).addClass("selected");
     });
     $("#common-sign-in .cancel").on("click", function () {
@@ -55,7 +55,7 @@ function openSignInPopup() {
     if (favoriteColor < 1 || favoriteColor > 7) {
         favoriteColor = Math.floor(Math.random() * 7) + 1;
     }
-    $("#common-sign-in .my-col-block").removeClass("selected");
+    $("#common-sign-in .my-col-box").removeClass("selected");
     $("#common-sign-in .my-col-" + favoriteColor).addClass("selected");
     $("#form-sign-in input[name=username]").val(username).focus();
 }
@@ -69,7 +69,7 @@ function startSignIn() {
     $("#common-sign-in").foundation('close');
     let username = $("#form-sign-in input[name=username]").val().trim();
     if (username) {
-        let favoriteColor = $("#common-sign-in .my-col-block.selected").text();
+        let favoriteColor = $("#common-sign-in .my-col-box.selected").text();
         if ($("#form-sign-in input[name='remember-me']").prop("checked")) {
             setCookie("username", username, 7);
             setCookie("favoriteColor", favoriteColor, 7);
