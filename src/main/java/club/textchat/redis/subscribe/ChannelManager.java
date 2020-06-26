@@ -37,6 +37,8 @@ public class ChannelManager implements EnvironmentAware {
 
     private String strangerChatChannel;
 
+    private String exchangeChatChannel;
+
     private String lobbyChatChannel;
 
     @NonNull
@@ -57,6 +59,11 @@ public class ChannelManager implements EnvironmentAware {
     @NonNull
     public String getStrangerChatChannel() {
         return strangerChatChannel;
+    }
+
+    @NonNull
+    public String getExchangeChatChannel() {
+        return exchangeChatChannel;
     }
 
     @NonNull
@@ -81,6 +88,10 @@ public class ChannelManager implements EnvironmentAware {
         strangerChatChannel = environment.getProperty("redis.channel.stranger_chat");
         if (!StringUtils.hasText(strangerChatChannel)) {
             throw new IllegalArgumentException("Undefined environment property: redis.channel.stranger_chat");
+        }
+        exchangeChatChannel = environment.getProperty("redis.channel.exchange_chat");
+        if (!StringUtils.hasText(exchangeChatChannel)) {
+            throw new IllegalArgumentException("Undefined environment property: redis.channel.exchange_chat");
         }
         lobbyChatChannel = environment.getProperty("redis.channel.lobby_chat");
         if (!StringUtils.hasText(lobbyChatChannel)) {

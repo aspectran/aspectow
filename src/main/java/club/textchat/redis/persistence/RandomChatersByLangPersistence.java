@@ -42,15 +42,15 @@ public class RandomChatersByLangPersistence extends AbstractPersistence {
     }
 
     public void put(ChaterInfo chaterInfo) {
-        sadd(makeKey(chaterInfo.getChatLanguage()), makeValue(chaterInfo));
+        sadd(makeKey(chaterInfo.getConvoLang()), makeValue(chaterInfo));
     }
 
     public void remove(ChaterInfo chaterInfo) {
-        srem(makeKey(chaterInfo.getChatLanguage()), makeValue(chaterInfo));
+        srem(makeKey(chaterInfo.getConvoLang()), makeValue(chaterInfo));
     }
 
-    public ChaterInfo randomChater(String chatLanguage) {
-        String str = srandmember(makeKey(chatLanguage));
+    public ChaterInfo randomChater(String convoLang) {
+        String str = srandmember(makeKey(convoLang));
         if (str != null) {
             int index = str.indexOf(VALUE_SEPARATOR);
             if (index > -1) {

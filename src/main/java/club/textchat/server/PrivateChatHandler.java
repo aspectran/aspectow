@@ -40,6 +40,8 @@ import java.util.Set;
 @Bean
 public class PrivateChatHandler extends AbstractChatHandler {
 
+    private static final String PRIVATE_ROOM_ID_PREFIX = "pri:";
+
     private final PrivateChatPersistence privateChatPersistence;
 
     private final PrivateRoomManager privateRoomManager;
@@ -152,6 +154,10 @@ public class PrivateChatHandler extends AbstractChatHandler {
         payload.setDatetime(getCurrentDatetime(chaterInfo));
         ChatMessage message = new ChatMessage(payload);
         privateChatPersistence.publish(message);
+    }
+
+    public static String makePrivateRoomId(String roomId) {
+        return PRIVATE_ROOM_ID_PREFIX + roomId;
     }
 
 }

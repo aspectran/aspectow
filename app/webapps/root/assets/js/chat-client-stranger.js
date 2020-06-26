@@ -25,7 +25,9 @@ $(function () {
         }
     });
 
-    $(".choose-info").fadeIn();
+    if (chatClientSettings.autoConnectEnabled) {
+        $(".choose-info").fadeIn();
+    }
     $("#contacts").on("click", ".contact", function () {
         let ele = $(this);
         if (ele.hasClass("me")) {
@@ -61,8 +63,9 @@ $(function () {
         ele.remove();
         heartbeatContact(userNo, true);
         chatRequestTimer(t, 35, function () {
-            newChatRequestTemplate("request-timeout", t);
+            newChatRequestTemplate("request-timeout", t, username);
             t.remove();
+            heartbeatContact(userNo, false);
             sendChatRequestMessage("request-canceled", userNo);
         });
     }).on("click", ".confirm-request:visible .cancel", function () {
@@ -118,7 +121,7 @@ function handleChatRequestMessage(content) {
         let roomId = content.substring(prefix.length);
         chatRequestAccepted(userNo);
         setTimeout(function () {
-            location.href = "/strangers/" + roomId;
+            location.href = location.pathname + "/" + roomId;
         }, 2000);
     }
 }

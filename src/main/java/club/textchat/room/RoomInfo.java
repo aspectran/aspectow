@@ -25,8 +25,6 @@ public class RoomInfo implements Serializable {
 
     private int roomId;
 
-    private String encryptedRoomId;
-
     private String roomName;
 
     private String language;
@@ -47,14 +45,6 @@ public class RoomInfo implements Serializable {
 
     public void setRoomId(int roomId) {
         this.roomId = roomId;
-    }
-
-    public String getEncryptedRoomId() {
-        return encryptedRoomId;
-    }
-
-    public void setEncryptedRoomId(String encryptedRoomId) {
-        this.encryptedRoomId = encryptedRoomId;
     }
 
     public String getRoomName() {
@@ -117,7 +107,6 @@ public class RoomInfo implements Serializable {
     public String toString() {
         ToStringBuilder tsb = new ToStringBuilder();
         tsb.append("roomId", roomId);
-        tsb.append("encryptedRoomId", encryptedRoomId);
         tsb.append("roomName", roomName);
         tsb.append("language", language);
         tsb.append("cumulativeUsers", cumulativeUsers);

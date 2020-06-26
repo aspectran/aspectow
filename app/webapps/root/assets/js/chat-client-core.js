@@ -64,13 +64,18 @@ $(function () {
     }
 });
 
-function openSocket(token) {
+function openSocket(token, params) {
     if (!token || token.length > 100) {
         gotoHome();
         return;
     }
     closeSocket();
     let url = new URL(chatClientSettings.serverEndpoint + token + location.search, location.href);
+    if (params) {
+        for(let key in params) {
+            url.searchParams.set(key, params[key]);
+        }
+    }
     url.protocol = url.protocol.replace('https:', 'wss:');
     url.protocol = url.protocol.replace('http:', 'ws:');
     socket = new WebSocket(url.href);

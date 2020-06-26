@@ -8,7 +8,7 @@
 <script>
     const chatClientSettings = {
         serverEndpoint: "/chat/random/",
-        admissionToken: "${page.token}",
+        admissionToken: "",
         autoConnectEnabled: false,
         pingPerHeartbeats: 15,
         homepage: "/"

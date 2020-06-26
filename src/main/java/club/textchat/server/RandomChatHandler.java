@@ -33,7 +33,6 @@ import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Bean;
 import com.aspectran.core.component.bean.annotation.Component;
 import com.aspectran.core.lang.NonNull;
-import com.aspectran.core.util.StringUtils;
 
 import javax.websocket.CloseReason;
 import javax.websocket.Session;
@@ -46,8 +45,6 @@ import java.util.Set;
 @Component
 @Bean
 public class RandomChatHandler extends AbstractChatHandler {
-
-    private final ChatersPersistence chatersPersistence;
 
     private final RandomChatersByLangPersistence randomChatersByLangPersistence;
 
@@ -68,7 +65,6 @@ public class RandomChatHandler extends AbstractChatHandler {
                              RandomHistoryPersistence randomHistoryPersistence,
                              RandomChatPersistence randomChatPersistence) {
         super(signedInUsersPersistence, inConvoUsersPersistence, chatersPersistence);
-        this.chatersPersistence = chatersPersistence;
         this.randomChatersByLangPersistence = randomChatersByLangPersistence;
         this.randomCouplePersistence = randomCouplePersistence;
         this.randomHistoryPersistence = randomHistoryPersistence;

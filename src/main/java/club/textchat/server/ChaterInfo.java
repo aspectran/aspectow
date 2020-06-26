@@ -42,13 +42,15 @@ public class ChaterInfo extends UserInfo implements Serializable {
 
     private ZoneId zoneId;
 
-    private String chatLanguage;
+    private String nativeLang;
+
+    private String convoLang;
 
     public ChaterInfo(@NonNull UserInfo userInfo) {
         setUserNo(userInfo.getUserNo());
         setUsername(userInfo.getUsername());
         setCountry(userInfo.getCountry());
-        setLanguage(userInfo.getLanguage());
+        setNativeLang(userInfo.getLanguage());
         setColor(userInfo.getColor());
         setZoneId(userInfo.getTimeZone());
     }
@@ -92,12 +94,20 @@ public class ChaterInfo extends UserInfo implements Serializable {
         return zoneId;
     }
 
-    public String getChatLanguage() {
-        return chatLanguage;
+    public String getNativeLang() {
+        return nativeLang;
     }
 
-    public void setChatLanguage(String chatLanguage) {
-        this.chatLanguage = chatLanguage;
+    public void setNativeLang(String nativeLang) {
+        this.nativeLang = nativeLang;
+    }
+
+    public String getConvoLang() {
+        return convoLang;
+    }
+
+    public void setConvoLang(String convoLang) {
+        this.convoLang = convoLang;
     }
 
     @Override
@@ -129,8 +139,8 @@ public class ChaterInfo extends UserInfo implements Serializable {
         tsb.append("userNo", getUserNo());
         tsb.append("username", getUsername());
         tsb.append("country", getCountry());
-        tsb.append("language", getLanguage());
-        tsb.append("chatLang", getChatLanguage());
+        tsb.append("nativeLang", getNativeLang());
+        tsb.append("convoLang", getConvoLang());
         tsb.append("color", getColor());
         tsb.append("httpSessionId", httpSessionId);
         return tsb.toString();
@@ -143,8 +153,8 @@ public class ChaterInfo extends UserInfo implements Serializable {
             writer.writeName("userNo").writeValue(getUserNo());
             writer.writeName("username").writeValue(getUsername());
             writer.writeName("country").writeValue(getCountry());
-            writer.writeName("language").writeValue(getLanguage());
-            writer.writeName("chatLang").writeValue(getLanguage());
+            writer.writeName("nativeLang").writeValue(getNativeLang());
+            writer.writeName("convoLang").writeValue(getConvoLang());
             writer.writeName("color").writeValue(getColor());
             writer.endObject();
             return writer.toString();
@@ -159,8 +169,8 @@ public class ChaterInfo extends UserInfo implements Serializable {
             setUserNo(parameters.getInt("userNo"));
             setUsername(parameters.getString("username"));
             setCountry(parameters.getString("country"));
-            setLanguage(parameters.getString("language"));
-            setChatLanguage(parameters.getString("chatLang"));
+            setLanguage(parameters.getString("nativeLang"));
+            setConvoLang(parameters.getString("convoLang"));
             setColor(parameters.getString("color"));
         } catch (IOException e) {
             // ignore

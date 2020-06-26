@@ -76,7 +76,7 @@ public class RandomChatCoupler {
             ChaterInfo chaterInfo1;
             while ((chaterInfo1 = poll()) != null) {
                 try {
-                    ChaterInfo chaterInfo2 = randomChatHandler.randomChater(chaterInfo1.getChatLanguage());
+                    ChaterInfo chaterInfo2 = randomChatHandler.randomChater(chaterInfo1.getConvoLang());
                     if (chaterInfo2 != null) {
                         if (chaterInfo1.getUserNo() == chaterInfo2.getUserNo() ||
                                 randomChatHandler.hasPartner(chaterInfo2.getUserNo()) ||

@@ -39,17 +39,21 @@ public class ChatServerConfigurator extends AspectranConfigurator {
             if (userInfo != null) {
                 ChaterInfo chaterInfo = new ChaterInfo(userInfo);
                 chaterInfo.setHttpSessionId(httpSession.getId());
-                String language = getParameter(request, "lang");
-                if (language != null) {
-                    chaterInfo.setChatLanguage(language);
+                Map<String, List<String>> parameterMap = request.getParameterMap();
+                String nativeLang = getParameter(parameterMap, "native_lang");
+                if (nativeLang != null) {
+                    chaterInfo.setNativeLang(nativeLang);
+                }
+                String convoLang = getParameter(parameterMap, "convo_lang");
+                if (convoLang != null) {
+                    chaterInfo.setConvoLang(convoLang);
                 }
                 config.getUserProperties().put(ChaterInfo.CHATER_INFO_PROP, chaterInfo);
             }
         }
     }
 
-    private String getParameter(HandshakeRequest request, String name) {
-        Map<String, List<String>> parameterMap = request.getParameterMap();
+    private String getParameter(Map<String, List<String>> parameterMap, String name) {
         List<String> params = parameterMap.get(name);
         if (params != null && !params.isEmpty()) {
             return params.get(0);

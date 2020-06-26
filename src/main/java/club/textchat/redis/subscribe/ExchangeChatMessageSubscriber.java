@@ -17,7 +17,7 @@ package club.textchat.redis.subscribe;
 
 import club.textchat.redis.RedisConnectionPool;
 import club.textchat.server.ChatHandler;
-import club.textchat.server.StrangerChatHandler;
+import club.textchat.server.ExchangeChatHandler;
 import club.textchat.server.message.ChatMessage;
 import club.textchat.server.message.payload.BroadcastPayload;
 import club.textchat.server.message.payload.UserJoinedPayload;
@@ -36,20 +36,20 @@ import io.lettuce.core.pubsub.api.sync.RedisPubSubCommands;
 
 import java.io.IOException;
 
-import static club.textchat.server.StrangerChatHandler.CHAT_REQUEST;
-import static club.textchat.server.StrangerChatHandler.CHAT_REQUEST_ACCEPTED;
-import static club.textchat.server.StrangerChatHandler.CHAT_REQUEST_CANCELED;
-import static club.textchat.server.StrangerChatHandler.CHAT_REQUEST_DECLINED;
+import static club.textchat.server.ExchangeChatHandler.CHAT_REQUEST;
+import static club.textchat.server.ExchangeChatHandler.CHAT_REQUEST_ACCEPTED;
+import static club.textchat.server.ExchangeChatHandler.CHAT_REQUEST_CANCELED;
+import static club.textchat.server.ExchangeChatHandler.CHAT_REQUEST_DECLINED;
 
 /**
  * <p>Created: 2020/05/10</p>
  */
 @Component
 @Bean
-public class StrangerChatMessageSubscriber extends RedisPubSubAdapter<String, String>
+public class ExchangeChatMessageSubscriber extends RedisPubSubAdapter<String, String>
         implements InitializableBean, DisposableBean {
 
-    private static final Logger logger = LoggerFactory.getLogger(StrangerChatMessageSubscriber.class);
+    private static final Logger logger = LoggerFactory.getLogger(ExchangeChatMessageSubscriber.class);
 
     private final StatefulRedisPubSubConnection<String, String> connection;
 
@@ -58,8 +58,8 @@ public class StrangerChatMessageSubscriber extends RedisPubSubAdapter<String, St
     private final ChannelManager channelManager;
 
     @Autowired
-    public StrangerChatMessageSubscriber(RedisConnectionPool connectionPool,
-                                         StrangerChatHandler chatHandler,
+    public ExchangeChatMessageSubscriber(RedisConnectionPool connectionPool,
+                                         ExchangeChatHandler chatHandler,
                                          ChannelManager channelManager) {
         this.connection = connectionPool.getPubSubConnection();
         this.chatHandler = chatHandler;
@@ -82,42 +82,45 @@ public class StrangerChatMessageSubscriber extends RedisPubSubAdapter<String, St
         UserJoinedPayload userJoinedPayload = chatMessage.getUserJoinedPayload();
         UserLeftPayload userLeftPayload = chatMessage.getUserLeftPayload();
         if (broadcastPayload != null) {
+            String roomId = broadcastPayload.getRoomId();
+            String exchangeRoomId = ExchangeChatHandler.swapExchangeRoomId(roomId);
             String content = broadcastPayload.getContent();
             if (content.startsWith(CHAT_REQUEST)) {
-                int targetUserNo = StrangerChatHandler.parseTargetUserNo(content);
+                int targetUserNo = ExchangeChatHandler.parseTargetUserNo(content);
                 if (targetUserNo > 0) {
-                    chatHandler.send(chatMessage, targetUserNo);
+                    chatHandler.send(chatMessage, exchangeRoomId, targetUserNo);
                 }
             } else if (content.startsWith(CHAT_REQUEST_DECLINED)) {
-                int targetUserNo = StrangerChatHandler.parseTargetUserNo(content);
+                int targetUserNo = ExchangeChatHandler.parseTargetUserNo(content);
                 if (targetUserNo > 0) {
                     broadcastPayload.setContent(CHAT_REQUEST_DECLINED + broadcastPayload.getUserNo());
-                    chatHandler.send(chatMessage, targetUserNo);
+                    chatHandler.send(chatMessage, exchangeRoomId, targetUserNo);
                 }
             } else if (content.startsWith(CHAT_REQUEST_CANCELED)) {
-                int targetUserNo = StrangerChatHandler.parseTargetUserNo(content);
+                int targetUserNo = ExchangeChatHandler.parseTargetUserNo(content);
                 if (targetUserNo > 0) {
                     broadcastPayload.setContent(CHAT_REQUEST_CANCELED + broadcastPayload.getUserNo());
-                    chatHandler.send(chatMessage, targetUserNo);
+                    chatHandler.send(chatMessage, exchangeRoomId, targetUserNo);
                 }
             } else if (content.startsWith(CHAT_REQUEST_ACCEPTED)) {
-                int targetUserNo = StrangerChatHandler.parseTargetUserNo(content);
+                int targetUserNo = ExchangeChatHandler.parseTargetUserNo(content);
                 if (targetUserNo > 0) {
-                    String encryptedPrivateRoomId = PBEncryptionUtils.encrypt(StrangerChatHandler.nextPrivateRoomId());
+                    String encryptedPrivateRoomId = PBEncryptionUtils.encrypt(ExchangeChatHandler.nextPrivateRoomId());
                     broadcastPayload.setContent(CHAT_REQUEST_ACCEPTED + targetUserNo + ":" + encryptedPrivateRoomId);
-                    chatHandler.send(chatMessage, broadcastPayload.getUserNo());
+                    chatHandler.send(chatMessage, roomId, broadcastPayload.getUserNo());
                     broadcastPayload.setContent(CHAT_REQUEST_ACCEPTED + broadcastPayload.getUserNo() + ":" + encryptedPrivateRoomId);
-                    chatHandler.send(chatMessage, targetUserNo);
+                    chatHandler.send(chatMessage, exchangeRoomId, targetUserNo);
                 }
             } else {
-                chatHandler.send(chatMessage);
+                chatHandler.send(chatMessage, roomId, broadcastPayload.getUserNo());
+                chatHandler.send(chatMessage, exchangeRoomId);
             }
         } else if (userJoinedPayload != null) {
-            chatHandler.send(chatMessage, (targetRoomId, targetUserNo) ->
-                    (targetRoomId.equals(userJoinedPayload.getRoomId()) &&
-                            targetUserNo != userJoinedPayload.getUserNo()));
+            String exchangeRoomId = ExchangeChatHandler.swapExchangeRoomId(userJoinedPayload.getRoomId());
+            chatHandler.send(chatMessage, exchangeRoomId);
         } else if (userLeftPayload != null) {
-            chatHandler.send(chatMessage); // talker already left
+            String exchangeRoomId = ExchangeChatHandler.swapExchangeRoomId(userLeftPayload.getRoomId());
+            chatHandler.send(chatMessage, exchangeRoomId);
         }
     }
 
@@ -125,7 +128,7 @@ public class StrangerChatMessageSubscriber extends RedisPubSubAdapter<String, St
     public void initialize() throws Exception {
         connection.addListener(this);
         RedisPubSubCommands<String, String> sync = connection.sync();
-        sync.subscribe(channelManager.getStrangerChatChannel());
+        sync.subscribe(channelManager.getExchangeChatChannel());
     }
 
     @Override

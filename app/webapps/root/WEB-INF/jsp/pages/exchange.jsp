@@ -1,20 +1,23 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://aspectran.com/tags" prefix="aspectran" %>
+<aspectran:token type="property" expression="languages" var="languages"/>
 <link rel="stylesheet" type="text/css" href="/assets/css/chat-core.css?24" />
-<link rel="stylesheet" type="text/css" href="/assets/css/chat-stranger.css?3" />
+<link rel="stylesheet" type="text/css" href="/assets/css/chat-stranger.css?2" />
+<link rel="stylesheet" type="text/css" href="/assets/css/chat-exchange.css?1" />
 <script src="/assets/js/chat-client-core.js?v22"></script>
-<script src="/assets/js/chat-client-stranger.js?v3"></script>
+<script src="/assets/js/chat-client-stranger.js?v2"></script>
+<script src="/assets/js/chat-client-exchange.js?v1"></script>
 <script>
     const chatClientSettings = {
-        serverEndpoint: "/chat/stranger/",
-        admissionToken: "${page.token}",
-        autoConnectEnabled: true,
+        serverEndpoint: "/chat/exchange/",
+        admissionToken: "",
+        autoConnectEnabled: false,
         pingPerHeartbeats: 15,
         homepage: "/"
     }
     const chatClientMessages = {
-        "userJoined": "<aspectran:message code='chat.stranger.user_joined'/>",
+        "userJoined": "<aspectran:message code='chat.exchange.user_joined'/>",
         "userLeft": "<aspectran:message code='chat.common.user_left'/>",
         "systemError": "<aspectran:message code='chat.common.system_error'/>",
         "serviceNotAvailable": "<aspectran:message code='chat.common.service_not_available'/>"
@@ -42,6 +45,40 @@
                             <div class="cell">
                                 <i class="iconfont fi-arrow-left"></i>
                                 <p><aspectran:message code='chat.stranger.choose_info_large'/></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="language-settings grid-x">
+                        <div class="cell grid-x grid-padding-x">
+                            <div class="cell guide">
+                                <p><aspectran:message code='chat.exchange.guide'/></p>
+                            </div>
+                            <div class="cell small-12 medium-6 large-4">
+                                <label><aspectran:message code="chat.exchange.native_language"/>
+                                    <select name="native_lang">
+                                        <option value=""></option>
+                                        <c:forEach items="${languages}" var="entry">
+                                            <option value="${entry.key}">${entry.value}</option>
+                                        </c:forEach>
+                                    </select>
+                                </label>
+                            </div>
+                            <div class="cell small-12 medium-6 large-4">
+                                <label><aspectran:message code="chat.exchange.practice_language"/>
+                                    <select name="convo_lang">
+                                        <option value=""></option>
+                                        <c:forEach items="${languages}" var="entry">
+                                            <option value="${entry.key}">${entry.value}</option>
+                                        </c:forEach>
+                                    </select>
+                                </label>
+                            </div>
+                            <div class="cell small-12 medium-4 large-4 small-order-2 large-order-1 align-self-bottom text-right">
+                                <button type="button" class="button small ok"><aspectran:message code="common.button.ok"/></button>
+                            </div>
+                            <div class="cell medium-8 large-12 small-order-1 large-order-2">
+                                <p class="form-error exchange-languages-required"><aspectran:message code="chat.exchange.error.exchange_languages_required"/></p>
+                                <p class="form-error same-exchange-languages"><aspectran:message code="chat.exchange.error.same_exchange_languages"/></p>
                             </div>
                         </div>
                     </div>

@@ -16,9 +16,9 @@
 package club.textchat.server;
 
 import club.textchat.redis.persistence.ChatersPersistence;
+import club.textchat.redis.persistence.ExchangeChatPersistence;
 import club.textchat.redis.persistence.InConvoUsersPersistence;
 import club.textchat.redis.persistence.SignedInUsersPersistence;
-import club.textchat.redis.persistence.StrangerChatPersistence;
 import club.textchat.server.message.ChatMessage;
 import club.textchat.server.message.payload.BroadcastPayload;
 import club.textchat.server.message.payload.JoinPayload;
@@ -34,14 +34,12 @@ import javax.websocket.Session;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static club.textchat.chat.ChatAction.STRANGER_CHATROOM_ID;
-
 /**
  * <p>Created: 2020/05/14</p>
  */
 @Component
 @Bean
-public class StrangerChatHandler extends AbstractChatHandler {
+public class ExchangeChatHandler extends AbstractChatHandler {
 
     public static final String CHAT_REQUEST = "request:";
 
@@ -53,18 +51,20 @@ public class StrangerChatHandler extends AbstractChatHandler {
 
     public static final String BROADCAST_MESSAGE_PREFIX = "broadcast:";
 
-    private static final String PRIVATE_ROOM_ID_PREFIX = "str:";
+    public static final String EXCHANGE_LANGUAGES_SEPARATOR = ":";
+
+    private static final String PRIVATE_ROOM_ID_PREFIX = "exc:";
 
     private static final AtomicInteger privateRoomNumber = new AtomicInteger();
 
-    private final StrangerChatPersistence strangerChatPersistence;
+    private final ExchangeChatPersistence exchangeChatPersistence;
 
-    public StrangerChatHandler(SignedInUsersPersistence signedInUsersPersistence,
+    public ExchangeChatHandler(SignedInUsersPersistence signedInUsersPersistence,
                                InConvoUsersPersistence inConvoUsersPersistence,
                                ChatersPersistence chatersPersistence,
-                               StrangerChatPersistence strangerChatPersistence) {
+                               ExchangeChatPersistence exchangeChatPersistence) {
         super(signedInUsersPersistence, inConvoUsersPersistence, chatersPersistence);
-        this.strangerChatPersistence = strangerChatPersistence;
+        this.exchangeChatPersistence = exchangeChatPersistence;
     }
 
     protected void handle(Session session, ChatMessage chatMessage) {
@@ -80,7 +80,7 @@ public class StrangerChatHandler extends AbstractChatHandler {
                     if (!StringUtils.isEmpty(content)) {
                         if (content.startsWith(CHAT_REQUEST)) {
                             int targetUserNo = parseTargetUserNo(content);
-                            if (!chatersPersistence.isChater(STRANGER_CHATROOM_ID, targetUserNo)) {
+                            if (!chatersPersistence.isChater(swapExchangeRoomId(chaterInfo), targetUserNo)) {
                                 sendChatRequestMessage(chaterInfo, CHAT_REQUEST_CANCELED, targetUserNo);
                             } else {
                                 broadcastChatRequestMessage(chaterInfo, content);
@@ -137,7 +137,8 @@ public class StrangerChatHandler extends AbstractChatHandler {
             }
             inConvoUsersPersistence.put(chaterInfo.getHttpSessionId(), chaterInfo.getRoomId());
             chatersPersistence.put(chaterInfo);
-            Set<String> roomChaters = chatersPersistence.getChaters(chaterInfo.getRoomId());
+            String exchangeRoomId = swapExchangeRoomId(chaterInfo);
+            Set<String> roomChaters = chatersPersistence.getChaters(exchangeRoomId);
             JoinPayload payload = new JoinPayload();
             payload.setChater(chaterInfo);
             payload.setChaters(roomChaters);
@@ -161,7 +162,7 @@ public class StrangerChatHandler extends AbstractChatHandler {
         payload.setChater(chaterInfo);
         payload.setDatetime(getCurrentDatetime(chaterInfo));
         ChatMessage message = new ChatMessage(payload);
-        strangerChatPersistence.publish(message);
+        exchangeChatPersistence.publish(message);
     }
 
     private void broadcastUserLeft(ChaterInfo chaterInfo) {
@@ -169,7 +170,7 @@ public class StrangerChatHandler extends AbstractChatHandler {
         payload.setChater(chaterInfo);
         payload.setDatetime(getCurrentDatetime(chaterInfo));
         ChatMessage message = new ChatMessage(payload);
-        strangerChatPersistence.publish(message);
+        exchangeChatPersistence.publish(message);
     }
 
     private void broadcastMessage(ChaterInfo chaterInfo, String content) {
@@ -178,7 +179,7 @@ public class StrangerChatHandler extends AbstractChatHandler {
         payload.setContent(content);
         payload.setDatetime(getCurrentDatetime(chaterInfo));
         ChatMessage message = new ChatMessage(payload);
-        strangerChatPersistence.publish(message);
+        exchangeChatPersistence.publish(message);
     }
 
     private void broadcastChatRequestMessage(ChaterInfo chaterInfo, String content) {
@@ -190,7 +191,8 @@ public class StrangerChatHandler extends AbstractChatHandler {
         payload.setChater(chaterInfo);
         payload.setContent(requestType + ":" + userNo);
         ChatMessage message = new ChatMessage(payload);
-        send(message, chaterInfo.getUserNo());
+        String exchangeRoomId = swapExchangeRoomId(chaterInfo);
+        send(message, exchangeRoomId, chaterInfo.getUserNo());
     }
 
     public static int parseTargetUserNo(String content) {
@@ -210,6 +212,19 @@ public class StrangerChatHandler extends AbstractChatHandler {
     public static String nextPrivateRoomId() {
         int roomNum = privateRoomNumber.incrementAndGet();
         return PRIVATE_ROOM_ID_PREFIX + roomNum;
+    }
+
+    public static String swapExchangeRoomId(ChaterInfo chaterInfo) {
+        return makeExchangeRoomId(chaterInfo.getConvoLang(), chaterInfo.getNativeLang());
+    }
+
+    public static String makeExchangeRoomId(String nativeLang, String convoLang) {
+        return nativeLang + EXCHANGE_LANGUAGES_SEPARATOR + convoLang;
+    }
+
+    public static String swapExchangeRoomId(String exchangeRoomId) {
+        String[] langCodes = StringUtils.split(exchangeRoomId, EXCHANGE_LANGUAGES_SEPARATOR, 2);
+        return makeExchangeRoomId(langCodes[1], langCodes[0]);
     }
 
 }

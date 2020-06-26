@@ -16,10 +16,8 @@
 package club.textchat.room;
 
 import club.textchat.common.mybatis.SimpleSqlSession;
-import club.textchat.redis.persistence.LobbyChatPersistence;
 import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Component;
-import com.aspectran.core.util.PBEncryptionUtils;
 import org.apache.ibatis.session.SqlSession;
 
 /**
@@ -28,24 +26,15 @@ import org.apache.ibatis.session.SqlSession;
 @Component
 public class PrivateRoomManager {
 
-    private static final String NEW_ROOM_MESSAGE_PREFIX = "newPrivateRoom:";
-
     private final SqlSession sqlSession;
 
-    private final LobbyChatPersistence lobbyChatPersistence;
-
     @Autowired
-    public PrivateRoomManager(SimpleSqlSession sqlSession, LobbyChatPersistence lobbyChatPersistence) {
+    public PrivateRoomManager(SimpleSqlSession sqlSession) {
         this.sqlSession = sqlSession;
-        this.lobbyChatPersistence = lobbyChatPersistence;
     }
 
     public RoomInfo getRoomInfo(String roomId) {
-        RoomInfo roomInfo = sqlSession.selectOne("private.rooms.getRoomInfo", roomId);
-        if (roomInfo != null) {
-            roomInfo.setEncryptedRoomId(PBEncryptionUtils.encrypt(Integer.toString(roomInfo.getRoomId())));
-        }
-        return roomInfo;
+        return sqlSession.selectOne("private.rooms.getRoomInfo", roomId);
     }
 
     public String createRoom(RoomInfo roomInfo) {
@@ -53,7 +42,7 @@ public class PrivateRoomManager {
         if (affected != 1) {
             return null;
         }
-        return PBEncryptionUtils.encrypt(Integer.toString(roomInfo.getRoomId()));
+        return Integer.toString(roomInfo.getRoomId());
     }
 
     public void checkIn(String roomId) {

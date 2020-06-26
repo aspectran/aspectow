@@ -17,6 +17,9 @@
                     <c:when test="${page.roomId eq '-2'}">
                         <h2 class="text-truncate"><aspectran:message code="service.stranger_chat"/></h2>
                     </c:when>
+                    <c:when test="${page.roomId eq '-3'}">
+                        <h2 class="text-truncate"><aspectran:message code="service.exchange_chat"/></h2>
+                    </c:when>
                     <c:otherwise>
                         <h2 class="text-truncate" title="<aspectran:message code="site.title"/>"><aspectran:message code="site.title"/></h2>
                     </c:otherwise>

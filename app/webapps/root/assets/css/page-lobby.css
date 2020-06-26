@@ -25,7 +25,7 @@
 .service p.guide {
     font-size: .9em;
     padding-left: .7em;
-    border-left: 3px solid #eee;
+    border-left: 2px solid #999;
     border-radius: 8px;
 }
 .service p.dummy {
@@ -45,31 +45,7 @@
     bottom: 0;
     text-align: right;
 }
-.service .service-options .button.start {
-    margin: 0;
-    border-radius: 18px 0 9px 0;
-    background-color: #a1d2ea;
-    color: #444;
-    border-top: 1px solid #fff;
-    border-left: 1px solid #fff;
-    min-width: 12em;
-    vertical-align: bottom;
-}
-.service .service-options .button.start.en {
-    min-width: 16em;
-}
-.service.random {
-}
-.service.random h4 {
-    color: #e75f7f;
-}
-.service.random p.guide {
-    border-left: 2px solid #d26881;
-}
-.service.random a.guide {
-    color: #d26881;
-}
-.service.random .service-options .chat-lang {
+.service .service-options .convo-lang {
     width: auto;
     height: 30px;
     margin: 0;
@@ -80,17 +56,49 @@
     border-radius: 10px 10px 0 0;
     vertical-align: bottom;
 }
-
-.service.random .service-options .button.start {
-    background-color: #e07a91;
+.service .service-options .button.start {
+    margin: 0;
+    border-radius: 18px 0 9px 0;
+    border-top: 1px solid #fff;
+    border-left: 1px solid #fff;
+    min-width: 12em;
+    vertical-align: bottom;
     color: #fff;
     font-size: .8em;
     font-weight: bold;
 }
+.service .service-options .button.start.en {
+    min-width: 16em;
+}
+.service.exchange h4 {
+    color: #3481a0;
+}
+.service.exchange p.guide {
+    border-left: 2px solid #3481a0;
+}
+.service.exchange a.guide {
+    color: #3481a0;
+}
+.service.exchange .service-options .button.start {
+    background-color: #3481a0;
+}
+.service.exchange:hover .service-options .button.start {
+    background-color: #1b84ad;
+}
+.service.random h4 {
+    color: #e75f7f;
+}
+.service.random p.guide {
+    border-left: 2px solid #d26881;
+}
+.service.random a.guide {
+    color: #d26881;
+}
+.service.random .service-options .button.start {
+    background-color: #e07a91;
+}
 .service.random:hover .service-options .button.start {
     background-color: #ea6887;
-}
-.service.strangers {
 }
 .service.strangers h4 {
     color: #e5831b;
@@ -103,14 +111,9 @@
 }
 .service.strangers .service-options .button.start {
     background-color: #ea9f4b;
-    color: #fff;
-    font-size: .8em;
-    font-weight: bold;
 }
 .service.strangers:hover .service-options .button.start {
     background-color: #f8a03d;
-}
-.service.private {
 }
 .service.private h4 {
     color: #5fb440;
@@ -123,14 +126,9 @@
 }
 .service.private .service-options .button.start {
     background-color: #78cd59;
-    color: #fff;
-    font-size: .8em;
-    font-weight: bold;
 }
 .service.private:hover .service-options .button.start {
     background-color: #6dd746;
-}
-.service.public {
 }
 .service.public h4 {
     color: #1691cf;
@@ -143,9 +141,6 @@
 }
 .service.public .service-options .button.start {
     background-color: #64bce5;
-    color: #fff;
-    font-size: .8em;
-    font-weight: bold;
 }
 .service.public:hover .service-options .button.start {
     background-color: #44bbf5;

@@ -19,7 +19,7 @@ $(function () {
     });
     $("#form-sign-in input[name=remember-me]").on("change", function () {
         if (!this.checked) {
-            setCookie("username", "", 10);
+            localStorage.removeItem("username");
         }
     });
     $("#common-sign-in .my-col-box").on("click", function () {
@@ -47,11 +47,11 @@ function openSignInPopup() {
     $("#common-sign-in").foundation('open');
     $("#form-sign-in .form-error").hide();
     loadCaptcha("sign_in", "captcha-container-sign-in");
-    let username = getCookie("username");
+    let username = localStorage.getItem("username");
     if (username) {
         $("#form-sign-in input[name=remember-me]").prop("checked", true);
     }
-    let favoriteColor = Number(getCookie("favoriteColor"));
+    let favoriteColor = Number(localStorage.getItem("favoriteColor"));
     if (favoriteColor < 1 || favoriteColor > 7) {
         favoriteColor = Math.floor(Math.random() * 7) + 1;
     }
@@ -71,11 +71,11 @@ function startSignIn() {
     if (username) {
         let favoriteColor = $("#common-sign-in .my-col-box.selected").text();
         if ($("#form-sign-in input[name='remember-me']").prop("checked")) {
-            setCookie("username", username, 7);
-            setCookie("favoriteColor", favoriteColor, 7);
+            localStorage.setItem("username", username);
+            localStorage.setItem("favoriteColor", favoriteColor);
         } else {
-            setCookie("username", "", 0);
-            setCookie("favoriteColor", "", 0);
+            localStorage.removeItem("username");
+            localStorage.removeItem("favoriteColor");
         }
         openWaitPopup(modalMessages.signingIn, function () {
             location.reload();

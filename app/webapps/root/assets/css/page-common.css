@@ -128,6 +128,14 @@ input#for-automata-clear {
         border-radius: 10px 10px 0 0;
     }
 }
+.rounded-top-corners {
+    border-radius: 0 10px 0 0;
+}
+@media screen and (max-width: 39.9375em) {
+    .rounded-top-corners {
+        border-radius: 10px 10px 0 0;
+    }
+}
 .footer .sidebar {
     overflow: hidden;
     padding: 0;

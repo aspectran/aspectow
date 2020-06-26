@@ -19,6 +19,8 @@ import club.textchat.room.PrivateRoomManager;
 import club.textchat.room.PublicRoomManager;
 import club.textchat.room.RoomInfo;
 import club.textchat.server.AdmissionToken;
+import club.textchat.server.ExchangeChatHandler;
+import club.textchat.server.PrivateChatHandler;
 import club.textchat.user.LoginRequiredException;
 import club.textchat.user.UserInfo;
 import club.textchat.user.UserManager;
@@ -27,6 +29,7 @@ import com.aspectran.core.component.bean.annotation.Action;
 import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Component;
 import com.aspectran.core.component.bean.annotation.Dispatch;
+import com.aspectran.core.component.bean.annotation.Qualifier;
 import com.aspectran.core.component.bean.annotation.Request;
 import com.aspectran.core.component.bean.annotation.Transform;
 import com.aspectran.core.context.rule.type.FormatType;
@@ -43,6 +46,8 @@ public class ChatAction {
     public static final String RANDOM_CHATROOM_ID = "-1";
 
     public static final String STRANGER_CHATROOM_ID = "-2";
+
+    public static final String EXCHANGE_CHATROOM_ID = "-3";
 
     private final UserManager userManager;
 
@@ -142,6 +147,117 @@ public class ChatAction {
         return map;
     }
 
+    @Request("/exchange")
+    @Dispatch("templates/default")
+    @Action("page")
+    public Map<String, Object> exchangeChat() {
+        Map<String, Object> map = new HashMap<>();
+        map.put("roomId", EXCHANGE_CHATROOM_ID);
+        map.put("include", "pages/exchange");
+        return map;
+    }
+
+    @Request("/exchange/token")
+    @Transform(FormatType.JSON)
+    public String exchangeChatToken(@Qualifier("native_lang") String nativeLang,
+                                    @Qualifier("convo_lang") String convoLang) {
+        UserInfo userInfo;
+        try {
+            userInfo = userManager.getUserInfo();
+        } catch (LoginRequiredException e) {
+            return "-1";
+        }
+
+        if (StringUtils.isEmpty(nativeLang) || StringUtils.isEmpty(convoLang)) {
+            return "-2";
+        }
+
+        String roomId = ExchangeChatHandler.makeExchangeRoomId(nativeLang, convoLang);
+
+        return createAdmissionToken(roomId, userInfo);
+    }
+
+    @Request("/exchange/${encryptedRoomId}")
+    @Dispatch("templates/default")
+    @Action("page")
+    public Map<String, String> startExchangeChat(Translet translet, String encryptedRoomId) {
+        if (StringUtils.isEmpty(encryptedRoomId)) {
+            translet.redirect("/");
+            return null;
+        }
+
+        String roomId;
+        try {
+            roomId = PBEncryptionUtils.decrypt(encryptedRoomId);
+        } catch (Exception e) {
+            throw new InvalidChatRoomException(encryptedRoomId, "room-not-found");
+        }
+
+        UserInfo userInfo;
+        try {
+            userInfo = userManager.getUserInfo();
+        } catch (LoginRequiredException e) {
+            translet.redirect("/");
+            return null;
+        }
+
+        String roomName = translet.getMessage("service.exchange_chat");
+
+        Map<String, String> map = new HashMap<>();
+        map.put("roomId", EXCHANGE_CHATROOM_ID);
+        map.put("roomName", roomName);
+        map.put("token", createAdmissionToken(roomId, userInfo));
+        map.put("title", roomName);
+        map.put("include", "pages/private");
+        map.put("homepage", "/exchange");
+        return map;
+    }
+
+    @Request("/private/${encryptedRoomId}")
+    @Dispatch("templates/default")
+    @Action("page")
+    public Map<String, String> startPrivateChat(Translet translet, String encryptedRoomId) {
+        if (StringUtils.isEmpty(encryptedRoomId)) {
+            translet.redirect("/");
+            return null;
+        }
+
+        String roomId;
+        try {
+            roomId = PBEncryptionUtils.decrypt(encryptedRoomId);
+        } catch (Exception e) {
+            throw new InvalidChatRoomException(encryptedRoomId, "room-not-found");
+        }
+
+        RoomInfo roomInfo = privateRoomManager.getRoomInfo(roomId);
+        if (roomInfo == null) {
+            throw new InvalidChatRoomException(encryptedRoomId, "room-not-found");
+        }
+
+        UserInfo userInfo = null;
+        try {
+            userInfo = userManager.getUserInfo();
+        } catch (LoginRequiredException e) {
+            // ignore
+        }
+
+        String token = null;
+        if (userInfo != null) {
+            String privateRoomId = PrivateChatHandler.makePrivateRoomId(roomId);
+            token = createAdmissionToken(privateRoomId, userInfo);
+        }
+
+        Map<String, String> map = new HashMap<>();
+        map.put("roomId", Integer.toString(roomInfo.getRoomId()));
+        map.put("roomName", roomInfo.getRoomName());
+        if (token != null) {
+            map.put("token", token);
+        }
+        map.put("title", roomInfo.getRoomName());
+        map.put("include", "pages/private");
+        return map;
+    }
+
     @Request("/rooms/${roomId}")
     @Dispatch("templates/default")
     @Action("page")
@@ -176,50 +292,6 @@ public class ChatAction {
         }
         map.put("title", roomInfo.getRoomName());
         map.put("include", "pages/public");
-        return map;
-    }
-
-    @Request("/private/${encryptedRoomId}")
-    @Dispatch("templates/default")
-    @Action("page")
-    public Map<String, String> startPrivateChat(Translet translet, String encryptedRoomId) {
-        if (StringUtils.isEmpty(encryptedRoomId)) {
-            translet.redirect("/");
-            return null;
-        }
-
-        String roomId;
-        try {
-            roomId = PBEncryptionUtils.decrypt(encryptedRoomId);
-        } catch (Exception e) {
-            throw new InvalidChatRoomException(encryptedRoomId, "room-not-found");
-        }
-
-        RoomInfo roomInfo = privateRoomManager.getRoomInfo(roomId);
-        if (roomInfo == null) {
-            throw new InvalidChatRoomException(encryptedRoomId, "room-not-found");
-        }
-
-        UserInfo userInfo = null;
-        try {
-            userInfo = userManager.getUserInfo();
-        } catch (LoginRequiredException e) {
-            // ignore
-        }
-
-        String token = null;
-        if (userInfo != null) {
-            token = createAdmissionToken(roomId, userInfo);
-        }
-
-        Map<String, String> map = new HashMap<>();
-        map.put("roomId", roomInfo.getEncryptedRoomId());
-        map.put("roomName", roomInfo.getRoomName());
-        if (token != null) {
-            map.put("token", token);
-        }
-        map.put("title", roomInfo.getRoomName());
-        map.put("include", "pages/private");
         return map;
     }
 

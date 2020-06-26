@@ -25,6 +25,7 @@ import com.aspectran.core.component.bean.annotation.RequestToPost;
 import com.aspectran.core.component.bean.annotation.Required;
 import com.aspectran.core.component.bean.annotation.Transform;
 import com.aspectran.core.context.rule.type.FormatType;
+import com.aspectran.core.util.PBEncryptionUtils;
 import com.aspectran.core.util.logging.Logger;
 import com.aspectran.core.util.logging.LoggerFactory;
 
@@ -63,7 +64,8 @@ public class PrivateRoomAction {
         roomInfo.setRoomName(roomName);
         roomInfo.setUserNo(userInfo.getUserNo());
 
-        return privateRoomManager.createRoom(roomInfo);
+        String roomId = privateRoomManager.createRoom(roomInfo);
+        return PBEncryptionUtils.encrypt(roomId);
     }
 
 }
