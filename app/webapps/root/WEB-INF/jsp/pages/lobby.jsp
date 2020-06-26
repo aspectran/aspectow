@@ -4,10 +4,10 @@
 <aspectran:token type="property" expression="languages" var="languages"/>
 <link rel="stylesheet" type="text/css" href="/assets/css/chat-core.css?v24" />
 <link rel="stylesheet" type="text/css" href="/assets/css/chat-lobby.css?v21" />
-<link rel="stylesheet" type="text/css" href="/assets/css/page-lobby.css?v25" />
+<link rel="stylesheet" type="text/css" href="/assets/css/page-lobby.css?v26" />
 <script src="/assets/js/chat-client-core.js?v23"></script>
 <script src="/assets/js/chat-client-lobby.js?v26"></script>
-<script src="/assets/js/page-lobby.js?v24"></script>
+<script src="/assets/js/page-lobby.js?v25"></script>
 <script>
     const chatClientSettings = {
         serverEndpoint: "/chat/lobby/",
@@ -99,7 +99,7 @@
                             <h6><aspectran:message code="lobby.rooms.title"/>
                             <a class="refresh-rooms"><i class="fi-refresh"> <aspectran:message code="lobby.rooms.button.refresh"/></i></a></h6>
                         </div>
-                        <div class="cell align-self-middle text-right">
+                        <div class="cell align-self-bottom text-right">
                             <select class="room-lang" name="room_lang">
                                 <c:forEach items="${languages}" var="entry">
                                     <option value="${entry.key}">${entry.value}</option>
@@ -114,7 +114,7 @@
                                 <i class="curr-users fi-torsos-all"> <span>0</span></i>
                                 <span class="lang" data-lang-cd=""></span>
                             </div>
-                            <i class="new fi-burst-new" style="display: none"></i>
+                            <i class="new fi-burst-new"></i>
                             <a class="button small start"><aspectran:message code="lobby.rooms.button.enter_chatroom"/></a>
                         </div>
                     </div>

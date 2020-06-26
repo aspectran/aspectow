@@ -229,8 +229,8 @@ function refreshRooms(roomLang) {
                         if (roomInfo.currentUsers > 0) {
                             room.addClass("active");
                         }
-                        if (roomInfo.pastDays < 2) {
-                            room.find(".new").show();
+                        if (roomInfo.pastDays >= 2) {
+                            room.find(".new").hide();
                         }
                         room.appendTo($(".rooms")).hide().fadeIn();
                     }
