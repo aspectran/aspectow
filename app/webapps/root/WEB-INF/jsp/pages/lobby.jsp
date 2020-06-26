@@ -30,7 +30,7 @@
             <div class="sidebar cell medium-4 large-3 cell-block-y hide-for-small-only">
                 <c:if test="${empty user}">
                     <div class="text-center t30 b20">
-                        <img src="/assets/images/textchat-heartbeat.svg" width="70%" alt="Text Chat Club"/>
+                        <img src="/assets/images/textchat-heartbeat.svg" width="70%" alt="<aspectran:message code='site.title'/>"/>
                     </div>
                     <div class="text-center">
                         <a href="?locale=en">English</a>
