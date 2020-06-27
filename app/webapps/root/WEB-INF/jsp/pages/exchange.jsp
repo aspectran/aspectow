@@ -7,7 +7,7 @@
 <link rel="stylesheet" type="text/css" href="/assets/css/chat-exchange.css?3" />
 <script src="/assets/js/chat-client-core.js?v24"></script>
 <script src="/assets/js/chat-client-stranger.js?v4"></script>
-<script src="/assets/js/chat-client-exchange.js?v3"></script>
+<script src="/assets/js/chat-client-exchange.js?v4"></script>
 <script>
     const chatClientSettings = {
         serverEndpoint: "/chat/exchange/",

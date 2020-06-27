@@ -39,7 +39,7 @@ $(function () {
     }).each(function () {
         $(".language-settings select[name=convo_lang]").val(storedConvoLang);
     });
-    if (storedNativeLang && storedConvoLang) {
+    if (userInfo.userNo && storedNativeLang && storedConvoLang) {
         $(".language-settings .button.ok").click();
     }
 });
