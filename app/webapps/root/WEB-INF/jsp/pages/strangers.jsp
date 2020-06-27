@@ -2,9 +2,9 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://aspectran.com/tags" prefix="aspectran" %>
 <link rel="stylesheet" type="text/css" href="/assets/css/chat-core.css?24" />
-<link rel="stylesheet" type="text/css" href="/assets/css/chat-stranger.css?3" />
-<script src="/assets/js/chat-client-core.js?v22"></script>
-<script src="/assets/js/chat-client-stranger.js?v3"></script>
+<link rel="stylesheet" type="text/css" href="/assets/css/chat-stranger.css?4" />
+<script src="/assets/js/chat-client-core.js?v24"></script>
+<script src="/assets/js/chat-client-stranger.js?v4"></script>
 <script>
     const chatClientSettings = {
         serverEndpoint: "/chat/stranger/",

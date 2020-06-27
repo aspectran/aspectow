@@ -2,7 +2,7 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://aspectran.com/tags" prefix="aspectran" %>
 <link rel="stylesheet" type="text/css" href="/assets/css/chat-core.css?24" />
-<script src="/assets/js/chat-client-core.js?v23"></script>
+<script src="/assets/js/chat-client-core.js?v24"></script>
 <script src="/assets/js/chat-client-public.js?v22"></script>
 <script>
     const chatClientSettings = {

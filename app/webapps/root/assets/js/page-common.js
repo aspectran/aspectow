@@ -20,6 +20,7 @@ $(function () {
     $("#form-sign-in input[name=remember-me]").on("change", function () {
         if (!this.checked) {
             localStorage.removeItem("username");
+            localStorage.removeItem("favoriteColor");
         }
     });
     $("#common-sign-in .my-col-box").on("click", function () {

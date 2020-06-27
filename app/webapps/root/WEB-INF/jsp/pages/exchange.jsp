@@ -3,11 +3,11 @@
 <%@ taglib uri="http://aspectran.com/tags" prefix="aspectran" %>
 <aspectran:token type="property" expression="languages" var="languages"/>
 <link rel="stylesheet" type="text/css" href="/assets/css/chat-core.css?24" />
-<link rel="stylesheet" type="text/css" href="/assets/css/chat-stranger.css?3" />
-<link rel="stylesheet" type="text/css" href="/assets/css/chat-exchange.css?2" />
-<script src="/assets/js/chat-client-core.js?v22"></script>
-<script src="/assets/js/chat-client-stranger.js?v3"></script>
-<script src="/assets/js/chat-client-exchange.js?v2"></script>
+<link rel="stylesheet" type="text/css" href="/assets/css/chat-stranger.css?4" />
+<link rel="stylesheet" type="text/css" href="/assets/css/chat-exchange.css?3" />
+<script src="/assets/js/chat-client-core.js?v24"></script>
+<script src="/assets/js/chat-client-stranger.js?v4"></script>
+<script src="/assets/js/chat-client-exchange.js?v3"></script>
 <script>
     const chatClientSettings = {
         serverEndpoint: "/chat/exchange/",
