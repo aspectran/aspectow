@@ -83,8 +83,8 @@ public class UserAction {
         UserInfo userInfo = new UserInfo();
         userInfo.setUsername(username);
         if (!StringUtils.isEmpty(description)) {
-            if (description.length() > 150) {
-                userInfo.setDescription(description.substring(0, 150));
+            if (description.length() > 256) {
+                userInfo.setDescription(description.substring(0, 256));
             } else {
                 userInfo.setDescription(description);
             }

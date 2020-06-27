@@ -72,7 +72,7 @@
                     <aspectran:message code="modal.sign_in.already_in_use"/>
                 </p>
                 <label class="title"><aspectran:message code="modal.sign_in.self_introduction"/></label>
-                <textarea name="description" rows="2"></textarea>
+                <textarea name="description" rows="2" maxlength="256"></textarea>
             </div>
             <div class="cell">
                 <label class="title"><aspectran:message code="modal.sign_in.choose_color"/></label>
