@@ -136,8 +136,8 @@ public class StrangerChatHandler extends AbstractChatHandler {
                 replaced = true;
             }
             inConvoUsersPersistence.put(chaterInfo.getHttpSessionId(), chaterInfo.getRoomId());
-            chatersPersistence.put(chaterInfo);
             Set<String> roomChaters = chatersPersistence.getChaters(chaterInfo.getRoomId());
+            chatersPersistence.put(chaterInfo);
             JoinPayload payload = new JoinPayload();
             payload.setChater(chaterInfo);
             payload.setChaters(roomChaters);

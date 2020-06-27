@@ -18,6 +18,9 @@
         <c:when test="${page.roomId eq '-2'}">
             <h3><i class="fi-results-demographics"></i> <aspectran:message code="service.stranger_chat"/></h3>
         </c:when>
+        <c:when test="${page.roomId eq '-3'}">
+            <h3><i class="fi-results-demographics"></i> <aspectran:message code="service.exchange_chat"/></h3>
+        </c:when>
         <c:otherwise>
             <h3><aspectran:message code="modal.sign_in.title"/></h3>
         </c:otherwise>
@@ -43,6 +46,14 @@
                         <li><aspectran:message code="modal.sign_in.intro.from_stranger_chat_1"/></li>
                         <li><aspectran:message code="modal.sign_in.intro.from_stranger_chat_2"/></li>
                         <li><aspectran:message code="modal.sign_in.intro.from_stranger_chat_3"/></li>
+                    </ul>
+                </c:if>
+                <c:if test="${page.roomId eq '-3'}">
+                    <ul>
+                        <li><aspectran:message code="modal.sign_in.intro.from_exchange_chat_1"/></li>
+                        <li><aspectran:message code="modal.sign_in.intro.from_exchange_chat_2"/></li>
+                        <li><aspectran:message code="modal.sign_in.intro.from_exchange_chat_3"/></li>
+                        <li><aspectran:message code="modal.sign_in.intro.from_exchange_chat_4"/></li>
                     </ul>
                 </c:if>
                 <c:if test="${page.roomId gt '0'}">

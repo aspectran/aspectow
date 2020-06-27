@@ -93,8 +93,9 @@
     opacity: .5;
 }
 .choose-info {
-    background-color: #ffefdd;
-    border-bottom: 1px solid #fde2c5;
+    background-color: #cfe6f0;
+    border: 1px solid #c5deea;
+    border-top: none;
     border-radius: 0 0 10px 10px;
     display: none;
 }

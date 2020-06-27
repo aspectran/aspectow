@@ -70,6 +70,9 @@ $(function () {
         });
     }).on("click", ".confirm-request:visible .cancel", function () {
         $(this).closest(".confirm-request").remove();
+        if (!$(".chat-requests div:visible").length) {
+            $(".choose-info").fadeIn();
+        }
     }).on("click", ".request:visible .cancel", function () {
         let ele = $(this).closest(".request");
         let userNo = ele.data("user-no");
