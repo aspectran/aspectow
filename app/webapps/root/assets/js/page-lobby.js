@@ -77,9 +77,7 @@ $(function () {
         $(".service-options select[name=convo_lang]").val(userInfo.language);
     });
     $(".refresh-rooms").on("click", function () {
-        if (checkSignedIn()) {
-            refreshRooms();
-        }
+        refreshRooms();
     });
     $(".rooms-options select[name=room_lang]").change(function () {
         refreshRooms();
