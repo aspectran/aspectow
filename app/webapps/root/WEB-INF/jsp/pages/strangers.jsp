@@ -1,10 +1,10 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://aspectran.com/tags" prefix="aspectran" %>
-<link rel="stylesheet" type="text/css" href="/assets/css/chat-core.css?24" />
-<link rel="stylesheet" type="text/css" href="/assets/css/chat-stranger.css?5" />
-<script src="/assets/js/chat-client-core.js?v24"></script>
-<script src="/assets/js/chat-client-stranger.js?v5"></script>
+<link rel="stylesheet" type="text/css" href="/assets/css/chat-core.css?25" />
+<link rel="stylesheet" type="text/css" href="/assets/css/chat-stranger.css?6" />
+<script src="/assets/js/chat-client-core.js?v25"></script>
+<script src="/assets/js/chat-client-stranger.js?v6"></script>
 <script>
     const chatClientSettings = {
         serverEndpoint: "/chat/stranger/",

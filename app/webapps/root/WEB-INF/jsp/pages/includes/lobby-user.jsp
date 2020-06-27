@@ -6,6 +6,7 @@
     <div class="cell auto">
         <div class="nameplate">
             <h5 class="username">${user.username}</h5>
+            <p class="description">${user.description}</p>
             <c:if test="${not empty user.country}">
                 <img class="flag" src="https://raw.githubusercontent.com/topframe/country-flags/master/svg/${fn:toLowerCase(user.country)}.svg" title="${user.country}"/>
             </c:if>

@@ -5,6 +5,10 @@
         <div class="cell grid-x grid-padding-x medium-up-1 large-up-2">
             <div class="cell">
                 <p class="title"><aspectran:message code='chat.stranger.confirm_request'/></p>
+                <div class="self-introduction">
+                    <p class="self-introduction-title"><aspectran:message code='chat.stranger.self_introduction_title'/></p>
+                    <p class="description"></p>
+                </div>
             </div>
             <div class="cell align-self-bottom text-right">
                 <button type="button" class="button small alert cancel"><aspectran:message code="common.button.cancel"/></button>
@@ -30,6 +34,10 @@
                 <p class="title"><aspectran:message code='chat.stranger.request_received'/></p>
                 <p><aspectran:message code='chat.stranger.request_received_1'/></p>
                 <p><i class="icon-heart"></i> <aspectran:message code='chat.stranger.time_left'/>: <span class="remains">30</span> <aspectran:message code='chat.stranger.time_left_secs'/></p>
+                <div class="self-introduction">
+                    <p class="self-introduction-title"><aspectran:message code='chat.stranger.self_introduction_title'/></p>
+                    <p class="description"></p>
+                </div>
                 <p class="done"><aspectran:message code='chat.stranger.request_done'/></p>
             </div>
             <div class="cell align-self-bottom text-right">

@@ -37,6 +37,7 @@ $(function () {
         $(".choose-info").hide();
         let userNo = ele.data("user-no");
         let username = ele.data("username");
+        let description = ele.find(".description").text();
         let cnt = $(".chat-requests .confirm-request:visible, .chat-requests .request:visible").length;
         if (cnt >= 3) {
             newChatRequestTemplate("exceeded-requests", null);
@@ -49,10 +50,18 @@ $(function () {
             let t = newChatRequestTemplate("confirm-request", null, username);
             t.data("user-no", userNo);
             t.data("username", username);
+            if (description) {
+                let selfIntro = t.find(".self-introduction");
+                let selfIntroTitle = selfIntro.find(".self-introduction-title").html();
+                selfIntroTitle = selfIntroTitle.replace("[username]", "<strong>" + username + "</strong>");
+                selfIntro.find(".self-introduction-title").html(selfIntroTitle);
+                selfIntro.find(".description").text(description);
+                selfIntro.show();
+            }
         }
     });
 
-    $(".chat-requests").on("click", ".confirm-request:visible .ok", function () {
+    $(".chat-requests").on("click", ".confirm-request .ok", function () {
         let ele = $(this).closest(".confirm-request");
         let userNo = ele.data("user-no");
         let username = ele.data("username");
@@ -68,12 +77,12 @@ $(function () {
             heartbeatContact(userNo, false);
             sendChatRequestMessage("request-canceled", userNo);
         });
-    }).on("click", ".confirm-request:visible .cancel", function () {
+    }).on("click", ".confirm-request .cancel", function () {
         $(this).closest(".confirm-request").remove();
         if (!$(".chat-requests div:visible").length) {
             $(".choose-info").fadeIn();
         }
-    }).on("click", ".request:visible .cancel", function () {
+    }).on("click", ".request .cancel", function () {
         let ele = $(this).closest(".request");
         let userNo = ele.data("user-no");
         let username = ele.data("username");
@@ -83,7 +92,7 @@ $(function () {
         ele.remove();
         heartbeatContact(userNo, false);
         sendChatRequestMessage("request-canceled", userNo);
-    }).on("click", ".request-received:visible .decline", function () {
+    }).on("click", ".request-received .decline", function () {
         let ele = $(this).closest(".request-received");
         let userNo = ele.data("user-no");
         let username = ele.data("username");
@@ -93,7 +102,7 @@ $(function () {
         ele.remove();
         heartbeatContact(userNo, false);
         sendChatRequestMessage("request-declined", userNo);
-    }).on("click", ".request-received:visible .accept", function () {
+    }).on("click", ".request-received .accept", function () {
         let ele = $(this).closest(".request-received");
         let userNo = ele.data("user-no");
         sendChatRequestMessage("request-accepted", userNo);
@@ -109,8 +118,8 @@ function handleChatRequestMessage(content) {
         let userNo = parseTargetUserNo(content);
         if (userNo === userInfo.userNo) {
             let prefix = "request:" + userNo + ":";
-            let targetUserInfo = deserialize(content.substring(prefix.length));
-            chatRequest(targetUserInfo);
+            let chaterInfo = deserialize(content.substring(prefix.length));
+            chatRequest(chaterInfo);
         }
     } else if (content.startsWith("request-canceled:")) {
         let userNo = parseTargetUserNo(content);
@@ -154,12 +163,20 @@ function isRequestingChat(targetUserNo) {
     }).length > 0;
 }
 
-function chatRequest(targetUserInfo) {
+function chatRequest(chaterInfo) {
     hideSidebar();
-    heartbeatContact(targetUserInfo.userNo, true);
-    let t = newChatRequestTemplate("request-received", null, targetUserInfo.username);
-    t.data("user-no", targetUserInfo.userNo);
-    t.data("username", targetUserInfo.username);
+    heartbeatContact(chaterInfo.userNo, true);
+    let t = newChatRequestTemplate("request-received", null, chaterInfo.username);
+    t.data("user-no", chaterInfo.userNo);
+    t.data("username", chaterInfo.username);
+    if (chaterInfo.description) {
+        let selfIntro = t.find(".self-introduction");
+        let selfIntroTitle = selfIntro.find(".self-introduction-title").html();
+        selfIntroTitle = selfIntroTitle.replace("[username]", "<strong>" + chaterInfo.username + "</strong>");
+        selfIntro.find(".self-introduction-title").html(selfIntroTitle);
+        selfIntro.find(".description").text(chaterInfo.description);
+        selfIntro.show();
+    }
     chatRequestTimer(t, 30, function () {
         t.find(".decline").click();
     });

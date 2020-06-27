@@ -1,10 +1,10 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://aspectran.com/tags" prefix="aspectran" %>
-<link rel="stylesheet" type="text/css" href="/assets/css/chat-core.css?v24" />
-<link rel="stylesheet" type="text/css" href="/assets/css/chat-random.css?v21" />
-<script src="/assets/js/chat-client-core.js?v24"></script>
-<script src="/assets/js/chat-client-random.js?v22"></script>
+<link rel="stylesheet" type="text/css" href="/assets/css/chat-core.css?v25" />
+<link rel="stylesheet" type="text/css" href="/assets/css/chat-random.css?v22" />
+<script src="/assets/js/chat-client-core.js?v25"></script>
+<script src="/assets/js/chat-client-random.js?v23"></script>
 <script>
     const chatClientSettings = {
         serverEndpoint: "/chat/random/",
@@ -51,7 +51,7 @@
                             <button type="submit" class="button send" title="<aspectran:message code='chat.common.send_message'/>">
                                 <i class="icon-paper-plane"></i></button>
                             <button type="button" class="button next" title="<aspectran:message code='chat.random.button.search_another'/>">
-                                <i class="fi-shuffle"></i> <aspectran:message code='chat.random.next'/> <i class="fi-torso"></i></button>
+                                <i class="fi-shuffle"></i> <i class="fi-torso"></i></button>
                         </div>
                     </div>
                 </form>

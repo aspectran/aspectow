@@ -49,6 +49,7 @@ public class ChaterInfo extends UserInfo implements Serializable {
     public ChaterInfo(@NonNull UserInfo userInfo) {
         setUserNo(userInfo.getUserNo());
         setUsername(userInfo.getUsername());
+        setDescription(userInfo.getDescription());
         setCountry(userInfo.getCountry());
         setNativeLang(userInfo.getLanguage());
         setColor(userInfo.getColor());
@@ -138,6 +139,7 @@ public class ChaterInfo extends UserInfo implements Serializable {
         tsb.append("roomId", roomId);
         tsb.append("userNo", getUserNo());
         tsb.append("username", getUsername());
+        tsb.append("description", getDescription());
         tsb.append("country", getCountry());
         tsb.append("nativeLang", getNativeLang());
         tsb.append("convoLang", getConvoLang());
@@ -152,6 +154,7 @@ public class ChaterInfo extends UserInfo implements Serializable {
             writer.beginObject();
             writer.writeName("userNo").writeValue(getUserNo());
             writer.writeName("username").writeValue(getUsername());
+            writer.writeName("description").writeValue(getDescription());
             writer.writeName("country").writeValue(getCountry());
             writer.writeName("nativeLang").writeValue(getNativeLang());
             writer.writeName("convoLang").writeValue(getConvoLang());
@@ -168,6 +171,7 @@ public class ChaterInfo extends UserInfo implements Serializable {
             Parameters parameters = JsonToApon.from(json);
             setUserNo(parameters.getInt("userNo"));
             setUsername(parameters.getString("username"));
+            setDescription(parameters.getString("description"));
             setCountry(parameters.getString("country"));
             setLanguage(parameters.getString("nativeLang"));
             setConvoLang(parameters.getString("convoLang"));

@@ -56,6 +56,7 @@ public class UserAction {
     @Transform(FormatType.JSON)
     public String signIn(Translet translet,
                          @Required String username,
+                         String description,
                          String favoriteColor,
                          @Required String recaptchaResponse,
                          String timeZone) {
@@ -81,6 +82,13 @@ public class UserAction {
 
         UserInfo userInfo = new UserInfo();
         userInfo.setUsername(username);
+        if (!StringUtils.isEmpty(description)) {
+            if (description.length() > 150) {
+                userInfo.setDescription(description.substring(0, 150));
+            } else {
+                userInfo.setDescription(description);
+            }
+        }
         if (!StringUtils.isEmpty(favoriteColor)) {
             userInfo.setColor(favoriteColor);
         }

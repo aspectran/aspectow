@@ -179,13 +179,24 @@ input#for-automata-clear {
     border-radius: 6px 0 6px 0;
 }
 .user .nameplate .username {
-    padding: 6px 10px;
+    margin: 0;
+    padding: 4px 8px;
     max-width: 100% !important;
     overflow: hidden !important;
     text-overflow: ellipsis;
     white-space: nowrap !important;
     color: #217aa6;
     font-size: 1em;
+}
+.user .nameplate .description {
+    margin: 0;
+    padding: 0 45px 0 8px;
+    font-size: .85em;
+    color: #455a65;
+    max-width: 100% !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis;
+    white-space: nowrap !important;
 }
 .user.my-col-1 .avatar .iconfont {
     color: #fcbdbd;
@@ -212,6 +223,10 @@ input#for-automata-clear {
     color: #454545;
     margin: 0 0 .2em 0;
     font-size: 1em;
+}
+#form-sign-in textarea {
+    font-size: .9em;
+    line-height: 1.1;
 }
 #form-sign-in .form-error {
     font-size: 1em;

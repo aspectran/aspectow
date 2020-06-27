@@ -49,15 +49,17 @@ function openSignInPopup() {
     $("#form-sign-in .form-error").hide();
     loadCaptcha("sign_in", "captcha-container-sign-in");
     let username = localStorage.getItem("username");
+    let description = localStorage.getItem("description");
+    let favoriteColor = Number(localStorage.getItem("favoriteColor"));
     if (username) {
         $("#form-sign-in input[name=remember-me]").prop("checked", true);
     }
-    let favoriteColor = Number(localStorage.getItem("favoriteColor"));
     if (favoriteColor < 1 || favoriteColor > 7) {
         favoriteColor = Math.floor(Math.random() * 7) + 1;
     }
     $("#common-sign-in .my-col-box").removeClass("selected");
     $("#common-sign-in .my-col-" + favoriteColor).addClass("selected");
+    $("#form-sign-in textarea[name=description]").val(description);
     $("#form-sign-in input[name=username]").val(username).focus();
 }
 
@@ -69,25 +71,28 @@ function startSignIn() {
     }
     $("#common-sign-in").foundation('close');
     let username = $("#form-sign-in input[name=username]").val().trim();
+    let description = $("#form-sign-in textarea[name=description]").val().trim();
     if (username) {
         let favoriteColor = $("#common-sign-in .my-col-box.selected").text();
         if ($("#form-sign-in input[name='remember-me']").prop("checked")) {
             localStorage.setItem("username", username);
+            localStorage.setItem("description", description);
             localStorage.setItem("favoriteColor", favoriteColor);
         } else {
             localStorage.removeItem("username");
+            localStorage.removeItem("description");
             localStorage.removeItem("favoriteColor");
         }
         openWaitPopup(modalMessages.signingIn, function () {
             location.reload();
         }, 10000);
         startSignInTimer = setTimeout(function () {
-            doSignIn(username, favoriteColor);
+            doSignIn(username, description, favoriteColor);
         }, 600);
     }
 }
 
-function doSignIn(username, favoriteColor) {
+function doSignIn(username, description, favoriteColor) {
     if (!recaptchaResponse) {
         return;
     }
@@ -97,6 +102,7 @@ function doSignIn(username, favoriteColor) {
         dataType: 'json',
         data: {
             username: username,
+            description: description,
             favoriteColor: favoriteColor,
             recaptchaResponse: recaptchaResponse,
             timeZone: getTimeZone()

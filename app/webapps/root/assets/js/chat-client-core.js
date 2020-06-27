@@ -27,6 +27,13 @@ $(function () {
             leaveRoom();
         }, 500);
     });
+    $("#contacts").on("click", ".contact", function () {
+        $(".description", this).toggle();
+    }).on("mouseenter", ".contact", function () {
+        $(".description", this).toggle();
+    }).on("mouseleave", ".contact", function () {
+        $(".description", this).hide();
+    });
     $("#convo").on("click", ".message.event.group .more", function () {
         $(this).parent().toggleClass("all-visible");
     });
@@ -309,8 +316,13 @@ function addChater(chater) {
         status.addClass("my-col-" + chater.color);
     }
     let badge = $("<i class='iconfont fi-mountains'/>");
-    let name = $("<div class='name'/>").text(chater.username);
-    contact.append(status.append(badge)).append(name).appendTo($("#contacts"));
+    let name = $("<p class='name'/>").text(chater.username);
+    contact.append(status.append(badge)).append(name);
+    if (chater.description) {
+        let description = $("<p class='description'/>").text(chater.description);
+        contact.append(description);
+    }
+    contact.appendTo($("#contacts"));
     if (chater.country) {
         let flag = $("<img class='flag'/>");
         flag.attr("src", "https://raw.githubusercontent.com/topframe/country-flags/master/svg/" + chater.country.toLowerCase() + ".svg");
