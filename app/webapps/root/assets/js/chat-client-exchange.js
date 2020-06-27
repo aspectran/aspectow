@@ -2,6 +2,9 @@ let tokenIssuanceTimer;
 let tokenIssuanceCanceled;
 
 $(function () {
+    if (!userInfo.userNo) {
+        return;
+    }
     $(".language-settings .button.ok").on("click", function () {
         $(".choose-info").hide();
         $(".language-settings").addClass("rounded-top-corners");
@@ -39,7 +42,7 @@ $(function () {
     }).each(function () {
         $(".language-settings select[name=convo_lang]").val(storedConvoLang);
     });
-    if (userInfo.userNo && storedNativeLang && storedConvoLang) {
+    if (storedNativeLang && storedConvoLang) {
         $(".language-settings .button.ok").click();
     }
 });
