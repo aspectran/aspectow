@@ -53,7 +53,6 @@
                         <li><aspectran:message code="modal.sign_in.intro.from_exchange_chat_1"/></li>
                         <li><aspectran:message code="modal.sign_in.intro.from_exchange_chat_2"/></li>
                         <li><aspectran:message code="modal.sign_in.intro.from_exchange_chat_3"/></li>
-                        <li><aspectran:message code="modal.sign_in.intro.from_exchange_chat_4"/></li>
                     </ul>
                 </c:if>
                 <c:if test="${page.roomId gt '0'}">
