@@ -4,7 +4,7 @@
 <aspectran:token type="property" expression="languages" var="languages"/>
 <link rel="stylesheet" type="text/css" href="/assets/css/chat-core.css?v24" />
 <link rel="stylesheet" type="text/css" href="/assets/css/chat-lobby.css?v21" />
-<link rel="stylesheet" type="text/css" href="/assets/css/page-lobby.css?v26" />
+<link rel="stylesheet" type="text/css" href="/assets/css/page-lobby.css?v27" />
 <script src="/assets/js/chat-client-core.js?v24"></script>
 <script src="/assets/js/chat-client-lobby.js?v26"></script>
 <script src="/assets/js/page-lobby.js?v25"></script>
@@ -51,7 +51,7 @@
                             <a class="title start" href="/exchange"><h4><aspectran:message code="service.exchange_chat"/></h4></a>
                             <p class="feature"><aspectran:message code="service.exchange_chat.feature"/></p>
                             <p class="guide show-for-large"><aspectran:message code="service.exchange_chat.guide"/></p>
-                            <p class="dummy"></p>
+                            <p class="dummy hide-for-large"></p>
                             <a class="guide hide-for-large" title="<aspectran:message code="service.exchange_chat.button.guide"/>"><i class="fi-info"></i></a>
                             <div class="service-options">
                                 <a class="button small wide start" href="/exchange"><aspectran:message code="service.exchange_chat.button.start"/></a>
