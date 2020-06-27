@@ -29,8 +29,6 @@ $(function () {
     });
     $("#contacts").on("click", ".contact", function () {
         $(".description", this).toggle();
-    }).on("mouseenter", ".contact", function () {
-        $(".description", this).toggle();
     }).on("mouseleave", ".contact", function () {
         $(".description", this).hide();
     });

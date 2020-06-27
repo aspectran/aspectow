@@ -3,7 +3,7 @@
 <%@ taglib uri="http://aspectran.com/tags" prefix="aspectran" %>
 <link rel="stylesheet" type="text/css" href="/assets/css/chat-core.css?v25" />
 <link rel="stylesheet" type="text/css" href="/assets/css/chat-random.css?v22" />
-<script src="/assets/js/chat-client-core.js?v25"></script>
+<script src="/assets/js/chat-client-core.js?v26"></script>
 <script src="/assets/js/chat-client-random.js?v23"></script>
 <script>
     const chatClientSettings = {
