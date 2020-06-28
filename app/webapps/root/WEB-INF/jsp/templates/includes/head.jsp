@@ -75,7 +75,7 @@
     gtag('js', new Date());
     gtag('config', 'UA-150079188-1');
     gtag('config', 'AW-798244126');
-<c:if test="${not empty user and fn:length(user.description) ge 32}">
+<c:if test="${not empty user and fn:length(user.description) ge 64}">
     if (localStorage.getItem("conversioned") !== "true") {
         gtag('event', 'conversion', {'send_to': 'AW-798244126/VV_4CKaBwNEBEJ760PwC'});
         localStorage.setItem("conversioned", "true");
