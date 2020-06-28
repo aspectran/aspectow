@@ -59,13 +59,20 @@
 }
 #contacts .contact .description {
     margin: 0;
-    padding: 0 20px 2px 0;
+    padding: 0 24px 2px 0;
     color: #455a65;
     font-size: .9em;
     line-height: 1.1;
     display: none;
 }
-
+#contacts .contact.has-description::after {
+    content: "";
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    border: 3px solid #4ffd00;
+    border-radius: 3px;
+}
 #contacts .contact .flag {
     position: absolute;
     right: 0;

@@ -319,6 +319,7 @@ function addChater(chater) {
     if (chater.description) {
         let description = $("<p class='description'/>").text(chater.description);
         contact.append(description);
+        contact.addClass("has-description");
     }
     contact.appendTo($("#contacts"));
     if (chater.country) {
