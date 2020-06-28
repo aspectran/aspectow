@@ -101,6 +101,9 @@ public class UserAction {
 
         String remoteAddr = translet.getRequestAdapter().getHeader("X-FORWARDED-FOR");
         if (!StringUtils.isEmpty(remoteAddr)) {
+            if (remoteAddr.contains(",")) {
+                remoteAddr = StringUtils.tokenize(remoteAddr, ",", true)[0];
+            }
             userInfo.setIpAddr(remoteAddr);
         } else {
             userInfo.setIpAddr(((HttpServletRequest)translet.getRequestAdaptee()).getRemoteAddr());
