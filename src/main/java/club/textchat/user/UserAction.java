@@ -35,11 +35,14 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
 import java.util.Locale.LanguageRange;
+import java.util.regex.Pattern;
 
 @Component
 public class UserAction {
 
     private static final Logger logger = LoggerFactory.getLogger(UserAction.class);
+
+    private static final Pattern SPACE_CONDENSATION_PATTERN = Pattern.compile("\\s{2,}");
 
     private final UserManager userManager;
 
@@ -82,10 +85,12 @@ public class UserAction {
 
         UserInfo userInfo = new UserInfo();
         userInfo.setUsername(username);
-        if (!StringUtils.isEmpty(description)) {
-            if (description.length() > 256) {
-                userInfo.setDescription(description.substring(0, 256));
-            } else {
+        if (description != null) {
+            description = SPACE_CONDENSATION_PATTERN.matcher(description).replaceAll(" ").trim();
+            if (!description.isEmpty()) {
+                if (description.length() > 256) {
+                    description = description.substring(0, 256);
+                }
                 userInfo.setDescription(description);
             }
         }
