@@ -16,6 +16,7 @@
 package club.textchat.user;
 
 import club.textchat.recaptcha.ReCaptchaVerifier;
+import club.textchat.util.CountryCodeLookup;
 import com.aspectran.core.activity.Translet;
 import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Component;
@@ -98,35 +99,40 @@ public class UserAction {
             userInfo.setColor(favoriteColor);
         }
 
-        Locale locale = translet.getRequestAdapter().getLocale();
-        if (locale != null) {
-            if (locale.getCountry().isEmpty()) {
-                try {
-                    String al = translet.getRequestAdapter().getHeader(HttpHeaders.ACCEPT_LANGUAGE);
-                    List<LanguageRange> languageRanges = LanguageRange.parse(al);
-                    for (LanguageRange languageRange : languageRanges) {
-                        Locale loc = Locale.forLanguageTag(languageRange.getRange());
-                        if (!loc.getCountry().isEmpty()) {
-                            userInfo.setCountry(loc.getCountry());
-                            break;
-                        }
-                    }
-                } catch (Exception e) {
-                    // ignore
-                }
-            } else {
-                userInfo.setCountry(locale.getCountry());
-            }
-            userInfo.setLanguage(locale.getLanguage());
-        }
-        userInfo.setTimeZone(timeZone);
-
         String remoteAddr = translet.getRequestAdapter().getHeader("X-FORWARDED-FOR");
         if (!StringUtils.isEmpty(remoteAddr)) {
             userInfo.setIpAddr(remoteAddr);
         } else {
             userInfo.setIpAddr(((HttpServletRequest)translet.getRequestAdaptee()).getRemoteAddr());
         }
+
+        String countryCode = CountryCodeLookup.getInstance().getCountryCodeByIP(userInfo.getIpAddr());
+        userInfo.setCountry(countryCode);
+
+        Locale locale = translet.getRequestAdapter().getLocale();
+        if (locale != null) {
+            if (userInfo.getCountry() == null) {
+                if (locale.getCountry().isEmpty()) {
+                    try {
+                        String al = translet.getRequestAdapter().getHeader(HttpHeaders.ACCEPT_LANGUAGE);
+                        List<LanguageRange> languageRanges = LanguageRange.parse(al);
+                        for (LanguageRange languageRange : languageRanges) {
+                            Locale loc = Locale.forLanguageTag(languageRange.getRange());
+                            if (!loc.getCountry().isEmpty()) {
+                                userInfo.setCountry(loc.getCountry());
+                                break;
+                            }
+                        }
+                    } catch (Exception e) {
+                        // ignore
+                    }
+                } else {
+                    userInfo.setCountry(locale.getCountry());
+                }
+            }
+            userInfo.setLanguage(locale.getLanguage());
+        }
+        userInfo.setTimeZone(timeZone);
 
         userManager.saveUserInfo(userInfo);
         return "0";

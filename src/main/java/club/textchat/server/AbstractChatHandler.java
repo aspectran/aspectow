@@ -67,7 +67,7 @@ public abstract class AbstractChatHandler extends InstantActivitySupport impleme
         try {
             admissionToken = TimeLimitedPBTokenIssuer.getPayload(encryptedToken, AdmissionToken.class);
         } catch (InvalidPBTokenException e) {
-            logger.warn(e);
+            logger.warn(e.getMessage() + ": " + encryptedToken);
             String reason = "Access denied due to invalid admission token";
             session.close(new CloseReason(CloseReason.CloseCodes.CANNOT_ACCEPT, reason));
             throw new IOException(reason);
