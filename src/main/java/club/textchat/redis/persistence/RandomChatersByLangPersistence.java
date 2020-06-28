@@ -34,19 +34,21 @@ public class RandomChatersByLangPersistence extends AbstractPersistence {
 
     private static final String VALUE_SEPARATOR = ":";
 
-    private static final String ANY_LANGUAGE = "any";
-
     @Autowired
     public RandomChatersByLangPersistence(RedisConnectionPool connectionPool) {
         super(connectionPool);
     }
 
     public void put(ChaterInfo chaterInfo) {
-        sadd(makeKey(chaterInfo.getConvoLang()), makeValue(chaterInfo));
+        if (!StringUtils.isEmpty(chaterInfo.getConvoLang())) {
+            sadd(makeKey(chaterInfo.getConvoLang()), makeValue(chaterInfo));
+        }
     }
 
     public void remove(ChaterInfo chaterInfo) {
-        srem(makeKey(chaterInfo.getConvoLang()), makeValue(chaterInfo));
+        if (!StringUtils.isEmpty(chaterInfo.getConvoLang())) {
+            srem(makeKey(chaterInfo.getConvoLang()), makeValue(chaterInfo));
+        }
     }
 
     public ChaterInfo randomChater(String convoLang) {
@@ -62,11 +64,10 @@ public class RandomChatersByLangPersistence extends AbstractPersistence {
     }
 
     private String makeKey(String language) {
-        if (StringUtils.isEmpty(language)) {
-            return KEY_PREFIX + ANY_LANGUAGE;
-        } else {
-            return KEY_PREFIX + language;
+        if (language == null) {
+            throw new IllegalArgumentException("language must not be null");
         }
+        return KEY_PREFIX + language;
     }
 
     private static String makeValue(ChaterInfo chaterInfo) {

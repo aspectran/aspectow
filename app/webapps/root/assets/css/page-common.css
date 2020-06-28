@@ -180,7 +180,7 @@ input#for-automata-clear {
 }
 .user .nameplate .username {
     margin: 0;
-    padding: 4px 8px;
+    padding: 8px 8px 2px;
     max-width: 100% !important;
     overflow: hidden !important;
     text-overflow: ellipsis;

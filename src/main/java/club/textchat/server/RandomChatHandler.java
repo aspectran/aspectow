@@ -15,7 +15,6 @@
  */
 package club.textchat.server;
 
-import club.textchat.chat.ChatAction;
 import club.textchat.redis.persistence.ChatersPersistence;
 import club.textchat.redis.persistence.InConvoUsersPersistence;
 import club.textchat.redis.persistence.RandomChatPersistence;
@@ -33,11 +32,14 @@ import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Bean;
 import com.aspectran.core.component.bean.annotation.Component;
 import com.aspectran.core.lang.NonNull;
+import com.aspectran.core.util.StringUtils;
 
 import javax.websocket.CloseReason;
 import javax.websocket.Session;
 import java.util.Collections;
 import java.util.Set;
+
+import static club.textchat.chat.ChatAction.RANDOM_CHATROOM_ID;
 
 /**
  * <p>Created: 2020/05/14</p>
@@ -79,7 +81,7 @@ public class RandomChatHandler extends AbstractChatHandler {
         MessagePayload payload = chatMessage.getMessagePayload();
         if (payload != null) {
             ChaterInfo chaterInfo = getChaterInfo(session);
-            if (!ChatAction.RANDOM_CHATROOM_ID.equals(chaterInfo.getRoomId())) {
+            if (!RANDOM_CHATROOM_ID.equals(chaterInfo.getRoomId())) {
                 sendAbort(session, chaterInfo, "no-chater");
                 return;
             }
@@ -215,7 +217,11 @@ public class RandomChatHandler extends AbstractChatHandler {
     }
 
     public ChaterInfo randomChater(String language) {
-        return randomChatersByLangPersistence.randomChater(language);
+        if (StringUtils.isEmpty(language)) {
+            return chatersPersistence.randomChater(RANDOM_CHATROOM_ID);
+        } else {
+            return randomChatersByLangPersistence.randomChater(language);
+        }
     }
 
 }

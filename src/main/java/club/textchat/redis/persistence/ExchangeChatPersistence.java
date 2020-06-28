@@ -42,10 +42,4 @@ public class ExchangeChatPersistence extends AbstractPersistence {
         publish(channelManager.getExchangeChatChannel(), message.toString());
     }
 
-//    public void publish(String content) {
-//        BroadcastPayload payload = new BroadcastPayload();
-//        payload.setContent(content);
-//        publish(new ChatMessage(payload));
-//    }
-
 }
