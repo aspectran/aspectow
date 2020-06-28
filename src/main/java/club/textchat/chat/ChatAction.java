@@ -67,9 +67,10 @@ public class ChatAction {
     @Request("/random")
     @Dispatch("templates/default")
     @Action("page")
-    public Map<String, String> randomChat() {
+    public Map<String, String> randomChat(Translet translet) {
         Map<String, String> map = new HashMap<>();
         map.put("roomId", RANDOM_CHATROOM_ID);
+        map.put("title", translet.getMessage("service.random_chat"));
         map.put("include", "pages/random");
         return map;
     }
@@ -89,7 +90,7 @@ public class ChatAction {
     @Request("/strangers")
     @Dispatch("templates/default")
     @Action("page")
-    public Map<String, Object> strangerChat() {
+    public Map<String, Object> strangerChat(Translet translet) {
         UserInfo userInfo = null;
         try {
             userInfo = userManager.getUserInfo();
@@ -107,6 +108,7 @@ public class ChatAction {
             map.put("token", token);
         }
         map.put("roomId", STRANGER_CHATROOM_ID);
+        map.put("title", translet.getMessage("service.stranger_chat"));
         map.put("include", "pages/strangers");
         return map;
     }
@@ -150,9 +152,10 @@ public class ChatAction {
     @Request("/exchange")
     @Dispatch("templates/default")
     @Action("page")
-    public Map<String, Object> exchangeChat() {
+    public Map<String, Object> exchangeChat(Translet translet) {
         Map<String, Object> map = new HashMap<>();
         map.put("roomId", EXCHANGE_CHATROOM_ID);
+        map.put("title", translet.getMessage("service.exchange_chat"));
         map.put("include", "pages/exchange");
         return map;
     }
