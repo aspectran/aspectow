@@ -47,7 +47,9 @@ function checkSignedIn() {
 function openSignInPopup() {
     $("#common-sign-in").foundation('open');
     $("#form-sign-in .form-error").hide();
-    loadCaptcha("sign_in", "captcha-container-sign-in");
+    if ($("#captcha-container-sign-in").is(":empty")) {
+        loadCaptcha("sign_in", "captcha-container-sign-in");
+    }
     let username = localStorage.getItem("username");
     let description = localStorage.getItem("description");
     let favoriteColor = Number(localStorage.getItem("favoriteColor"));

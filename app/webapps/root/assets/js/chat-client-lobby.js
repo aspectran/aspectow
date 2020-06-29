@@ -68,8 +68,11 @@ function handleSystemMessage(content) {
     }
     if (content.startsWith("newPublicRoom:")) {
         let roomInfo = deserialize(content.substring(14));
-        printEvent(chatClientMessages.roomCreated.replace("[roomName]", "<code>" + roomInfo.roomName + "</code>"));
-        refreshRooms(roomInfo.language);
+        let currentRoomLang = $(".rooms-options select[name=room_lang]").val();
+        if (roomInfo.language === currentRoomLang) {
+            printEvent(chatClientMessages.roomCreated.replace("[roomName]", "<code>" + roomInfo.roomName + "</code>"));
+            refreshRooms(roomInfo.language);
+        }
     }
 }
 

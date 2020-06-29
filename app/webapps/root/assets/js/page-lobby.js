@@ -18,7 +18,9 @@ $(function () {
         }).each(function () {
             $("#form-public-room-create select[name=lang_cd]").val(userInfo.language);
         });
-        loadCaptcha("public_room_create", "captcha-container-public-room-create");
+        if ($("#captcha-container-public-room-create").is(":empty")) {
+            loadCaptcha("public_room_create", "captcha-container-public-room-create");
+        }
         $("#form-public-room-create input[name=room_nm]").focus();
     });
     $("#form-public-room-create").submit(function () {
@@ -39,7 +41,9 @@ $(function () {
         $("#form-private-room-create").each(function () {
             this.reset();
         });
-        loadCaptcha("private_room_create", "captcha-container-private-room-create");
+        if ($("#captcha-container-private-room-create").is(":empty")) {
+            loadCaptcha("private_room_create", "captcha-container-private-room-create");
+        }
         $("#form-private-room-create input[name=room_nm]").focus();
     });
     $("#form-private-room-create").submit(function () {
