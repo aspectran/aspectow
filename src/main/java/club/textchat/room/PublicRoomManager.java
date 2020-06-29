@@ -20,11 +20,9 @@ import club.textchat.redis.persistence.LobbyChatPersistence;
 import com.aspectran.core.activity.InstantActivitySupport;
 import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Component;
-import com.aspectran.core.util.json.JsonWriter;
 import org.apache.ibatis.session.SqlSession;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -35,6 +33,8 @@ import java.util.Map;
 public class PublicRoomManager extends InstantActivitySupport {
 
     private static final String NEW_ROOM_MESSAGE_PREFIX = "newPublicRoom:";
+
+    private static final String UPDATED_ROOM_MESSAGE_PREFIX = "updatedPublicRoom:";
 
     private final SqlSession sqlSession;
 
@@ -55,40 +55,25 @@ public class PublicRoomManager extends InstantActivitySupport {
         if (count != null && count > 0) {
             return null;
         }
-
         sqlSession.insert("public.rooms.insertRoom", roomInfo);
-
-        String json = new JsonWriter().prettyPrint(false).nullWritable(false).write(roomInfo).toString();
-        lobbyChatPersistence.publish(NEW_ROOM_MESSAGE_PREFIX + json);
-
+        lobbyChatPersistence.publish(NEW_ROOM_MESSAGE_PREFIX + roomInfo.serialize());
         return roomInfo.getRoomId();
     }
 
     public List<RoomInfo> getRoomList() {
         List<RoomInfo> list = sqlSession.selectList("public.rooms.getRoomList");
         Map<String, String> languages = getEnvironment().getProperty("languages");
-        for (RoomInfo roomInfo : list) {
-            roomInfo.setLanguageName(languages.get(roomInfo.getLanguage()));
-        }
         return list;
-    }
-
-    public Map<String, String> getRoomLanguages() {
-        List<String> list = sqlSession.selectList("public.rooms.getRoomLangList");
-        Map<String, String> languages = getEnvironment().getProperty("languages");
-        Map<String, String> result = new HashMap<>();
-        for (String lang : list) {
-            result.put(lang, languages.get(lang));
-        }
-        return result;
     }
 
     public void checkIn(String roomId) {
         sqlSession.update("public.rooms.updateRoomForCheckIn", roomId);
+        lobbyChatPersistence.publish(UPDATED_ROOM_MESSAGE_PREFIX + getRoomInfo(roomId).serialize());
     }
 
     public void checkOut(String roomId) {
         sqlSession.update("public.rooms.updateRoomForCheckOut", roomId);
+        lobbyChatPersistence.publish(UPDATED_ROOM_MESSAGE_PREFIX + getRoomInfo(roomId).serialize());
     }
 
 }

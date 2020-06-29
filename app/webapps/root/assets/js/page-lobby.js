@@ -88,9 +88,6 @@ $(function () {
         $(this).blur();
     });
     refreshRooms(userInfo.language);
-    setInterval(function () {
-        refreshRooms();
-    }, 1000 * 60 * 5);
 });
 
 function doCreatePublicRoom() {
@@ -222,12 +219,10 @@ function refreshRooms(roomLang) {
                     for (let i in list) {
                         let roomInfo = list[i];
                         let room = $(".rooms .room.template").clone().removeClass("template");
+                        room.data("room-id", roomInfo.roomId);
                         room.find("a").attr("href", "/rooms/" + roomInfo.roomId);
                         room.find("h5").text(roomInfo.roomName);
                         room.find(".curr-users span").text(roomInfo.currentUsers);
-                        if (!roomLang && roomInfo.language) {
-                            room.find(".lang").data("lang-cd", roomInfo.language).text(roomInfo.languageName);
-                        }
                         if (roomInfo.currentUsers > 0) {
                             room.addClass("active");
                         }

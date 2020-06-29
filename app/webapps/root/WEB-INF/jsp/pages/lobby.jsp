@@ -6,8 +6,8 @@
 <link rel="stylesheet" type="text/css" href="/assets/css/chat-lobby.css?v22"/>
 <link rel="stylesheet" type="text/css" href="/assets/css/page-lobby.css?v29"/>
 <script src="/assets/js/chat-client-core.js?v27"></script>
-<script src="/assets/js/chat-client-lobby.js?v27"></script>
-<script src="/assets/js/page-lobby.js?v28"></script>
+<script src="/assets/js/chat-client-lobby.js?v28"></script>
+<script src="/assets/js/page-lobby.js?v29"></script>
 <script>
     const chatClientSettings = {
         serverEndpoint: "/chat/lobby/",
@@ -122,7 +122,6 @@
                             <a class="title start"><h5></h5></a>
                             <div class="room-info">
                                 <i class="curr-users fi-torsos-all"> <span>0</span></i>
-                                <span class="lang" data-lang-cd=""></span>
                             </div>
                             <i class="new fi-burst-new"></i>
                             <a class="button small start"><aspectran:message code="lobby.rooms.button.enter_chatroom"/></a>

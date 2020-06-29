@@ -16,7 +16,9 @@
 package club.textchat.room;
 
 import com.aspectran.core.util.ToStringBuilder;
+import com.aspectran.core.util.json.JsonWriter;
 
+import java.io.IOException;
 import java.io.Serializable;
 
 public class RoomInfo implements Serializable {
@@ -28,8 +30,6 @@ public class RoomInfo implements Serializable {
     private String roomName;
 
     private String language;
-
-    private String languageName;
 
     private int userNo;
 
@@ -61,14 +61,6 @@ public class RoomInfo implements Serializable {
 
     public void setLanguage(String language) {
         this.language = language;
-    }
-
-    public String getLanguageName() {
-        return languageName;
-    }
-
-    public void setLanguageName(String languageName) {
-        this.languageName = languageName;
     }
 
     public int getUserNo() {
@@ -113,6 +105,21 @@ public class RoomInfo implements Serializable {
         tsb.append("currentUsers", currentUsers);
         tsb.append("pastDays", pastDays);
         return tsb.toString();
+    }
+
+    public String serialize() {
+        try {
+            JsonWriter writer = new JsonWriter().prettyPrint(false).nullWritable(false);
+            writer.beginObject();
+            writer.writeName("roomId").writeValue(getRoomId());
+            writer.writeName("roomName").writeValue(getRoomName());
+            writer.writeName("language").writeValue(getLanguage());
+            writer.writeName("currentUsers").writeValue(getCurrentUsers());
+            writer.endObject();
+            return writer.toString();
+        } catch (IOException e) {
+            return "";
+        }
     }
 
 }

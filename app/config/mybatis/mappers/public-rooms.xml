@@ -16,7 +16,8 @@
 		select
 		    room_id,
 		    room_nm,
-		    lang_cd
+		    lang_cd,
+		    curr_users
 		from public_rooms
 		where room_id = #{roomId}
 			and del_yn = 'N'
