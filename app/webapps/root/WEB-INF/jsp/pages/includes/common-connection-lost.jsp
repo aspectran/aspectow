@@ -10,7 +10,7 @@
             <p><aspectran:message code="modal.connection_lost.guide"/></p>
         </div>
         <div class="cell text-center">
-            <a class="warning button" href=""><aspectran:message code="modal.connection_lost.button.refresh"/></a>
+            <a class="button alert" href=""><aspectran:message code="modal.connection_lost.button.refresh"/></a>
         </div>
     </div>
 </div>

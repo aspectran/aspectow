@@ -280,11 +280,11 @@ input#for-automata-clear {
     left: 0;
     width: 100%;
     content: "";
-    box-shadow: 0 0 1.4em 3.6em rgb(79, 148, 185), 0 0 0 0 rgb(232, 247, 245);
+    box-shadow: 0 0 1.4em 3.6em #3481a0, 0 0 0 0 #e9f4f6;
     z-index: -1;
 }
 .reveal.popup.error:before {
-    box-shadow: 0 0 1.4em 3.6em rgb(206, 149, 50), 0 0 0 0 rgb(232, 247, 245);
+    box-shadow: 0 0 1.4em 3.6em #516169, 0 0 0 0 #e9f4f6;
 }
 .reveal.popup h3 {
     color: #e0ffff;
@@ -309,8 +309,11 @@ input#for-automata-clear {
     text-align: center;
     width: 1em;
     margin: 0 auto;
-    color: #999;
+    color: #3481a0;
     text-shadow: 5px 5px 1px #fff;
+}
+.reveal.popup.error .banner {
+    color: #516169;
 }
 .reveal.popup .banner.animate {
     position: relative;
