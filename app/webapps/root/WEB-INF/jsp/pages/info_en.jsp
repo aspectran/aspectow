@@ -21,6 +21,7 @@
                     <div class="cell small-12 large-8 large-order-1 t15">
                         <h3><strong>About Text Chat Club</strong></h3>
                         <ul>
+                            <li>Text Chat Club is a free online chat website.</li>
                             <li>We provide a chat service that allows you to chat with new people online using only a web browser.</li>
                             <li>No separate sign-up process is required to use our chat service. Just enter your nickname and go.</li>
                             <li>You cannot send or receive photos or videos, you can only chat with text.</li>

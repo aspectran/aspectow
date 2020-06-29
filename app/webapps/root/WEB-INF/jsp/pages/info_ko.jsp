@@ -7,7 +7,7 @@
         <div class="grid-x full-height">
             <div class="sidebar cell medium-4 large-3 cell-block-y hide-for-small-only">
                 <div class="text-center t30">
-                    <img src="/assets/images/textchat-heartbeat.svg" width="70%" alt="Text Chat Club"/>
+                    <img src="/assets/images/textchat-heartbeat.svg" width="70%" alt="텍스트챗클럽"/>
                 </div>
                 <div class="text-center t20">
                     <a href="?locale=en">English</a>
@@ -21,6 +21,7 @@
                     <div class="cell small-12 large-8 large-order-1 t15">
                         <h3><strong>텍스트챗클럽 소개</strong></h3>
                         <ul>
+                            <li>텍스트챗클럽은 무료 온라인 채팅 웹사이트입니다.</li>
                             <li>온라인에서 웹브라우저만으로 새로운 사람들과 대화할 수 있는 채팅 서비스를 제공합니다.</li>
                             <li>채팅 서비스를 이용하기 위한 별도의 가입 절차가 없으며, 대화명만 입력하면 됩니다.</li>
                             <li>사진, 동영상은 주고 받을 수 없으며, 오직 문자로만 대화할 수 있습니다.</li>
