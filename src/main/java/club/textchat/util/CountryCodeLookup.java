@@ -81,7 +81,10 @@ public class CountryCodeLookup {
                 String result = EntityUtils.toString(entity);
                 Parameters parameters = JsonToApon.from(result);
                 Parameters whois = parameters.getParameters("whois");
-                return whois.getString("countryCode");
+                String countryCode =  whois.getString("countryCode");
+                if (!"none".equals(countryCode)) {
+                    return countryCode;
+                }
             }
         } catch (IOException e) {
             logger.error("IP address lookup failed", e);

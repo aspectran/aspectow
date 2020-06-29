@@ -2,7 +2,7 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://aspectran.com/tags" prefix="aspectran" %>
 <aspectran:token type="property" expression="languages" var="languages"/>
-<link rel="stylesheet" type="text/css" href="/assets/css/chat-core.css?v26"/>
+<link rel="stylesheet" type="text/css" href="/assets/css/chat-core.css?v28"/>
 <link rel="stylesheet" type="text/css" href="/assets/css/chat-lobby.css?v22"/>
 <link rel="stylesheet" type="text/css" href="/assets/css/page-lobby.css?v29"/>
 <script src="/assets/js/chat-client-core.js?v27"></script>
