@@ -32,9 +32,7 @@
                 <entry name="ar">اللغة العربية</entry>
                 <entry name="hi">हिन्दी‎</entry>
                 <entry name="bn">বাংলা</entry>
-                <entry name="zh-HK">中文 (香港)</entry>
-                <entry name="zh-CN">中文 (简体)</entry>
-                <entry name="zh-TW">中文 (繁體)</entry>
+                <entry name="zh">中文</entry>
                 <entry name="ja">日本語</entry>
             </item>
         </properties>

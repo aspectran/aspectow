@@ -21,6 +21,7 @@ import club.textchat.room.RoomInfo;
 import club.textchat.user.LoginRequiredException;
 import club.textchat.user.UserInfo;
 import club.textchat.user.UserManager;
+import com.aspectran.core.activity.Translet;
 import com.aspectran.core.component.bean.annotation.Action;
 import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Component;
@@ -53,8 +54,6 @@ public class LobbyAction {
     @Dispatch("templates/default")
     @Action("page")
     public Map<String, Object> lobby() {
-        List<RoomInfo> rooms = publicRoomManager.getRoomList();
-
         UserInfo userInfo = null;
         try {
             userInfo = userManager.getUserInfo();
@@ -71,7 +70,6 @@ public class LobbyAction {
         if (token != null) {
             map.put("token", token);
         }
-        map.put("rooms", rooms);
         map.put("roomId", LOBBY_CHATROOM_ID);
         map.put("include", "pages/lobby");
         return map;
@@ -79,7 +77,7 @@ public class LobbyAction {
 
     @Request("/lobby/rooms")
     @Transform(FormatType.JSON)
-    public List<RoomInfo> getPopularPublicChatRooms() throws LoginRequiredException {
+    public List<RoomInfo> getPopularPublicChatRooms() {
         return publicRoomManager.getRoomList();
     }
 

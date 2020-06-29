@@ -310,7 +310,7 @@ input#for-automata-clear {
     width: 1em;
     margin: 0 auto;
     color: #3481a0;
-    text-shadow: 5px 5px 1px #fff;
+    text-shadow: 5px 5px 1px #ccc;
 }
 .reveal.popup.error .banner {
     color: #516169;

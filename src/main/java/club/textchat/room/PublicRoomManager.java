@@ -24,7 +24,6 @@ import org.apache.ibatis.session.SqlSession;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 
 /**
  * <p>Created: 2020/05/18</p>
@@ -50,7 +49,7 @@ public class PublicRoomManager extends InstantActivitySupport {
         return sqlSession.selectOne("public.rooms.getRoomInfo", roomId);
     }
 
-    public Integer createRoom(RoomInfo roomInfo) throws IOException {
+    public Integer createRoom(RoomInfo roomInfo) {
         Integer count = sqlSession.selectOne("public.rooms.getRoomCountByName", roomInfo.getRoomName());
         if (count != null && count > 0) {
             return null;
@@ -61,9 +60,11 @@ public class PublicRoomManager extends InstantActivitySupport {
     }
 
     public List<RoomInfo> getRoomList() {
-        List<RoomInfo> list = sqlSession.selectList("public.rooms.getRoomList");
-        Map<String, String> languages = getEnvironment().getProperty("languages");
-        return list;
+        return sqlSession.selectList("public.rooms.getRoomList");
+    }
+
+    public int getRoomCount(String language) {
+        return sqlSession.selectOne("public.rooms.getRoomCountByLang", language);
     }
 
     public void checkIn(String roomId) {

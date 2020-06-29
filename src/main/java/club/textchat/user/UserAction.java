@@ -29,13 +29,11 @@ import com.aspectran.core.context.rule.type.FormatType;
 import com.aspectran.core.util.StringUtils;
 import com.aspectran.core.util.logging.Logger;
 import com.aspectran.core.util.logging.LoggerFactory;
-import com.aspectran.web.support.http.HttpHeaders;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
-import java.util.List;
+import java.util.Enumeration;
 import java.util.Locale;
-import java.util.Locale.LanguageRange;
 import java.util.regex.Pattern;
 
 @Component
@@ -59,10 +57,10 @@ public class UserAction {
     @RequestToPost("/signin")
     @Transform(FormatType.JSON)
     public String signIn(Translet translet,
+                         @Required String recaptchaResponse,
                          @Required String username,
                          String description,
                          String favoriteColor,
-                         @Required String recaptchaResponse,
                          String timeZone) {
         username = UsernameUtils.normalize(username);
 
@@ -112,29 +110,25 @@ public class UserAction {
         String countryCode = CountryCodeLookup.getInstance().getCountryCodeByIP(userInfo.getIpAddr());
         userInfo.setCountry(countryCode);
 
-        Locale locale = translet.getRequestAdapter().getLocale();
-        if (locale != null) {
-            if (userInfo.getCountry() == null) {
-                if (locale.getCountry().isEmpty()) {
-                    try {
-                        String al = translet.getRequestAdapter().getHeader(HttpHeaders.ACCEPT_LANGUAGE);
-                        List<LanguageRange> languageRanges = LanguageRange.parse(al);
-                        for (LanguageRange languageRange : languageRanges) {
-                            Locale loc = Locale.forLanguageTag(languageRange.getRange());
-                            if (!loc.getCountry().isEmpty()) {
-                                userInfo.setCountry(loc.getCountry());
-                                break;
-                            }
-                        }
-                    } catch (Exception e) {
-                        // ignore
-                    }
-                } else {
-                    userInfo.setCountry(locale.getCountry());
-                }
+        HttpServletRequest request = translet.getRequestAdapter().getAdaptee();
+        Enumeration<Locale> locales = request.getLocales();
+        while (locales.hasMoreElements()) {
+            Locale locale = locales.nextElement();
+            if (userInfo.getCountry() == null && !locale.getCountry().isEmpty()) {
+                userInfo.setCountry(locale.getCountry());
             }
-            userInfo.setLanguage(locale.getLanguage());
+            if (userInfo.getLanguage() == null && !locale.getLanguage().isEmpty()) {
+                userInfo.setLanguage(locale.getLanguage());
+            }
         }
+
+        if (StringUtils.isEmpty(userInfo.getLanguage())) {
+            Locale locale = translet.getRequestAdapter().getLocale();
+            if (locale != null) {
+                userInfo.setLanguage(locale.getLanguage());
+            }
+        }
+
         userInfo.setTimeZone(timeZone);
 
         userManager.saveUserInfo(userInfo);
