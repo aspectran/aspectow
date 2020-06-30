@@ -233,6 +233,7 @@ function refreshRooms(roomLang, recursable) {
                     if (recursable && roomLang !== "en") {
                         refreshRooms("en", false);
                     }
+                    $(".rooms .room:visible").remove();
                     return;
                 }
                 $(".rooms .room:visible").remove();

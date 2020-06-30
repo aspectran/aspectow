@@ -7,7 +7,7 @@
 <link rel="stylesheet" type="text/css" href="/assets/css/page-lobby.css?v29"/>
 <script src="/assets/js/chat-client-core.js?v27"></script>
 <script src="/assets/js/chat-client-lobby.js?v28"></script>
-<script src="/assets/js/page-lobby.js?v30"></script>
+<script src="/assets/js/page-lobby.js?v31"></script>
 <script>
     const chatClientSettings = {
         serverEndpoint: "/chat/lobby/",
