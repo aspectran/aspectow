@@ -103,7 +103,6 @@ public class ChaterManager extends InstantActivitySupport implements Initializab
     }
 
     public String getUsersByCountryJson() {
-        String usersByCountryJson = null;
         try {
             Map<String, Long> usersByCountry = usersByCountryPersistence.getCounters();
             return new JsonWriter()
