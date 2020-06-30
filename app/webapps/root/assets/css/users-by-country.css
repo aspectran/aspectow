@@ -37,7 +37,7 @@
     background-color: #2b86b3;
 }
 .users-by-country .legends .item:nth-child(6) em {
-    background-color: #999;
+    background-color: #aaa;
 }
 .users-by-country .series {
     line-height: 1;
@@ -79,5 +79,5 @@
     background-color: #2b86b3;
 }
 .users-by-country .series .item:nth-child(6) {
-    background-color: #999;
+    background-color: #aaa;
 }

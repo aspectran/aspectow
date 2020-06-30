@@ -250,30 +250,37 @@ const countryNames = {
     "AX": "Åland Islands"
 };
 
+let drawUsersByCountryTimer;
 function drawUsersByCountry(userByCountry) {
-    let legends = $(".users-by-country .legends").empty();
-    let series = $(".users-by-country .series").empty();
-    let total = 0;
-    for (let key in userByCountry) {
-        total += userByCountry[key];
+    if (drawUsersByCountryTimer) {
+        clearTimeout(drawUsersByCountryTimer);
+        drawUsersByCountryTimer = null;
     }
-    let count = 0;
-    let etc = 0;
-    for (let key in userByCountry) {
-        let users = userByCountry[key];
-        if (count++ < 5) {
-            let width = (users / total * 100).toFixed(2);
-            $("<div class='item'/>").css("width", width + "%").attr("title", width + "%").text(users).appendTo(series);
-            $("<span class='item'><em></em><span>" + countryNames[key] + "</span></span>").appendTo(legends);
-        } else {
-            etc += users;
+    drawUsersByCountryTimer = setTimeout(function () {
+        let legends = $(".users-by-country .legends").empty();
+        let series = $(".users-by-country .series").empty();
+        let total = 0;
+        for (let key in userByCountry) {
+            total += userByCountry[key];
         }
-    }
-    if (etc > 0) {
-        let width = (etc / total * 100).toFixed(2);
-        $("<div class='item'/>").css("width", width + "%").attr("title", width + "%").text(etc).appendTo(series);
-        $("<span class='item'><em></em><span>ETC</span></span>").appendTo(legends);
-    }
+        let count = 0;
+        let etc = 0;
+        for (let key in userByCountry) {
+            let users = userByCountry[key];
+            if (count++ < 5) {
+                let width = (users / total * 100).toFixed(1);
+                $("<div class='item'/>").css("width", width + "%").attr("title", width + "%").text(users).appendTo(series);
+                $("<span class='item'><em></em><span>" + countryNames[key] + "</span></span>").appendTo(legends);
+            } else {
+                etc += users;
+            }
+        }
+        if (etc > 0) {
+            let width = (etc / total * 100).toFixed(2);
+            $("<div class='item'/>").css("width", width + "%").attr("title", width + "%").text(etc).appendTo(series);
+            $("<span class='item'><em></em><span>ETC</span></span>").appendTo(legends);
+        }
+    }, 700);
 }
 
 $(function () {

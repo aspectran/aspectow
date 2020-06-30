@@ -50,7 +50,6 @@
                     <c:if test="${not empty user}">
                         <%@ include file="includes/lobby-user.jsp" %>
                     </c:if>
-                    <%@ include file="includes/users-by-country.jsp" %>
                     <div class="services grid-x grid-margin-x grid-margin-y grid-padding-x grid-padding-y t15">
                         <div class="cell service exchange">
                             <a class="title start" href="/exchange"><h4><aspectran:message code="service.exchange_chat"/></h4></a>
@@ -109,6 +108,7 @@
                             </div>
                         </div>
                     </div>
+                    <%@ include file="includes/users-by-country.jsp" %>
                     <div class="rooms-options grid-x small-up-2 t15 b10">
                         <div class="cell align-self-middle">
                             <h6><aspectran:message code="lobby.rooms.title"/>
