@@ -17,7 +17,9 @@ package club.textchat.user;
 
 import club.textchat.common.mybatis.SimpleSqlSession;
 import club.textchat.redis.persistence.InConvoUsersPersistence;
+import club.textchat.redis.persistence.LobbyChatPersistence;
 import club.textchat.redis.persistence.SignedInUsersPersistence;
+import club.textchat.redis.persistence.UsersByCountryPersistence;
 import com.aspectran.core.activity.InstantActivitySupport;
 import com.aspectran.core.component.bean.ablility.InitializableBean;
 import com.aspectran.core.component.bean.annotation.Autowired;
@@ -26,14 +28,19 @@ import com.aspectran.core.component.bean.annotation.Component;
 import com.aspectran.core.component.session.Session;
 import com.aspectran.core.component.session.SessionListener;
 import com.aspectran.core.component.session.SessionListenerRegistration;
+import com.aspectran.core.util.json.JsonWriter;
 import com.aspectran.core.util.logging.Logger;
 import com.aspectran.core.util.logging.LoggerFactory;
+
+import java.util.Map;
 
 @Component
 @AvoidAdvice
 public class ChaterManager extends InstantActivitySupport implements InitializableBean {
 
     private static final Logger logger = LoggerFactory.getLogger(ChaterManager.class);
+
+    private static final String USERS_BY_COUNTRY_MESSAGE_PREFIX = "usersByCountry:";
 
     private final SimpleSqlSession sqlSession;
 
@@ -43,15 +50,23 @@ public class ChaterManager extends InstantActivitySupport implements Initializab
 
     private final InConvoUsersPersistence inConvoUsersPersistence;
 
+    private final UsersByCountryPersistence usersByCountryPersistence;
+
+    private final LobbyChatPersistence lobbyChatPersistence;
+
     @Autowired
     public ChaterManager(SimpleSqlSession sqlSession,
                          UserManager userManager,
                          SignedInUsersPersistence signedInUsersPersistence,
-                         InConvoUsersPersistence inConvoUsersPersistence) {
+                         InConvoUsersPersistence inConvoUsersPersistence,
+                         UsersByCountryPersistence usersByCountryPersistence,
+                         LobbyChatPersistence lobbyChatPersistence) {
         this.sqlSession = sqlSession;
         this.userManager = userManager;
         this.signedInUsersPersistence = signedInUsersPersistence;
         this.inConvoUsersPersistence = inConvoUsersPersistence;
+        this.usersByCountryPersistence = usersByCountryPersistence;
+        this.lobbyChatPersistence = lobbyChatPersistence;
     }
 
     public boolean isInUseUsername(String username) {
@@ -68,18 +83,37 @@ public class ChaterManager extends InstantActivitySupport implements Initializab
     }
 
     private void acquireUsername(String sessionId, UserInfo userInfo) {
+        signedInUsersPersistence.put(userInfo.getUsername(), sessionId);
+        usersByCountryPersistence.increase(userInfo.getCountry());
+        lobbyChatPersistence.publish(USERS_BY_COUNTRY_MESSAGE_PREFIX + getUsersByCountryJson());
         int affected = sqlSession.insert("users.insertUser", userInfo);
         if (affected > 0 && logger.isDebugEnabled()) {
             logger.debug("New user " + userInfo);
         }
-        signedInUsersPersistence.put(userInfo.getUsername(), sessionId);
     }
 
     private void discardUsername(String sessionId, UserInfo userInfo) {
         signedInUsersPersistence.abandon(userInfo.getUsername(), sessionId);
+        usersByCountryPersistence.decrease(userInfo.getCountry());
+        lobbyChatPersistence.publish(USERS_BY_COUNTRY_MESSAGE_PREFIX + getUsersByCountryJson());
         int affected = sqlSession.update("users.discardUsername", userInfo.getUserNo());
         if (affected > 0 && logger.isDebugEnabled()) {
             logger.debug("Discarded user " + userInfo);
+        }
+    }
+
+    public String getUsersByCountryJson() {
+        String usersByCountryJson = null;
+        try {
+            Map<String, Long> usersByCountry = usersByCountryPersistence.getCounters();
+            return new JsonWriter()
+                    .prettyPrint(false)
+                    .nullWritable(false)
+                    .write(usersByCountry)
+                    .toString();
+        } catch (Exception e) {
+            logger.warn(e);
+            return "null";
         }
     }
 
@@ -89,14 +123,14 @@ public class ChaterManager extends InstantActivitySupport implements Initializab
         if (sessionListenerRegistration == null) {
             throw new IllegalStateException("Bean for SessionListenerRegistration must be defined");
         }
-        sessionListenerRegistration.register(new UserInfoUnboundListener(this));
+        sessionListenerRegistration.register(new UserInfoSessionListener(this));
     }
 
-    private static class UserInfoUnboundListener implements SessionListener {
+    private static class UserInfoSessionListener implements SessionListener {
 
         private final ChaterManager chaterManager;
 
-        public UserInfoUnboundListener(ChaterManager chaterManager) {
+        public UserInfoSessionListener(ChaterManager chaterManager) {
             this.chaterManager = chaterManager;
         }
 

@@ -66,15 +66,19 @@ function handleSystemMessage(content) {
     if (!content) {
         return;
     }
-    let currentRoomLang = $(".rooms-options select[name=room_lang]").val();
-    if (content.startsWith("newPublicRoom:")) {
+    if (content.startsWith("usersByCountry:")) {
+        let usersByCountry = deserialize(content.substring(15));
+        drawUsersByCountry(usersByCountry);
+    } else if (content.startsWith("newPublicRoom:")) {
         let roomInfo = deserialize(content.substring(14));
+        let currentRoomLang = $(".rooms-options select[name=room_lang]").val();
         if (roomInfo.language === currentRoomLang) {
             printEvent(chatClientMessages.roomCreated.replace("[roomName]", "<code>" + roomInfo.roomName + "</code>"));
             refreshRooms(roomInfo.language);
         }
     } else if (content.startsWith("updatedPublicRoom:")) {
         let roomInfo = deserialize(content.substring(18));
+        let currentRoomLang = $(".rooms-options select[name=room_lang]").val();
         if (roomInfo.language === currentRoomLang) {
             $(".rooms .room").filter(function () {
                 return $(this).data("room-id") === roomInfo.roomId;

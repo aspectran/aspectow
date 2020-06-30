@@ -152,7 +152,7 @@
 }
 .rooms-options {
     font-size: .85em;
-    background-color: #dcebf0;
+    background-color: #ececec;
     border-radius: 8px;
     padding: 0 0 0 1em;
 }
@@ -169,7 +169,7 @@
     margin: 7px 0 0 0;
     padding-left: .6em;
     font-size: 1em;
-    background-color: #bee9f6;
+    background-color: #dfdfdf;
     border: none;
     border-left: 1px solid #b2e4f5;
     border-radius: 18px 8px 8px 0;

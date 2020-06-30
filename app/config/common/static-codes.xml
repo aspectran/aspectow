@@ -3,12 +3,6 @@
         "http://aspectran.github.io/dtd/aspectran-6.dtd">
 <aspectran>
 
-    <description>
-        여기 정의된 각 빈은 정적 코드 그룹입니다.
-        변하지 않는 코드를 정적 코드라고 하며, 메모리 상에 HashMap 인스턴스로 적재되고, 빈으로 관리됩니다.
-        반대로 동적 코드는 데이터베이스 내에서 관리되며, 데이터베이스 질의에 의해 동적으로 불러올 수 있습니다.
-    </description>
-
     <environment>
         <properties>
             <item name="languages" type="map">

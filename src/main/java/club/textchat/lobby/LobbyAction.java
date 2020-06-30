@@ -18,10 +18,10 @@ package club.textchat.lobby;
 import club.textchat.chat.ChatAction;
 import club.textchat.room.PublicRoomManager;
 import club.textchat.room.RoomInfo;
+import club.textchat.user.ChaterManager;
 import club.textchat.user.LoginRequiredException;
 import club.textchat.user.UserInfo;
 import club.textchat.user.UserManager;
-import com.aspectran.core.activity.Translet;
 import com.aspectran.core.component.bean.annotation.Action;
 import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Component;
@@ -41,12 +41,16 @@ public class LobbyAction {
 
     private final UserManager userManager;
 
+    private final ChaterManager chaterManager;
+
     private final PublicRoomManager publicRoomManager;
 
     @Autowired
     public LobbyAction(UserManager userManager,
+                       ChaterManager chaterManager,
                        PublicRoomManager publicRoomManager) {
         this.userManager = userManager;
+        this.chaterManager = chaterManager;
         this.publicRoomManager = publicRoomManager;
     }
 
@@ -71,13 +75,14 @@ public class LobbyAction {
             map.put("token", token);
         }
         map.put("roomId", LOBBY_CHATROOM_ID);
+        map.put("usersByCountry", chaterManager.getUsersByCountryJson());
         map.put("include", "pages/lobby");
         return map;
     }
 
     @Request("/lobby/rooms")
     @Transform(FormatType.JSON)
-    public List<RoomInfo> getPopularPublicChatRooms() {
+    public List<RoomInfo> getPopularChatRooms() {
         return publicRoomManager.getRoomList();
     }
 

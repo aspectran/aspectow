@@ -12,13 +12,13 @@
         autoConnectEnabled: true,
         pingPerHeartbeats: 15,
         homepage: "/"
-    }
+    };
     const chatClientMessages = {
         "userJoined": "<aspectran:message code='chat.stranger.user_joined'/>",
         "userLeft": "<aspectran:message code='chat.common.user_left'/>",
         "systemError": "<aspectran:message code='chat.common.system_error'/>",
         "serviceNotAvailable": "<aspectran:message code='chat.common.service_not_available'/>"
-    }
+    };
 </script>
 <div class="grid-y grid-frame">
     <%@ include file="includes/chat-header.jsp" %>

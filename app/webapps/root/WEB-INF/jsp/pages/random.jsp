@@ -12,7 +12,7 @@
         autoConnectEnabled: false,
         pingPerHeartbeats: 15,
         homepage: "/"
-    }
+    };
     const chatClientMessages = {
         "welcome": "<aspectran:message code='chat.common.welcome'/>",
         "wait": "<aspectran:message code='chat.random.wait'/>",
@@ -23,7 +23,7 @@
         "userLeft": "<aspectran:message code='chat.random.user_left'/>",
         "systemError": "<aspectran:message code='chat.common.system_error'/>",
         "serviceNotAvailable": "<aspectran:message code='chat.common.service_not_available'/>"
-    }
+    };
 </script>
 <div class="grid-y grid-frame random">
     <%@ include file="includes/chat-header.jsp" %>

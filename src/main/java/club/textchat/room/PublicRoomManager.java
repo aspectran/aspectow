@@ -22,7 +22,6 @@ import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Component;
 import org.apache.ibatis.session.SqlSession;
 
-import java.io.IOException;
 import java.util.List;
 
 /**

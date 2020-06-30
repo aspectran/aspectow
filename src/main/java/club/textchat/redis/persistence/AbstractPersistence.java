@@ -23,6 +23,7 @@ import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.sync.RedisCommands;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 
@@ -124,6 +125,18 @@ public class AbstractPersistence {
 
     protected String srandmember(String key) {
         return sync(c -> c.srandmember(key));
+    }
+
+    protected Long hincrby(String key, String field, long amount) {
+        return sync(c -> c.hincrby(key, field, amount));
+    }
+
+    protected Long hdel(String key, String field) {
+        return sync(c -> c.hdel(key, field));
+    }
+
+    protected Map<String, String> hgetall(String key) {
+        return sync(c -> c.hgetall(key));
     }
 
     protected boolean smismember(String keyPattern, String member) {
