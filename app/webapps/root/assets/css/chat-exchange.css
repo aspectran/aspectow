@@ -1,10 +1,6 @@
 .choose-info {
     border-radius: 0;
 }
-.chat-requests .active {
-    background-color: #e8f3f7;
-    border: 1px solid #deeef4;
-}
 .language-settings {
     padding-top: .7em;
     margin-bottom: .5em;

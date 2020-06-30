@@ -146,8 +146,8 @@
     border: 1px solid #f0f0f0;
 }
 .chat-requests .active {
-    background-color: #ffefdd;
-    border: 1px solid #fde2c5;
+    background-color: #e8f3f7;
+    border: 1px solid #deeef4;
 }
 .chat-requests .template {
     display: none;
