@@ -7,6 +7,5 @@
     <div class="legends">
     </div>
     <div class="series single">
-        <div class="item none"></div>
     </div>
 </div>
