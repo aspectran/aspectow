@@ -12,7 +12,7 @@
     white-space: nowrap !important;
 }
 .users-by-country .legends .item.none em {
-    background-color: #eee !important;
+    background-color: #6b9db5 !important;
 }
 .users-by-country .legends .item em {
     display: inline-block;
@@ -52,7 +52,8 @@
 }
 .users-by-country .series .item.none {
     display: block;
-    background-color: #eee !important;
+    color: transparent;
+    background-color: #6b9db5 !important;
     border-radius: 4px !important;
 }
 .users-by-country .series .item:first-child {

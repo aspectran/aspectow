@@ -3,7 +3,7 @@
 <%@ taglib uri="http://aspectran.com/tags" prefix="aspectran" %>
 <link rel="stylesheet" type="text/css" href="/assets/css/chat-core.css?v28"/>
 <link rel="stylesheet" type="text/css" href="/assets/css/chat-random.css?v22"/>
-<link rel="stylesheet" type="text/css" href="/assets/css/users-by-country.css?v3"/>
+<link rel="stylesheet" type="text/css" href="/assets/css/users-by-country.css?v4"/>
 <script src="/assets/js/chat-client-core.js?v28"></script>
 <script src="/assets/js/chat-client-random.js?v24"></script>
 <script src="/assets/js/users-by-country.js?v4"></script>
