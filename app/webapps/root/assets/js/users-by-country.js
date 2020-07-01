@@ -289,5 +289,7 @@ function drawUsersByCountry(usersByCountry, timeout) {
 }
 
 $(function () {
-    drawUsersByCountry(usersByCountry, 1);
+    if (usersByCountry) {
+        drawUsersByCountry(usersByCountry, 1);
+    }
 });
