@@ -68,6 +68,7 @@ function handleSystemMessage(content) {
     }
     if (content.startsWith("usersByCountry:")) {
         let usersByCountry = deserialize(content.substring(15));
+        console.log(usersByCountry);
         drawUsersByCountry(usersByCountry);
     } else if (content.startsWith("newPublicRoom:")) {
         let roomInfo = deserialize(content.substring(14));
