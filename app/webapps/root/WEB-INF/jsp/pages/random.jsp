@@ -3,8 +3,10 @@
 <%@ taglib uri="http://aspectran.com/tags" prefix="aspectran" %>
 <link rel="stylesheet" type="text/css" href="/assets/css/chat-core.css?v28"/>
 <link rel="stylesheet" type="text/css" href="/assets/css/chat-random.css?v22"/>
-<script src="/assets/js/chat-client-core.js?v27"></script>
-<script src="/assets/js/chat-client-random.js?v23"></script>
+<link rel="stylesheet" type="text/css" href="/assets/css/users-by-country.css?v3"/>
+<script src="/assets/js/chat-client-core.js?v28"></script>
+<script src="/assets/js/chat-client-random.js?v24"></script>
+<script src="/assets/js/users-by-country.js?v4"></script>
 <script>
     const chatClientSettings = {
         serverEndpoint: "/chat/random/",
@@ -33,7 +35,11 @@
                 <ul id="contacts"></ul>
             </div>
             <div class="cell auto cell-block-y">
-                <div id="convo" class="grid-container full-height"></div>
+                <div id="convo" class="grid-container full-height">
+                    <div class="b15">
+                        <%@ include file="includes/users-by-country.jsp" %>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

@@ -43,18 +43,23 @@ function startLooking() {
     tokenIssuanceCanceled = false;
     tokenIssuanceTimer = setTimeout(function () {
         $.ajax({
-            url: "/random/token",
+            url: "/random/request",
             method: 'GET',
             dataType: 'json',
-            success: function (token) {
-                if (token) {
+            success: function (response) {
+                if (response) {
+                    if (response.usersByCountry) {
+                        drawUsersByCountry(response.usersByCountry);
+                    }
                     if (!tokenIssuanceCanceled) {
-                        if (token === "-1") {
-                            reloadPage();
-                            return;
+                        switch (response.error) {
+                            case -1:
+                                reloadPage();
+                                break;
+                            case 0:
+                                hideSidebar();
+                                openSocket(response.token);
                         }
-                        hideSidebar();
-                        openSocket(token);
                     }
                 } else {
                     serviceNotAvailable();
@@ -67,8 +72,8 @@ function startLooking() {
     }, 1000);
     hideSidebar();
     clearChaters();
-    clearConvo();
-    drawLookingBar(true);
+    removeConvoMessages();
+    drawLookingBox(true);
 }
 
 function stopLooking(convoClear) {
@@ -79,12 +84,12 @@ function stopLooking(convoClear) {
     closeSocket();
     clearChaters();
     if (convoClear) {
-        clearConvo();
+        removeConvoMessages();
     }
-    drawSearchBar();
+    drawSearchBox();
 }
 
-function drawSearchBar() {
+function drawSearchBox() {
     let html = "<div class='text-center'>" +
         "<i class='iconfont fi-shuffle banner'></i>" +
         "<button type='button' class='success button next'>" + chatClientMessages.searchAnother + "</button>" +
@@ -92,7 +97,7 @@ function drawSearchBar() {
     printEvent(html);
 }
 
-function drawLookingBar(intermission) {
+function drawLookingBox(intermission) {
     let banner;
     let title;
     if (intermission) {
@@ -115,12 +120,12 @@ function drawLookingBar(intermission) {
 }
 
 function printJoinMessage(chater, restored) {
-    clearConvo();
-    drawLookingBar();
+    removeConvoMessages();
+    drawLookingBox();
 }
 
 function printUserJoinedMessage(payload, restored) {
-    clearConvo();
+    removeConvoMessages();
     let chater = deserialize(payload.chater);
     let text = chatClientMessages.userJoined.replace("[username]", "<strong>" + chater.username + "</strong>")
     printEvent(text, restored);
@@ -142,7 +147,7 @@ function printUserLeftMessage(payload, restored) {
 function serviceNotAvailable() {
     closeSocket();
     clearChaters();
-    clearConvo();
+    removeConvoMessages();
     openNoticePopup(chatClientMessages.systemError,
         chatClientMessages.serviceNotAvailable,
         function () {

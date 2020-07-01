@@ -21,6 +21,7 @@ import club.textchat.room.RoomInfo;
 import club.textchat.server.AdmissionToken;
 import club.textchat.server.ExchangeChatHandler;
 import club.textchat.server.PrivateChatHandler;
+import club.textchat.user.ChaterManager;
 import club.textchat.user.LoginRequiredException;
 import club.textchat.user.UserInfo;
 import club.textchat.user.UserManager;
@@ -55,13 +56,17 @@ public class ChatAction {
 
     private final PrivateRoomManager privateRoomManager;
 
+    private final ChaterManager chaterManager;
+
     @Autowired
     public ChatAction(UserManager userManager,
                       PublicRoomManager publicRoomManager,
-                      PrivateRoomManager privateRoomManager) {
+                      PrivateRoomManager privateRoomManager,
+                      ChaterManager chaterManager) {
         this.userManager = userManager;
         this.publicRoomManager = publicRoomManager;
         this.privateRoomManager = privateRoomManager;
+        this.chaterManager = chaterManager;
     }
 
     @Request("/random")
@@ -75,16 +80,25 @@ public class ChatAction {
         return map;
     }
 
-    @Request("/random/token")
+    @Request("/random/request")
     @Transform(FormatType.JSON)
-    public String randomChatToken() {
-        UserInfo userInfo;
+    public Map<String, Object> requestRandomChat() {
+        int error = 0;
+
+        UserInfo userInfo = null;
         try {
             userInfo = userManager.getUserInfo();
         } catch (LoginRequiredException e) {
-            return "-1";
+            error = -1;
         }
-        return createAdmissionToken(RANDOM_CHATROOM_ID, userInfo);
+
+        Map<String, Object> map = new HashMap<>();
+        map.put("error", error);
+        if (error == 0) {
+            map.put("token", createAdmissionToken(RANDOM_CHATROOM_ID, userInfo));
+            map.put("usersByCountry", chaterManager.getUsersByCountry());
+        }
+        return map;
     }
 
     @Request("/strangers")
@@ -160,24 +174,33 @@ public class ChatAction {
         return map;
     }
 
-    @Request("/exchange/token")
+    @Request("/exchange/request")
     @Transform(FormatType.JSON)
-    public String exchangeChatToken(@Qualifier("native_lang") String nativeLang,
-                                    @Qualifier("convo_lang") String convoLang) {
-        UserInfo userInfo;
+    public Map<String, Object> requestExchangeChat(@Qualifier("native_lang") String nativeLang,
+                                                   @Qualifier("convo_lang") String convoLang) {
+        int error = 0;
+
+        UserInfo userInfo = null;
         try {
             userInfo = userManager.getUserInfo();
         } catch (LoginRequiredException e) {
-            return "-1";
+            error = -1;
         }
 
-        if (StringUtils.isEmpty(nativeLang) || StringUtils.isEmpty(convoLang)) {
-            return "-2";
+        if (error == 0) {
+            if (StringUtils.isEmpty(nativeLang) || StringUtils.isEmpty(convoLang)) {
+                error = -2;
+            }
         }
 
-        String roomId = ExchangeChatHandler.makeExchangeRoomId(nativeLang, convoLang);
-
-        return createAdmissionToken(roomId, userInfo);
+        Map<String, Object> map = new HashMap<>();
+        map.put("error", error);
+        if (error == 0) {
+            String roomId = ExchangeChatHandler.makeExchangeRoomId(nativeLang, convoLang);
+            map.put("token", createAdmissionToken(roomId, userInfo));
+            map.put("usersByCountry", chaterManager.getUsersByCountry());
+        }
+        return map;
     }
 
     @Request("/exchange/${encryptedRoomId}")

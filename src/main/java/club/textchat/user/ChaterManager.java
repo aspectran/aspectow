@@ -82,13 +82,16 @@ public class ChaterManager extends InstantActivitySupport implements Initializab
         return inConvoUsersPersistence.exists(httpSessionId);
     }
 
+    public Map<String, Long> getUsersByCountry() {
+        return usersByCountryPersistence.getCounters();
+    }
+
     public String getUsersByCountryJson() {
         try {
-            Map<String, Long> usersByCountry = usersByCountryPersistence.getCounters();
             return new JsonWriter()
                     .prettyPrint(false)
                     .nullWritable(false)
-                    .write(usersByCountry)
+                    .write(getUsersByCountry())
                     .toString();
         } catch (Exception e) {
             logger.warn(e);

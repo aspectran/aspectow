@@ -7,7 +7,6 @@ $(function () {
     }
     $(".language-settings .button.ok").on("click", function () {
         $(".choose-info").hide();
-        $(".language-settings").addClass("rounded-top-corners");
         $(".language-settings .guide").show();
         $(".language-settings .form-error").hide();
         let nativeLang = $(".language-settings select[name=native_lang]").val();
@@ -55,22 +54,27 @@ function startExchangeChat(params) {
     tokenIssuanceCanceled = false;
     tokenIssuanceTimer = setTimeout(function () {
         $.ajax({
-            url: "/exchange/token",
+            url: "/exchange/request",
             data: params,
             method: 'GET',
             dataType: 'json',
-            success: function (token) {
-                if (token) {
+            success: function (response) {
+                if (response) {
                     if (!tokenIssuanceCanceled) {
-                        if (token === "-1") {
-                            reloadPage();
-                            return;
+                        switch (response.error) {
+                            case -1:
+                                reloadPage();
+                                break;
+                            case -2:
+                                $(".language-settings .form-error").hide();
+                                $(".language-settings .form-error.exchange-languages-required").fadeIn();
+                                break;
+                            case 0:
+                                hideSidebar();
+                                openSocket(response.token, params);
+                                $(".choose-info").fadeIn();
+                                $(".language-settings .guide").hide();
                         }
-                        hideSidebar();
-                        openSocket(token, params);
-                        $(".choose-info").fadeIn();
-                        $(".language-settings").removeClass("rounded-top-corners");
-                        $(".language-settings .guide").hide();
                     }
                 } else {
                     serviceNotAvailable();

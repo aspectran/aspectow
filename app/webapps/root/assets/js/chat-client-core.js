@@ -367,6 +367,10 @@ function clearConvo() {
     $("#convo").empty();
 }
 
+function removeConvoMessages() {
+    $("#convo .message").remove();
+}
+
 function printJoinMessage(chater, restored) {
     let text = chatClientMessages.welcome.replace("[username]", "<strong>" + chater.username + "</strong>");
     printEvent(text, restored);

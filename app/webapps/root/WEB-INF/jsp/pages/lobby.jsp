@@ -4,12 +4,12 @@
 <aspectran:token type="property" expression="languages" var="languages"/>
 <link rel="stylesheet" type="text/css" href="/assets/css/chat-core.css?v28"/>
 <link rel="stylesheet" type="text/css" href="/assets/css/chat-lobby.css?v22"/>
-<link rel="stylesheet" type="text/css" href="/assets/css/users-by-country.css?v3"/>
 <link rel="stylesheet" type="text/css" href="/assets/css/page-lobby.css?v20"/>
-<script src="/assets/js/chat-client-core.js?v27"></script>
+<link rel="stylesheet" type="text/css" href="/assets/css/users-by-country.css?v3"/>
+<script src="/assets/js/chat-client-core.js?v28"></script>
 <script src="/assets/js/chat-client-lobby.js?v29"></script>
-<script src="/assets/js/users-by-country.js?v3"></script>
 <script src="/assets/js/page-lobby.js?v31"></script>
+<script src="/assets/js/users-by-country.js?v4"></script>
 <script>
     const chatClientSettings = {
         serverEndpoint: "/chat/lobby/",
@@ -48,7 +48,9 @@
                     <c:if test="${not empty user}">
                         <%@ include file="includes/lobby-user.jsp" %>
                     </c:if>
-                    <%@ include file="includes/users-by-country.jsp" %>
+                    <div class="t15">
+                        <%@ include file="includes/users-by-country.jsp" %>
+                    </div>
                     <div class="services grid-x grid-margin-x grid-margin-y grid-padding-x grid-padding-y t15">
                         <div class="cell service exchange">
                             <a class="title start" href="/exchange"><h4><aspectran:message code="service.exchange_chat"/></h4></a>
