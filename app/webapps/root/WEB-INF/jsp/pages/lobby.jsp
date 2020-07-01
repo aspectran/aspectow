@@ -4,11 +4,11 @@
 <aspectran:token type="property" expression="languages" var="languages"/>
 <link rel="stylesheet" type="text/css" href="/assets/css/chat-core.css?v28"/>
 <link rel="stylesheet" type="text/css" href="/assets/css/chat-lobby.css?v22"/>
-<link rel="stylesheet" type="text/css" href="/assets/css/users-by-country.css?v1"/>
+<link rel="stylesheet" type="text/css" href="/assets/css/users-by-country.css?v2"/>
 <link rel="stylesheet" type="text/css" href="/assets/css/page-lobby.css?v20"/>
 <script src="/assets/js/chat-client-core.js?v27"></script>
 <script src="/assets/js/chat-client-lobby.js?v29"></script>
-<script src="/assets/js/users-by-country.js?v1"></script>
+<script src="/assets/js/users-by-country.js?v2"></script>
 <script src="/assets/js/page-lobby.js?v31"></script>
 <script>
     const chatClientSettings = {

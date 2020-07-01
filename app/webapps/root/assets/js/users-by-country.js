@@ -251,7 +251,7 @@ const countryNames = {
 };
 
 let drawUsersByCountryTimer;
-function drawUsersByCountry(usersByCountry) {
+function drawUsersByCountry(usersByCountry, timeout) {
     if (drawUsersByCountryTimer) {
         clearTimeout(drawUsersByCountryTimer);
         drawUsersByCountryTimer = null;
@@ -280,9 +280,9 @@ function drawUsersByCountry(usersByCountry) {
             $("<div class='item'/>").css("width", width + "%").attr("title", width + "%").text(etc).appendTo(series);
             $("<span class='item'><em></em><span>ETC</span></span>").appendTo(legends);
         }
-    }, 700);
+    }, timeout||1500);
 }
 
 $(function () {
-    drawUsersByCountry(usersByCountry);
+    drawUsersByCountry(usersByCountry, 1);
 });
