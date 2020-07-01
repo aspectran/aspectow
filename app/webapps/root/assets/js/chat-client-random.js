@@ -49,7 +49,7 @@ function startLooking() {
             success: function (response) {
                 if (response) {
                     if (response.usersByCountry) {
-                        drawUsersByCountry(response.usersByCountry);
+                        drawUsersByCountry(response.usersByCountry, 1);
                     }
                     if (!tokenIssuanceCanceled) {
                         switch (response.error) {
