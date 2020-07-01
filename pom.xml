@@ -148,7 +148,7 @@
                 <artifactId>license-maven-plugin</artifactId>
                 <version>3.0</version>
                 <configuration>
-                    <header>${project.basedir}/license.txt</header>
+                    <header>${project.basedir}/header.txt</header>
                     <failIfMissing>true</failIfMissing>
                     <aggregate>true</aggregate>
                     <strictCheck>true</strictCheck>
