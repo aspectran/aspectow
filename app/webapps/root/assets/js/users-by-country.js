@@ -251,7 +251,7 @@ const countryNames = {
 };
 
 let drawUsersByCountryTimer;
-function drawUsersByCountry(userByCountry) {
+function drawUsersByCountry(usersByCountry) {
     if (drawUsersByCountryTimer) {
         clearTimeout(drawUsersByCountryTimer);
         drawUsersByCountryTimer = null;
@@ -260,15 +260,15 @@ function drawUsersByCountry(userByCountry) {
         let legends = $(".users-by-country .legends").empty();
         let series = $(".users-by-country .series").empty();
         let total = 0;
-        for (let key in userByCountry) {
-            total += userByCountry[key];
+        for (let key in usersByCountry) {
+            total += usersByCountry[key];
         }
         let count = 0;
         let etc = 0;
-        for (let key in userByCountry) {
-            let users = userByCountry[key];
+        for (let key in usersByCountry) {
+            let users = usersByCountry[key];
             if (count++ < 5) {
-                let width = (users / total * 100).toFixed(1);
+                let width = Math.floor(users / total * 1000) / 10;
                 $("<div class='item'/>").css("width", width + "%").attr("title", width + "%").text(users).appendTo(series);
                 $("<span class='item'><em></em><span>" + countryNames[key] + "</span></span>").appendTo(legends);
             } else {
@@ -276,7 +276,7 @@ function drawUsersByCountry(userByCountry) {
             }
         }
         if (etc > 0) {
-            let width = (etc / total * 100).toFixed(2);
+            let width = Math.floor(etc / total * 1000) / 10;
             $("<div class='item'/>").css("width", width + "%").attr("title", width + "%").text(etc).appendTo(series);
             $("<span class='item'><em></em><span>ETC</span></span>").appendTo(legends);
         }
