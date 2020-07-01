@@ -82,26 +82,6 @@ public class ChaterManager extends InstantActivitySupport implements Initializab
         return inConvoUsersPersistence.exists(httpSessionId);
     }
 
-    private void acquireUsername(String sessionId, UserInfo userInfo) {
-        signedInUsersPersistence.put(userInfo.getUsername(), sessionId);
-        usersByCountryPersistence.increase(userInfo.getCountry());
-        lobbyChatPersistence.publish(USERS_BY_COUNTRY_MESSAGE_PREFIX + getUsersByCountryJson());
-        int affected = sqlSession.insert("users.insertUser", userInfo);
-        if (affected > 0 && logger.isDebugEnabled()) {
-            logger.debug("New user " + userInfo);
-        }
-    }
-
-    private void discardUsername(String sessionId, UserInfo userInfo) {
-        signedInUsersPersistence.abandon(userInfo.getUsername(), sessionId);
-        usersByCountryPersistence.decrease(userInfo.getCountry());
-        lobbyChatPersistence.publish(USERS_BY_COUNTRY_MESSAGE_PREFIX + getUsersByCountryJson());
-        int affected = sqlSession.update("users.discardUsername", userInfo.getUserNo());
-        if (affected > 0 && logger.isDebugEnabled()) {
-            logger.debug("Discarded user " + userInfo);
-        }
-    }
-
     public String getUsersByCountryJson() {
         try {
             Map<String, Long> usersByCountry = usersByCountryPersistence.getCounters();
@@ -114,6 +94,32 @@ public class ChaterManager extends InstantActivitySupport implements Initializab
             logger.warn(e);
             return "null";
         }
+    }
+
+    private void acquireUsername(String sessionId, UserInfo userInfo) {
+        signedInUsersPersistence.put(userInfo.getUsername(), sessionId);
+        lobbyChatPersistence.publish(USERS_BY_COUNTRY_MESSAGE_PREFIX + getUsersByCountryJson());
+        int affected = sqlSession.insert("users.insertUser", userInfo);
+        if (affected > 0 && logger.isDebugEnabled()) {
+            logger.debug("New user " + userInfo);
+        }
+    }
+
+    private void discardUsername(String sessionId, UserInfo userInfo) {
+        signedInUsersPersistence.abandon(userInfo.getUsername(), sessionId);
+        lobbyChatPersistence.publish(USERS_BY_COUNTRY_MESSAGE_PREFIX + getUsersByCountryJson());
+        int affected = sqlSession.update("users.discardUsername", userInfo.getUserNo());
+        if (affected > 0 && logger.isDebugEnabled()) {
+            logger.debug("Discarded user " + userInfo);
+        }
+    }
+
+    private void increaseUsersCounter(UserInfo userInfo) {
+        usersByCountryPersistence.increase(userInfo.getCountry());
+    }
+
+    private void decreaseUsersCounter(UserInfo userInfo) {
+        usersByCountryPersistence.decrease(userInfo.getCountry());
     }
 
     @Override
@@ -157,6 +163,7 @@ public class ChaterManager extends InstantActivitySupport implements Initializab
         private void acquireUsername(String name, Object value, String sessionId) {
             if (UserManager.USER_INFO_SESSION_KEY.equals(name)) {
                 UserInfo userInfo = (UserInfo)value;
+                chaterManager.increaseUsersCounter(userInfo);
                 chaterManager.acquireUsername(sessionId, userInfo);
             }
         }
@@ -164,6 +171,7 @@ public class ChaterManager extends InstantActivitySupport implements Initializab
         private void discardUsername(String name, Object value, String sessionId) {
             if (UserManager.USER_INFO_SESSION_KEY.equals(name)) {
                 UserInfo userInfo = (UserInfo)value;
+                chaterManager.decreaseUsersCounter(userInfo);
                 chaterManager.discardUsername(sessionId, userInfo);
             }
         }
