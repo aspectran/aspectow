@@ -31,7 +31,7 @@
 <meta property="og:image" content="https://textchat.club/assets/favicons/android-icon-192x192.png">
 <meta property="og:url" content="https://textchat.club">
 <link rel="stylesheet" type="text/css" href="/assets/css/aspectran.css?v1.5"/>
-<link rel="stylesheet" type="text/css" href="/assets/css/page-common.css?v40"/>
+<link rel="stylesheet" type="text/css" href="/assets/css/page-common.css?v41"/>
 <script src="/assets/js/modernizr-custom.js?v2"></script>
 <script src="/assets/js/jquery-3.5.1.min.js"></script>
 <script src="/assets/js/foundation.min.js"></script>
@@ -39,7 +39,7 @@
 <script src="https://www.google.com/recaptcha/api.js?render=explicit"></script>
 <script src="/assets/js/recaptcha.js?v1"></script>
 <script src="/assets/js/utils.js?v5"></script>
-<script src="/assets/js/page-common.js?v29"></script>
+<script src="/assets/js/page-common.js?v30"></script>
 <script>
     /* Set a custom property that contains the height value of the viewport */
     document.documentElement.style.setProperty("--vh", (window.innerHeight * 0.01) + "px");

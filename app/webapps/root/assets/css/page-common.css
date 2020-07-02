@@ -68,24 +68,30 @@ input#for-automata-clear {
     font-size: 24px;
     vertical-align: sub;
 }
-.header .button.people {
+.header .button.sidebar-toggler {
     float: left;
     margin: 0 10px 0 0;
     color: #fff;
-    min-width: 58px;
     text-align: left;
     white-space: nowrap;
     padding-left: 1.6em;
+    border: 1px solid #3e91b3;
     background: #516169 url("/assets/images/textchat.svg") 5px / 1.3em no-repeat;
 }
-.header .button.people:hover {
-    background-color: #435157;
+.header .button.sidebar-toggler:hover {
+    background-color: #5d7179;
+    border: 1px solid #559fbd;
 }
-.header .button.people span {
+.header .button.sidebar-toggler span {
     font-size: 1em;
     margin-left: .3em;
-    display: block;
+    padding-left: .2em;
+    padding-right: .2em;
     text-align: center;
+    min-width: 20px;
+}
+.header .button.sidebar-toggler span#totalPeople {
+    display: none;
 }
 .header .button.leave {
     background-color: #e85757;

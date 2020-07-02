@@ -4,7 +4,7 @@
 <div class="header cell cell-block-container">
     <div class="grid-x">
         <div class="cell auto align-self-middle">
-            <button type="button" class="button people" title="<aspectran:message code="header.button.people"/>">
+            <button type="button" class="button sidebar-toggler" title="<aspectran:message code="header.button.people"/>">
                 <span id="totalPeople"></span></button>
                 <c:choose>
                     <c:when test="${not empty page.roomName}">

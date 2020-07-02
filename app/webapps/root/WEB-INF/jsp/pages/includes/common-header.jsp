@@ -4,7 +4,7 @@
 <div class="header cell cell-block-container">
     <div class="grid-x">
         <div class="cell auto align-self-middle">
-            <a class="button people" href="/" title="Text Chat Club"><i class="iconfont fi-results-demographics"></i></a>
+            <button type="button" class="button sidebar-toggler" title="<aspectran:message code="site.title"/>"></button>
             <h1 title="<aspectran:message code="site.title"/>"><aspectran:message code="site.title"/></h1>
         </div>
         <div class="cell shrink align-self-middle text-right">

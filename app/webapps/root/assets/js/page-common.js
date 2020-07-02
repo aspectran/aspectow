@@ -1,6 +1,9 @@
 $(function () {
     $(document).foundation();
 
+    $(".header button.sidebar-toggler").on("click", function () {
+        toggleSidebar();
+    });
     $(".button.signin").on("click", function () {
         openSignInPopup();
     });
@@ -35,6 +38,17 @@ $(function () {
         }
     });
 });
+
+function toggleSidebar() {
+    $(".sidebar").toggleClass("hide-for-small-only").toggleClass("show-for-small-only");
+}
+
+function hideSidebar() {
+    let sidebar = $(".sidebar");
+    if (sidebar.is(":visible") && !sidebar.hasClass("hide-for-small-only")) {
+        toggleSidebar();
+    }
+}
 
 function checkSignedIn() {
     if (!userInfo.userNo) {

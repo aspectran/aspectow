@@ -17,9 +17,6 @@ $(function () {
             location.href = "/signout";
         }, 900);
     });
-    $(".header button.people").on("click", function () {
-        toggleSidebar();
-    });
     $("button.leave").on("click", function () {
         $("button.leave").prop("disabled", true);
         closeSocket();
@@ -352,11 +349,16 @@ function clearChaters() {
 }
 
 function getTotalPeople() {
-    return $("#totalPeople").text();
+    return $("#contacts .contact").length;
 }
 
 function updateTotalPeople() {
-    $("#totalPeople").text($("#contacts .contact").length);
+    let total = getTotalPeople();
+    if (total) {
+        $("#totalPeople").text(total).fadeIn();
+    } else {
+        $("#totalPeople").text("").fadeOut();
+    }
 }
 
 function clearTotalPeople() {
@@ -514,17 +516,6 @@ function printRecentConvo(chatMessages) {
         });
     }
     scrollToBottom($("#convo"), false);
-}
-
-function toggleSidebar() {
-    $(".sidebar").toggleClass("hide-for-small-only").toggleClass("show-for-small-only");
-}
-
-function hideSidebar() {
-    let sidebar = $(".sidebar");
-    if (sidebar.is(":visible") && !sidebar.hasClass("hide-for-small-only")) {
-        toggleSidebar();
-    }
 }
 
 function scrollToBottom(container, animate) {
