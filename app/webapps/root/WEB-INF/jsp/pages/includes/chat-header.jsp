@@ -5,7 +5,6 @@
     <div class="grid-x">
         <div class="cell auto align-self-middle">
             <button type="button" class="button people" title="<aspectran:message code="header.button.people"/>">
-                <i class="iconfont fi-results-demographics"></i>
                 <span id="totalPeople"></span></button>
                 <c:choose>
                     <c:when test="${not empty page.roomName}">

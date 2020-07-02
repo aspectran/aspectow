@@ -22,19 +22,19 @@
     border-radius: 3px;
 }
 .users-by-country .legends .item:nth-child(1) em {
-    background-color: #6b9db5;
+    background-color: #64bce5;
 }
 .users-by-country .legends .item:nth-child(2) em {
-    background-color: #d06a82;
+    background-color: #e07a91;
 }
 .users-by-country .legends .item:nth-child(3) em {
-    background-color: #dd933f;
+    background-color: #ea9f4b;
 }
 .users-by-country .legends .item:nth-child(4) em {
-    background-color: #61ae44;
+    background-color: #78cd59;
 }
 .users-by-country .legends .item:nth-child(5) em {
-    background-color: #22a6e8;
+    background-color: #3e91b3;
 }
 .users-by-country .legends .item:nth-child(6) em {
     background-color: #aaa;
@@ -53,7 +53,7 @@
 .users-by-country .series .item.none {
     display: block;
     color: transparent;
-    background-color: #6b9db5 !important;
+    background-color: #64bce5 !important;
     border-radius: 4px !important;
 }
 .users-by-country .series .item:first-child {
@@ -65,19 +65,19 @@
     border-bottom-right-radius: 4px;
 }
 .users-by-country .series .item:nth-child(1) {
-    background-color: #6b9db5;
+    background-color: #64bce5;
 }
 .users-by-country .series .item:nth-child(2) {
-    background-color: #d06a82;
+    background-color: #e07a91;
 }
 .users-by-country .series .item:nth-child(3) {
-    background-color: #dd933f;
+    background-color: #ea9f4b;
 }
 .users-by-country .series .item:nth-child(4) {
-    background-color: #61ae44;;
+    background-color: #78cd59;
 }
 .users-by-country .series .item:nth-child(5) {
-    background-color: #22a6e8;
+    background-color: #3e91b3;
 }
 .users-by-country .series .item:nth-child(6) {
     background-color: #aaa;

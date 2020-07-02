@@ -72,18 +72,20 @@ input#for-automata-clear {
     float: left;
     margin: 0 10px 0 0;
     color: #fff;
-    background-color: #1b8d8d;
     min-width: 58px;
     text-align: left;
     white-space: nowrap;
+    padding-left: 1.6em;
+    background: #516169 url("/assets/images/textchat.svg") 5px / 1.3em no-repeat;
 }
 .header .button.people:hover {
-    background-color: #138484;
+    background-color: #435157;
 }
 .header .button.people span {
-    font-size: 16px;
-    vertical-align: top;
-    margin: 0 4px;
+    font-size: 1em;
+    margin-left: .3em;
+    display: block;
+    text-align: center;
 }
 .header .button.leave {
     background-color: #e85757;
@@ -297,7 +299,7 @@ input#for-automata-clear {
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
-    background: url(/assets/images/textchat.svg) top left / 1.3em no-repeat;
+    background: url("/assets/images/textchat.svg") top left / 1.3em no-repeat;
 }
 .reveal.popup h2 .iconfont {
     color: #e9f4f6;

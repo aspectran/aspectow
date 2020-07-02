@@ -71,19 +71,19 @@
     min-width: 16em;
 }
 .service.exchange h4 {
-    color: #3481a0;
+    color: #3e91b3;
 }
 .service.exchange p.guide {
-    border-left: 2px solid #3481a0;
+    border-left: 2px solid #3e91b3;
 }
 .service.exchange a.guide {
-    color: #3481a0;
+    color: #3e91b3;
 }
 .service.exchange .service-options .button.start {
-    background-color: #3481a0;
+    background-color: #3e91b3;
 }
 .service.exchange:hover .service-options .button.start {
-    background-color: #1b84ad;
+    background-color: #2888af;
 }
 .service.random h4 {
     color: #e75f7f;
