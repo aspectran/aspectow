@@ -49,7 +49,7 @@
                         </ul>
                         <h4>5. 개인정보에 대한 문의</h4>
                         <p>텍스트챗클럽의 개인정보 보호 정책에 대해 궁금한 점이 있으면 다음 이메일 주소로 문의하십시오.</p>
-                        <p><img src="/assets/images/email-help.jpg"/></p>
+                        <p>help.textchat.club@gmail.com</p>
                     </div>
                 </div>
                 <div class="grid-container grid-x grid-padding-y t10">
