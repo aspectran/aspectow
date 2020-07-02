@@ -9,7 +9,7 @@
 <script src="/assets/js/chat-client-core.js?v28"></script>
 <script src="/assets/js/chat-client-lobby.js?v29"></script>
 <script src="/assets/js/page-lobby.js?v31"></script>
-<script src="/assets/js/users-by-country.js?v4"></script>
+<script src="/assets/js/users-by-country.js?v5"></script>
 <script>
     const chatClientSettings = {
         serverEndpoint: "/chat/lobby/",

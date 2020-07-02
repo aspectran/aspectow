@@ -10,19 +10,19 @@
 <div id="common-sign-in" class="reveal popup" data-reveal data-close-on-click="false" data-close-on-esc="false">
     <c:choose>
         <c:when test="${not empty page.roomName}">
-            <h3><i class="fi-results-demographics"></i> ${page.roomName}</h3>
+            <h2><i class="iconfont fi-results-demographics"></i> ${page.roomName}</h2>
         </c:when>
         <c:when test="${page.roomId eq '-1'}">
-            <h3><i class="fi-results-demographics"></i> <aspectran:message code="service.random_chat"/></h3>
+            <h2><i class="iconfont fi-results-demographics"></i> <aspectran:message code="service.random_chat"/></h2>
         </c:when>
         <c:when test="${page.roomId eq '-2'}">
-            <h3><i class="fi-results-demographics"></i> <aspectran:message code="service.stranger_chat"/></h3>
+            <h2><i class="iconfont fi-results-demographics"></i> <aspectran:message code="service.stranger_chat"/></h2>
         </c:when>
         <c:when test="${page.roomId eq '-3'}">
-            <h3><i class="fi-results-demographics"></i> <aspectran:message code="service.exchange_chat"/></h3>
+            <h2><i class="iconfont fi-results-demographics"></i> <aspectran:message code="service.exchange_chat"/></h2>
         </c:when>
         <c:otherwise>
-            <h3><aspectran:message code="modal.sign_in.title"/></h3>
+            <h2><aspectran:message code="modal.sign_in.title"/></h2>
         </c:otherwise>
     </c:choose>
     <form id="form-sign-in" method="post">

@@ -6,7 +6,7 @@
 <link rel="stylesheet" type="text/css" href="/assets/css/users-by-country.css?v4"/>
 <script src="/assets/js/chat-client-core.js?v28"></script>
 <script src="/assets/js/chat-client-random.js?v24"></script>
-<script src="/assets/js/users-by-country.js?v4"></script>
+<script src="/assets/js/users-by-country.js?v5"></script>
 <script>
     const chatClientSettings = {
         serverEndpoint: "/chat/random/",

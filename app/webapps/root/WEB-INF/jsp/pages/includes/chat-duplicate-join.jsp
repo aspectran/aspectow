@@ -1,7 +1,7 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib uri="http://aspectran.com/tags" prefix="aspectran" %>
 <div id="chat-duplicate-join" class="reveal popup" data-reveal data-close-on-click="false" data-close-on-esc="false">
-    <h3><aspectran:message code="modal.chat_duplicate_join.title"/></h3>
+    <h2><aspectran:message code="modal.chat_duplicate_join.title"/></h2>
     <div class="grid-x grid-padding-x grid-margin-y">
         <div class="cell show-for-small-only t30">
         </div>

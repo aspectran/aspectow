@@ -5,7 +5,7 @@
     <div class="grid-x">
         <div class="cell auto align-self-middle">
             <a class="button people" href="/" title="Text Chat Club"><i class="iconfont fi-results-demographics"></i></a>
-            <h2 title="<aspectran:message code="site.title"/>"><aspectran:message code="site.title"/></h2>
+            <h1 title="<aspectran:message code="site.title"/>"><aspectran:message code="site.title"/></h1>
         </div>
         <div class="cell shrink align-self-middle text-right">
             <c:if test="${translet.requestName eq '/'}">
