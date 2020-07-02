@@ -305,7 +305,8 @@ function setChaters(chaters) {
 function addChater(chater) {
     let contact = $("<li class='contact'/>")
         .data("user-no", chater.userNo)
-        .data("username", chater.username);
+        .data("username", chater.username)
+        .data("color", chater.color);
     let status = $("<div/>").addClass("status");
     if (chater.color) {
         status.addClass("my-col-" + chater.color);
@@ -374,8 +375,8 @@ function removeConvoMessages() {
 }
 
 function printJoinMessage(chater, restored) {
-    let text = chatClientMessages.welcome.replace("[username]", "<strong>" + chater.username + "</strong>");
-    printEvent(text, restored);
+    let html = chatClientMessages.welcome.replace("[username]", "<strong>" + chater.username + "</strong>");
+    printEventMessage(html, restored);
 }
 
 function printUserJoinedMessage(payload, restored) {
@@ -435,10 +436,17 @@ function printUserEvent(payload, event, restored) {
             }
         }
     } else {
-        $("<div class='message event'/>")
+        let message = $("<div class='message event'/>")
             .data("user-no", payload.userNo)
-            .append(content)
-            .appendTo(convo);
+            .append(content);
+        if (!restored && chater.description && event === "user-joined") {
+            let selfIntro = $("<p class='self-introduction'/>").text(chater.description);
+            if (chater.color) {
+                selfIntro.addClass("my-col-" + chater.color);
+            }
+            message.append(selfIntro);
+        }
+        convo.append(message);
     }
     if (!restored) {
         scrollToBottom(convo);
@@ -481,15 +489,23 @@ function printMessage(payload, restored) {
     }
 }
 
-function printEvent(text, restored) {
+function printEventMessage(html, restored) {
     let convo = $("#convo");
-    let content = $("<p class='content'/>").html(text);
+    let content = $("<p class='content'/>").html(html);
     $("<div class='message event'/>")
         .append(content)
         .appendTo(convo);
     if (!restored) {
         scrollToBottom(convo);
     }
+}
+
+function printCustomMessage(content) {
+    let convo = $("#convo");
+    $("<div class='message custom'/>")
+        .append(content)
+        .appendTo(convo);
+    scrollToBottom(convo);
 }
 
 function printRecentConvo(chatMessages) {

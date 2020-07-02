@@ -27,9 +27,9 @@ $(function () {
         closeSocket();
         startLooking();
     });
-    $("#convo").on("click", ".message.event .content button.next", function () {
+    $("#convo").on("click", ".message.custom button.next", function () {
         $(".message-box button.next").click();
-    }).on("click", ".message.event .content button.cancel", function () {
+    }).on("click", ".message.custom button.cancel", function () {
         stopLooking(true);
     });
     startLooking();
@@ -94,7 +94,7 @@ function drawSearchBox() {
         "<i class='iconfont fi-shuffle banner'></i>" +
         "<button type='button' class='success button next'>" + chatClientMessages.searchAnother + "</button>" +
         "</div>";
-    printEvent(html);
+    printCustomMessage(html);
 }
 
 function drawLookingBox(intermission) {
@@ -111,10 +111,10 @@ function drawLookingBox(intermission) {
         "<div class='progress-bar'><div class='cylon_eye'></div></div>" +
         "<button type='button' class='success button cancel'>" + chatClientMessages.cancel + "</button>" +
         "</div>";
-    printEvent(html);
+    printCustomMessage(html);
     if (intermission) {
         setTimeout(function () {
-            $("#convo .message.event .content .banner").addClass("animate");
+            $("#convo .message.custom .banner").addClass("animate");
         }, 200);
     }
 }
@@ -127,8 +127,18 @@ function printJoinMessage(chater, restored) {
 function printUserJoinedMessage(payload, restored) {
     removeConvoMessages();
     let chater = deserialize(payload.chater);
-    let text = chatClientMessages.userJoined.replace("[username]", "<strong>" + chater.username + "</strong>")
-    printEvent(text, restored);
+    let html = chatClientMessages.userJoined.replace("[username]", "<strong>" + chater.username + "</strong>");
+    printEventMessage(html, restored);
+    if (chater.description) {
+        let title = chatClientMessages.selfIntroductionTitle.replace("[username]", "<strong>" + chater.username + "</strong>");
+        let selfIntro = $("<div class='self-introduction'/>");
+        $("<p class='self-introduction-title'/>").html(title).appendTo(selfIntro);
+        $("<p class='description'/>").text(chater.description).appendTo(selfIntro);
+        if (chater.color) {
+            selfIntro.addClass("my-col-" + chater.color);
+        }
+        printCustomMessage(selfIntro);
+    }
     $(".message-box button.send").prop("disabled", false).removeClass("pause");
     readyToType();
     setTimeout(function () {
@@ -138,8 +148,8 @@ function printUserJoinedMessage(payload, restored) {
 
 function printUserLeftMessage(payload, restored) {
     let chater = deserialize(payload.chater);
-    let text = chatClientMessages.userLeft.replace("[username]", "<strong>" + chater.username + "</strong>")
-    printEvent(text, restored);
+    let html = chatClientMessages.userLeft.replace("[username]", "<strong>" + chater.username + "</strong>");
+    printEventMessage(html, restored);
     $(".message-box button.send").prop("disabled", true).addClass("pause");
     stopLooking();
 }

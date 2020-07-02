@@ -1,12 +1,12 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://aspectran.com/tags" prefix="aspectran" %>
-<link rel="stylesheet" type="text/css" href="/assets/css/chat-core.css?v28"/>
-<link rel="stylesheet" type="text/css" href="/assets/css/chat-random.css?v22"/>
-<link rel="stylesheet" type="text/css" href="/assets/css/users-by-country.css?v5"/>
-<script src="/assets/js/chat-client-core.js?v29"></script>
-<script src="/assets/js/chat-client-random.js?v24"></script>
-<script src="/assets/js/users-by-country.js?v5"></script>
+<link rel="stylesheet" type="text/css" href="/assets/css/chat-core.css?v29"/>
+<link rel="stylesheet" type="text/css" href="/assets/css/chat-random.css?v23"/>
+<link rel="stylesheet" type="text/css" href="/assets/css/users-by-country.css?v6"/>
+<script src="/assets/js/chat-client-core.js?v30"></script>
+<script src="/assets/js/chat-client-random.js?v25"></script>
+<script src="/assets/js/users-by-country.js?v6"></script>
 <script>
     const chatClientSettings = {
         serverEndpoint: "/chat/random/",
@@ -23,6 +23,7 @@
         "cancel": "<aspectran:message code='common.button.cancel'/>",
         "userJoined": "<aspectran:message code='chat.random.user_joined'/>",
         "userLeft": "<aspectran:message code='chat.random.user_left'/>",
+        "selfIntroductionTitle": "<aspectran:message code='chat.stranger.self_introduction_title'/>",
         "systemError": "<aspectran:message code='chat.common.system_error'/>",
         "serviceNotAvailable": "<aspectran:message code='chat.common.service_not_available'/>"
     };

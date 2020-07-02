@@ -174,12 +174,33 @@
     display: none;
 }
 .chat-requests .self-introduction .self-introduction-title {
-    padding: 4px 8px;
+    padding: .3em .6em;
     background-color: #e3e3e3;
     border-radius: 7px 7px 0 0;
 }
+.chat-requests .self-introduction.my-col-1 .self-introduction-title {
+    background-color: #fbd2d2;
+}
+.chat-requests .self-introduction.my-col-2 .self-introduction-title {
+    background-color: #ffe0c5;
+}
+.chat-requests .self-introduction.my-col-3 .self-introduction-title {
+    background-color: #f6ea9e;
+}
+.chat-requests .self-introduction.my-col-4 .self-introduction-title {
+    background-color: #c0eabe;
+}
+.chat-requests .self-introduction.my-col-5 .self-introduction-title {
+    background-color: #c6e6fd;
+}
+.chat-requests .self-introduction.my-col-6 .self-introduction-title {
+    background-color: #d4d4fc;
+}
+.chat-requests .self-introduction.my-col-7 .self-introduction-title {
+    background-color: #f4cff3;
+}
 .chat-requests .self-introduction .description {
-    padding: 4px 8px;
+    padding: .5em .6em;
     line-height: 1.3;
 }
 .chat-requests .icon-heart {

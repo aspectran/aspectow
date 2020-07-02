@@ -2,12 +2,12 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://aspectran.com/tags" prefix="aspectran" %>
 <aspectran:token type="property" expression="languages" var="languages"/>
-<link rel="stylesheet" type="text/css" href="/assets/css/chat-core.css?28"/>
-<link rel="stylesheet" type="text/css" href="/assets/css/chat-stranger.css?7"/>
-<link rel="stylesheet" type="text/css" href="/assets/css/chat-exchange.css?7"/>
-<script src="/assets/js/chat-client-core.js?v29"></script>
-<script src="/assets/js/chat-client-stranger.js?v7"></script>
-<script src="/assets/js/chat-client-exchange.js?v7"></script>
+<link rel="stylesheet" type="text/css" href="/assets/css/chat-core.css?29"/>
+<link rel="stylesheet" type="text/css" href="/assets/css/chat-stranger.css?8"/>
+<link rel="stylesheet" type="text/css" href="/assets/css/chat-exchange.css?8"/>
+<script src="/assets/js/chat-client-core.js?v30"></script>
+<script src="/assets/js/chat-client-stranger.js?v8"></script>
+<script src="/assets/js/chat-client-exchange.js?v8"></script>
 <script>
     const chatClientSettings = {
         serverEndpoint: "/chat/exchange/",

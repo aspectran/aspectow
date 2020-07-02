@@ -38,6 +38,7 @@ $(function () {
         let userNo = ele.data("user-no");
         let username = ele.data("username");
         let description = ele.find(".description").text();
+        let color = ele.data("color");
         let cnt = $(".chat-requests .confirm-request:visible, .chat-requests .request:visible").length;
         if (cnt >= 3) {
             newChatRequestTemplate("exceeded-requests", null);
@@ -56,6 +57,9 @@ $(function () {
                 selfIntroTitle = selfIntroTitle.replace("[username]", "<strong>" + username + "</strong>");
                 selfIntro.find(".self-introduction-title").html(selfIntroTitle);
                 selfIntro.find(".description").text(description);
+                if (color) {
+                    selfIntro.addClass("my-col-" + color);
+                }
                 selfIntro.show();
             }
         }
@@ -118,8 +122,8 @@ function handleChatRequestMessage(content) {
         let userNo = parseTargetUserNo(content);
         if (userNo === userInfo.userNo) {
             let prefix = "request:" + userNo + ":";
-            let chaterInfo = deserialize(content.substring(prefix.length));
-            chatRequest(chaterInfo);
+            let chater = deserialize(content.substring(prefix.length));
+            chatRequest(chater);
         }
     } else if (content.startsWith("request-canceled:")) {
         let userNo = parseTargetUserNo(content);
@@ -163,18 +167,21 @@ function isRequestingChat(targetUserNo) {
     }).length > 0;
 }
 
-function chatRequest(chaterInfo) {
+function chatRequest(chater) {
     hideSidebar();
-    heartbeatContact(chaterInfo.userNo, true);
-    let t = newChatRequestTemplate("request-received", null, chaterInfo.username);
-    t.data("user-no", chaterInfo.userNo);
-    t.data("username", chaterInfo.username);
-    if (chaterInfo.description) {
+    heartbeatContact(chater.userNo, true);
+    let t = newChatRequestTemplate("request-received", null, chater.username);
+    t.data("user-no", chater.userNo);
+    t.data("username", chater.username);
+    if (chater.description) {
         let selfIntro = t.find(".self-introduction");
         let selfIntroTitle = selfIntro.find(".self-introduction-title").html();
-        selfIntroTitle = selfIntroTitle.replace("[username]", "<strong>" + chaterInfo.username + "</strong>");
+        selfIntroTitle = selfIntroTitle.replace("[username]", "<strong>" + chater.username + "</strong>");
         selfIntro.find(".self-introduction-title").html(selfIntroTitle);
-        selfIntro.find(".description").text(chaterInfo.description);
+        selfIntro.find(".description").text(chater.description);
+        if (chater.color) {
+            selfIntro.addClass("my-col-" + chater.color);
+        }
         selfIntro.show();
     }
     chatRequestTimer(t, 30, function () {
@@ -313,19 +320,19 @@ function printJoinMessage(chater, restored) {
 
 function printUserJoinedMessage(payload, restored) {
     let chater = deserialize(payload.chater);
-    printEvent(chatClientMessages.userJoined.replace("[username]", "<strong>" + chater.username + "</strong>"));
+    printEventMessage(chatClientMessages.userJoined.replace("[username]", "<strong>" + chater.username + "</strong>"));
 }
 
 function printUserLeftMessage(payload, restored) {
     chatRequestCanceled(payload.userNo);
 }
 
-function printEvent(text, timeout) {
+function printEventMessage(html, timeout) {
     if (!broadcastEnabled) {
         return;
     }
     let convo = $("#convo");
-    let content = $("<p class='content'/>").html(text);
+    let content = $("<p class='content'/>").html(html);
     let message = $("<div/>").addClass("message").append(content);
     message.appendTo(convo);
     scrollToBottom(convo, false);

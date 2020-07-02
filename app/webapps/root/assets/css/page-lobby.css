@@ -130,10 +130,10 @@
     color: #84d268;
 }
 .service.private .service-options .button.start {
-    background-color: #78cd59;
+    background-color: #7fcc64;
 }
 .service.private:hover .service-options .button.start {
-    background-color: #6dd746;
+    background-color: #76d554;
 }
 .service.public h4 {
     color: #1691cf;

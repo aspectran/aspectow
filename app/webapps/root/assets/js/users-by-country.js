@@ -289,7 +289,7 @@ function drawUsersByCountry(usersByCountry, timeout) {
 }
 
 $(function () {
-    if (usersByCountry) {
+    if (usersByCountry && Object.getOwnPropertyNames(usersByCountry).length) {
         drawUsersByCountry(usersByCountry, 1);
     }
 });

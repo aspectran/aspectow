@@ -73,7 +73,8 @@ function handleSystemMessage(content) {
         let roomInfo = deserialize(content.substring(14));
         let currentRoomLang = $(".rooms-options select[name=room_lang]").val();
         if (roomInfo.language === currentRoomLang) {
-            printEvent(chatClientMessages.roomCreated.replace("[roomName]", "<code>" + roomInfo.roomName + "</code>"));
+            let html = chatClientMessages.roomCreated.replace("[roomName]", "<code>" + roomInfo.roomName + "</code>");
+            printEventMessage(html);
             refreshRooms(roomInfo.language);
         }
     } else if (content.startsWith("updatedPublicRoom:")) {
@@ -100,18 +101,18 @@ function printJoinMessage(chater, restored) {
 
 function printUserJoinedMessage(payload, restored) {
     let chater = deserialize(payload.chater);
-    printEvent(chatClientMessages.userJoined.replace("[username]", "<strong>" + chater.username + "</strong>"));
+    printEventMessage(chatClientMessages.userJoined.replace("[username]", "<strong>" + chater.username + "</strong>"));
 }
 
 function printUserLeftMessage(payload, restored) {
 }
 
-function printEvent(text, timeout) {
+function printEventMessage(html, timeout) {
     if (!broadcastEnabled) {
         return;
     }
     let convo = $("#convo");
-    let content = $("<p class='content'/>").html(text);
+    let content = $("<p class='content'/>").html(html);
     let message = $("<div/>").addClass("message").append(content);
     message.appendTo(convo);
     scrollToBottom(convo, false);
