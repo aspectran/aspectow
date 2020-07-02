@@ -217,7 +217,7 @@ const countryNames = {
     "SY": "Syria",
     "TW": "Taiwan",
     "TJ": "Tajikistan",
-    "TZ": "Tanzania, United Republic of",
+    "TZ": "Tanzania",
     "TH": "Thailand",
     "TL": "Timor-Leste",
     "TG": "Togo",
