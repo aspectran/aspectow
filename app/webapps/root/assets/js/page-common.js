@@ -2,6 +2,7 @@ $(function () {
     $(document).foundation();
 
     $(".header button.sidebar-toggler").on("click", function () {
+        $(this).blur();
         toggleSidebar();
     });
     $(".button.signin").on("click", function () {
