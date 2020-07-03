@@ -1,9 +1,9 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://aspectran.com/tags" prefix="aspectran" %>
-<link rel="stylesheet" type="text/css" href="/assets/css/chat-core.css?30"/>
-<script src="/assets/js/chat-client-core.js?v30"></script>
-<script src="/assets/js/chat-client-public.js?v24"></script>
+<link rel="stylesheet" type="text/css" href="/assets/css/chat-core.css?31"/>
+<script src="/assets/js/chat-client-core.js?v31"></script>
+<script src="/assets/js/chat-client-public.js?v25"></script>
 <script>
     const chatClientSettings = {
         serverEndpoint: "/chat/private/",

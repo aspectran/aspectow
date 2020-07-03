@@ -1,3 +1,11 @@
+function serialize(json) {
+    return JSON.stringify(json);
+}
+
+function deserialize(str) {
+    return JSON.parse(str);
+}
+
 function setCookie(name, value, days) {
     let expires = "";
     if (days) {

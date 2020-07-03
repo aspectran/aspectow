@@ -29,7 +29,9 @@ $(function () {
     });
     $("button.go-created-public-room").on("click", function () {
         if (recentlyCreatedRoomId) {
-            closeSocket();
+            if (chatClient) {
+                chatClient.closeSocket();
+            }
             location.href = "/rooms/" + recentlyCreatedRoomId;
         }
     });
@@ -52,7 +54,9 @@ $(function () {
     });
     $("button.go-created-private-room").on("click", function () {
         if (recentlyCreatedRoomId) {
-            closeSocket();
+            if (chatClient) {
+                chatClient.closeSocket();
+            }
             location.href = "/private/" + recentlyCreatedRoomId;
         }
     });
@@ -62,12 +66,16 @@ $(function () {
     });
     $("a.start[href]").on("click", function (event) {
         event.preventDefault();
-        closeSocket();
+        if (chatClient) {
+            chatClient.closeSocket();
+        }
         location.href = $(this).attr("href");
     });
     $(".service.random a.start").off().on("click", function (event) {
         event.preventDefault();
-        closeSocket();
+        if (chatClient) {
+            chatClient.closeSocket();
+        }
         let convoLang = $(".service-options select[name=convo_lang]").val();
         if (convoLang) {
             location.href = $(this).attr("href") + "?convo_lang=" + convoLang;

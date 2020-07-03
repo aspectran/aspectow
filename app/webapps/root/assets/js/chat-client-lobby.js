@@ -1,15 +1,18 @@
+let chatClient;
 let broadcastEnabled = false;
 
 $(function () {
+    if (!userInfo.userNo) {
+        return;
+    }
     if (!Modernizr.websockets || detectIE()) {
         $("#message").blur();
         $("#message, #form-send-message button").prop("disabled", true);
         location.href = "/error/browser-not-supported";
-        return;
+        return false;
     }
-    if (!userInfo.userNo) {
-        $("#message").blur();
-        $("#message, #form-send-message button").prop("disabled", true);
+    chatClient = new ChatClientCore(chatClientSettings);
+    if (!chatClient.init(makeLobbyChatClient)) {
         return;
     }
     broadcastEnabled = true;
@@ -27,109 +30,111 @@ $(function () {
     });
 });
 
-function printMessage(payload, restored) {
-    if (payload.content.startsWith("broadcast:")) {
-        if (broadcastEnabled) {
-            printBroadcastMessage(payload);
+function makeLobbyChatClient(chatClient) {
+    chatClient.printMessage = function (payload, restored) {
+        if (payload.content.startsWith("broadcast:")) {
+            if (broadcastEnabled) {
+                this.printBroadcastMessage(payload);
+            }
+        } else {
+            this.handleSystemMessage(payload.content);
         }
-    } else {
-        handleSystemMessage(payload.content);
-    }
-}
+    };
 
-function printBroadcastMessage(payload) {
-    let chater = deserialize(payload.chater);
-    let convo = $("#convo");
-    if (convo.find(".message").length >= 5) {
-        convo.find(".message").first().remove();
-    }
-    let sender = $("<code class='sender'/>").text(chater.username);
-    let content = $("<p class='content'/>")
-        .text(payload.content.substring(10))
-        .prepend(sender);
-    let message = $("<div/>")
-        .addClass("message")
-        .data("user-no", chater.userNo)
-        .data("username", chater.username)
-        .append(content);
-    if (chater.color) {
-        message.addClass("my-col-" + chater.color);
-    }
-    convo.append(message);
-    scrollToBottom(convo, false);
-    setTimeout(function () {
-        message.remove();
-    }, 10000);
-}
-
-function handleSystemMessage(content) {
-    if (!content) {
-        return;
-    }
-    if (content.startsWith("usersByCountry:")) {
-        let usersByCountry = deserialize(content.substring(15));
-        drawUsersByCountry(usersByCountry);
-    } else if (content.startsWith("newPublicRoom:")) {
-        let roomInfo = deserialize(content.substring(14));
-        let currentRoomLang = $(".rooms-options select[name=room_lang]").val();
-        if (roomInfo.language === currentRoomLang) {
-            let html = chatClientMessages.roomCreated.replace("[roomName]", "<code>" + roomInfo.roomName + "</code>");
-            printEventMessage(html);
-            refreshRooms(roomInfo.language);
+    chatClient.printBroadcastMessage = function (payload) {
+        let chater = deserialize(payload.chater);
+        let convo = $("#convo");
+        if (convo.find(".message").length >= 5) {
+            convo.find(".message").first().remove();
         }
-    } else if (content.startsWith("updatedPublicRoom:")) {
-        let roomInfo = deserialize(content.substring(18));
-        let currentRoomLang = $(".rooms-options select[name=room_lang]").val();
-        if (roomInfo.language === currentRoomLang) {
-            $(".rooms .room").filter(function () {
-                return $(this).data("room-id") === roomInfo.roomId;
-            }).each(function () {
-                let room = $(this);
-                room.find(".curr-users span").text(roomInfo.currentUsers);
-                if (roomInfo.currentUsers > 0) {
-                    room.addClass("active");
-                } else {
-                    room.removeClass("active");
-                }
-            });
+        let sender = $("<code class='sender'/>").text(chater.username);
+        let content = $("<p class='content'/>")
+            .text(payload.content.substring(10))
+            .prepend(sender);
+        let message = $("<div/>")
+            .addClass("message")
+            .data("user-no", chater.userNo)
+            .data("username", chater.username)
+            .append(content);
+        if (chater.color) {
+            message.addClass("my-col-" + chater.color);
         }
-    }
-}
+        convo.append(message);
+        this.scrollToBottom(convo, false);
+        setTimeout(function () {
+            message.remove();
+        }, 10000);
+    };
 
-function printJoinMessage(chater, restored) {
-}
+    chatClient.handleSystemMessage = function (content) {
+        if (!content) {
+            return;
+        }
+        if (content.startsWith("usersByCountry:")) {
+            let usersByCountry = deserialize(content.substring(15));
+            drawUsersByCountry(usersByCountry);
+        } else if (content.startsWith("newPublicRoom:")) {
+            let roomInfo = deserialize(content.substring(14));
+            let currentRoomLang = $(".rooms-options select[name=room_lang]").val();
+            if (roomInfo.language === currentRoomLang) {
+                let html = chatClientMessages.roomCreated.replace("[roomName]", "<code>" + roomInfo.roomName + "</code>");
+                this.printEventMessage(html);
+                refreshRooms(roomInfo.language);
+            }
+        } else if (content.startsWith("updatedPublicRoom:")) {
+            let roomInfo = deserialize(content.substring(18));
+            let currentRoomLang = $(".rooms-options select[name=room_lang]").val();
+            if (roomInfo.language === currentRoomLang) {
+                $(".rooms .room").filter(function () {
+                    return $(this).data("room-id") === roomInfo.roomId;
+                }).each(function () {
+                    let room = $(this);
+                    room.find(".curr-users span").text(roomInfo.currentUsers);
+                    if (roomInfo.currentUsers > 0) {
+                        room.addClass("active");
+                    } else {
+                        room.removeClass("active");
+                    }
+                });
+            }
+        }
+    };
 
-function printUserJoinedMessage(payload, restored) {
-    let chater = deserialize(payload.chater);
-    printEventMessage(chatClientMessages.userJoined.replace("[username]", "<strong>" + chater.username + "</strong>"));
-}
+    chatClient.printJoinMessage = function (chater, restored) {
+    };
 
-function printUserLeftMessage(payload, restored) {
-}
+    chatClient.printUserJoinedMessage = function (payload, restored) {
+        let chater = deserialize(payload.chater);
+        this.printEventMessage(chatClientMessages.userJoined.replace("[username]", "<strong>" + chater.username + "</strong>"));
+    };
 
-function printEventMessage(html, timeout) {
-    if (!broadcastEnabled) {
-        return;
-    }
-    let convo = $("#convo");
-    let content = $("<p class='content'/>").html(html);
-    let message = $("<div/>").addClass("message").append(content);
-    message.appendTo(convo);
-    scrollToBottom(convo, false);
-    setTimeout(function () {
-        message.remove();
-    }, timeout||3500);
-}
+    chatClient.printUserLeftMessage = function (payload, restored) {
+    };
 
-function leaveRoom(force) {
-    closeSocket();
-    if (force) {
-        location.href = "/signout";
-    } else {
-        gotoHome();
-    }
-}
+    chatClient.printEventMessage = function (html, timeout) {
+        if (!broadcastEnabled) {
+            return;
+        }
+        let convo = $("#convo");
+        let content = $("<p class='content'/>").html(html);
+        let message = $("<div/>").addClass("message").append(content);
+        message.appendTo(convo);
+        this.scrollToBottom(convo, false);
+        setTimeout(function () {
+            message.remove();
+        }, timeout || 3500);
+    };
 
-function gotoHome() {
-    leaveRoom(true);
+    chatClient.leaveRoom = function (force) {
+        this.closeSocket();
+        if (force) {
+            location.href = "/signout";
+        } else {
+            gotoHome();
+        }
+    };
+
+    chatClient.gotoHome = function () {
+        this.leaveRoom(true);
+    };
 }

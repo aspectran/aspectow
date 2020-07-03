@@ -114,3 +114,6 @@
     border-radius: 5px !important;
     background-color: #1b838d;
 }
+.random .users-by-country-container {
+    display: none;
+}

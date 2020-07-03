@@ -1,14 +1,15 @@
+let chatClient;
 let broadcastEnabled = false;
 let chatRequestEstablished = false;
 
 $(function () {
-    if (!Modernizr.websockets || detectIE()) {
-        gotoHome();
-        return;
-    }
     if (!checkSignedIn()) {
         $("#message").blur();
         $("#message, #form-send-message button").prop("disabled", true);
+        return false;
+    }
+    chatClient = new ChatClientCore(chatClientSettings);
+    if (!chatClient.init(makeStrangerChatClient)) {
         return;
     }
     broadcastEnabled = true;
@@ -112,6 +113,75 @@ $(function () {
         sendChatRequestMessage("request-accepted", userNo);
     });
 });
+
+function makeStrangerChatClient(chatClient) {
+    chatClient.printMessage = function (payload, restored) {
+        if (payload.content.startsWith("broadcast:")) {
+            if (broadcastEnabled) {
+                this.printBroadcastMessage(payload);
+            }
+        } else {
+            handleChatRequestMessage(payload.content);
+        }
+    };
+
+    chatClient.printBroadcastMessage = function (payload) {
+        let chater = deserialize(payload.chater);
+        let convo = $("#convo");
+        if (convo.find(".message").length >= 5) {
+            convo.find(".message").first().remove();
+        }
+        let sender = $("<code class='sender'/>").text(chater.username);
+        let content = $("<p class='content'/>")
+            .text(payload.content.substring(10))
+            .prepend(sender);
+        let message = $("<div/>")
+            .addClass("message")
+            .data("user-no", chater.userNo)
+            .data("username", chater.username)
+            .append(content);
+        if (chater.color) {
+            message.addClass("my-col-" + chater.color);
+        }
+        convo.append(message);
+        this.scrollToBottom(convo, false);
+        setTimeout(function () {
+            message.remove();
+        }, 10000);
+    };
+
+    chatClient.printJoinMessage = function (chater, restored) {
+    };
+
+    chatClient.printUserJoinedMessage = function (payload, restored) {
+        let chater = deserialize(payload.chater);
+        this.printEventMessage(chatClientMessages.userJoined.replace("[username]", "<strong>" + chater.username + "</strong>"));
+    };
+
+    chatClient.printUserLeftMessage = function (payload, restored) {
+        chatRequestCanceled(payload.userNo);
+    };
+
+    chatClient.printEventMessage = function (html, timeout) {
+        if (!broadcastEnabled) {
+            return;
+        }
+        let convo = $("#convo");
+        let content = $("<p class='content'/>").html(html);
+        let message = $("<div/>").addClass("message").append(content);
+        message.appendTo(convo);
+        this.scrollToBottom(convo, false);
+        setTimeout(function () {
+            message.remove();
+        }, timeout||3500);
+    };
+
+    chatClient.gotoHome = function () {
+        if (!chatRequestEstablished && chatClientSettings.homepage) {
+            location.href = chatClientSettings.homepage;
+        }
+    };
+}
 
 function handleChatRequestMessage(content) {
     if (!content || chatRequestEstablished) {
@@ -277,72 +347,5 @@ function sendChatRequestMessage(requestType, userNo) {
     let chatMessage = {
         message: message
     };
-    socket.send(serialize(chatMessage));
-}
-
-function printMessage(payload, restored) {
-    if (payload.content.startsWith("broadcast:")) {
-        if (broadcastEnabled) {
-            printBroadcastMessage(payload);
-        }
-    } else {
-        handleChatRequestMessage(payload.content);
-    }
-}
-
-function printBroadcastMessage(payload) {
-    let chater = deserialize(payload.chater);
-    let convo = $("#convo");
-    if (convo.find(".message").length >= 5) {
-        convo.find(".message").first().remove();
-    }
-    let sender = $("<code class='sender'/>").text(chater.username);
-    let content = $("<p class='content'/>")
-        .text(payload.content.substring(10))
-        .prepend(sender);
-    let message = $("<div/>")
-        .addClass("message")
-        .data("user-no", chater.userNo)
-        .data("username", chater.username)
-        .append(content);
-    if (chater.color) {
-        message.addClass("my-col-" + chater.color);
-    }
-    convo.append(message);
-    scrollToBottom(convo, false);
-    setTimeout(function () {
-        message.remove();
-    }, 10000);
-}
-
-function printJoinMessage(chater, restored) {
-}
-
-function printUserJoinedMessage(payload, restored) {
-    let chater = deserialize(payload.chater);
-    printEventMessage(chatClientMessages.userJoined.replace("[username]", "<strong>" + chater.username + "</strong>"));
-}
-
-function printUserLeftMessage(payload, restored) {
-    chatRequestCanceled(payload.userNo);
-}
-
-function printEventMessage(html, timeout) {
-    if (!broadcastEnabled) {
-        return;
-    }
-    let convo = $("#convo");
-    let content = $("<p class='content'/>").html(html);
-    let message = $("<div/>").addClass("message").append(content);
-    message.appendTo(convo);
-    scrollToBottom(convo, false);
-    setTimeout(function () {
-        message.remove();
-    }, timeout||3500);
-}
-
-function gotoHome() {
-    if (!chatRequestEstablished && chatClientSettings.homepage) {
-        location.href = chatClientSettings.homepage;
-    }
+    chatClient.sendMessage(serialize(chatMessage));
 }

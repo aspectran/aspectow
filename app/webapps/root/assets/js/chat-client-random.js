@@ -1,14 +1,16 @@
+let chatClient;
 let tokenIssuanceTimer;
 let tokenIssuanceCanceled;
 
 $(function () {
-    if (!Modernizr.websockets || detectIE()) {
-        gotoHome();
-        return;
-    }
+    $(".users-by-country-container").hide();
     if (!checkSignedIn()) {
         $("#message").blur();
         $("#message, #form-send-message button").prop("disabled", true);
+        return false;
+    }
+    chatClient = new ChatClientCore(chatClientSettings);
+    if (!chatClient.init(makeRandomChatClient)) {
         return;
     }
     $("button.leave").off().on("click", function () {
@@ -16,15 +18,15 @@ $(function () {
         if (tokenIssuanceTimer) {
             clearTimeout(tokenIssuanceTimer);
         }
-        closeSocket();
+        chatClient.closeSocket();
         setTimeout(function () {
-            leaveRoom();
+            chatClient.leaveRoom();
         }, 500);
     });
     $(".message-box button.send").prop("disabled", true).addClass("pause");
     $(".message-box button.next").on("click", function () {
         $(".message-box button.send").prop("disabled", true).addClass("pause");
-        closeSocket();
+        chatClient.closeSocket();
         startLooking();
     });
     $("#convo").on("click", ".message.custom button.next", function () {
@@ -32,8 +34,57 @@ $(function () {
     }).on("click", ".message.custom button.cancel", function () {
         stopLooking(true);
     });
+    $(".users-by-country-container").show();
     startLooking();
 });
+
+function makeRandomChatClient(chatClient) {
+    chatClient.printJoinMessage = function (chater, restored) {
+        this.removeConvoMessages();
+        drawLookingBox();
+    };
+
+    chatClient.printUserJoinedMessage = function (payload, restored) {
+        this.removeConvoMessages();
+        let chater = deserialize(payload.chater);
+        let html = chatClientMessages.userJoined.replace("[username]", "<strong>" + chater.username + "</strong>");
+        chatClient.printEventMessage(html, restored);
+        if (chater.description) {
+            let title = chatClientMessages.selfIntroductionTitle.replace("[username]", "<strong>" + chater.username + "</strong>");
+            let selfIntro = $("<div class='self-introduction'/>");
+            $("<p class='self-introduction-title'/>").html(title).appendTo(selfIntro);
+            $("<p class='description'/>").text(chater.description).appendTo(selfIntro);
+            if (chater.color) {
+                selfIntro.addClass("my-col-" + chater.color);
+            }
+            this.printCustomMessage(selfIntro);
+        }
+        $(".message-box button.send").prop("disabled", false).removeClass("pause");
+        this.readyToType();
+        setTimeout(function () {
+            hideSidebar();
+        }, 500);
+    };
+
+    chatClient.printUserLeftMessage = function (payload, restored) {
+        let chater = deserialize(payload.chater);
+        let html = chatClientMessages.userLeft.replace("[username]", "<strong>" + chater.username + "</strong>");
+        chatClient.printEventMessage(html, restored);
+        $(".message-box button.send").prop("disabled", true).addClass("pause");
+        stopLooking();
+    };
+
+    chatClient.serviceNotAvailable = function () {
+        this.closeSocket();
+        this.clearChaters();
+        this.removeConvoMessages();
+        openNoticePopup(chatClientMessages.systemError,
+            chatClientMessages.serviceNotAvailable,
+            function () {
+                chatClient.gotoHome();
+            });
+    };
+}
 
 function startLooking() {
     if (tokenIssuanceTimer) {
@@ -54,25 +105,25 @@ function startLooking() {
                     if (!tokenIssuanceCanceled) {
                         switch (response.error) {
                             case -1:
-                                reloadPage();
+                                chatClient.reloadPage();
                                 break;
                             case 0:
                                 hideSidebar();
-                                openSocket(response.token);
+                                chatClient.openSocket(response.token);
                         }
                     }
                 } else {
-                    serviceNotAvailable();
+                    chatClient.serviceNotAvailable();
                 }
             },
             error: function () {
-                serviceNotAvailable();
+                chatClient.serviceNotAvailable();
             }
         });
     }, 1000);
     hideSidebar();
-    clearChaters();
-    removeConvoMessages();
+    chatClient.clearChaters();
+    chatClient.removeConvoMessages();
     drawLookingBox(true);
 }
 
@@ -81,10 +132,10 @@ function stopLooking(convoClear) {
         clearTimeout(tokenIssuanceTimer);
     }
     hideSidebar();
-    closeSocket();
-    clearChaters();
+    chatClient.closeSocket();
+    chatClient.clearChaters();
     if (convoClear) {
-        removeConvoMessages();
+        chatClient.removeConvoMessages();
     }
     drawSearchBox();
 }
@@ -94,7 +145,7 @@ function drawSearchBox() {
         "<i class='iconfont fi-shuffle banner'></i>" +
         "<button type='button' class='success button next'>" + chatClientMessages.searchAnother + "</button>" +
         "</div>";
-    printCustomMessage(html);
+    chatClient.printCustomMessage(html);
 }
 
 function drawLookingBox(intermission) {
@@ -111,56 +162,10 @@ function drawLookingBox(intermission) {
         "<div class='progress-bar'><div class='cylon_eye'></div></div>" +
         "<button type='button' class='success button cancel'>" + chatClientMessages.cancel + "</button>" +
         "</div>";
-    printCustomMessage(html);
+    chatClient.printCustomMessage(html);
     if (intermission) {
         setTimeout(function () {
             $("#convo .message.custom .banner").addClass("animate");
         }, 200);
     }
-}
-
-function printJoinMessage(chater, restored) {
-    removeConvoMessages();
-    drawLookingBox();
-}
-
-function printUserJoinedMessage(payload, restored) {
-    removeConvoMessages();
-    let chater = deserialize(payload.chater);
-    let html = chatClientMessages.userJoined.replace("[username]", "<strong>" + chater.username + "</strong>");
-    printEventMessage(html, restored);
-    if (chater.description) {
-        let title = chatClientMessages.selfIntroductionTitle.replace("[username]", "<strong>" + chater.username + "</strong>");
-        let selfIntro = $("<div class='self-introduction'/>");
-        $("<p class='self-introduction-title'/>").html(title).appendTo(selfIntro);
-        $("<p class='description'/>").text(chater.description).appendTo(selfIntro);
-        if (chater.color) {
-            selfIntro.addClass("my-col-" + chater.color);
-        }
-        printCustomMessage(selfIntro);
-    }
-    $(".message-box button.send").prop("disabled", false).removeClass("pause");
-    readyToType();
-    setTimeout(function () {
-        hideSidebar();
-    }, 500);
-}
-
-function printUserLeftMessage(payload, restored) {
-    let chater = deserialize(payload.chater);
-    let html = chatClientMessages.userLeft.replace("[username]", "<strong>" + chater.username + "</strong>");
-    printEventMessage(html, restored);
-    $(".message-box button.send").prop("disabled", true).addClass("pause");
-    stopLooking();
-}
-
-function serviceNotAvailable() {
-    closeSocket();
-    clearChaters();
-    removeConvoMessages();
-    openNoticePopup(chatClientMessages.systemError,
-        chatClientMessages.serviceNotAvailable,
-        function () {
-            gotoHome();
-    });
 }

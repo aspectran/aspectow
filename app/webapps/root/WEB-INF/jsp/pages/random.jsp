@@ -1,12 +1,12 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://aspectran.com/tags" prefix="aspectran" %>
-<link rel="stylesheet" type="text/css" href="/assets/css/chat-core.css?v29"/>
-<link rel="stylesheet" type="text/css" href="/assets/css/chat-random.css?v23"/>
-<link rel="stylesheet" type="text/css" href="/assets/css/users-by-country.css?v6"/>
-<script src="/assets/js/chat-client-core.js?v30"></script>
-<script src="/assets/js/chat-client-random.js?v25"></script>
-<script src="/assets/js/users-by-country.js?v6"></script>
+<link rel="stylesheet" type="text/css" href="/assets/css/chat-core.css?v31"/>
+<link rel="stylesheet" type="text/css" href="/assets/css/chat-random.css?v24"/>
+<link rel="stylesheet" type="text/css" href="/assets/css/users-by-country.css?v7"/>
+<script src="/assets/js/chat-client-core.js?v31"></script>
+<script src="/assets/js/chat-client-random.js?v26"></script>
+<script src="/assets/js/users-by-country.js?v7"></script>
 <script>
     const chatClientSettings = {
         serverEndpoint: "/chat/random/",
@@ -37,7 +37,7 @@
             </div>
             <div class="cell auto cell-block-y">
                 <div id="convo" class="grid-container full-height">
-                    <div class="b15">
+                    <div class="users-by-country-container b15">
                         <%@ include file="includes/users-by-country.jsp" %>
                     </div>
                 </div>

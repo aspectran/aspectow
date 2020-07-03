@@ -2,7 +2,7 @@ let tokenIssuanceTimer;
 let tokenIssuanceCanceled;
 
 $(function () {
-    if (!userInfo.userNo) {
+    if (!chatClient.isAvailable()) {
         return;
     }
     $(".language-settings .button.ok").on("click", function () {
@@ -26,7 +26,7 @@ $(function () {
             native_lang: nativeLang,
             convo_lang: convoLang
         }
-        closeSocket();
+        chatClient.closeSocket();
         startExchangeChat(params)
     });
     let storedNativeLang = localStorage.getItem("nativeLang")||userInfo.language;
@@ -63,7 +63,7 @@ function startExchangeChat(params) {
                     if (!tokenIssuanceCanceled) {
                         switch (response.error) {
                             case -1:
-                                reloadPage();
+                                chatClient.reloadPage();
                                 break;
                             case -2:
                                 $(".language-settings .form-error").hide();
@@ -71,7 +71,7 @@ function startExchangeChat(params) {
                                 break;
                             case 0:
                                 hideSidebar();
-                                openSocket(response.token, params);
+                                chatClient.openSocket(response.token, params);
                                 $(".choose-info").fadeIn();
                                 $(".language-settings .guide").hide();
                         }
@@ -86,6 +86,6 @@ function startExchangeChat(params) {
         });
     }, 600);
     hideSidebar();
-    clearChaters();
-    clearConvo();
+    chatClient.clearChaters();
+    chatClient.clearConvo();
 }
