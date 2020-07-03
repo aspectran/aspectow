@@ -62,7 +62,7 @@ $(function () {
     });
     $("#lobby-private-room-create-complete").on("click", ".copy-to-clipboard", function () {
         copyToClipboard("#lobby-private-room-create-complete .private-chatroom-url");
-        $(this).data("old-text", $(this).text()).text(modalMessages.copied).addClass("alert");
+        $(this).data("old-text", $(this).text()).text(modalMessages.copied).addClass("secondary");
     });
     $("a.start[href]").on("click", function (event) {
         event.preventDefault();

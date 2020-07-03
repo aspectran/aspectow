@@ -571,5 +571,4 @@ function ChatClientCore(chatClientSettings) {
                 chatClient.gotoHome();
             });
     };
-
 }

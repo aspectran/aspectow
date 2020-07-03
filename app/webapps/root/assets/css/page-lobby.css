@@ -86,7 +86,7 @@
     background-color: #2888af;
 }
 .service.random h4 {
-    color: #e75f7f;
+    color: #e76686;
 }
 .service.random p.guide {
     border-left: 2px solid #d26881;
@@ -95,10 +95,10 @@
     color: #d26881;
 }
 .service.random .service-options .button.start {
-    background-color: #e07a91;
+    background-color: #de7b91;
 }
 .service.random:hover .service-options .button.start {
-    background-color: #ea6887;
+    background-color: #f16e8d;
 }
 @media screen and (max-width: 18em) {
     .service.random p.dummy {
@@ -106,7 +106,7 @@
     }
 }
 .service.strangers h4 {
-    color: #e5831b;
+    color: #ff9319;
 }
 .service.strangers p.guide {
     border-left: 2px solid #ffa83c;

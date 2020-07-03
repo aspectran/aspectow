@@ -40,12 +40,12 @@ $(function () {
 
 function makeRandomChatClient(chatClient) {
     chatClient.printJoinMessage = function (chater, restored) {
-        this.removeConvoMessages();
+        chatClient.removeConvoMessages();
         drawLookingBox();
     };
 
     chatClient.printUserJoinedMessage = function (payload, restored) {
-        this.removeConvoMessages();
+        chatClient.removeConvoMessages();
         let chater = deserialize(payload.chater);
         let html = chatClientMessages.userJoined.replace("[username]", "<strong>" + chater.username + "</strong>");
         chatClient.printEventMessage(html, restored);
@@ -57,10 +57,10 @@ function makeRandomChatClient(chatClient) {
             if (chater.color) {
                 selfIntro.addClass("my-col-" + chater.color);
             }
-            this.printCustomMessage(selfIntro);
+            chatClient.printCustomMessage(selfIntro);
         }
         $(".message-box button.send").prop("disabled", false).removeClass("pause");
-        this.readyToType();
+        chatClient.readyToType();
         setTimeout(function () {
             hideSidebar();
         }, 500);
@@ -75,9 +75,9 @@ function makeRandomChatClient(chatClient) {
     };
 
     chatClient.serviceNotAvailable = function () {
-        this.closeSocket();
-        this.clearChaters();
-        this.removeConvoMessages();
+        chatClient.closeSocket();
+        chatClient.clearChaters();
+        chatClient.removeConvoMessages();
         openNoticePopup(chatClientMessages.systemError,
             chatClientMessages.serviceNotAvailable,
             function () {

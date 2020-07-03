@@ -79,9 +79,9 @@ public class PrivateChatHandler extends AbstractChatHandler {
                             sendAbort(session, chaterInfo, "exists");
                             return;
                         }
-                        Session session2 = chaters.get(chaterInfo);
-                        if (session2 != null) {
-                            sendAbort(session2, chaterInfo, "rejoin");
+                        if (chaters.containsKey(chaterInfo)) {
+                            sendAbort(session, chaterInfo, "rejoin");
+                            return;
                         }
                         if (!join(session, chaterInfo, true)) {
                             broadcastUserJoined(chaterInfo);

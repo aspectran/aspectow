@@ -102,9 +102,9 @@ public class RandomChatHandler extends AbstractChatHandler {
                             sendAbort(session, chaterInfo, "exists");
                             return;
                         }
-                        Session session2 = chaters.get(chaterInfo);
-                        if (session2 != null) {
-                            sendAbort(session2, chaterInfo, "rejoin");
+                        if (chaters.containsKey(chaterInfo)) {
+                            sendAbort(session, chaterInfo, "rejoin");
+                            return;
                         }
                         join(session, chaterInfo, true);
                     } else {
@@ -140,8 +140,8 @@ public class RandomChatHandler extends AbstractChatHandler {
     }
 
     private void leave(Session session, ChaterInfo chaterInfo) {
-        randomChatCoupler.withdraw(chaterInfo);
         if (chaters.remove(chaterInfo, session)) {
+            randomChatCoupler.withdraw(chaterInfo);
             chatersPersistence.remove(chaterInfo);
             randomChatersByLangPersistence.remove(chaterInfo);
             signedInUsersPersistence.tryAbandon(chaterInfo.getUsername(), chaterInfo.getHttpSessionId());
@@ -154,13 +154,6 @@ public class RandomChatHandler extends AbstractChatHandler {
             }
             randomCouplePersistence.remove(chaterInfo.getUserNo());
         }
-    }
-
-    @Override
-    protected void sendAbort(Session session, ChaterInfo chaterInfo, String cause) {
-        randomChatCoupler.withdraw(chaterInfo);
-        randomCouplePersistence.remove(chaterInfo.getUserNo());
-        super.sendAbort(session, chaterInfo, cause);
     }
 
     private void broadcastUserJoined(ChaterInfo chaterInfo, ChaterInfo chaterInfo2) {

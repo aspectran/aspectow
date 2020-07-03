@@ -34,10 +34,10 @@ function makeLobbyChatClient(chatClient) {
     chatClient.printMessage = function (payload, restored) {
         if (payload.content.startsWith("broadcast:")) {
             if (broadcastEnabled) {
-                this.printBroadcastMessage(payload);
+                chatClient.printBroadcastMessage(payload);
             }
         } else {
-            this.handleSystemMessage(payload.content);
+            chatClient.handleSystemMessage(payload.content);
         }
     };
 
@@ -60,7 +60,7 @@ function makeLobbyChatClient(chatClient) {
             message.addClass("my-col-" + chater.color);
         }
         convo.append(message);
-        this.scrollToBottom(convo, false);
+        chatClient.scrollToBottom(convo, false);
         setTimeout(function () {
             message.remove();
         }, 10000);
@@ -78,7 +78,7 @@ function makeLobbyChatClient(chatClient) {
             let currentRoomLang = $(".rooms-options select[name=room_lang]").val();
             if (roomInfo.language === currentRoomLang) {
                 let html = chatClientMessages.roomCreated.replace("[roomName]", "<code>" + roomInfo.roomName + "</code>");
-                this.printEventMessage(html);
+                chatClient.printEventMessage(html);
                 refreshRooms(roomInfo.language);
             }
         } else if (content.startsWith("updatedPublicRoom:")) {
@@ -105,7 +105,7 @@ function makeLobbyChatClient(chatClient) {
 
     chatClient.printUserJoinedMessage = function (payload, restored) {
         let chater = deserialize(payload.chater);
-        this.printEventMessage(chatClientMessages.userJoined.replace("[username]", "<strong>" + chater.username + "</strong>"));
+        chatClient.printEventMessage(chatClientMessages.userJoined.replace("[username]", "<strong>" + chater.username + "</strong>"));
     };
 
     chatClient.printUserLeftMessage = function (payload, restored) {
@@ -119,22 +119,22 @@ function makeLobbyChatClient(chatClient) {
         let content = $("<p class='content'/>").html(html);
         let message = $("<div/>").addClass("message").append(content);
         message.appendTo(convo);
-        this.scrollToBottom(convo, false);
+        chatClient.scrollToBottom(convo, false);
         setTimeout(function () {
             message.remove();
         }, timeout || 3500);
     };
 
     chatClient.leaveRoom = function (force) {
-        this.closeSocket();
+        chatClient.closeSocket();
         if (force) {
             location.href = "/signout";
         } else {
-            gotoHome();
+            chatClient.gotoHome();
         }
     };
 
     chatClient.gotoHome = function () {
-        this.leaveRoom(true);
+        chatClient.leaveRoom(true);
     };
 }
