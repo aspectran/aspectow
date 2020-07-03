@@ -77,11 +77,11 @@ function startExchangeChat(params) {
                         }
                     }
                 } else {
-                    serviceNotAvailable();
+                    chatClient.serviceNotAvailable();
                 }
             },
             error: function () {
-                serviceNotAvailable();
+                chatClient.serviceNotAvailable();
             }
         });
     }, 600);
