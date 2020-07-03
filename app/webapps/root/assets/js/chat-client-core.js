@@ -346,7 +346,15 @@ function findUser(userNo) {
 
 function clearChaters() {
     $("#contacts").empty();
-    clearTotalPeople();
+    updateTotalPeople();
+}
+
+function clearConvo() {
+    $("#convo").empty();
+}
+
+function removeConvoMessages() {
+    $("#convo .message").remove();
 }
 
 function getTotalPeople() {
@@ -358,20 +366,8 @@ function updateTotalPeople() {
     if (total) {
         $("#totalPeople").text(total).fadeIn();
     } else {
-        $("#totalPeople").text("").fadeOut();
+        $("#totalPeople").text("").hide();
     }
-}
-
-function clearTotalPeople() {
-    $("#totalPeople").text("");
-}
-
-function clearConvo() {
-    $("#convo").empty();
-}
-
-function removeConvoMessages() {
-    $("#convo .message").remove();
 }
 
 function printJoinMessage(chater, restored) {

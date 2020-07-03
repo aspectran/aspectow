@@ -91,6 +91,7 @@ input#for-automata-clear {
     min-width: 20px;
 }
 .header .button.sidebar-toggler span#totalPeople {
+    font-weight: bold;
     display: none;
 }
 .header .button.leave {
