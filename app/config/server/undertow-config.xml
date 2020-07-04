@@ -181,13 +181,7 @@
             <item name="towServletContainer">#{tow.server^towServletContainer}</item>
             <item name="staticResourceHandler">#{tow.staticResourceHandler}</item>
         </properties>
-        <properties profile="!prod">
-            <item name="outerHandlerChainWrappers" type="array">
-                <value>#{tow.encodingHandlerWrapper}</value>
-                <value>#{tow.accessLogHandlerWrapper}</value>
-            </item>
-        </properties>
-        <properties profile="prod">
+        <properties>
             <item name="outerHandlerChainWrappers" type="array">
                 <value>#{tow.encodingHandlerWrapper}</value>
             </item>
@@ -234,14 +228,6 @@
                 <value>application/xml</value>
                 <value>application/apon</value>
             </item>
-        </properties>
-    </bean>
-
-    <bean id="tow.accessLogHandlerWrapper" class="com.aspectran.undertow.server.accesslog.AccessLogHandlerWrapper"
-          scope="prototype">
-        <properties>
-            <item name="formatString">combined</item>
-            <item name="category">io.undertow.accesslog</item>
         </properties>
     </bean>
 
