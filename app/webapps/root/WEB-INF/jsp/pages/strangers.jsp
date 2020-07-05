@@ -10,7 +10,7 @@
         serverEndpoint: "/chat/stranger/",
         admissionToken: "${page.token}",
         autoConnectEnabled: true,
-        pingPerHeartbeats: 15,
+        pingPerHeartbeats: 9,
         homepage: "/"
     };
     const chatClientMessages = {

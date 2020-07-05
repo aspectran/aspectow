@@ -13,7 +13,7 @@
         serverEndpoint: "/chat/exchange/",
         admissionToken: "",
         autoConnectEnabled: false,
-        pingPerHeartbeats: 15,
+        pingPerHeartbeats: 9,
         homepage: "/"
     };
     const chatClientMessages = {

@@ -141,9 +141,8 @@
                         <item>
                             workerName: n0
                             maxSessions: 99999
-                            maxIdleSeconds: 1200
-                            evictionIdleSeconds: 900
-                            scavengingIntervalSeconds: 600
+                            maxIdleSeconds: 600
+                            scavengingIntervalSeconds: 300
                             removeUnloadableSessions: true
                             clusterEnabled: false
                         </item>
