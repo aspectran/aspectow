@@ -2,21 +2,22 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://aspectran.com/tags" prefix="aspectran" %>
 <aspectran:token type="property" expression="languages" var="languages"/>
-<link rel="stylesheet" type="text/css" href="/assets/css/chat-core.css?v30"/>
-<link rel="stylesheet" type="text/css" href="/assets/css/chat-lobby.css?v24"/>
-<link rel="stylesheet" type="text/css" href="/assets/css/page-lobby.css?v23"/>
-<link rel="stylesheet" type="text/css" href="/assets/css/users-by-country.css?v7"/>
-<script src="/assets/js/chat-client-core.js?v31"></script>
-<script src="/assets/js/chat-client-lobby.js?v31"></script>
-<script src="/assets/js/page-lobby.js?v33"></script>
-<script src="/assets/js/users-by-country.js?v7"></script>
+<link rel="stylesheet" type="text/css" href="<aspectran:token type='property' expression='cdn.assets.url'/>/css/chat-core.css"/>
+<link rel="stylesheet" type="text/css" href="<aspectran:token type='property' expression='cdn.assets.url'/>/css/chat-lobby.css"/>
+<link rel="stylesheet" type="text/css" href="<aspectran:token type='property' expression='cdn.assets.url'/>/css/page-lobby.css"/>
+<link rel="stylesheet" type="text/css" href="<aspectran:token type='property' expression='cdn.assets.url'/>/css/users-by-country.css"/>
+<script src="<aspectran:token type='property' expression='cdn.assets.url'/>/js/chat-client-core.js"></script>
+<script src="<aspectran:token type='property' expression='cdn.assets.url'/>/js/chat-client-lobby.js"></script>
+<script src="<aspectran:token type='property' expression='cdn.assets.url'/>/js/page-lobby.js"></script>
+<script src="<aspectran:token type='property' expression='cdn.assets.url'/>/js/users-by-country.js"></script>
 <script>
     const chatClientSettings = {
         serverEndpoint: "/chat/lobby/",
         admissionToken: "${page.token}",
         autoConnectEnabled: true,
         pingPerHeartbeats: 9,
-        homepage: "/"
+        homepage: "/",
+        cdnAssetsUrl: "<aspectran:token type='property' expression='cdn.assets.url'/>"
     };
     const chatClientMessages = {
         "userJoined": "<aspectran:message code='chat.lobby.user_joined'/>",
@@ -32,7 +33,7 @@
             <div class="sidebar cell medium-4 large-3 cell-block-y hide-for-small-only">
                 <c:if test="${empty user}">
                     <div class="text-center t30 b20">
-                        <img src="/assets/images/textchat-heartbeat.svg" width="70%" alt="<aspectran:message code='site.title'/>"/>
+                        <img src="<aspectran:token type='property' expression='cdn.assets.url'/>/images/textchat-heartbeat.svg" width="70%" alt="<aspectran:message code='site.title'/>"/>
                     </div>
                     <div class="text-center">
                         <a href="?locale=en">English</a>

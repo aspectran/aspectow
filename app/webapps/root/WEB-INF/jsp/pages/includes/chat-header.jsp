@@ -5,6 +5,7 @@
     <div class="grid-x">
         <div class="cell auto align-self-middle">
             <button type="button" class="button sidebar-toggler" title="<aspectran:message code="header.button.people"/>">
+                <img src="<aspectran:token type='property' expression='cdn.assets.url'/>/images/textchat.svg" alt=""/>
                 <span id="totalPeople"></span></button>
                 <c:choose>
                     <c:when test="${not empty page.roomName}">

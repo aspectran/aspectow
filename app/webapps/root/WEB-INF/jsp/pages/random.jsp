@@ -1,19 +1,20 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://aspectran.com/tags" prefix="aspectran" %>
-<link rel="stylesheet" type="text/css" href="/assets/css/chat-core.css?v31"/>
-<link rel="stylesheet" type="text/css" href="/assets/css/chat-random.css?v24"/>
-<link rel="stylesheet" type="text/css" href="/assets/css/users-by-country.css?v7"/>
-<script src="/assets/js/chat-client-core.js?v31"></script>
-<script src="/assets/js/chat-client-random.js?v26"></script>
-<script src="/assets/js/users-by-country.js?v7"></script>
+<link rel="stylesheet" type="text/css" href="<aspectran:token type='property' expression='cdn.assets.url'/>/css/chat-core.css"/>
+<link rel="stylesheet" type="text/css" href="<aspectran:token type='property' expression='cdn.assets.url'/>/css/chat-random.css"/>
+<link rel="stylesheet" type="text/css" href="<aspectran:token type='property' expression='cdn.assets.url'/>/css/users-by-country.css"/>
+<script src="<aspectran:token type='property' expression='cdn.assets.url'/>/js/chat-client-core.js"></script>
+<script src="<aspectran:token type='property' expression='cdn.assets.url'/>/js/chat-client-random.js"></script>
+<script src="<aspectran:token type='property' expression='cdn.assets.url'/>/js/users-by-country.js"></script>
 <script>
     const chatClientSettings = {
         serverEndpoint: "/chat/random/",
         admissionToken: "",
         autoConnectEnabled: false,
         pingPerHeartbeats: 9,
-        homepage: "/"
+        homepage: "/",
+        cdnAssetsUrl: "<aspectran:token type='property' expression='cdn.assets.url'/>"
     };
     const chatClientMessages = {
         "welcome": "<aspectran:message code='chat.common.welcome'/>",

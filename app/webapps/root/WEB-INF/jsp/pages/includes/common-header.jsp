@@ -4,7 +4,9 @@
 <div class="header cell cell-block-container">
     <div class="grid-x">
         <div class="cell auto align-self-middle">
-            <button type="button" class="button sidebar-toggler" title="<aspectran:message code="site.title"/>"></button>
+            <button type="button" class="button sidebar-toggler" title="<aspectran:message code="site.title"/>">
+                <img src="<aspectran:token type='property' expression='cdn.assets.url'/>/images/textchat.svg" alt=""/>
+            </button>
             <h1 title="<aspectran:message code="site.title"/>"><aspectran:message code="site.title"/></h1>
         </div>
         <div class="cell shrink align-self-middle text-right">

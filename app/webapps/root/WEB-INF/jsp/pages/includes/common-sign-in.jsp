@@ -10,19 +10,19 @@
 <div id="common-sign-in" class="reveal popup" data-reveal data-close-on-click="false" data-close-on-esc="false">
     <c:choose>
         <c:when test="${not empty page.roomName}">
-            <h2>${page.roomName}</h2>
+            <h2><img src="<aspectran:token type='property' expression='cdn.assets.url'/>/images/textchat.svg" alt=""/> ${page.roomName}</h2>
         </c:when>
         <c:when test="${page.roomId eq '-1'}">
-            <h2><aspectran:message code="service.random_chat"/></h2>
+            <h2><img src="<aspectran:token type='property' expression='cdn.assets.url'/>/images/textchat.svg" alt=""/> <aspectran:message code="service.random_chat"/></h2>
         </c:when>
         <c:when test="${page.roomId eq '-2'}">
-            <h2><aspectran:message code="service.stranger_chat"/></h2>
+            <h2><img src="<aspectran:token type='property' expression='cdn.assets.url'/>/images/textchat.svg" alt=""/> <aspectran:message code="service.stranger_chat"/></h2>
         </c:when>
         <c:when test="${page.roomId eq '-3'}">
-            <h2><aspectran:message code="service.exchange_chat"/></h2>
+            <h2><img src="<aspectran:token type='property' expression='cdn.assets.url'/>/images/textchat.svg" alt=""/> <aspectran:message code="service.exchange_chat"/></h2>
         </c:when>
         <c:otherwise>
-            <h2><aspectran:message code="modal.sign_in.title"/></h2>
+            <h2><img src="<aspectran:token type='property' expression='cdn.assets.url'/>/images/textchat.svg" alt=""/> <aspectran:message code="modal.sign_in.title"/></h2>
         </c:otherwise>
     </c:choose>
     <form id="form-sign-in" method="post">

@@ -56,6 +56,7 @@
 <!--    </aspect>-->
 
     <append file="/config/web/common/xss-prevent.xml"/>
+    <append file="/config/web/common/cdn-config.xml"/>
     <append file="/config/web/pages/pages.xml"/>
     <append file="/config/web/pages/modal-pages.xml" profile="!prod"/>
     <append file="/config/web/pages/modal-errors.xml" profile="!prod"/>

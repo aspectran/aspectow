@@ -1,7 +1,7 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib uri="http://aspectran.com/tags" prefix="aspectran" %>
 <div id="common-wait-popup" class="reveal popup" data-reveal data-close-on-click="false" data-close-on-esc="false">
-    <h2><aspectran:message code="common.please_wait"/></h2>
+    <h2><img src="<aspectran:token type='property' expression='cdn.assets.url'/>/images/textchat.svg" alt=""/> <aspectran:message code="common.please_wait"/></h2>
     <div class="grid-x grid-margin-y">
         <div class="cell show-for-small-only t30">
         </div>

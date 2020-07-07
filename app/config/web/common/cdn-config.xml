@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE aspectran PUBLIC "-//ASPECTRAN//DTD Aspectran Configuration 6.0//EN"
+        "http://aspectran.github.io/dtd/aspectran-6.dtd">
+<aspectran>
+
+    <environment profile="dev">
+        <properties>
+            <item name="cdn.assets.url" value="%{classpath:cdn-dev.properties^cdn.assets.url}"/>
+        </properties>
+    </environment>
+
+    <environment profile="prod">
+        <properties>
+            <item name="cdn.assets.url" value="%{classpath:cdn-prod.properties^cdn.assets.url}"/>
+        </properties>
+    </environment>
+
+</aspectran>

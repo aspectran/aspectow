@@ -7,7 +7,7 @@
         <div class="grid-x full-height">
             <div class="sidebar cell medium-4 large-3 cell-block-y hide-for-small-only">
                 <div class="text-center t30">
-                    <img src="/assets/images/textchat-heartbeat.svg" width="70%" alt="Text Chat Club"/>
+                    <img src="<aspectran:token type='property' expression='cdn.assets.url'/>/images/textchat-heartbeat.svg" width="70%" alt="Text Chat Club"/>
                 </div>
                 <div class="text-center t20">
                     <a href="?locale=ko">한국어</a>
@@ -16,7 +16,7 @@
             <div class="cell auto cell-block-y">
                 <div class="grid-container grid-x t15">
                     <div class="cell small-12 large-4 large-order-2 text-center large-text-right hide-for-medium">
-                        <img src="/assets/images/textchat-heartbeat.svg" width="60%" alt="Text Chat Club"/>
+                        <img src="<aspectran:token type='property' expression='cdn.assets.url'/>/images/textchat-heartbeat.svg" width="60%" alt="Text Chat Club"/>
                     </div>
                     <div class="cell small-12 large-8 large-order-1 t15">
                         <h3><strong>About Text Chat Club</strong></h3>

@@ -6,7 +6,7 @@
     });
 </script>
 <div id="lobby-private-room-create-complete" class="reveal popup" data-reveal data-close-on-click="false" data-close-on-esc="false">
-    <h2><aspectran:message code="modal.private_room_create_complete.title"/></h2>
+    <h2><img src="<aspectran:token type='property' expression='cdn.assets.url'/>/images/textchat.svg" alt=""/> <aspectran:message code="modal.private_room_create_complete.title"/></h2>
     <div class="grid-x">
         <div class="cell">
             <p><aspectran:message code="modal.private_room_create_complete.share_this_link"/></p>
