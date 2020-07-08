@@ -116,7 +116,7 @@ public class PrivateChatHandler extends AbstractChatHandler {
             payload.setChaters(roomChaters);
             payload.setRejoin(rejoin);
             send(session, new ChatMessage(payload));
-            privateRoomManager.checkIn(chaterInfo.getRoomId());
+            privateRoomManager.checkIn(parsePrivateRoomId(chaterInfo.getRoomId()));
         }
         return replaced;
     }
@@ -127,7 +127,7 @@ public class PrivateChatHandler extends AbstractChatHandler {
             signedInUsersPersistence.tryAbandon(chaterInfo.getUsername(), chaterInfo.getHttpSessionId());
             inConvoUsersPersistence.remove(chaterInfo.getHttpSessionId());
             broadcastUserLeft(chaterInfo);
-            privateRoomManager.checkOut(chaterInfo.getRoomId());
+            privateRoomManager.checkOut(parsePrivateRoomId(chaterInfo.getRoomId()));
         }
     }
 
@@ -158,6 +158,10 @@ public class PrivateChatHandler extends AbstractChatHandler {
 
     public static String makePrivateRoomId(String roomId) {
         return PRIVATE_ROOM_ID_PREFIX + roomId;
+    }
+
+    private String parsePrivateRoomId(String roomId) {
+        return roomId.substring(PRIVATE_ROOM_ID_PREFIX.length());
     }
 
 }
