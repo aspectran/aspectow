@@ -1,6 +1,5 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
-<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
 <%@ taglib uri="http://aspectran.com/tags" prefix="aspectran" %>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
@@ -75,7 +74,7 @@
     gtag('js', new Date());
     gtag('config', 'UA-150079188-1');
     gtag('config', 'AW-798244126');
-<c:if test="${not empty user and fn:length(user.description) ge 64}">
+<c:if test="${not empty user and not empty user.description}">
     if (localStorage.getItem("conversioned") !== "true") {
         gtag('event', 'conversion', {'send_to': 'AW-798244126/VV_4CKaBwNEBEJ760PwC'});
         localStorage.setItem("conversioned", "true");
