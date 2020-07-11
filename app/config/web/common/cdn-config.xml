@@ -9,6 +9,12 @@
         </properties>
     </environment>
 
+    <environment profile="stage">
+        <properties>
+            <item name="cdn.assets.url" value="%{classpath:cdn-prod.properties^cdn.assets.url}"/>
+        </properties>
+    </environment>
+
     <environment profile="prod">
         <properties>
             <item name="cdn.assets.url" value="%{classpath:cdn-prod.properties^cdn.assets.url}"/>

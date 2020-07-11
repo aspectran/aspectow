@@ -60,7 +60,7 @@
                             <p class="dummy"></p>
                             <a class="guide hide-for-large" title="<aspectran:message code="service.exchange_chat.button.guide"/>"><i class="fi-info"></i></a>
                             <div class="service-options">
-                                <a class="button small wide start" href="/exchange"><aspectran:message code="service.exchange_chat.button.start"/></a>
+                                <a class="button wide start" href="/exchange"><aspectran:message code="service.exchange_chat.button.start"/></a>
                             </div>
                         </div>
                         <div class="cell large-6 service random">
@@ -76,7 +76,7 @@
                                         <option value="${entry.key}">${entry.value}</option>
                                     </c:forEach>
                                 </select>
-                                <a class="button small start" href="/random"><aspectran:message code="service.random_chat.button.start"/></a>
+                                <a class="button start" href="/random"><aspectran:message code="service.random_chat.button.start"/></a>
                             </div>
                         </div>
                         <div class="cell large-6 service strangers">
@@ -86,7 +86,7 @@
                             <p class="dummy"></p>
                             <a class="guide hide-for-large" title="<aspectran:message code="service.stranger_chat.button.guide"/>"><i class="fi-info"></i></a>
                             <div class="service-options">
-                                <a class="button small start" href="/strangers"><aspectran:message code="service.stranger_chat.button.start"/></a>
+                                <a class="button start" href="/strangers"><aspectran:message code="service.stranger_chat.button.start"/></a>
                             </div>
                         </div>
                         <div class="cell large-6 service private create">
@@ -96,7 +96,7 @@
                             <p class="dummy"></p>
                             <a class="guide hide-for-large" title="<aspectran:message code="service.private_chat.button.guide"/>"><i class="fi-info"></i></a>
                             <div class="service-options">
-                                <a class="button small wide start private-room-create <aspectran:message code="site.lang"/>"><aspectran:message code="service.private_chat.button.create"/></a>
+                                <a class="button wide start private-room-create <aspectran:message code="site.lang"/>"><aspectran:message code="service.private_chat.button.create"/></a>
                             </div>
                         </div>
                         <div class="cell large-6 service public create">
@@ -106,7 +106,7 @@
                             <p class="dummy"></p>
                             <a class="guide hide-for-large" title="<aspectran:message code="service.public_chat.button.guide"/>"><i class="fi-info"></i></a>
                             <div class="service-options">
-                                <a class="button small start public-room-create <aspectran:message code="site.lang"/>"><aspectran:message code="service.public_chat.button.create"/></a>
+                                <a class="button start public-room-create <aspectran:message code="site.lang"/>"><aspectran:message code="service.public_chat.button.create"/></a>
                             </div>
                         </div>
                     </div>
