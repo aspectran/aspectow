@@ -6,7 +6,7 @@
         <div class="cell show-for-small-only t30">
         </div>
         <div class="cell t20">
-            <img class="banner" src="/assets/images/textchat.svg" width="50%" alt="Text Chat Club"/>
+            <img class="banner" src="<aspectran:token type='property' expression='cdn.assets.url'/>/images/textchat.svg" width="50%" alt="Text Chat Club"/>
         </div>
         <div class="cell content text-center t30">
             <p></p>
