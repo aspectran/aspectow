@@ -179,15 +179,11 @@
                             <target>
                                 <delete dir="../textchat-assets/css"/>
                                 <delete dir="../textchat-assets/js"/>
-                                <delete dir="../textchat-assets/favicons"/>
                                 <copy todir="../textchat-assets/css">
                                     <fileset dir="app/webapps/root/assets/css"/>
                                 </copy>
                                 <copy todir="../textchat-assets/js">
                                     <fileset dir="app/webapps/root/assets/js"/>
-                                </copy>
-                                <copy todir="../textchat-assets/favicons">
-                                    <fileset dir="app/webapps/root/assets/favicons"/>
                                 </copy>
                             </target>
                         </configuration>
