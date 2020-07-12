@@ -15,10 +15,10 @@
             </div>
             <div class="cell auto cell-block-y">
                 <div class="grid-container grid-x t15">
-                    <div class="cell small-12 large-4 large-order-2 text-center large-text-right hide-for-medium">
+                    <div class="cell text-center hide-for-medium t15 b30">
                         <img src="<aspectran:token type='property' expression='cdn.assets.url'/>/images/textchat-heartbeat.svg" width="60%" alt="Text Chat Club"/>
                     </div>
-                    <div class="cell small-12 large-8 large-order-1 t15">
+                    <div class="cell">
                         <h3><strong>About Text Chat Club</strong></h3>
                         <ul>
                             <li>Text Chat Club is a free online chat website.</li>
@@ -27,7 +27,7 @@
                             <li>You can only chat by text. Therefore, personal media such as photos and videos cannot be exchanged.</li>
                         </ul>
                     </div>
-                    <div class="cell t20 large-order-3">
+                    <div class="cell t20">
                         <h3><strong>Privacy Policy</strong></h3>
                         <h4>1. Purpose for collection of personal information</h4>
                         <p>Text Chat Club collects the minimum amount of personal information necessary to provide services.</p>

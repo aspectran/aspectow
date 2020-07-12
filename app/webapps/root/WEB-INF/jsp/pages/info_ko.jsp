@@ -15,10 +15,10 @@
             </div>
             <div class="cell auto cell-block-y">
                 <div class="grid-container grid-x t15">
-                    <div class="cell small-12 large-4 large-order-2 text-center large-text-right hide-for-medium">
+                    <div class="cell text-center hide-for-medium t15 b30">
                         <img src="<aspectran:token type='property' expression='cdn.assets.url'/>/images/textchat-heartbeat.svg" width="60%" alt="텍스트챗클럽"/>
                     </div>
-                    <div class="cell small-12 large-8 large-order-1 t15">
+                    <div class="cell">
                         <h3><strong>텍스트챗클럽 소개</strong></h3>
                         <ul>
                             <li>텍스트챗클럽은 무료 온라인 채팅 웹사이트입니다.</li>
@@ -27,7 +27,7 @@
                             <li>오직 문자로만 채팅할 수 있습니다. 따라서 사진이나 비디오 같은 개인 미디어는 주고 받을 수 없습니다.</li>
                         </ul>
                     </div>
-                    <div class="cell t15 large-order-3">
+                    <div class="cell t20">
                         <h3><strong>개인 정보 처리 방침</strong></h3>
                         <h4>1. 개인정보 수집 목적</h4>
                         <p>텍스트챗클럽은 서비스 제공을 위한 필요 최소한의 개인정보를 수집하고 있습니다.</p>
