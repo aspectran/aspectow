@@ -166,6 +166,34 @@
                     </excludes>
                 </configuration>
             </plugin>
+            <plugin>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>3.0.0</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <delete dir="../textchat-assets/css"/>
+                                <delete dir="../textchat-assets/js"/>
+                                <delete dir="../textchat-assets/favicons"/>
+                                <copy todir="../textchat-assets/css">
+                                    <fileset dir="app/webapps/root/assets/css"/>
+                                </copy>
+                                <copy todir="../textchat-assets/js">
+                                    <fileset dir="app/webapps/root/assets/js"/>
+                                </copy>
+                                <copy todir="../textchat-assets/favicons">
+                                    <fileset dir="app/webapps/root/assets/favicons"/>
+                                </copy>
+                            </target>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
     <dependencies>
