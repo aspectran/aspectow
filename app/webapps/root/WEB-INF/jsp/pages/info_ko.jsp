@@ -16,7 +16,7 @@
             <div class="cell auto cell-block-y">
                 <div class="grid-container grid-x t15">
                     <div class="cell text-center hide-for-medium t15 b30">
-                        <img src="<aspectran:token type='property' expression='cdn.assets.url'/>/images/textchat-heartbeat.svg" width="60%" alt="텍스트챗클럽"/>
+                        <img src="<aspectran:token type='property' expression='cdn.assets.url'/>/images/textchat-heartbeat.svg" width="70%" alt="텍스트챗클럽"/>
                     </div>
                     <div class="cell">
                         <h3><strong>텍스트챗클럽 소개</strong></h3>
