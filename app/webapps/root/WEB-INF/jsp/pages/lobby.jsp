@@ -134,7 +134,7 @@
                             <a class="button small start"><aspectran:message code="lobby.rooms.button.enter_chatroom"/></a>
                         </div>
                     </div>
-                    <div class="no-rooms grid-x grid-margin-x grid-margin-y t15 b15">
+                    <div class="no-rooms grid-x grid-margin-x t10 b15">
                         <div class="cell room">
                             <p><aspectran:message code="lobby.rooms.no_rooms"/></p>
                             <a class="button small start start public-room-create"><aspectran:message code="service.public_chat.button.create"/></a>
