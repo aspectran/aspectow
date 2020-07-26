@@ -4,14 +4,14 @@
     <h2>Oops -.-;;</h2>
     <div class="grid-x grid-margin-y">
         <div class="cell t30">
-            <img class="banner animate denial" src="<aspectran:token type='property' expression='cdn.assets.url'/>/images/textchat.svg" width="50%" alt="Text Chat Club"/>
+            <img class="banner big animate denial" src="<aspectran:token type='property' expression='cdn.assets.url'/>/images/textchat.svg" width="50%" alt="Text Chat Club"/>
         </div>
         <div class="cell content">
             <p class="lead">We don't support this version of your browser.</p>
             <p>You are visiting this page because we detected an unsupported browser.<br/>
                 We highly recommend that you update your browser.</p>
             <p class="lead">These are the ones we recommend:</p>
-            <div class="grid-x grid-margin-y small-up-2">
+            <div class="grid-container grid-x small-up-2">
                 <div class="cell"><strong>Google Chrome</strong></div>
                 <div class="cell text-right"><a href="https://www.google.com/intl/en/chrome" target="_blank">Download latest</a></div>
                 <div class="cell"><strong>Mozilla Firefox</strong></div>

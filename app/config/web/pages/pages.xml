@@ -3,13 +3,6 @@
         "http://aspectran.github.io/dtd/aspectran-6.dtd">
 <aspectran>
 
-    <translet name="/">
-        <echo id="page">
-            <item name="include">pages/index</item>
-        </echo>
-        <dispatch name="templates/default"/>
-    </translet>
-
     <translet name="/info">
         <echo id="page">
             <item name="include">pages/info_#{currentLang}</item>
@@ -18,9 +11,6 @@
     </translet>
 
     <translet name="/error/@{errorCode}">
-        <echo id="page">
-            <item name="include">pages/index</item>
-        </echo>
         <dispatch name="templates/error"/>
     </translet>
 
