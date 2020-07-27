@@ -1,5 +1,7 @@
 package club.textchat.common;
 
+import club.textchat.user.LoginRequiredException;
+import club.textchat.user.UserManager;
 import com.aspectran.core.activity.Translet;
 import com.aspectran.core.activity.response.ResponseTemplate;
 import com.aspectran.core.adapter.RequestAdapter;
@@ -33,31 +35,36 @@ import java.util.regex.Pattern;
                 MethodType.GET
         },
         pointcut = {
-                "+: /",
                 "+: /info",
                 "+: /random",
-                "+: /exchange",
-                "+: /strangers",
-                "+: /strangers/*",
-                "+: /rooms/*"
+                "+: /exchange"
         }
 )
 public class ETagInterceptorAspect {
 
+    private final UserManager userManager;
+
     private final ETagInterceptor eTagInterceptor;
 
-    public ETagInterceptorAspect() {
-        this.eTagInterceptor = new ETagInterceptor(new ETagTokenFactory() {
-            @Override
-            public byte[] getToken(Translet translet) {
-                return "12".getBytes();
-            }
-        });
+    private final String version = Long.toString(System.currentTimeMillis());
+
+    public ETagInterceptorAspect(UserManager userManager) {
+        this.userManager = userManager;
+        this.eTagInterceptor = new ETagInterceptor(translet -> generateETagToken().getBytes());
+        this.eTagInterceptor.setWriteWeakETag(true);
     }
 
     @Before
     public void intercept(Translet translet) {
         eTagInterceptor.intercept(translet);
+    }
+
+    private String generateETagToken() {
+        try {
+            return version + userManager.getUserInfo();
+        } catch (LoginRequiredException e) {
+            return version;
+        }
     }
 
 }

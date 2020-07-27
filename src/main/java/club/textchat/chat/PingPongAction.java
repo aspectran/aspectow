@@ -22,6 +22,7 @@ import com.aspectran.core.component.bean.annotation.Component;
 import com.aspectran.core.component.bean.annotation.Request;
 import com.aspectran.core.component.bean.annotation.Transform;
 import com.aspectran.core.context.rule.type.FormatType;
+import com.aspectran.web.support.http.HttpHeaders;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -50,6 +51,7 @@ public class PingPongAction {
     @Transform(FormatType.NONE)
     public void ping(Translet translet) {
         translet.getResponseAdapter().setContentType("text/plain; charset=utf-8");
+        translet.getResponseAdapter().setHeader(HttpHeaders.CACHE_CONTROL, "no-store");
         String sessionId = translet.getSessionAdapter().getId();
         long currentTime = System.currentTimeMillis();
         Long lastAccessedTime = cache.put(sessionId, currentTime);
