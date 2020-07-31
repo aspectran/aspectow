@@ -9,6 +9,7 @@ import com.aspectran.core.component.bean.annotation.Aspect;
 import com.aspectran.core.component.bean.annotation.Before;
 import com.aspectran.core.component.bean.annotation.Component;
 import com.aspectran.core.component.bean.annotation.Joinpoint;
+import com.aspectran.core.component.bean.annotation.Profile;
 import com.aspectran.core.context.rule.type.MethodType;
 import com.aspectran.core.lang.Nullable;
 import com.aspectran.core.util.DigestUtils;
@@ -40,6 +41,7 @@ import java.util.regex.Pattern;
                 "+: /exchange"
         }
 )
+@Profile("dev")
 public class ETagInterceptorAspect {
 
     private final UserManager userManager;
