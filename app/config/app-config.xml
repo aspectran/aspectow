@@ -37,7 +37,7 @@
         </settings>
     </aspect>
 
-    <append file="/config/server/server-config.xml"/>
+    <append file="/config/server/undertow-config.xml"/>
     <append file="/config/shell/shell-config.xml"/>
     <append file="/config/web/web-config.xml"/>
     <append file="/config/mybatis/db-tx-config.xml"/>

@@ -37,7 +37,7 @@ shell: {
         |{{CYAN  }} /_/  |_/____/ .___/\___/\___/\__/\____/|__/|__/    Enterprise
         |{{CYAN  }}=========== /_/ ================================================
         |{{reset }}
-        |{{RED   }}Welcome To Aspectow Enterprise 0.1
+        |{{RED   }}Welcome To Aspectow Enterprise 1.0
         |{{reset }}
         |If you want a list of all supported built-in commands, type '{{GREEN}}help{{reset}}'.
         |To get help on a specific command, type '{{GREEN}}command_name -h{{reset}}'.

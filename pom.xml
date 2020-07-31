@@ -21,7 +21,10 @@
     <artifactId>aspectow-enterprise</artifactId>
     <version>1.0-SNAPSHOT</version>
     <name>Aspectow Enterprise</name>
-    <description>Aspectow is a web application server on top of Aspectran 6, Undertow.</description>
+    <description>
+        Aspectow Enterprise is a web application server that fully supports
+        Servlet specifications based on Aspectran 6 and Undertow.
+    </description>
     <contributors>
         <contributor>
             <name>Juho Jeong</name>
