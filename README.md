@@ -2,7 +2,7 @@ Aspectow Enterprise
 ===================
 
 Aspectow is an all-in-one web application server based on Aspectran.  
-Aspectow Enterprise fully supports the servlet specification and is suitable for building enterprise web applications.
+Aspectow Enterprise fully supports the Servlet 4.0 specification and is suitable for building enterprise web applications.
 JBoss's [Undertow](http://undertow.io) or Eclipse [Jetty](https://www.eclipse.org/jetty/) can be used as a web server.
 [Apache Jasper](https://mvnrepository.com/artifact/org.mortbay.jasper/apache-jsp) is used to support JSP and it is the same JSP engine that Apache Tomcat uses.
 

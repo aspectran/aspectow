@@ -23,7 +23,7 @@
     <name>Aspectow Enterprise</name>
     <description>
         Aspectow Enterprise is a web application server that fully supports
-        Servlet specifications based on Aspectran 6 and Undertow.
+        the Servlet 4.0 specification based on Aspectran 6 and Undertow.
     </description>
     <contributors>
         <contributor>
