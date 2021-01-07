@@ -35,7 +35,7 @@
         </properties>
     </bean>
 
-    <bean class="app.demo.examples.upload.SimpleFileUploadAction">
+    <bean class="app.demo.examples.upload.SimpleFileUploadActivity">
         <properties>
             <item name="maxFiles" valueType="int">12</item>
         </properties>
@@ -49,9 +49,9 @@
                 HTTP multi-part file uploads.</item>
             <item name="include">examples/file-upload</item>
             <item name="style">plate</item>
-            <item name="maxFiles">#{class:app.demo.examples.upload.SimpleFileUploadAction^maxFiles}</item>
+            <item name="maxFiles">#{class:app.demo.examples.upload.SimpleFileUploadActivity^maxFiles}</item>
         </echo>
-        <action id="files" bean="class:app.demo.examples.upload.SimpleFileUploadAction" method="list"/>
+        <action id="files" bean="class:app.demo.examples.upload.SimpleFileUploadActivity" method="list"/>
         <dispatch name="templates/default"/>
     </translet>
 

@@ -8,7 +8,7 @@
     </settings>
 
     <translet name="list">
-        <action bean="memoAction" method="getList"/>
+        <action bean="memoActivity" method="getList"/>
         <transform format="json" contentType=""/>
     </translet>
 
@@ -16,7 +16,7 @@
         <parameters>
             <item name="message" mandatory="true"/>
         </parameters>
-        <action bean="memoAction" method="addMemo"/>
+        <action bean="memoActivity" method="addMemo"/>
         <transform format="json"/>
     </translet>
 
@@ -36,17 +36,17 @@
         <parameters>
             <item name="id" mandatory="true"/>
         </parameters>
-        <action bean="memoAction" method="delMemo"/>
+        <action bean="memoActivity" method="delMemo"/>
         <transform format="json"/>
     </translet>
 
     <translet name="del ${id}">
-        <action bean="memoAction" method="delMemo"/>
+        <action bean="memoActivity" method="delMemo"/>
         <transform format="json"/>
     </translet>
 
     <translet name="del-all">
-        <action id="affected" bean="memoAction" method="delAllMemo"/>
+        <action id="affected" bean="memoActivity" method="delAllMemo"/>
         <transform format="text">
             <template style="apon">
                 |---------------------------------
@@ -61,7 +61,7 @@
             <item name="repetitions" value="10" mandatory="true"/>
             <item name="message" mandatory="true"/>
         </parameters>
-        <action id="affected" bean="memoAction" method="addBulkMemo"/>
+        <action id="affected" bean="memoActivity" method="addBulkMemo"/>
         <transform format="text">
             <template style="apon">
                 |---------------------------------
@@ -75,7 +75,7 @@
         <parameters>
             <item name="repetitions" value="10" mandatory="true"/>
         </parameters>
-        <action id="affected" bean="memoAction" method="addBulkMemo"/>
+        <action id="affected" bean="memoActivity" method="addBulkMemo"/>
         <transform format="text">
             <template style="apon">
                 |---------------------------------

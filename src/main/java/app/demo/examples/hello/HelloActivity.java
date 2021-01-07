@@ -22,11 +22,11 @@ import com.aspectran.core.util.logging.Logger;
 import com.aspectran.core.util.logging.LoggerFactory;
 
 @Component
-@Bean("helloAction")
+@Bean("helloActivity")
 @Description("Defines a Hello Action Bean that contains the helloWorld() method.")
-public class HelloAction {
+public class HelloActivity {
 
-    private static final Logger logger = LoggerFactory.getLogger(HelloAction.class);
+    private static final Logger logger = LoggerFactory.getLogger(HelloActivity.class);
 
     public String helloWorld() {
         String msg = "Hello, World!";

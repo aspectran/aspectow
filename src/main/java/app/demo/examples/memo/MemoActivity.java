@@ -9,15 +9,15 @@ import java.util.List;
 import java.util.Map;
 
 @Component
-@Bean("memoAction")
-public class MemoAction {
+@Bean("memoActivity")
+public class MemoActivity {
 
     private final MemoDao memoDao;
 
     private final MemoBatchDao memoBatchDao;
 
     @Autowired
-    public MemoAction(MemoDao memoDao, MemoBatchDao memoBatchDao) {
+    public MemoActivity(MemoDao memoDao, MemoBatchDao memoBatchDao) {
         this.memoDao = memoDao;
         this.memoBatchDao = memoBatchDao;
     }
