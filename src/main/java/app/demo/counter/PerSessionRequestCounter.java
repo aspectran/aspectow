@@ -44,8 +44,6 @@ public class PerSessionRequestCounter implements Serializable {
 
     private final AtomicInteger requests = new AtomicInteger();
 
-    private final long creationTime = System.currentTimeMillis();
-
     private final AtomicLong startTime = new AtomicLong();
 
     private final AtomicLong stopTime = new AtomicLong();
