@@ -18,12 +18,13 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.aspectran</groupId>
-    <artifactId>aspectow-enterprise</artifactId>
+    <artifactId>aspectow</artifactId>
     <version>1.0-SNAPSHOT</version>
-    <name>Aspectow Enterprise</name>
+    <name>Aspectow Enterprise Edition</name>
     <description>
-        Aspectow Enterprise is a web application server that fully supports
-        the Servlet 4.0 specification based on Aspectran 6 and Undertow.
+        Aspectow Enterprise Edition is an all-in-one web application server based on Aspectran,
+        fully supports servlet specifications, and is suitable for building enterprise web applications.
+        JBoss' Undertow web server and Apache Jasper, the JSP engine used by Apache Tomcat, are built in.
     </description>
     <contributors>
         <contributor>
@@ -36,7 +37,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.build.resourceEncoding>UTF-8</project.build.resourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <aspectran.version>6.11.0</aspectran.version>
+        <aspectran.version>6.12.0-SNAPSHOT</aspectran.version>
     </properties>
     <repositories>
         <repository>
@@ -125,7 +126,7 @@
                             </excludes>
                         </fileset>
                         <fileset>
-                            <directory>app/temp/_root</directory>
+                            <directory>app/temp/_webroot</directory>
                         </fileset>
                     </filesets>
                 </configuration>
