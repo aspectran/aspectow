@@ -17,10 +17,10 @@ package app.demo.chat.codec;
 
 import app.demo.chat.model.ChatMessage;
 import com.aspectran.core.util.json.JsonWriter;
-
 import jakarta.websocket.EncodeException;
 import jakarta.websocket.Encoder;
 import jakarta.websocket.EndpointConfig;
+
 import java.io.IOException;
 
 /**

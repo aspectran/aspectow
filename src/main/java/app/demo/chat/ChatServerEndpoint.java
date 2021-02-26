@@ -27,8 +27,7 @@ import app.demo.chat.model.payload.SendTextMessagePayload;
 import app.demo.chat.model.payload.WelcomeUserPayload;
 import com.aspectran.core.activity.InstantActivitySupport;
 import com.aspectran.core.component.bean.annotation.Component;
-import com.aspectran.web.socket.jsr356.AspectranConfigurator;
-
+import com.aspectran.websocket.jsr356.AspectranConfigurator;
 import jakarta.websocket.CloseReason;
 import jakarta.websocket.EndpointConfig;
 import jakarta.websocket.OnClose;
@@ -36,6 +35,7 @@ import jakarta.websocket.OnMessage;
 import jakarta.websocket.OnOpen;
 import jakarta.websocket.Session;
 import jakarta.websocket.server.ServerEndpoint;
+
 import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
