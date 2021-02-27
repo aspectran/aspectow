@@ -51,7 +51,6 @@ public class SimpleFileUploadActivity {
             if (logger.isDebugEnabled()) {
                 logger.debug("Uploaded File " + uploadedFile);
             }
-
             if (uploadedFiles.size() > this.maxFiles) {
                 Iterator<String> it = uploadedFiles.keySet().iterator();
                 int cnt = uploadedFiles.size() - this.maxFiles;
@@ -78,29 +77,28 @@ public class SimpleFileUploadActivity {
     @Action("files")
     public List<UploadedFile> upload(Translet translet) throws IOException {
         FileParameter fileParameter = translet.getFileParameter("file");
-        if (fileParameter != null) {
-            String key = UUID.randomUUID().toString();
-            String ext = FilenameUtils.getExtension(fileParameter.getFileName());
-            if (StringUtils.hasLength(ext)) {
-                key += "." + ext.toLowerCase();
-            }
-            UploadedFile uploadedFile = new UploadedFile();
-            uploadedFile.setKey(key);
-            uploadedFile.setFileName(fileParameter.getFileName());
-            uploadedFile.setFileSize(fileParameter.getFileSize());
-            uploadedFile.setHumanFileSize(StringUtils.convertToHumanFriendlyByteSize(fileParameter.getFileSize()));
-            uploadedFile.setFileType((fileParameter.getContentType()));
-            uploadedFile.setUrl("/examples/file-upload/files/" + key);
-            uploadedFile.setBytes(fileParameter.getBytes());
-
-            addUploadedFile(uploadedFile);
-
-            List<UploadedFile> files = new ArrayList<>();
-            files.add(uploadedFile);
-            return files;
-        } else {
+        if (fileParameter == null) {
             return null;
         }
+        String key = UUID.randomUUID().toString();
+        String ext = FilenameUtils.getExtension(fileParameter.getFileName());
+        if (StringUtils.hasLength(ext)) {
+            key += "." + ext.toLowerCase();
+        }
+        UploadedFile uploadedFile = new UploadedFile();
+        uploadedFile.setKey(key);
+        uploadedFile.setFileName(fileParameter.getFileName());
+        uploadedFile.setFileSize(fileParameter.getFileSize());
+        uploadedFile.setHumanFileSize(StringUtils.convertToHumanFriendlyByteSize(fileParameter.getFileSize()));
+        uploadedFile.setFileType((fileParameter.getContentType()));
+        uploadedFile.setUrl("/examples/file-upload/files/" + key);
+        uploadedFile.setBytes(fileParameter.getBytes());
+
+        addUploadedFile(uploadedFile);
+
+        List<UploadedFile> files = new ArrayList<>();
+        files.add(uploadedFile);
+        return files;
     }
 
     @RequestToGet("/files/${key}")
@@ -109,7 +107,8 @@ public class SimpleFileUploadActivity {
         UploadedFile uploadedFile = uploadedFiles.get(key);
         if (uploadedFile != null) {
             translet.getResponseAdapter().setContentType(uploadedFile.getFileType());
-            translet.getResponseAdapter().setHeader("Content-disposition", "attachment; filename=\"" + uploadedFile.getFileName() + "\"");
+            translet.getResponseAdapter().setHeader("Content-disposition",
+                    "attachment; filename=\"" + uploadedFile.getFileName() + "\"");
             translet.getResponseAdapter().getOutputStream().write(uploadedFile.getBytes());
         } else {
             HttpStatusSetter.setStatus(HttpStatus.NOT_FOUND, translet);
