@@ -25,7 +25,7 @@ the JSP engine used by Apache Tomcat, are built in.
 
   ```sh
   $ cd app/bin
-  $ ./shell.sh
+  $ ./jline-shell.sh
   ```
 
 - Access in your browser at http://localhost:8081
