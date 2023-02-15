@@ -17,8 +17,8 @@ package app.demo;
 
 import com.aspectran.core.util.ResourceUtils;
 import com.aspectran.shell.AspectranShell;
-import com.aspectran.shell.console.Console;
-import com.aspectran.shell.jline.console.JLineConsole;
+import com.aspectran.shell.console.ShellConsole;
+import com.aspectran.shell.jline.console.JLineShellConsole;
 
 import java.io.File;
 import java.io.IOException;
@@ -36,7 +36,7 @@ public class AspectowEnterprise {
             File root = new File(current, "../../app");
             File aspectranConfigFile = new File(root, "config/aspectran-config.apon");
             System.setProperty(BASE_PATH_PROPERTY_NAME, root.getCanonicalPath()); // for logback
-            Console console = new JLineConsole();
+            ShellConsole console = new JLineShellConsole();
             AspectranShell.bootstrap(root.getCanonicalPath(), aspectranConfigFile, console);
         } catch (IOException e) {
             e.printStackTrace(System.err);
