@@ -28,7 +28,14 @@ scheduler: {
     enabled: false
 }
 shell: {
-    styles: GRAY
+    style: {
+         primary: GRAY
+         secondary: green
+         success: CYAN
+         danger: red
+         warning: YELLOW
+         info: cyan
+    }
     greetings: (
         |
         |{{GREEN }}     ___                         __
