@@ -25,6 +25,7 @@
     <logger name="com.aspectran.core.scheduler.service.JobActivityReport" level="debug"/>
     <logger name="com.aspectran.core.component.session" level="debug"/>
     <logger name="org.quartz" level="info"/>
+    <logger name="org.apache.ibatis" level="error"/>
     <logger name="app.demo" level="debug"/>
 
     <root level="info">

@@ -17,6 +17,7 @@
 
     <logger name="com.aspectran" level="debug"/>
     <logger name="org.quartz" level="info"/>
+    <logger name="org.apache.ibatis" level="error"/>
     <logger name="app.demo" level="debug"/>
 
     <root level="info">
