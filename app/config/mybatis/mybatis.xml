@@ -4,30 +4,8 @@
 <aspectran>
 
     <description>
-        Configuration for Database Transactions.
+        Configuration for database transactions
     </description>
-
-    <!-- Environment for using H2 Database -->
-    <environment profile="h2">
-        <properties>
-            <item name="mybatis.environment" value="default"/>
-            <item name="mybatis.db.driver" value="%{classpath:memo.db.properties^driver}"/>
-            <item name="mybatis.db.url" value="%{classpath:memo.db.properties^url}"/>
-            <item name="mybatis.db.username" value="%{classpath:memo.db.properties^username}"/>
-            <item name="mybatis.db.password" value="%{classpath:memo.db.properties^password}"/>
-        </properties>
-    </environment>
-
-    <!-- Environment for using MySql -->
-    <environment profile="mysql">
-        <properties>
-            <item name="mybatis.environment" value="default"/>
-            <item name="mybatis.db.driver" value="%{classpath:db.encrypted.properties^driver}"/>
-            <item name="mybatis.db.url" value="%{classpath:db.encrypted.properties^url}"/>
-            <item name="mybatis.db.username" value="%{classpath:db.encrypted.properties^username}"/>
-            <item name="mybatis.db.password" value="%{classpath:db.encrypted.properties^password}"/>
-        </properties>
-    </environment>
 
     <bean id="sqlSessionFactory" class="com.aspectran.mybatis.SqlSessionFactoryBean">
         <description>
@@ -37,17 +15,17 @@
             <item name="configLocation" value="/config/mybatis/mybatis-config.xml"/>
             <item name="environment" value="%{mybatis.environment}"/>
             <item name="properties" type="properties">
-                <entry name="driver">%{mybatis.db.driver}</entry>
-                <entry name="url">%{mybatis.db.url}</entry>
-                <entry name="username">%{mybatis.db.username}</entry>
-                <entry name="password">%{mybatis.db.password}</entry>
+                <entry name="driver">%{classpath:memo.db.properties^driver}</entry>
+                <entry name="url">%{classpath:memo.db.properties^url}</entry>
+                <entry name="username">%{classpath:memo.db.properties^username}</entry>
+                <entry name="password">%{classpath:memo.db.properties^password}</entry>
             </item>
         </properties>
     </bean>
 
     <bean id="sqlSessionTxAdvice" class="com.aspectran.mybatis.SqlSessionTxAdvice" scope="prototype">
         <description>
-            Advice for Database Transactions.
+            An advice bean that handles database transactions.
         </description>
         <arguments>
             <item>#{sqlSessionFactory}</item>
