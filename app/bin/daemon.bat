@@ -21,6 +21,8 @@ if "%1" == "debug" (
     set LOGGING_CONFIG=%BASE_DIR%\config\logging\logback.xml
 )
 
+echo Aspectran daemon running... To terminate the process press `CTRL+C`.
+
 "%JAVA_HOME%\bin\java.exe" ^
     %JAVA_OPTS% ^
     -classpath "%BASE_DIR%\lib\*" ^
