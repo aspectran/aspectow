@@ -7,6 +7,7 @@ context: {
     rules: /config/app-context.xml
     resources: [
         /config
+        /lib/reloadable
     ]
     scan: [
         app.demo
@@ -17,6 +18,7 @@ context: {
         ]
     }
     autoReload: {
+        reloadMode: hard
         scanIntervalSeconds: 5
         enabled: false
     }
