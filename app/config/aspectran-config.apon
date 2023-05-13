@@ -6,8 +6,7 @@ system: {
 context: {
     rules: /config/app-context.xml
     resources: [
-        /config
-        /lib/reloadable
+        /lib/ext
     ]
     scan: [
         app.demo

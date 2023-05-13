@@ -12,8 +12,8 @@
             FactoryBean that creates an MyBatis SqlSessionFactory using default MyBatis Configuration.
         </description>
         <properties>
-            <item name="configLocation" value="/config/mybatis/mybatis-config.xml"/>
-            <item name="environment" value="%{mybatis.environment}"/>
+            <item name="configLocation" value="classpath:mybatis/mybatis-config.xml"/>
+            <item name="environment" value="default"/>
             <item name="properties" type="properties">
                 <entry name="driver">%{classpath:memo.db.properties^driver}</entry>
                 <entry name="url">%{classpath:memo.db.properties^url}</entry>
