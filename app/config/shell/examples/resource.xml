@@ -7,7 +7,7 @@
         A simple example of accessing resources
     </description>
 
-    <bean id="sampleResources" class="app.demo.examples.SampleResource"/>
+    <bean id="sampleResources" class="aspectow.demo.examples.SampleResource"/>
 
     <translet name="resource-file?">
         <parameters>

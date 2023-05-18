@@ -9,7 +9,7 @@ context: {
         /lib/ext
     ]
     scan: [
-        app.demo
+        aspectow.demo
     ]
     profiles: {
         default: [
