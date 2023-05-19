@@ -8,3 +8,4 @@
 /target
 app/.lock
 app/jsvc_daemon.pid
+app/bin/jdk-*
