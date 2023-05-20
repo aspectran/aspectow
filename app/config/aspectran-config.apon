@@ -81,9 +81,11 @@ shell: {
     }
 }
 daemon: {
-    poller: {
-        pollingInterval: 5000
+    executor: {
         maxThreads: 5
+    }
+    polling: {
+        pollingInterval: 5000
         requeuable: true
         incoming: /cmd/incoming
     }
