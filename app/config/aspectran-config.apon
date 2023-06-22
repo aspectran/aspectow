@@ -4,12 +4,12 @@ system: {
     }
 }
 context: {
-    root: /config/app-config.xml
+    rules: /config/app-config.xml
     resources: [
         /config
     ]
     scan: [
-        app.demo
+        aspectow.demo
     ]
     profiles: {
         default: [

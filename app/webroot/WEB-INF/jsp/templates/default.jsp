@@ -1,13 +1,14 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
 <!DOCTYPE html>
 <html class="no-js" lang="en">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
     <meta name="google" content="notranslate">
-    <title>${empty page.title ? "Aspectran Demo Site" : page.title}</title>
-    <meta name="description" content="${empty page.description ? "Welcome to Aspectran Demo" : page.description}" />
+    <title>${empty page.title ? "Aspectran Demo" : page.title}</title>
+    <meta name="description" content="${empty page.description ? "Welcome to the Aspectran Demo Site" : page.description}" />
     <link rel="stylesheet" type="text/css" href="https://aspectran.com/assets/css/aspectran.css" />
     <link href="https://fonts.googleapis.com/css?family=Raleway:500,500i,700" rel="stylesheet">
     <script src="https://aspectran.com/assets/js/modernizr-custom.js"></script>
@@ -28,6 +29,15 @@
     <link rel="icon" type="image/png" sizes="96x96" href="https://aspectran.com/assets/img/favicon-96x96.png" />
     <meta name="msapplication-TileImage" content="https://aspectran.com/assets/img/ms-icon-144x144.png" />
     <meta name="msapplication-TileColor" content="#4B555A" />
+    <script>
+        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+            m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+        ga('create', 'UA-66807210-2', 'auto');
+        ga('set', 'anonymizeIp', true);
+        ga('send', 'pageview');
+    </script>
 </head>
 <body id="top-of-page" class="${page.style}" itemscope itemtype="http://schema.org/WebPage">
 <nav id="navigation" class="no-js">
@@ -52,21 +62,15 @@
             <div class="top-bar-left">
                 <ul class="dropdown menu" data-dropdown-menu>
                     <li>
-                        <a href="/examples/hello-world">Examples</a>
+                        <a>Examples</a>
                         <ul class="submenu menu vertical" data-submenu>
                             <li><a href="/examples/hello-world">Hello World</a></li>
                             <li><a href="/examples/gs-rest-service/">RESTful Web Service</a></li>
                             <li><a href="/examples/file-upload/">File Upload</a></li>
+                            <li><a href="/chat/">WebSocket Chat Demo</a></li>
+                            <li><a href="/interpreter/">Remote Command Shell</a></li>
+                            <li><a href="/skylark/">Skylark Terminal</a></li>
                         </ul>
-                    </li>
-                    <li>
-                        <a href="/terminal/">Terminal</a>
-                    </li>
-                    <li>
-                        <a href="/skylark/">Skylark</a>
-                    </li>
-                    <li>
-                        <a href="/chat/">Chat</a>
                     </li>
                     <li>
                         <a href="/apm/">APM</a>
@@ -74,6 +78,15 @@
                 </ul>
             </div>
             <div class="top-bar-right">
+                <ul class="dropdown menu" data-dropdown-menu>
+                    <li>
+                        <a title="Demo Applications made with Aspectran">More Demo Apps</a>
+                        <ul class="submenu menu vertical" data-submenu>
+                            <li><a href="https://jpetstore.aspectran.com">JPetStore Demo</a></li>
+                            <li><a href="https://log-relay.aspectran.com">Log Relay</a></li>
+                        </ul>
+                    </li>
+                </ul>
                 <div class="quick-search-box">
                     <form name="google_quick_search">
                         <div class="input-group">
@@ -99,7 +112,7 @@
     </div>
 </nav>
 <section itemscope itemtype="http://schema.org/Article">
-    <div id="masthead">
+    <div id="masthead"<c:if test="${fn:contains(page.style, 'compact')}"> class="masthead-compact"</c:if>>
         <div class="grid-container ${page.style}">
             <div class="grid-x">
                 <div class="cell">
@@ -175,7 +188,7 @@
         <div class="grid-container">
             <nav class="grid-x b30">
                 <section id="subfooter-left" class="medium-6 cell credits">
-                    <p>Copyright © 2008-2021 The Aspectran Project</p>
+                    <p>Copyright © 2008-2023 The Aspectran Project</p>
                 </section>
                 <section id="subfooter-right" class="medium-6 cell social-icons text-right">
                     <%= com.aspectran.core.util.Aspectran.POWERED_BY_LINK %>
