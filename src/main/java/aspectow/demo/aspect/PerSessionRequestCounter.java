@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package aspectow.demo.counter;
+package aspectow.demo.aspect;
 
 import com.aspectran.core.component.bean.annotation.After;
 import com.aspectran.core.component.bean.annotation.Aspect;
@@ -55,14 +55,14 @@ public class PerSessionRequestCounter implements Serializable {
     }
 
     @After
-    public void after(PerSessionRequestCounter perSessionRequestCounter) {
+    public void after(PerSessionRequestCounter counter) {
         stopTime.set(System.currentTimeMillis());
 
         if (logger.isDebugEnabled()) {
             ToStringBuilder tsb = new ToStringBuilder("PerSessionRequestCounter");
-            tsb.append("requests", perSessionRequestCounter.getRequests());
-            tsb.append("start", perSessionRequestCounter.getStartTime());
-            tsb.append("stop", perSessionRequestCounter.getStopTime());
+            tsb.append("requests", counter.getRequests());
+            tsb.append("start", counter.getStartTime());
+            tsb.append("stop", counter.getStopTime());
             logger.debug(tsb.toString());
         }
     }
