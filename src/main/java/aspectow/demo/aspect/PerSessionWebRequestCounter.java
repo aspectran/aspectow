@@ -17,10 +17,10 @@ package aspectow.demo.aspect;
 
 import com.aspectran.core.component.bean.annotation.After;
 import com.aspectran.core.component.bean.annotation.Aspect;
-import com.aspectran.core.component.bean.annotation.AvoidAdvice;
 import com.aspectran.core.component.bean.annotation.Bean;
 import com.aspectran.core.component.bean.annotation.Before;
 import com.aspectran.core.component.bean.annotation.Component;
+import com.aspectran.core.component.bean.annotation.Joinpoint;
 import com.aspectran.core.component.bean.annotation.Scope;
 import com.aspectran.core.context.rule.type.ScopeType;
 import com.aspectran.core.util.ToStringBuilder;
@@ -34,13 +34,17 @@ import java.util.concurrent.atomic.AtomicLong;
 @Component
 @Bean
 @Scope(ScopeType.SESSION)
-@Aspect("perSessionRequestCounter")
-@AvoidAdvice
-public class PerSessionRequestCounter implements Serializable {
+@Aspect("perSessionWebRequestCounter")
+@Joinpoint(
+        pointcut = {
+                "+: /**"
+        }
+)
+public class PerSessionWebRequestCounter implements Serializable {
 
-    private static final Logger logger = LoggerFactory.getLogger(PerSessionRequestCounter.class);
+    private static final long serialVersionUID = -1887943450985496469L;
 
-    private static final long serialVersionUID = -7254733724811233759L;
+    private static final Logger logger = LoggerFactory.getLogger(PerSessionWebRequestCounter.class);
 
     private final AtomicInteger requests = new AtomicInteger();
 
@@ -55,14 +59,15 @@ public class PerSessionRequestCounter implements Serializable {
     }
 
     @After
-    public void after(PerSessionRequestCounter counter) {
+    public void after(PerSessionWebRequestCounter counter) {
         stopTime.set(System.currentTimeMillis());
 
         if (logger.isDebugEnabled()) {
-            ToStringBuilder tsb = new ToStringBuilder("PerSessionRequestCounter");
+            ToStringBuilder tsb = new ToStringBuilder(getClass().getSimpleName());
             tsb.append("requests", counter.getRequests());
             tsb.append("start", counter.getStartTime());
             tsb.append("stop", counter.getStopTime());
+            tsb.append("duration", counter.getStopTime() - counter.getStartTime());
             logger.debug(tsb.toString());
         }
     }
