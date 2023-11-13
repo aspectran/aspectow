@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package aspectow.demo.apm.stats;
+package aspectow.demo.monitoring.stats;
 
 import com.aspectran.core.util.json.JsonWriter;
 
