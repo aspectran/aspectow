@@ -15,9 +15,9 @@
  */
 package aspectow.demo.examples.customer;
 
-import com.aspectran.core.util.apon.AbstractParameters;
-import com.aspectran.core.util.apon.ParameterKey;
-import com.aspectran.core.util.apon.ValueType;
+import com.aspectran.utils.apon.AbstractParameters;
+import com.aspectran.utils.apon.ParameterKey;
+import com.aspectran.utils.apon.ValueType;
 
 /**
  * Defines an APON object that contains the customer's information.

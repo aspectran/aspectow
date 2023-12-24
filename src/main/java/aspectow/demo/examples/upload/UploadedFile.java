@@ -1,8 +1,8 @@
 package aspectow.demo.examples.upload;
 
-import com.aspectran.core.component.bean.annotation.NonSerializable;
-import com.aspectran.core.util.ToStringBuilder;
-import com.aspectran.core.util.json.JsonWriter;
+import com.aspectran.utils.ToStringBuilder;
+import com.aspectran.utils.annotation.NonSerializable;
+import com.aspectran.utils.json.JsonWriter;
 
 import java.io.IOException;
 import java.util.UUID;

@@ -17,8 +17,8 @@ package aspectow.demo.examples.customer;
 
 import com.aspectran.core.component.bean.annotation.Bean;
 import com.aspectran.core.component.bean.annotation.Component;
-import com.aspectran.core.util.logging.Logger;
-import com.aspectran.core.util.logging.LoggerFactory;
+import com.aspectran.utils.logging.Logger;
+import com.aspectran.utils.logging.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
