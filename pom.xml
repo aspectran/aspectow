@@ -26,6 +26,7 @@
         fully supports servlet specifications, and is suitable for building enterprise web applications.
         JBoss' Undertow web server and Apache Jasper, the JSP engine used by Apache Tomcat, are built in.
     </description>
+    <inceptionYear>2020</inceptionYear>
     <contributors>
         <contributor>
             <name>Juho Jeong</name>
@@ -199,4 +200,46 @@
             <version>2.2.224</version>
         </dependency>
     </dependencies>
+    <profiles>
+        <profile>
+            <id>license</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>com.mycila</groupId>
+                        <artifactId>license-maven-plugin</artifactId>
+                        <version>4.3</version>
+                        <executions>
+                            <execution>
+                                <phase>compile</phase>
+                                <goals>
+                                    <goal>format</goal>
+                                </goals>
+                                <configuration>
+                                    <aggregate>true</aggregate>
+                                    <failIfMissing>true</failIfMissing>
+                                    <failIfUnknown>true</failIfUnknown>
+                                    <strictCheck>true</strictCheck>
+                                    <mapping>
+                                        <java>SLASHSTAR_STYLE</java>
+                                    </mapping>
+                                    <properties>
+                                        <copyright-range>${project.inceptionYear}-2024</copyright-range>
+                                    </properties>
+                                    <licenseSets>
+                                        <licenseSet>
+                                            <header>header.txt</header>
+                                            <includes>
+                                                <include>**/*.java</include>
+                                            </includes>
+                                        </licenseSet>
+                                    </licenseSets>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>
