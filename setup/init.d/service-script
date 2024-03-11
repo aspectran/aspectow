@@ -1,7 +1,7 @@
 #!/bin/sh
 
 ### BEGIN INIT INFO
-# Provides:          aspectow-demo
+# Provides:          aspectow
 # Required-Start:    $local_fs $remote_fs $network $syslog $named
 # Required-Stop:     $local_fs $remote_fs $network $syslog $named
 # Default-Start:     2 3 4 5
@@ -10,7 +10,7 @@
 # Description:       Start/stop Aspectran daemons
 ### END INIT INFO
 
-. /home/aspectran/aspectow-demo/app.conf
+. /home/aspectran/aspectow/app.conf
 
 DAEMON_OUT="$DEPLOY_DIR/logs/daemon-stdout.log"
 DAEMON_ERR="$DEPLOY_DIR/logs/daemon-stderr.log"
