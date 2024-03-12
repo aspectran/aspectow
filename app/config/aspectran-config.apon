@@ -4,6 +4,7 @@ system: {
     }
 }
 context: {
+    name: demo
     rules: /config/app-context.xml
     resources: [
         /lib/ext
@@ -46,7 +47,7 @@ shell: {
         |{{CYAN  }} /_/  |_/____/ .___/\___/\___/\__/\____/|__/|__/    Enterprise Edition
         |{{cyan  }}=========== /_/ ==========================================================
         |{{reset }}
-        |{{RED   }}Welcome To Aspectow Enterprise 8.0.0-SNAPSHOT
+        |{{RED   }}Welcome To Aspectow Enterprise #{class:com.aspectran.core.util.Aspectran^version}
         |{{reset }}
         |If you want a list of all supported built-in commands, type '{{GREEN}}help{{reset}}'.
         |To get help on a specific command, type '{{GREEN}}command_name -h{{reset}}'.
