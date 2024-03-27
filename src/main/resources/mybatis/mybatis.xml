@@ -15,10 +15,10 @@
             <item name="configLocation" value="classpath:mybatis/mybatis-config.xml"/>
             <item name="environment" value="default"/>
             <item name="properties" type="properties">
-                <entry name="driver">%{classpath:memo.db.properties^driver}</entry>
-                <entry name="url">%{classpath:memo.db.properties^url}</entry>
-                <entry name="username">%{classpath:memo.db.properties^username}</entry>
-                <entry name="password">%{classpath:memo.db.properties^password}</entry>
+                <entry name="driver">%{classpath:mybatis/memo.db.properties^driver}</entry>
+                <entry name="url">%{classpath:mybatis/memo.db.properties^url}</entry>
+                <entry name="username">%{classpath:mybatis/memo.db.properties^username}</entry>
+                <entry name="password">%{classpath:mybatis/memo.db.properties^password}</entry>
             </item>
         </properties>
     </bean>
