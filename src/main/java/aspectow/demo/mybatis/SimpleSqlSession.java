@@ -1,15 +1,15 @@
-package aspectow.demo.common.dao;
+package aspectow.demo.mybatis;
 
 import com.aspectran.core.component.bean.annotation.Bean;
 import com.aspectran.core.component.bean.annotation.Component;
 import com.aspectran.mybatis.SqlSessionAgent;
 
 @Component
-@Bean("reuseSqlSession")
-public class ReuseSqlSession extends SqlSessionAgent {
+@Bean("simpleSqlSession")
+public class SimpleSqlSession extends SqlSessionAgent {
 
-    public ReuseSqlSession() {
-        super("reuseTxAspect");
+    public SimpleSqlSession() {
+        super("simpleTxAspect");
         setAutoParameters(true);
     }
 
