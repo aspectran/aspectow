@@ -31,6 +31,7 @@ import com.aspectran.core.context.rule.TransletRule;
 import com.aspectran.core.context.rule.type.FormatType;
 import com.aspectran.core.context.rule.type.TokenType;
 import com.aspectran.utils.StringUtils;
+import com.aspectran.utils.annotation.jsr305.NonNull;
 import com.aspectran.utils.json.JsonWriter;
 import com.aspectran.utils.logging.Logger;
 import com.aspectran.utils.logging.LoggerFactory;
@@ -50,18 +51,21 @@ public class TransletInterpreter extends InstantActivitySupport {
 
     private final Logger logger = LoggerFactory.getLogger(TransletInterpreter.class);
 
+    private final String COMMANDS_PREFIX = "/commands/";
+
     @RequestToGet("/query/@{_translet_}")
     @Transform(format = FormatType.TEXT, contentType = "application/json")
-    public void query(Translet translet) throws IOException {
-        String transletName = translet.getAttribute("_translet_");
-        if (StringUtils.isEmpty(transletName)) {
+    public void query(@NonNull Translet translet) throws IOException {
+        String requestName = translet.getAttribute("_translet_");
+        if (StringUtils.isEmpty(requestName)) {
             return;
         }
 
-        TransletRule transletRule = getActivityContext().getTransletRuleRegistry().getTransletRule(transletName);
+        requestName = COMMANDS_PREFIX + requestName;
+        TransletRule transletRule = getActivityContext().getTransletRuleRegistry().getTransletRule(requestName);
         if (transletRule == null) {
             if (logger.isDebugEnabled()) {
-                logger.debug("Translet not found: " + transletName);
+                logger.debug("No translet " + requestName);
             }
 
             JsonWriter jsonWriter = new JsonWriter(translet.getResponseAdapter().getWriter());
@@ -123,20 +127,22 @@ public class TransletInterpreter extends InstantActivitySupport {
     }
 
     @RequestToPost("/exec/@{_translet_}")
-    public void execute(Translet translet) {
-        String transletName = translet.getAttribute("_translet_");
-        if (StringUtils.isEmpty(transletName)) {
+    public void execute(@NonNull Translet translet) {
+        String requestName = translet.getAttribute("_translet_");
+        if (StringUtils.isEmpty(requestName)) {
             return;
         }
 
         try {
-            instantActivity(transletName);
+            requestName = COMMANDS_PREFIX + requestName;
+            instantActivity(requestName);
         } catch (Exception e) {
-            logger.error("Failed to execute translet: " + transletName, e);
+            logger.error("Failed to execute translet: " + requestName, e);
         }
     }
 
-    private List<Map<String, Object>> toListForTokens(Collection<ItemRule> itemRules) {
+    @NonNull
+    private List<Map<String, Object>> toListForTokens(@NonNull Collection<ItemRule> itemRules) {
         List<Map<String, Object>> list = new ArrayList<>();
         Map<Token, Set<ItemRule>> inputTokens = new LinkedHashMap<>();
         for (ItemRule itemRule : itemRules) {
@@ -198,7 +204,8 @@ public class TransletInterpreter extends InstantActivitySupport {
         return list;
     }
 
-    private List<Map<String, Object>> toListForItems(Collection<ItemRule> itemRules) {
+    @NonNull
+    private List<Map<String, Object>> toListForItems(@NonNull Collection<ItemRule> itemRules) {
         List<Map<String, Object>> list = new ArrayList<>();
         for (ItemRule itemRule : itemRules) {
             Map<String, Object> map = new LinkedHashMap<>();
