@@ -15,11 +15,9 @@
  */
 package aspectow.demo.monitoring.stats;
 
-import com.aspectran.utils.json.JsonWriter;
+import com.aspectran.utils.json.JsonBuilder;
 
-import java.io.IOException;
 import java.util.Arrays;
-import java.util.Objects;
 
 /**
  * <p>Created: 2020/01/11</p>
@@ -125,10 +123,10 @@ public class SessionStatsPayload {
         return Arrays.equals(stats.currentSessions, currentSessions);
     }
 
-    public String toJson() throws IOException {
-        return new JsonWriter()
+    public String toJson() {
+        return new JsonBuilder()
                 .prettyPrint(false)
-                .write(this)
+                .put(this)
                 .toString();
     }
 

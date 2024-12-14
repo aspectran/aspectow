@@ -27,7 +27,7 @@
 
     <aspect id="activityDataAccessibility">
         <description>
-            Each translet's activity data can be referenced as a "data" attribute.
+            The activity data of each translet can be referenced with the "data" attribute.
         </description>
         <advice>
             <before>
@@ -40,7 +40,7 @@
 
     <aspect id="defaultTransletSettings">
         <description>
-            Define an aspect to inject the default settings into all translets.
+            Defines an aspect that injects default settings into all translets.
         </description>
         <settings>
             <setting name="format.indentSize" value="2"/>
