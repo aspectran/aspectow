@@ -17,9 +17,11 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
+
     <groupId>com.aspectran</groupId>
     <artifactId>aspectow</artifactId>
     <version>8.0.0-SNAPSHOT</version>
+
     <name>Aspectow Enterprise Edition</name>
     <description>
         Aspectow Enterprise Edition is an all-in-one web application server based on Aspectran,
@@ -27,12 +29,26 @@
         JBoss' Undertow web server and Apache Jasper, the JSP engine used by Apache Tomcat, are built in.
     </description>
     <inceptionYear>2020</inceptionYear>
+
+    <organization>
+        <name>The Aspectran Project</name>
+        <url>https://aspectran.com/</url>
+    </organization>
+
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>https://www.apache.org/licenses/LICENSE-2.0</url>
+        </license>
+    </licenses>
+
     <contributors>
         <contributor>
             <name>Juho Jeong</name>
             <email>aspectran@gmail.com</email>
         </contributor>
     </contributors>
+
     <properties>
         <java.version>17</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -40,6 +56,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <aspectran.version>8.2.1-SNAPSHOT</aspectran.version>
     </properties>
+
     <repositories>
         <repository>
             <id>oss.sonatype.org-snapshot</id>
@@ -52,6 +69,51 @@
             </snapshots>
         </repository>
     </repositories>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.aspectran</groupId>
+            <artifactId>aspectran-with-logback</artifactId>
+            <version>${aspectran.version}</version>
+            <type>pom</type>
+        </dependency>
+        <dependency>
+            <groupId>com.aspectran</groupId>
+            <artifactId>aspectran-daemon</artifactId>
+            <version>${aspectran.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.aspectran</groupId>
+            <artifactId>aspectran-shell-jline</artifactId>
+            <version>${aspectran.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.aspectran</groupId>
+            <artifactId>aspectran-with-undertow</artifactId>
+            <version>${aspectran.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.aspectran</groupId>
+            <artifactId>aspectran-with-mybatis</artifactId>
+            <version>${aspectran.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>net.sf.sociaal</groupId>
+            <artifactId>freetts</artifactId>
+            <version>1.2.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.mariadb.jdbc</groupId>
+            <artifactId>mariadb-java-client</artifactId>
+            <version>3.5.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <version>2.3.232</version>
+        </dependency>
+    </dependencies>
+
     <build>
         <plugins>
             <plugin>
@@ -147,49 +209,7 @@
             </plugin>
         </plugins>
     </build>
-    <dependencies>
-        <dependency>
-            <groupId>com.aspectran</groupId>
-            <artifactId>aspectran-with-logback</artifactId>
-            <version>${aspectran.version}</version>
-            <type>pom</type>
-        </dependency>
-        <dependency>
-            <groupId>com.aspectran</groupId>
-            <artifactId>aspectran-daemon</artifactId>
-            <version>${aspectran.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.aspectran</groupId>
-            <artifactId>aspectran-shell-jline</artifactId>
-            <version>${aspectran.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.aspectran</groupId>
-            <artifactId>aspectran-with-undertow</artifactId>
-            <version>${aspectran.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.aspectran</groupId>
-            <artifactId>aspectran-with-mybatis</artifactId>
-            <version>${aspectran.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>net.sf.sociaal</groupId>
-            <artifactId>freetts</artifactId>
-            <version>1.2.2</version>
-        </dependency>
-        <dependency>
-            <groupId>org.mariadb.jdbc</groupId>
-            <artifactId>mariadb-java-client</artifactId>
-            <version>3.5.1</version>
-        </dependency>
-        <dependency>
-            <groupId>com.h2database</groupId>
-            <artifactId>h2</artifactId>
-            <version>2.3.232</version>
-        </dependency>
-    </dependencies>
+
     <profiles>
         <profile>
             <id>license</id>
