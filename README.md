@@ -2,11 +2,12 @@ Aspectow Enterprise Edition
 ===========================
 
 Aspectow Enterprise Edition is an all-in-one web application server based on Aspectran,
-fully supports servlet specifications, and is suitable for building enterprise web applications.  
-JBoss' [Undertow](http://undertow.io) web server and [Apache Jasper](https://mvnrepository.com/artifact/org.mortbay.jasper/apache-jsp), 
-the JSP engine used by Apache Tomcat, are built in.
+fully supporting the servlet specification and suitable for building enterprise web applications.
+It uses JBoss' [Undertow](http://undertow.io) as a servlet engine and web server, and [Apache Jasper](https://mvnrepository.com/artifact/org.mortbay.jasper/apache-jsp),
+which is used in Apache Tomcat, as a JSP engine.
 
-## Running Aspectow
+Running Aspectow
+----------------
 
 - Clone this repository
 
