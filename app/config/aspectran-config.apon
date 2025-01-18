@@ -107,6 +107,7 @@ daemon: {
         com.aspectran.daemon.command.builtins.QuitCommand
     ]
     session: {
+        workerName: daemon
         enabled: true
     }
     acceptable: {
