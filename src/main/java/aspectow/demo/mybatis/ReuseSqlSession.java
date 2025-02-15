@@ -5,7 +5,7 @@ import com.aspectran.core.component.bean.annotation.Component;
 import com.aspectran.mybatis.SqlSessionAgent;
 
 @Component
-@Bean("reuseSqlSession")
+@Bean(id = "reuseSqlSession", lazyDestroy = true)
 public class ReuseSqlSession extends SqlSessionAgent {
 
     public ReuseSqlSession() {

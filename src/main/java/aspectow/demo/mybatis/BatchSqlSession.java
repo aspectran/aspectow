@@ -5,7 +5,7 @@ import com.aspectran.core.component.bean.annotation.Component;
 import com.aspectran.mybatis.SqlSessionAgent;
 
 @Component
-@Bean("batchSqlSession")
+@Bean(id = "batchSqlSession", lazyDestroy = true)
 public class BatchSqlSession extends SqlSessionAgent {
 
     public BatchSqlSession() {
