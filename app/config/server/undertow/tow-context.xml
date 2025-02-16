@@ -22,7 +22,7 @@
             <item name="resourceManager">
                 <bean class="com.aspectran.undertow.server.handler.resource.TowResourceManager">
                     <properties>
-                        <item name="base">/webroot2</item>
+                        <item name="base">/webroot</item>
                     </properties>
                 </bean>
             </item>
@@ -106,3 +106,4 @@
     </bean>
 
 </aspectran>
+

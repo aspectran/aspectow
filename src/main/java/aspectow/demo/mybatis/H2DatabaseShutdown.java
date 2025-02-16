@@ -50,7 +50,7 @@ public class H2DatabaseShutdown implements ActivityContextAware, DisposableBean 
             activity.perform(() -> {
                 SimpleSqlSession sqlSession = activity.getBean(SimpleSqlSession.class);
                 try (Statement statement = sqlSession.getConnection().createStatement()) {
-                    statement.execute("shutdown");
+                    statement.execute("SHUTDOWN");
                 }
                 return null;
             });

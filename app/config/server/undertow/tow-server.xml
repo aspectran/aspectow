@@ -41,14 +41,9 @@
             </item>
             <item name="requestHandlerFactory">
                 <bean class="com.aspectran.undertow.server.handler.ServletRequestHandlerFactory">
-                    <properties profile="prod">
+                    <properties>
                         <item name="handlerChainWrappers" type="array">
                             <value>#{tow.server.handler.accessLogHandlerWrapper}</value>
-                            <value>#{tow.server.handler.encodingHandlerWrapper}</value>
-                        </item>
-                    </properties>
-                    <properties profile="!prod">
-                        <item name="handlerChainWrappers" type="array">
                             <value>#{tow.server.handler.encodingHandlerWrapper}</value>
                         </item>
                     </properties>
@@ -101,3 +96,4 @@
     </bean>
 
 </aspectran>
+
