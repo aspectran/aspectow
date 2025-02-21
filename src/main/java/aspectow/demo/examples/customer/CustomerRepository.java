@@ -56,17 +56,17 @@ public class CustomerRepository {
     }
 
     public Customer getCustomer(int id) {
-        logger.debug("Gets the details of customer: " + id);
+        logger.debug("Gets the details of customer: {}", id);
         return customerMap.get(id);
 
     }
 
     public boolean isCustomer(int id) {
         if (customerMap.containsKey(id)) {
-            logger.debug("Customer " + id + " exists");
+            logger.debug("Customer {} exists", id);
             return true;
         } else {
-            logger.debug("Customer " + id + " does not exists");
+            logger.debug("Customer {} does not exists", id);
             return false;
         }
     }
@@ -76,7 +76,7 @@ public class CustomerRepository {
 
         List<Customer> customerList = new ArrayList<>(customerMap.values());
 
-        logger.debug("Retrieved " + customerList.size() + " customers");
+        logger.debug("Retrieved {} customers", customerList.size());
 
         return customerList;
     }
@@ -91,7 +91,7 @@ public class CustomerRepository {
 
         customerMap.put(id, customer);
 
-        logger.debug("Customer " + id + " is registered");
+        logger.debug("Customer {} is registered", id);
 
         return id;
     }
@@ -99,7 +99,7 @@ public class CustomerRepository {
     public synchronized boolean updateCustomer(@NonNull Customer customer) {
         int id = customer.getInt(Customer.id);
         if (customerMap.containsKey(id)) {
-            logger.debug("Update customer: " + id);
+            logger.debug("Update customer: {}", id);
             customerMap.put(id, customer);
             return true;
         } else {
@@ -109,7 +109,7 @@ public class CustomerRepository {
 
     public synchronized boolean deleteCustomer(int id) {
         if (customerMap.containsKey(id)) {
-            logger.debug("Delete customer: " + id);
+            logger.debug("Delete customer: {}", id);
             customerMap.remove(id);
             return true;
         } else {
@@ -120,7 +120,7 @@ public class CustomerRepository {
     public boolean approve(int id, boolean approved) {
         Customer customer = customerMap.get(id);
         if (customer != null) {
-            logger.debug(id + "Approval for customer " + id + " (approved: " + approved + ")");
+            logger.debug("{}Approval for customer {} (approved: {})", id, id, approved);
             customer.putValue(Customer.approved, approved);
             return true;
         } else {
@@ -131,7 +131,7 @@ public class CustomerRepository {
     public boolean isApproved(int id) {
         Customer customer = customerMap.get(id);
         if (customer != null) {
-            logger.debug("Returns whether customer " + id + " is approved");
+            logger.debug("Returns whether customer {} is approved", id);
             return customer.getBoolean(Customer.approved);
         } else {
             return false;
