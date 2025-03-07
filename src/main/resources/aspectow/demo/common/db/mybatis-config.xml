@@ -28,7 +28,7 @@
     </environments>
 
     <mappers>
-        <mapper resource="mybatis/mapper/memo.xml"/>
+        <mapper resource="aspectow/demo/common/db/mapper/memo.xml"/>
     </mappers>
 
 </configuration>

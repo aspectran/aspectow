@@ -52,7 +52,7 @@
 
     <append file="/config/server/server.xml"/>
     <append file="/config/shell/shell-context.xml"/>
-    <append resource="mybatis/mybatis-context.xml"/>
-    <append resource="web/web-context.xml"/>
+    <append resource="aspectow/demo/common/db/db-context.xml"/>
+    <append resource="aspectow/demo/web-context.xml"/>
 
 </aspectran>
