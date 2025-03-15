@@ -15,15 +15,10 @@
  */
 package aspectow.demo.common.db;
 
-import com.aspectran.core.activity.InstantActivity;
-import com.aspectran.core.activity.InstantActivityException;
-import com.aspectran.core.component.bean.ablility.DisposableBean;
-import com.aspectran.core.component.bean.annotation.AvoidAdvice;
+import com.aspectran.core.activity.InstantActivitySupport;
 import com.aspectran.core.component.bean.annotation.Bean;
 import com.aspectran.core.component.bean.annotation.Component;
-import com.aspectran.core.component.bean.aware.ActivityContextAware;
-import com.aspectran.core.context.ActivityContext;
-import com.aspectran.utils.annotation.jsr305.NonNull;
+import com.aspectran.core.component.bean.annotation.Destroy;
 
 import java.sql.Statement;
 
@@ -33,30 +28,17 @@ import java.sql.Statement;
  */
 @Component
 @Bean(lazyDestroy = true)
-public class H2DatabaseShutdown implements ActivityContextAware, DisposableBean {
+public class H2DatabaseShutdown extends InstantActivitySupport {
 
-    private ActivityContext context;
-
-    @Override
-    @AvoidAdvice
-    public void setActivityContext(@NonNull ActivityContext context) {
-        this.context = context;
-    }
-
-    @Override
-    public void destroy() throws Exception {
-        try {
-            InstantActivity activity = new InstantActivity(context);
-            activity.perform(() -> {
-                SimpleSqlSession sqlSession = activity.getBean(SimpleSqlSession.class);
-                try (Statement statement = sqlSession.getConnection().createStatement()) {
-                    statement.execute("SHUTDOWN");
-                }
-                return null;
-            });
-        } catch (Exception e) {
-            throw new InstantActivityException(e);
-        }
+    @Destroy(profile = "h2")
+    public void shutdown() throws Exception {
+        instantActivity(() -> {
+            SimpleSqlSession sqlSession = getBeanRegistry().getBean(SimpleSqlSession.class);
+            try (Statement statement = sqlSession.getConnection().createStatement()) {
+                statement.execute("SHUTDOWN");
+            }
+            return null;
+        });
     }
 
 }
