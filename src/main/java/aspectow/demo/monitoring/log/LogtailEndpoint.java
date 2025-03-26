@@ -49,6 +49,7 @@ public class LogtailEndpoint extends SimplifiedEndpoint {
         session.addMessageHandler(String.class, message
                 -> handleMessage(session, message));
     }
+
     public void handleMessage(Session session, String message) {
         if (MESSAGE_PING.equals(message)) {
             pong(session);

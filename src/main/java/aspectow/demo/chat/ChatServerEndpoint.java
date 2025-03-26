@@ -25,28 +25,17 @@ import aspectow.demo.chat.model.payload.BroadcastTextMessagePayload;
 import aspectow.demo.chat.model.payload.DuplicatedUserPayload;
 import aspectow.demo.chat.model.payload.SendTextMessagePayload;
 import aspectow.demo.chat.model.payload.WelcomeUserPayload;
-import com.aspectran.core.activity.InstantActivitySupport;
 import com.aspectran.core.component.bean.annotation.Component;
-import com.aspectran.utils.ExceptionUtils;
+import com.aspectran.utils.Assert;
 import com.aspectran.utils.annotation.jsr305.NonNull;
 import com.aspectran.utils.annotation.jsr305.Nullable;
+import com.aspectran.web.websocket.jsr356.AbstractEndpoint;
 import com.aspectran.web.websocket.jsr356.AspectranConfigurator;
-import jakarta.websocket.CloseReason;
-import jakarta.websocket.OnClose;
-import jakarta.websocket.OnError;
-import jakarta.websocket.OnMessage;
-import jakarta.websocket.OnOpen;
 import jakarta.websocket.Session;
 import jakarta.websocket.server.ServerEndpoint;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.channels.ClosedChannelException;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeoutException;
+import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
  * WebSocket endpoint for the chat server.
@@ -60,149 +49,131 @@ import java.util.concurrent.TimeoutException;
         decoders = ChatMessageDecoder.class,
         configurator = AspectranConfigurator.class
 )
-public class ChatServerEndpoint extends InstantActivitySupport {
+public class ChatServerEndpoint extends AbstractEndpoint {
 
-    private static final Logger logger = LoggerFactory.getLogger(ChatServerEndpoint.class);
+    private static final String USERNAME_KEY = "username";
 
-    private static final Map<String, Session> sessions = new ConcurrentHashMap<>();
+    private static final Set<String> usernames = new CopyOnWriteArraySet<>();
 
-    @OnOpen
-    public void onOpen(Session session) {
-        if (logger.isDebugEnabled()) {
-            logger.debug("WebSocket connection established for session {}", session.getId());
-        }
+    @Override
+    protected void registerMessageHandlers(@NonNull Session session) {
+        session.addMessageHandler(ChatMessage.class, message
+                -> handleMessage(session, message));
     }
 
-    @OnMessage
-    public void onMessage(@NonNull Session session, @NonNull ChatMessage chatMessage) {
+    private void handleMessage(Session session, @NonNull ChatMessage chatMessage) {
         SendTextMessagePayload payload = chatMessage.getSendTextMessagePayload();
         if (payload != null) {
             String username = getUsername(session);
             switch (payload.getType()) {
                 case CHAT:
                     if (username != null) {
-                        broadcastTextMessage(session, username, payload.getContent());
+                        broadcast(session, username, payload.getContent());
                     }
                     break;
                 case JOIN:
                     if (username == null) {
                         username = payload.getUsername();
-                        if (sessions.containsKey(username)) {
-                            duplicatedUser(session, username);
-                            return;
-                        }
-                        setUsername(session, username);
-                        sessions.put(username, session);
-                        welcomeUser(session, username);
-                        broadcastUserConnected(session, username);
-                        broadcastAvailableUsers();
+                        join(session, username);
                     }
                     break;
                 case LEAVE:
                     if (username != null) {
-                        leaveUser(username);
+                        userLeft(session, username);
                     }
                     break;
             }
         }
     }
 
-    @OnClose
-    public void onClose(Session session, CloseReason reason) {
-        if (logger.isDebugEnabled()) {
-            logger.debug("Websocket session {} has been closed. Reason: {}", session.getId(), reason);
-        }
+    @Override
+    protected void removeSession(Session session) {
         String username = getUsername(session);
         if (username != null) {
-            leaveUser(username);
-        }
-    }
-
-    @OnError
-    public void onError(@NonNull Session session, Throwable error) {
-        if (!ExceptionUtils.hasCause(error, ClosedChannelException.class, TimeoutException.class)) {
-            logger.warn("Error in websocket session: {}", session.getId(), error);
-        }
-        try {
-            session.close(new CloseReason(CloseReason.CloseCodes.UNEXPECTED_CONDITION, null));
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            userLeft(session, username);
         }
     }
 
     @Nullable
     private String getUsername(@NonNull Session session) {
-        if (session.getUserProperties().get("username") != null) {
-            return session.getUserProperties().get("username").toString();
-        } else {
-            return null;
-        }
+        Object username = session.getUserProperties().get(USERNAME_KEY);
+        return (username != null ? username.toString() : null);
     }
 
     private void setUsername(@NonNull Session session, String username) {
-        session.getUserProperties().put("username", username);
+        session.getUserProperties().put(USERNAME_KEY, username);
     }
 
-    private void welcomeUser(@NonNull Session session, String username) {
+    private void join(@NonNull Session session, @NonNull String username) {
+        Assert.hasText(username, "username must not be empty");
+        synchronized (usernames) {
+            if (usernames.contains(username)) {
+                userDuplicated(session, username);
+                return;
+            }
+            setUsername(session, username);
+            usernames.add(username);
+        }
+        welcome(session, username);
+        userConnected(session, username);
+        notifyJoinedUsers(session);
+    }
+
+    private void welcome(@NonNull Session session, String username) {
         WelcomeUserPayload payload = new WelcomeUserPayload();
         payload.setUsername(username);
-        session.getAsyncRemote().sendObject(new ChatMessage(payload));
+        sendMessage(session, new ChatMessage(payload));
     }
 
-    private void duplicatedUser(@NonNull Session session, String username) {
+    private void userDuplicated(@NonNull Session session, String username) {
         DuplicatedUserPayload payload = new DuplicatedUserPayload();
         payload.setUsername(username);
-        session.getAsyncRemote().sendObject(new ChatMessage(payload));
+        sendMessage(session, new ChatMessage(payload));
     }
 
-    private void leaveUser(String username) {
-        sessions.remove(username);
-        broadcastUserDisconnected(username);
-        broadcastAvailableUsers();
+    private void userLeft(@NonNull Session session, String username) {
+        if (usernames.remove(username)) {
+            userDisconnected(session, username);
+            notifyJoinedUsers(session);
+        }
     }
 
-    private void broadcastUserConnected(Session session, String username) {
+    private void userConnected(Session session, String username) {
         BroadcastConnectedUserPayload payload = new BroadcastConnectedUserPayload();
         payload.setUsername(username);
-        broadcast(new ChatMessage(payload), session);
+        broadcast(session, new ChatMessage(payload), false);
     }
 
-    private void broadcastUserDisconnected(String username) {
+    private void userDisconnected(Session session, String username) {
         BroadcastDisconnectedUserPayload payload = new BroadcastDisconnectedUserPayload();
         payload.setUsername(username);
-        broadcast(new ChatMessage(payload));
+        broadcast(session, new ChatMessage(payload), true);
     }
 
-    private void broadcastTextMessage(Session session, String username, String text) {
+    private void notifyJoinedUsers(Session session) {
+        BroadcastAvailableUsersPayload payload = new BroadcastAvailableUsersPayload();
+        payload.setUsernames(usernames);
+        broadcast(session, new ChatMessage(payload), true);
+    }
+
+    private void broadcast(Session session, String username, String text) {
         BroadcastTextMessagePayload payload = new BroadcastTextMessagePayload();
         payload.setContent(text);
         payload.setUsername(username);
-        broadcast(new ChatMessage(payload), session);
+        broadcast(session, new ChatMessage(payload), false);
     }
 
-    private void broadcastAvailableUsers() {
-        BroadcastAvailableUsersPayload payload = new BroadcastAvailableUsersPayload();
-        payload.setUsernames(sessions.keySet());
-        broadcast(new ChatMessage(payload));
-    }
-
-    private void broadcast(ChatMessage message) {
-        synchronized (sessions) {
-            for (Session session : sessions.values()) {
-                if (session.isOpen()) {
-                    session.getAsyncRemote().sendObject(message);
-                }
+    private void broadcast(@NonNull Session session, ChatMessage message, boolean includingMe) {
+        for (Session other : session.getOpenSessions()) {
+            if (includingMe || !other.getId().equals(session.getId())) {
+                sendMessage(other, message);
             }
         }
     }
 
-    private void broadcast(ChatMessage message, Session ignoredSession) {
-        synchronized (sessions) {
-            for (Session session : sessions.values()) {
-                if (session.isOpen() && !session.getId().equals(ignoredSession.getId())) {
-                    session.getAsyncRemote().sendObject(message);
-                }
-            }
+    private void sendMessage(@NonNull Session session, @NonNull ChatMessage message) {
+        if (session.isOpen()) {
+            session.getAsyncRemote().sendObject(message);
         }
     }
 

@@ -19,7 +19,6 @@ import aspectow.demo.chat.model.ChatMessage;
 import com.aspectran.utils.json.JsonBuilder;
 import jakarta.websocket.EncodeException;
 import jakarta.websocket.Encoder;
-import jakarta.websocket.EndpointConfig;
 
 /**
  * Encoder for {@link ChatMessage}.
@@ -39,14 +38,6 @@ public class ChatMessageEncoder implements Encoder.Text<ChatMessage> {
         } catch (Exception e) {
             throw new EncodeException(message, "Badly formatted message", e);
         }
-    }
-
-    @Override
-    public void init(EndpointConfig config) {
-    }
-
-    @Override
-    public void destroy() {
     }
 
 }

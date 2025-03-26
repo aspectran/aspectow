@@ -106,7 +106,7 @@ public class LogTailerManager {
 
     private boolean isUsingTailer(String name) {
         if (StringUtils.hasLength(name)) {
-            return endpoint.existsSession(session -> {
+            return endpoint.containsSession(session -> {
                 String[] names = (String[])session.getUserProperties().get(TAILERS_PROPERTY);
                 if (names != null) {
                     for (String name2 : names) {

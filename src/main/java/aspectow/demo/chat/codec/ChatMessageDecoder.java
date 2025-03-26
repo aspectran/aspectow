@@ -19,7 +19,6 @@ import aspectow.demo.chat.model.ChatMessage;
 import com.aspectran.utils.apon.JsonToParameters;
 import jakarta.websocket.DecodeException;
 import jakarta.websocket.Decoder;
-import jakarta.websocket.EndpointConfig;
 
 import java.io.IOException;
 
@@ -42,14 +41,6 @@ public class ChatMessageDecoder implements Decoder.Text<ChatMessage> {
     @Override
     public boolean willDecode(String s) {
         return true;
-    }
-
-    @Override
-    public void init(EndpointConfig config) {
-    }
-
-    @Override
-    public void destroy() {
     }
 
 }
