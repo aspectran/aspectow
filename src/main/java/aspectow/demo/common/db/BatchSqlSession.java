@@ -6,7 +6,7 @@ import com.aspectran.mybatis.SqlSessionAgent;
 import org.apache.ibatis.session.ExecutorType;
 
 @Component
-@Bean(id = "batchSqlSession", lazyDestroy = true, proxied = true)
+@Bean(id = "batchSqlSession", lazyDestroy = true)
 public class BatchSqlSession extends SqlSessionAgent {
 
     public BatchSqlSession() {
