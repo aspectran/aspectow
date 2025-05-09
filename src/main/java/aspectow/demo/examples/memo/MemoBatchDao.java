@@ -1,6 +1,6 @@
 package aspectow.demo.examples.memo;
 
-import aspectow.demo.common.db.BatchSqlSession;
+import aspectow.demo.common.mybatis.BatchSqlSession;
 import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Bean;
 import com.aspectran.core.component.bean.annotation.Component;

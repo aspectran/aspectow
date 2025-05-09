@@ -1,4 +1,4 @@
-package aspectow.demo.common.db;
+package aspectow.demo.common.mybatis;
 
 import com.aspectran.core.component.bean.annotation.Bean;
 import com.aspectran.core.component.bean.annotation.Component;
