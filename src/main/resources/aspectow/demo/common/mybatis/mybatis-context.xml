@@ -13,7 +13,7 @@
         </description>
         <properties>
             <item name="configLocation" value="classpath:aspectow/demo/common/mybatis/mybatis-config.xml"/>
-            <item name="environment" value="default"/>
+            <item name="environmentId" value="default"/>
             <item name="variables" type="properties">
                 <entry name="driver">%{classpath:aspectow/demo/common/mybatis/memo.db.properties^driver}</entry>
                 <entry name="url">%{classpath:aspectow/demo/common/mybatis/memo.db.properties^url}</entry>
