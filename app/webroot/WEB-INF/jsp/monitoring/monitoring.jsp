@@ -56,7 +56,7 @@
     </div>
 </div>
 <script>
-    $(function() {
+    $(function () {
         let sessionStats = new SessionStats("/monitoring/stats", 5);
         try {
             sessionStats.openSocket();
@@ -67,7 +67,7 @@
     });
 </script>
 <script>
-    $(function() {
+    $(function () {
         let logTailer = new LogTailer("/monitoring/logtail", "app-log");
         $(".bite-tail").click(function() {
             let logtail = $(this).closest(".log-container").find(".log-tail");
