@@ -17,7 +17,6 @@ package aspectow.demo.examples.customer;
 
 import com.aspectran.core.activity.Translet;
 import com.aspectran.core.component.bean.annotation.Autowired;
-import com.aspectran.core.component.bean.annotation.Bean;
 import com.aspectran.core.component.bean.annotation.Component;
 import com.aspectran.core.component.bean.annotation.Description;
 import com.aspectran.core.component.bean.annotation.RequestToDelete;
@@ -32,7 +31,6 @@ import com.aspectran.web.activity.response.RestResponse;
 import java.util.List;
 
 @Component("/examples/gs-rest-service")
-@Bean
 public class CustomerActivity {
 
     private final CustomerRepository repository;
