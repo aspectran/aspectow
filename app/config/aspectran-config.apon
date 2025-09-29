@@ -53,7 +53,7 @@ shell: {
         |{{WHITE,bold}}     ___                         __
         |{{CYAN      }}    /   |  ___  ____  ___  ___  / /____   ___  ____
         |{{GREEN     }}   / /| | / __|/ __ |/ _ |/ __|/ __/ __|/ __ |/ __ |
-        |{{YELLOW    }}  / ___ |(__  ) /_/ /  __/ /  / / / /  / /_/ / / / /
+        |{{YELLOW    }}  / ___ |(__  ) /_/ /  __/ /  / / / /  / /_/ / / / /  {{WHITE,bold}}Aspectow
         |{{RED       }} /_/  |_|____/ .___/|___/|___/|__/_/   |__(_(_/ /_/   {{WHITE,bold}}Enterprise Edition
         |{{gray      }}=========== /_/ ==========================================================
         |{{MAGENTA   }}:: Built with Aspectran :: {{reset}}#{class:com.aspectran.core.AboutMe^version}
