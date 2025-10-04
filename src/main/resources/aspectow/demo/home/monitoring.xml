@@ -13,9 +13,7 @@
     </bean>
 
     <translet name="/monitoring/${instances}">
-        <attributes>
-            <item name="token">#{class:com.aspectran.utils.security.TimeLimitedPBTokenIssuer^token}</item>
-        </attributes>
+        <attribute name="token">#{class:com.aspectran.utils.security.TimeLimitedPBTokenIssuer^token}</attribute>
         <redirect path="/appmon/front/@{token}/${instances}"/>
     </translet>
 
