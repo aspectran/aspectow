@@ -30,17 +30,11 @@
         <settings>
             <setting name="characterEncoding" value="utf-8"/>
             <setting name="viewDispatcher" value="jspViewDispatcher"/>
+            <setting name="proxyProtocolAware" value="true"/>
         </settings>
     </aspect>
 
     <append resource="aspectow/demo/home/main.xml"/>
-    <append resource="aspectow/demo/examples/hello-world.xml"/>
-    <append resource="aspectow/demo/examples/gs-rest-service.xml"/>
-    <append resource="aspectow/demo/examples/file-upload.xml"/>
-    <append resource="aspectow/demo/terminal/translet-interpreter.xml"/>
-    <append resource="aspectow/demo/terminal/terminal-commands.xml"/>
-    <append resource="aspectow/demo/skylark/skylark.xml"/>
-    <append resource="aspectow/demo/chat/chat.xml"/>
-    <append resource="aspectow/demo/monitoring/monitoring.xml"/>
+    <append resource="aspectow/demo/home/monitoring.xml"/>
 
 </aspectran>

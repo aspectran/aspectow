@@ -25,41 +25,56 @@
             setTheme(getPreferredTheme());
         })();
     </script>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
     <meta name="google" content="notranslate">
-    <title>${empty page.title ? "Aspectow Sample Applications" : page.title}</title>
-    <meta name="description" content="${empty page.description ? "Aspectow is an enterprise WAS based on Aspectran. Explore powerful features and best practices through various sample applications built with Aspectow, optimized for MSA environments." : page.description}">
-    <link rel="mask-icon" href="https://assets.aspectran.com/img/aspectran-logo.svg" color="#4B555A">
-    <link rel="apple-touch-icon" sizes="57x57" href="https://assets.aspectran.com/img/apple-icon-57x57.png">
-    <link rel="apple-touch-icon" sizes="60x60" href="https://assets.aspectran.com/img/apple-icon-60x60.png">
-    <link rel="apple-touch-icon" sizes="72x72" href="https://assets.aspectran.com/img/apple-icon-72x72.png">
-    <link rel="apple-touch-icon" sizes="76x76" href="https://assets.aspectran.com/img/apple-icon-76x76.png">
-    <link rel="apple-touch-icon" sizes="114x114" href="https://assets.aspectran.com/img/apple-icon-114x114.png">
-    <link rel="apple-touch-icon" sizes="120x120" href="https://assets.aspectran.com/img/apple-icon-120x120.png">
-    <link rel="apple-touch-icon" sizes="144x144" href="https://assets.aspectran.com/img/apple-icon-144x144.png">
-    <link rel="apple-touch-icon" sizes="152x152" href="https://assets.aspectran.com/img/apple-icon-152x152.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="https://assets.aspectran.com/img/apple-icon-180x180.png">
-    <link rel="icon" type="image/png" sizes="192x192"  href="https://assets.aspectran.com/img/android-icon-192x192.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="https://assets.aspectran.com/img/favicon-16x16.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="https://assets.aspectran.com/img/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="96x96" href="https://assets.aspectran.com/img/favicon-96x96.png">
-    <meta name="msapplication-TileImage" content="https://assets.aspectran.com/img/ms-icon-144x144.png">
-    <meta name="msapplication-TileColor" content="#4B555A">
-    <link rel="stylesheet" type="text/css" href="https://assets.aspectran.com/bootstrap@5.3.8/css/aspectran.css?v=20250923"/>
+    <title>${empty page.title ? "AppMon" : page.title}</title>
+    <meta name="description" content="${empty page.description ? "Welcome to AppMon" : page.description}">
+    <link rel="mask-icon" href="https://assets.aspectran.com/img/aspectran-logo.svg" color="#4B555A"/>
+    <link rel="apple-touch-icon" sizes="57x57" href="https://assets.aspectran.com/img/apple-icon-57x57.png"/>
+    <link rel="apple-touch-icon" sizes="60x60" href="https://assets.aspectran.com/img/apple-icon-60x60.png"/>
+    <link rel="apple-touch-icon" sizes="72x72" href="https://assets.aspectran.com/img/apple-icon-72x72.png"/>
+    <link rel="apple-touch-icon" sizes="76x76" href="https://assets.aspectran.com/img/apple-icon-76x76.png"/>
+    <link rel="apple-touch-icon" sizes="114x114" href="https://assets.aspectran.com/img/apple-icon-114x114.png"/>
+    <link rel="apple-touch-icon" sizes="120x120" href="https://assets.aspectran.com/img/apple-icon-120x120.png"/>
+    <link rel="apple-touch-icon" sizes="144x144" href="https://assets.aspectran.com/img/apple-icon-144x144.png"/>
+    <link rel="apple-touch-icon" sizes="152x152" href="https://assets.aspectran.com/img/apple-icon-152x152.png"/>
+    <link rel="apple-touch-icon" sizes="180x180" href="https://assets.aspectran.com/img/apple-icon-180x180.png"/>
+    <link rel="icon" type="image/png" sizes="192x192"  href="https://assets.aspectran.com/img/android-icon-192x192.png"/>
+    <link rel="icon" type="image/png" sizes="16x16" href="https://assets.aspectran.com/img/favicon-16x16.png"/>
+    <link rel="icon" type="image/png" sizes="32x32" href="https://assets.aspectran.com/img/favicon-32x32.png"/>
+    <link rel="icon" type="image/png" sizes="96x96" href="https://assets.aspectran.com/img/favicon-96x96.png"/>
+    <meta name="msapplication-TileImage" content="https://assets.aspectran.com/img/ms-icon-144x144.png"/>
+    <meta name="msapplication-TileColor" content="#4B555A"/>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,400;0,700;1,400&display=swap">
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <link rel="stylesheet" type="text/css" href="https://assets.aspectran.com/bootstrap@5.3.8/css/aspectran.css?20250923"/>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css" integrity="sha256-pdY4ejLKO67E0CM2tbPtq1DJ3VGDVVdqAR6j3ZwdiE4=" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.min.js" integrity="sha256-Lye89HGy1p3XhJT24hcvsoRw64Q4IOL5a7hdOflhjTA=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js" integrity="sha256-eVNjHw5UeU0jUqPPpZHAkU1z4U+QFBBY488WvueTm88=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.2.0/dist/chartjs-plugin-zoom.min.js" integrity="sha256-5KCI5bq5O+buR8k57rnrqoDgs5FW1L39GvnIRL6BtsQ=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-crosshair@2.0.0/dist/chartjs-plugin-crosshair.min.js" integrity="sha256-5bTtdEYtbjO36pQbMCXOsoYW5u5jfYfyI41LelMTTbQ=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.18/dayjs.min.js" integrity="sha256-nP25Pzivzy0Har7NZtMr/TODzfGWdlTrwmomYF2vQXM=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.18/plugin/utc.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.18/plugin/localizedFormat.js"></script>
+    <script>dayjs.extend(window.dayjs_plugin_utc)</script>
+    <script>dayjs.extend(window.dayjs_plugin_localizedFormat)</script>
     <script src="https://assets.aspectran.com/js/navigation.js?20250923"></script>
+    <script src="https://assets.aspectran.com/countries/countries.js"></script>
 </head>
 <body id="top-of-page" class="${page.style}" itemscope itemtype="https://schema.org/WebPage">
 <nav id="navigation" class="navbar navbar-expand-lg" data-bs-theme="dark">
     <div class="title-bar">
         <div class="title-bar-left">
-            <a class="logo" href="<aspectran:url value="/"/>" title="Aspectran"><img src="https://assets.aspectran.com/img/aspectran-site-logo.png" alt="Aspectran"/></a>
+            <aspectran:profile expression="prod">
+                <a class="logo" href="https://public.aspectran.com/" title="Aspectran"><img src="https://assets.aspectran.com/img/aspectran-site-logo.png" alt="Aspectran"/></a>
+            </aspectran:profile>
+            <aspectran:profile expression="!prod">
+                <a class="logo" href="<aspectran:url value="/../"/>" title="Aspectran"><img src="https://assets.aspectran.com/img/aspectran-site-logo.png" alt="Aspectran"/></a>
+            </aspectran:profile>
         </div>
         <div class="title-bar-center">
-            <a href="#top-of-page">Aspectran</a>
+            <a href="#top-of-page">AppMon</a>
         </div>
         <div class="title-bar-right">
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
@@ -71,40 +86,27 @@
         <div class="container collapse navbar-collapse" id="navbarSupportedContent">
             <div class="top-bar-logo">
                 <div class="circle">
-                    <a class="navbar-brand logo" href="<aspectran:url value="/"/>" title="Aspectran"><img src="https://assets.aspectran.com/img/aspectran-site-logo.png" alt="Aspectran"/></a>
+                    <aspectran:profile expression="prod">
+                        <a class="navbar-brand logo" href="https://public.aspectran.com/" title="Aspectran"><img src="https://assets.aspectran.com/img/aspectran-site-logo.png" alt="Aspectran"/></a>
+                    </aspectran:profile>
+                    <aspectran:profile expression="!prod">
+                        <a class="navbar-brand logo" href="<aspectran:url value="/../"/>" title="Aspectran"><img src="https://assets.aspectran.com/img/aspectran-site-logo.png" alt="Aspectran"/></a>
+                    </aspectran:profile>
                 </div>
             </div>
             <div class="top-bar-left me-auto">
                 <ul class="navbar-nav">
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false"
-                            href="<aspectran:url value="/"/>" title="Sample applications built on Aspectran">Sample Apps</a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="https://demo.aspectran.com">Aspectran Demo</a></li>
-                            <li><a class="dropdown-item" href="https://jpetstore.aspectran.com">JPetStore Demo</a></li>
-                            <li><a class="dropdown-item" href="https://petclinic.aspectran.com">PetClinic Demo</a></li>
-                        </ul>
-                    </li>
                     <li class="nav-item">
-                        <a class="nav-link">Get Involved</a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="https://github.com/aspectran/aspectow">GitHub</a></li>
-                        </ul>
+                        <a class="nav-link" href="<aspectran:url value="/../monitoring/"/>" title="AppMon">AppMon</a>
                     </li>
                 </ul>
             </div>
             <div class="top-bar-right d-lg-flex align-items-center gap-3">
                 <ul class="navbar-nav">
-                    <li class="nav-item"><a class="nav-link" href="<aspectran:url value="/monitoring/"/>">Monitoring</a></li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="https://github.com/aspectran/aspectow-appmon" title="Get Involved">v${page.version}</a>
+                    </li>
                 </ul>
-                <div class="quick-search-box m-2 mx-md-0 mb-md-2 m-lg-0">
-                    <form name="google_quick_search" role="search">
-                        <div class="input-group">
-                            <input class="form-control" type="text" name="keyword" placeholder="Search" aria-label="Search" aria-describedby="top-bar-quick-search-btn">
-                            <button class="btn btn-outline-primary text-white" type="button" id="top-bar-quick-search-btn"><i class="bi bi-search"></i></button>
-                        </div>
-                    </form>
-                </div>
                 <div class="settings d-flex align-items-center justify-content-end gap-2 m-2 mx-md-0 mb-md-2 m-lg-0">
                     <div class="theme-toggler dropdown">
                         <button class="btn btn-primary dropdown-toggle" type="button" id="theme-toggler-btn" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Toggle theme">
@@ -140,7 +142,6 @@
     </div>
 </nav>
 <section itemscope itemtype="https://schema.org/Article">
-    <c:if test="${not empty page.headline or not empty page.headimageinclude}">
     <div id="masthead">
         <div class="container">
         <c:if test="${not empty page.headline}">
@@ -176,11 +177,11 @@
         <div class="container breadcrumb-bar">
             <nav role="navigation" aria-label="You are here:">
                 <ol class="breadcrumb" itemprop="breadcrumb">
+                    <li class="breadcrumb-item"><a href="<aspectran:url value="/"/>">AppMon</a></li>
                 </ol>
             </nav>
         </div>
     </div>
-    </c:if>
     <div class="container page-content">
     <c:if test="${not empty page.include}">
         <jsp:include page="/WEB-INF/jsp/${page.include}.jsp"/>
@@ -262,9 +263,7 @@
             $themeToggler.find('.theme-icon-active').attr('class', 'bi theme-icon-active ' + iconClass);
         };
 
-        const preferredTheme = getPreferredTheme();
-        setTheme(preferredTheme);
-        showActiveTheme(preferredTheme);
+        showActiveTheme(getPreferredTheme());
 
         $(window.matchMedia('(prefers-color-scheme: dark)')).on('change', () => {
             const storedTheme = getStoredTheme();
@@ -278,46 +277,6 @@
             setStoredTheme(theme);
             setTheme(theme);
             showActiveTheme(theme);
-        });
-    });
-</script>
-<script>
-    const supportedLanguages = ['en', 'ko'];
-    function getPreferredLangCodeFromLocalStorage() {
-        let langCode = localStorage.getItem("preferred-lang-code");
-        if (langCode && supportedLanguages.includes(langCode)) {
-            return langCode;
-        } else {
-            return null;
-        }
-    }
-    function setPreferredLangCodeToLocalStorage(langCode) {
-        localStorage.setItem("preferred-lang-code", langCode);
-    }
-    function getPreferredLangCode() {
-        let langCode = getPreferredLangCodeFromLocalStorage();
-        if (langCode) {
-            return langCode;
-        }
-        const languages = navigator.languages;
-        if (languages && languages.length) {
-            for (const lang of languages) {
-                let code = lang.substring(0, 2);
-                if (supportedLanguages.includes(code)) {
-                    return code;
-                }
-            }
-        }
-        return 'en';
-    }
-    $(function () {
-        $(".choice-preferred-lang").on("click", function (e) {
-            e.preventDefault();
-            let langCode = $(this).attr("lang");
-            if (langCode) {
-                setPreferredLangCodeToLocalStorage(langCode);
-            }
-            location.href = $(this).attr("href");
         });
     });
 </script>
