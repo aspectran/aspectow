@@ -16,7 +16,7 @@ It leverages industry-standard technologies, including **JBoss Undertow** as its
 ## Requirements
 
 - Java 21 or later
-- Maven 3.6.3 or later
+- Maven 3.9.4 or later
 
 ## Building from Source
 
