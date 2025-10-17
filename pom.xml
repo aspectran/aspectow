@@ -57,7 +57,7 @@
         <!-- [Critical] Must be 'true' to preserve method parameter names, which Aspectran requires for runtime argument mapping. -->
         <maven.compiler.parameters>true</maven.compiler.parameters>
 
-        <aspectran.version>9.1.2</aspectran.version>
+        <aspectran.version>9.1.3-SNAPSHOT</aspectran.version>
         <aspectow.appmon.version>2.1.0</aspectow.appmon.version>
     </properties>
 
