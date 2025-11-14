@@ -98,14 +98,20 @@
             <div class="top-bar-left me-auto">
                 <ul class="navbar-nav">
                     <li class="nav-item">
-                        <a class="nav-link" href="<aspectran:url value="/../monitoring/"/>" title="AppMon">AppMon</a>
+                        <a class="nav-link" href="<aspectran:url value="/"/>" title="AppMon">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="<aspectran:url value="/dashboard/"/>" title="AppMon Dashboard">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="<aspectran:url value="/anatomy/"/>" title="Framework Anatomy"><i class="bi bi-diagram-3"></i> Anatomy</a>
                     </li>
                 </ul>
             </div>
             <div class="top-bar-right d-lg-flex align-items-center gap-3">
                 <ul class="navbar-nav">
                     <li class="nav-item">
-                        <a class="nav-link" href="https://github.com/aspectran/aspectow-appmon" title="Get Involved">v${page.version}</a>
+                        <a class="nav-link" href="https://github.com/aspectran/aspectow-appmon" title="Get Involved">v<aspectran:token  type="bean" expression="class:com.aspectran.appmon.AboutMe^version"/></a>
                     </li>
                 </ul>
                 <div class="settings d-flex align-items-center justify-content-end gap-2 m-2 mx-md-3 m-lg-0">
