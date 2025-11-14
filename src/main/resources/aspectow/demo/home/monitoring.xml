@@ -3,7 +3,7 @@
         "https://aspectran.com/dtd/aspectran-9.dtd">
 <aspectran>
 
-    <bean class="com.aspectran.appmon.config.AppMonConfigResolver">
+    <bean class="com.aspectran.appmon.engine.config.AppMonConfigResolver">
         <properties profile="!prod">
             <item name="configLocation">/config/appmon/appmon-config.apon</item>
         </properties>
