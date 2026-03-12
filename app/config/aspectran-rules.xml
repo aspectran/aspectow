@@ -45,6 +45,6 @@
 
     <append file="/config/server/server.xml"/>
     <append file="/config/appmon/appmon-assets.xml"/>
-    <append resource="aspectow/demo/web-context.xml"/>
+    <append resource="aspectow/demo/web-rules.xml"/>
 
 </aspectran>
