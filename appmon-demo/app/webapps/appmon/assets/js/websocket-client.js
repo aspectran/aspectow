@@ -1,169 +1,11 @@
 /*
  * Aspectow AppMon 4.0
- * Last modified: 2026-04-29
+ * Last modified: 2026-05-10
  */
-
-/**
- * A bridge that multiplexes multiple virtual sockets over a single physical WebSocket connection.
- */
-class GatewaySocketBridge {
-    constructor(url) {
-        this.url = url;
-        this.socket = null;
-        this.virtualSockets = {};
-        this.connectionPromise = null;
-        this.isConnected = false;
-        this.established = false;
-    }
-
-    connect() {
-        if (this.connectionPromise) {
-            return this.connectionPromise;
-        }
-
-        this.connectionPromise = new Promise((resolve, reject) => {
-            console.log("Gateway bridge connecting to:", this.url);
-            this.socket = new WebSocket(this.url);
-
-            this.socket.onopen = () => {
-                this.isConnected = true;
-                resolve();
-                Object.values(this.virtualSockets).forEach(vs => {
-                    if (vs.onopen) vs.onopen();
-                });
-            };
-
-            this.socket.onmessage = (event) => {
-                if (typeof event.data === "string") {
-                    const msg = event.data;
-                    const idx = msg.indexOf(':');
-                    if (idx !== -1) {
-                        const nodeId = msg.substring(0, idx);
-                        const payload = msg.substring(idx + 1);
-                        const vs = this.virtualSockets[nodeId];
-                        if (vs && vs.onmessage) {
-                            vs.onmessage({ data: payload });
-                        }
-                    } else {
-                        // Broadcast to all if no nodeId prefix is found (e.g. pong)
-                        Object.values(this.virtualSockets).forEach(vs => {
-                            if (vs.onmessage) vs.onmessage(event);
-                        });
-                    }
-                }
-            };
-
-            this.socket.onclose = (event) => {
-                this.isConnected = false;
-                this.connectionPromise = null;
-                Object.values(this.virtualSockets).forEach(vs => {
-                    if (vs.onclose) vs.onclose(event);
-                });
-            };
-
-            this.socket.onerror = (event) => {
-                this.connectionPromise = null;
-                if (reject) reject(event);
-                Object.values(this.virtualSockets).forEach(vs => {
-                    if (vs.onerror) vs.onerror(event);
-                });
-            };
-        });
-
-        return this.connectionPromise;
-    }
-
-    createVirtualSocket(nodeId) {
-        const vs = new VirtualSocket(this, nodeId);
-        this.virtualSockets[nodeId] = vs;
-        if (this.isConnected && vs.onopen) {
-            setTimeout(() => vs.onopen(), 0);
-        }
-        return vs;
-    }
-
-    send(nodeId, data) {
-        if (this.isConnected && this.socket.readyState === WebSocket.OPEN) {
-            if (data.startsWith("nodeId:")) {
-                this.socket.send(data);
-            } else if (data.startsWith("command:")) {
-                this.socket.send("nodeId:" + nodeId + ";" + data);
-            } else {
-                this.socket.send("[" + nodeId + "]" + data);
-            }
-        }
-    }
-
-    close(nodeId) {
-        delete this.virtualSockets[nodeId];
-        if (Object.keys(this.virtualSockets).length === 0 && this.socket) {
-            this.socket.close();
-            this.socket = null;
-            this.isConnected = false;
-            this.connectionPromise = null;
-        }
-    }
-
-    setEstablished(value) {
-        this.established = value;
-    }
-}
-
-class VirtualSocket {
-    constructor(bridge, nodeId) {
-        this.bridge = bridge;
-        this.nodeId = nodeId;
-        this.readyState = WebSocket.CONNECTING;
-        
-        // Define constants to mimic real WebSocket
-        this.CONNECTING = WebSocket.CONNECTING;
-        this.OPEN = WebSocket.OPEN;
-        this.CLOSING = WebSocket.CLOSING;
-        this.CLOSED = WebSocket.CLOSED;
-        
-        this._onopen = null;
-        this._onmessage = null;
-        this._onclose = null;
-        this._onerror = null;
-    }
-
-    get onopen() { return this._onopen; }
-    set onopen(fn) {
-        this._onopen = () => {
-            this.readyState = WebSocket.OPEN;
-            if (fn) fn();
-        };
-    }
-
-    get onmessage() { return this._onmessage; }
-    set onmessage(fn) { this._onmessage = fn; }
-
-    get onclose() { return this._onclose; }
-    set onclose(fn) {
-        this._onclose = (event) => {
-            this.readyState = WebSocket.CLOSED;
-            if (fn) fn(event);
-        };
-    }
-
-    get onerror() { return this._onerror; }
-    set onerror(fn) { this._onerror = fn; }
-
-    send(data) {
-        this.bridge.send(this.nodeId, data);
-    }
-
-    close() {
-        this.readyState = WebSocket.CLOSED;
-        this.bridge.close(this.nodeId);
-    }
-}
-
-// Global instance for the gateway bridge
-window.gatewaySocketBridge = null;
 
 /**
  * WebSocket implementation of the AppMon client.
+ * In Gateway Mode, it manages a single physical connection for the entire cluster.
  */
 class WebsocketClient extends BaseClient {
     constructor(node, viewer, onJoined, onEstablished, onClosed, onFailed, isGatewayMode = false) {
@@ -175,6 +17,16 @@ class WebsocketClient extends BaseClient {
         this.pendingMessages = [];
         this.established = false;
         this.isGatewayMode = isGatewayMode;
+        this.clusterViewers = {};
+        this.clusterNodes = {};
+    }
+
+    addClusterViewer(nodeId, viewer) {
+        this.clusterViewers[nodeId] = viewer;
+    }
+
+    addClusterNode(nodeId, node, onJoined, onEstablished) {
+        this.clusterNodes[nodeId] = { node, onJoined, onEstablished };
     }
 
     start(appsToJoin) {
@@ -185,9 +37,14 @@ class WebsocketClient extends BaseClient {
         this.closeSocket();
     }
 
-    sendCommand(options) {
+    sendCommand(options, targetNodeId) {
         if (this.socket && this.socket.readyState === WebSocket.OPEN) {
-            this.socket.send(options ? options.join(";") : "");
+            let cmd = options ? options.slice() : [];
+            if (this.isGatewayMode && targetNodeId) {
+                cmd.push("nodeId:" + targetNodeId);
+            }
+            console.log("cmd", cmd);
+            this.socket.send(cmd.join(";"));
         }
     }
 
@@ -196,21 +53,15 @@ class WebsocketClient extends BaseClient {
         const url = new URL(this.node.endpoint.path + "/appmon/websocket/" + this.node.endpoint.token, location.href);
         url.protocol = url.protocol.replace("https:", "wss:").replace("http:", "ws:");
 
-        if (this.isGatewayMode) {
-            if (!window.gatewaySocketBridge) {
-                window.gatewaySocketBridge = new GatewaySocketBridge(url.href);
-            }
-            //window.gatewaySocketBridge.connect();
-            this.socket = window.gatewaySocketBridge.createVirtualSocket(this.node.id);
-        } else {
-            this.socket = new WebSocket(url.href);
-        }
+        console.log("Connecting to:", url.href);
+        this.socket = new WebSocket(url.href);
 
         this.socket.onopen = () => {
-            console.log(this.node.id, "socket connected:", this.node.endpoint.path);
+            console.log(this.node.id, "socket connected");
             this.pendingMessages.push("Socket connection successful");
+            
+            // Join the first node
             const options = [
-                //"nodeId:" + this.node.endpoint.id,
                 "command:join",
                 "timeZone:" + Intl.DateTimeFormat().resolvedOptions().timeZone
             ];
@@ -223,52 +74,51 @@ class WebsocketClient extends BaseClient {
         };
 
         this.socket.onmessage = (event) => {
-            if (typeof event.data === "string") {
-                const msg = event.data;
-                console.log("==", msg);
-                if (this.isEstablished()) {
-                    if (msg.startsWith("pong:")) {
-                        this.node.endpoint.token = msg.substring(5);
-                        this.heartbeatPing();
-                    } else {
-                        this.viewer.processMessage(msg);
-                    }
-                } else if (msg.startsWith("joined:")) {
-                    console.log(this.node.id, msg, this.node.endpoint.token);
-                    const payload = msg.substring(7);
-                    this.establish(payload);
+            if (typeof event.data !== "string") return;
+            const msg = event.data;
+            //console.log(msg);
+
+            const idx = msg.indexOf(':');
+            if (idx === -1) return;
+
+            const firstPart = msg.substring(0, idx);
+            const remaining = msg.substring(idx + 1);
+
+            if (this.isEstablished()) {
+                if (remaining.startsWith("pong:")) {
+                    this.node.endpoint.token = remaining.substring(5);
+                    this.heartbeatPing();
                 } else {
-                    console.error("Unexpected message received before establishment:", msg);
+                    const viewer = this.clusterViewers[firstPart];
+                    if (viewer) {
+                        viewer.processMessage(remaining);
+                    } else {
+                        console.warn("No viewer registered for nodeId:", firstPart, "Message:", remaining);
+                    }
                 }
+            } else if (remaining.startsWith("joined:")) {
+                // Control messages in Gateway Mode: [nodeId]:joined:[sessionId]
+                console.log(this.node.id, remaining, this.node.endpoint.token);
+                const payload = remaining.substring(7);
+                this.establish(payload, firstPart);
+            } else {
+                console.error("Unexpected message received before establishment:", remaining);
             }
         };
 
         this.socket.onclose = (event) => {
             this.closeSocket(true);
-            if (this.node.endpoint.mode === this.endpointMode) {
-                if (this.onClosed) {
-                    this.onClosed(this.node);
-                }
-                if (event && event.code === 1003) {
-                    console.log(this.node.id, "socket connection refused: ", event.code);
-                    this.viewer.printErrorMessage("Socket connection refused by server.");
-                    return;
-                }
-                if ((event && event.code === 1000) || this.retryCount === 0) {
-                    console.log(this.node.id, "socket connection closed: ", event ? event.code : 'unknown');
-                    this.viewer.printMessage("Socket connection closed.");
-                }
-                if (!event || event.code !== 1000) {
-                    this.rejoin(appsToJoin);
-                }
+            if (this.onClosed) {
+                this.onClosed(this.node);
+            }
+            if (!event || event.code !== 1000) {
+                this.rejoin(appsToJoin);
             }
         };
 
         this.socket.onerror = (event) => {
-            if (this.node.endpoint.mode === this.endpointMode) {
-                console.log(this.node.id, "websocket error:", event);
-                this.viewer.printErrorMessage("Could not connect to the WebSocket server.");
-            }
+            console.log(this.node.id, "websocket error:", event);
+            this.viewer.printErrorMessage("Could not connect to the WebSocket server.");
             if (this.onFailed) {
                 this.onFailed(this.node);
             }
@@ -278,7 +128,7 @@ class WebsocketClient extends BaseClient {
     closeSocket(afterClosing) {
         this.clearSessionId();
         if (this.socket) {
-            this.setEstablished(false);
+            this.established = false;
             if (!afterClosing) {
                 this.socket.close();
             }
@@ -290,44 +140,26 @@ class WebsocketClient extends BaseClient {
         }
     }
 
-    establish(payload) {
-        this.node.endpoint['mode'] = this.endpointMode;
-        if (this.onJoined) {
+    establish(payload, targetNodeId) {
+        if (!this.established) {
+            this.established = true;
             this.setSessionId(payload);
-            this.onJoined(this.node, payload);
+            while (this.pendingMessages.length) {
+                this.viewer.printMessage(this.pendingMessages.shift());
+            }
         }
-        while (this.pendingMessages.length) {
-            this.viewer.printMessage(this.pendingMessages.shift());
-        }
-        if (this.onEstablished) {
-            this.onEstablished(this.node);
-        }
-        while (this.pendingMessages.length) {
-            this.viewer.printMessage(this.pendingMessages.shift());
-        }
-        //this.setEstablished(true);
-        this.established = true;
-        if (this.node.mine) {
-            this.socket.send("command:established");
-        }
-    }
 
-    setEstablished(value) {
-        this.established = value;
-        if (this.isGatewayMode && window.gatewaySocketBridge) {
-            window.gatewaySocketBridge.setEstablished(value);
-        }
+        const nodeId = targetNodeId || this.node.id;
+        const config = (this.isGatewayMode && this.clusterNodes[nodeId]) ? this.clusterNodes[nodeId] : this;
+
+        if (config.onJoined) config.onJoined(config.node, payload);
+        if (config.onEstablished) config.onEstablished(config.node);
+        
+        this.sendCommand(["command:established"], nodeId);
     }
 
     isEstablished() {
-        if (this.established) {
-            return true;
-        }
-        if (this.isGatewayMode) {
-            return window.gatewaySocketBridge && window.gatewaySocketBridge.established;
-        } else {
-            return this.established;
-        }
+        return this.established;
     }
 
     heartbeatPing() {
@@ -336,7 +168,7 @@ class WebsocketClient extends BaseClient {
         }
         this.heartbeatTimer = setTimeout(() => {
             if (this.socket && this.socket.readyState === WebSocket.OPEN) {
-                //this.socket.send("command:ping");
+                this.socket.send("command:ping");
             }
         }, this.heartbeatInterval);
     }

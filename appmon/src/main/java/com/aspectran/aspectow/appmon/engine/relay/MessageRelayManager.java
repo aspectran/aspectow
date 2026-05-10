@@ -137,27 +137,27 @@ public class MessageRelayManager {
     public void broadcast(String message) {
         relayLocally(message);
         if (messagePublisher != null) {
-            try {
-                messagePublisher.publishRelay(CATEGORY_APPMON, message);
-            } catch (Exception e) {
-                logger.error("Failed to publish relay message to Redis", e);
+            for (NodeInfo nodeInfo : nodeRegistry.getNodes()) {
+                if (!isSameNode(nodeInfo.getNodeId())) {
+                    publishRelay(nodeInfo.getNodeId(), message);
+                }
             }
         }
     }
 
-    /**
-     * Publishes a management control message for this node.
-     * @param message the control message to publish
-     */
-    private void publishControl(String message) {
-        if (messagePublisher != null) {
-            try {
-                messagePublisher.publishControl(message);
-            } catch (Exception e) {
-                logger.error("Failed to publish control message to Redis", e);
-            }
-        }
-    }
+//    /**
+//     * Publishes a management control message for this node.
+//     * @param message the control message to publish
+//     */
+//    private void publishControl(String message) {
+//        if (messagePublisher != null) {
+//            try {
+//                messagePublisher.publishControl(message);
+//            } catch (Exception e) {
+//                logger.error("Failed to publish control message to Redis", e);
+//            }
+//        }
+//    }
 
     private void publishRelay(String targetNodeId, String message) {
         if (messagePublisher != null) {
@@ -200,26 +200,24 @@ public class MessageRelayManager {
             nodeId = message.substring(0, idx1);
             int idx2 = message.indexOf(':', idx1 + 1);
             if (idx2 != -1) {
-                appId = message.substring(0, idx2);
+                appId = message.substring(idx1 + 1, idx2);
                 int idx3 = message.indexOf(':', idx2 + 1);
                 if (idx3 != -1) {
                     String type = message.substring(idx2 + 1, idx3);
                     if (type.startsWith("log")) {
-                        isLog = true;
+                        //isLog = true;
                     }
                 }
             }
         }
 
         if (isGatewayMode()) {
-            // In gateway mode, we frame with nodeId\n and filter logs by focus
             Set<String> allSessionIds = subscriptionRegistry.getAllSessionIds();
             for (MessageRelayer relayer : messageRelayers) {
                 for (String sessionId : allSessionIds) {
                     RelaySession session = relayer.fidnRelaySession(sessionId);
                     if (session != null && session.isValid()) {
                         if (isLog) {
-                            //String targetFocus = nodeId + "/" + appId;
                             String targetFocus = appId;
                             if (targetFocus.equals(session.getFocusedAppId())) {
                                 relayer.relay(session, message);
@@ -276,26 +274,34 @@ public class MessageRelayManager {
                 if (targetNodeId == null || isSameNode(targetNodeId)) {
                     startExporters(appId);
                 }
-                CommandOptions options = new CommandOptions();
-                options.setCommand(COMMAND_SUBSCRIBE);
-                options.setNodeId(targetNodeId);
-                options.setAppId(appId);
-                options.setTimeZone(session.getTimeZone());
-                for (NodeInfo nodeInfo : nodeRegistry.getNodes()) {
-                    if (!isSameNode(nodeInfo.getNodeId())) {
-                        publishControl(nodeInfo.getNodeId(), options);
+                if (isGatewayMode()) {
+                    CommandOptions options = new CommandOptions();
+                    options.setCommand(COMMAND_SUBSCRIBE);
+                    options.setNodeId(this.nodeId);
+                    options.setAppId(appId);
+                    options.setTimeZone(session.getTimeZone());
+                    for (NodeInfo nodeInfo : nodeRegistry.getNodes()) {
+                        if (!isSameNode(nodeInfo.getNodeId())) {
+                           // if (targetNodeId == null || targetNodeId.equals(nodeInfo.getNodeId())) {
+                                publishControl(nodeInfo.getNodeId(), options);
+                            //}
+                        }
                     }
                 }
             }
         } else {
             startExporters(null);
-            CommandOptions options = new CommandOptions();
-            options.setCommand(COMMAND_SUBSCRIBE);
-            options.setNodeId(targetNodeId);
-            options.setTimeZone(session.getTimeZone());
-            for (NodeInfo nodeInfo : nodeRegistry.getNodes()) {
-                if (!isSameNode(nodeInfo.getNodeId())) {
-                    publishControl(nodeInfo.getNodeId(), options);
+            if (isGatewayMode()) {
+                CommandOptions options = new CommandOptions();
+                options.setCommand(COMMAND_SUBSCRIBE);
+                options.setNodeId(this.nodeId);
+                options.setTimeZone(session.getTimeZone());
+                for (NodeInfo nodeInfo : nodeRegistry.getNodes()) {
+                    if (!isSameNode(nodeInfo.getNodeId())) {
+                        //if (targetNodeId == null || targetNodeId.equals(nodeInfo.getNodeId())) {
+                            publishControl(nodeInfo.getNodeId(), options);
+                        //}
+                    }
                 }
             }
         }

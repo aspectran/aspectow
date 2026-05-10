@@ -144,7 +144,7 @@ public class WebsocketMessageRelayer extends SimplifiedEndpoint implements Messa
 
     private void pong(Session session) {
         String newToken = AppMonTokenIssuer.issueToken(1800); // 30 min.
-        sendText(session, RESPONSE_PONG + newToken);
+        sendText(session, appMonManager.getNodeId() + ":" + RESPONSE_PONG + newToken);
     }
 
     private void join(Session session, @NonNull CommandOptions commandOptions) {
@@ -160,11 +160,11 @@ public class WebsocketMessageRelayer extends SimplifiedEndpoint implements Messa
             relaySession.setJoinedApps(appIds);
         }
         if (addSession(session)) {
-            if (appMonManager.isGatewayMode()) {
+//            if (appMonManager.isGatewayMode()) {
                 relay(relaySession, appMonManager.getNodeId() + ":" + RESPONSE_JOINED + session.getId());
-            } else {
-                relay(relaySession, RESPONSE_JOINED);
-            }
+//            } else {
+//                relay(relaySession, RESPONSE_JOINED);
+//            }
         }
     }
 

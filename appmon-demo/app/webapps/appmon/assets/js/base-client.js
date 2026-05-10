@@ -39,8 +39,9 @@ class BaseClient {
     /**
      * Refreshes the monitoring data with the specified options.
      * @param {string[]} [options] - Refresh options.
+     * @param {string} [nodeId] - Target node ID.
      */
-    refresh(options) {
+    refresh(options, nodeId) {
         this.checkSessionId();
         let cmdOptions = [
             "command:refresh",
@@ -49,19 +50,19 @@ class BaseClient {
         if (options) {
             cmdOptions.push(...options);
         }
-        this.sendCommand(cmdOptions);
+        this.sendCommand(cmdOptions, nodeId);
     }
 
-    focus(appId) {
+    focus(appId, nodeId) {
         this.checkSessionId();
         this.sendCommand([
             "command:focus",
             "sessionId:" + this.sessionId,
             "appId:" + appId
-        ]);
+        ], nodeId);
     }
 
-    loadPrevious(appId, logId, loadedLines) {
+    loadPrevious(appId, logId, loadedLines, nodeId) {
         this.checkSessionId();
         this.sendCommand([
             "command:loadPrevious",
@@ -69,7 +70,7 @@ class BaseClient {
             "appId:" + appId,
             "logId:" + logId,
             "loadedLines:" + loadedLines
-        ]);
+        ], nodeId);
     }
 
     checkSessionId() {
@@ -89,8 +90,9 @@ class BaseClient {
     /**
      * Sends a command with the specified options.
      * @param {string[]} [options] - Command options.
+     * @param {string} [nodeId] - Target node ID.
      */
-    sendCommand(options) {
+    sendCommand(options, nodeId) {
         throw new Error("Method 'sendCommand()' must be implemented.");
     }
 

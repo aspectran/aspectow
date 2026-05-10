@@ -48,10 +48,9 @@ class DashboardBuilder {
                             index: index++,
                             random1000: random1000,
                             active: true,
-                            client: { established: false, establishCount: 0 },
-                            mine: (nodeData.id === data.myNodeId)
+                            client: { established: false, establishCount: 0 }
                         };
-                        node.endpoint.path = basePath + node.endpoint.path + "/" + data.myNodeId;
+                        node.endpoint.path = basePath + node.endpoint.path + "/" + node.id;
                         node.endpoint.token = data.token;
                         this.nodes.push(node);
                         this.viewers[node.index] = new DashboardViewer(this.settings.counterPersistInterval * 60, this.options);
@@ -85,14 +84,12 @@ class DashboardBuilder {
     }
 
     establish(nodeIndex, appsToJoin) {
+        const isGatewayMode = (this.settings.clusterMode === "gateway");
         const node = this.nodes[nodeIndex];
         const viewer = this.viewers[nodeIndex];
 
         const onJoined = (node, payload) => {
             this.clearConsole(node.index);
-            // if (payload && payload.messages) {
-            //     payload.messages.forEach(msg => viewer.processMessage(msg));
-            // }
         };
 
         const onEstablished = (node) => {
@@ -109,8 +106,8 @@ class DashboardBuilder {
             } else {
                 this.clearSessions(node.index);
             }
-            if (node.client.establishCount + node.index < this.nodes.length) {
-                this.establish(node.index + 1, appsToJoin);
+            if (nodeIndex + 1 < this.nodes.length) {
+                this.establish(nodeIndex + 1, appsToJoin);
             }
         };
 
@@ -122,22 +119,37 @@ class DashboardBuilder {
 
         const onFailed = (node) => {
             this.changeNodeState(node, true);
-            if (node.endpoint.mode !== "websocket") {
-                setTimeout(() => {
-                    const client = new PollingClient(node, viewer, onJoined, onEstablished, onClosed, onFailed);
-                    this.clients[node.index] = client;
-                    client.start(appsToJoin);
-                }, (node.index - 1) * 1000);
-            }
         };
+
+        if (isGatewayMode && this.sharedClient) {
+            this.sharedClient.addClusterViewer(node.id, viewer);
+            this.sharedClient.addClusterNode(node.id, node, onJoined, onEstablished);
+            viewer.setClient(this.sharedClient);
+            this.clients[node.index] = this.sharedClient;
+
+            // Trigger explicit join for this node over the shared connection
+            // const options = [
+            //     "command:join",
+            //     "timeZone:" + Intl.DateTimeFormat().resolvedOptions().timeZone
+            // ];
+            // if (appsToJoin) {
+            //     options.push("appsToJoin:" + appsToJoin);
+            // }
+            // this.sharedClient.sendCommand(options, node.id);
+            return;
+        }
 
         console.log("establishing", nodeIndex);
         let client;
         if (node.endpoint.mode === "polling") {
             client = new PollingClient(node, viewer, onJoined, onEstablished, onClosed, onFailed);
         } else {
-            const isGatewayMode = (this.settings.clusterMode === "gateway");
             client = new WebsocketClient(node, viewer, onJoined, onEstablished, onClosed, onFailed, isGatewayMode);
+            if (isGatewayMode) {
+                this.sharedClient = client;
+                client.addClusterViewer(node.id, viewer);
+                client.addClusterNode(node.id, node, onJoined, onEstablished);
+            }
         }
         viewer.setClient(client);
         this.clients[nodeIndex] = client;
@@ -238,8 +250,9 @@ class DashboardBuilder {
                 exists = true;
 
                 // Inform the backend about the current UI focus to filter logs
-                this.clients.forEach(client => {
-                    if (client && client.focus) client.focus(appId);
+                this.nodes.forEach(node => {
+                    const client = this.clients[node.index];
+                    if (client && client.focus) client.focus(appId, node.id);
                 });
             } else {
                 app.active = false;
@@ -442,7 +455,7 @@ class DashboardBuilder {
                 $tailingSwitch.attr("title", $tailingSwitch.data("title-off"));
             }
 
-            this.clients[nodeIndex].loadPrevious(appId, logId, loadedLines);
+            this.clients[nodeIndex].loadPrevious(appId, logId, loadedLines, this.nodes[nodeIndex].id);
         });
         $(window).off("resize").on("resize", () => {
             this.viewers.forEach(v => v.updateCanvasWidth());
@@ -481,7 +494,7 @@ class DashboardBuilder {
         setTimeout(() => {
             this.nodes.forEach(node => {
                 this.viewers[node.index].setLoading(appId, true);
-                this.clients[node.index].refresh(options);
+                this.clients[node.index].refresh(options, node.id);
             });
         }, 50);
     }
