@@ -45,32 +45,33 @@ public class RedisMessageRelayHandler implements RedisMessageListener {
     @Override
     public void onControlMessage(String nodeId, String message) {
         if (messageRelayManager.isSameNode(nodeId)) {
-            handleControlMessage(nodeId, message);
+            handleControlMessage(message);
         }
     }
 
     @Override
     public void onRelayMessage(String nodeId, String message) {
-        messageRelayManager.relayLocally(message);
+        if (!messageRelayManager.isSameNode(nodeId)) {
+            messageRelayManager.relayLocally(message);
+        }
     }
 
     /**
      * Handles control messages from the cluster.
-     * @param nodeId the ID of the node that sent the message
      * @param message the control message
      */
-    private void handleControlMessage(String nodeId, @NonNull String message) {
+    private void handleControlMessage(@NonNull String message) {
         CommandOptions options = new CommandOptions(message);
         switch (options.getCommand()) {
             case COMMAND_SUBSCRIBE:
-                messageRelayManager.subscribeRemotely(nodeId, options);
+                messageRelayManager.subscribeRemotely(options);
                 break;
             case COMMAND_UNSUBSCRIBE:
-                messageRelayManager.unsubscribeRemotely(nodeId, options.getAppId());
+                messageRelayManager.unsubscribeRemotely(options);
                 break;
             case COMMAND_REFRESH:
             case COMMAND_LOAD_PREVIOUS:
-                messageRelayManager.refreshDataRemotely(nodeId, options);
+                messageRelayManager.refreshDataRemotely(options);
                 break;
         }
     }

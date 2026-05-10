@@ -209,7 +209,7 @@ public class WebsocketMessageRelayer extends SimplifiedEndpoint implements Messa
     }
 
     @Override
-    public RelaySession getLocalRelaySession(String sessionId) {
+    public RelaySession fidnRelaySession(String sessionId) {
         Session session = findSession(sessionId);
         return (session != null ? new WebsocketRelaySession(session) : null);
     }

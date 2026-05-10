@@ -67,7 +67,6 @@ class DashboardViewer {
     }
 
     putConsole$(appId, logId, $console) {
-        console.log("putConsole$", appId, logId, $console);
         this.consoles[appId + ":log:" + logId] = $console;
     }
 

@@ -13,6 +13,7 @@ class GatewaySocketBridge {
         this.virtualSockets = {};
         this.connectionPromise = null;
         this.isConnected = false;
+        this.established = false;
     }
 
     connect() {
@@ -83,7 +84,13 @@ class GatewaySocketBridge {
 
     send(nodeId, data) {
         if (this.isConnected && this.socket.readyState === WebSocket.OPEN) {
-            this.socket.send("[" + nodeId + "]" + data);
+            if (data.startsWith("nodeId:")) {
+                this.socket.send(data);
+            } else if (data.startsWith("command:")) {
+                this.socket.send("nodeId:" + nodeId + ";" + data);
+            } else {
+                this.socket.send("[" + nodeId + "]" + data);
+            }
         }
     }
 
@@ -95,6 +102,10 @@ class GatewaySocketBridge {
             this.isConnected = false;
             this.connectionPromise = null;
         }
+    }
+
+    setEstablished(value) {
+        this.established = value;
     }
 }
 
@@ -189,7 +200,7 @@ class WebsocketClient extends BaseClient {
             if (!window.gatewaySocketBridge) {
                 window.gatewaySocketBridge = new GatewaySocketBridge(url.href);
             }
-            window.gatewaySocketBridge.connect();
+            //window.gatewaySocketBridge.connect();
             this.socket = window.gatewaySocketBridge.createVirtualSocket(this.node.id);
         } else {
             this.socket = new WebSocket(url.href);
@@ -199,6 +210,7 @@ class WebsocketClient extends BaseClient {
             console.log(this.node.id, "socket connected:", this.node.endpoint.path);
             this.pendingMessages.push("Socket connection successful");
             const options = [
+                //"nodeId:" + this.node.endpoint.id,
                 "command:join",
                 "timeZone:" + Intl.DateTimeFormat().resolvedOptions().timeZone
             ];
@@ -213,8 +225,8 @@ class WebsocketClient extends BaseClient {
         this.socket.onmessage = (event) => {
             if (typeof event.data === "string") {
                 const msg = event.data;
-                if (this.established) {
-                    console.log(msg);
+                console.log("==", msg);
+                if (this.isEstablished()) {
                     if (msg.startsWith("pong:")) {
                         this.node.endpoint.token = msg.substring(5);
                         this.heartbeatPing();
@@ -225,6 +237,8 @@ class WebsocketClient extends BaseClient {
                     console.log(this.node.id, msg, this.node.endpoint.token);
                     const payload = msg.substring(7);
                     this.establish(payload);
+                } else {
+                    console.error("Unexpected message received before establishment:", msg);
                 }
             }
         };
@@ -264,7 +278,7 @@ class WebsocketClient extends BaseClient {
     closeSocket(afterClosing) {
         this.clearSessionId();
         if (this.socket) {
-            this.established = false;
+            this.setEstablished(false);
             if (!afterClosing) {
                 this.socket.close();
             }
@@ -291,8 +305,29 @@ class WebsocketClient extends BaseClient {
         while (this.pendingMessages.length) {
             this.viewer.printMessage(this.pendingMessages.shift());
         }
+        //this.setEstablished(true);
         this.established = true;
-        this.socket.send("command:established");
+        if (this.node.mine) {
+            this.socket.send("command:established");
+        }
+    }
+
+    setEstablished(value) {
+        this.established = value;
+        if (this.isGatewayMode && window.gatewaySocketBridge) {
+            window.gatewaySocketBridge.setEstablished(value);
+        }
+    }
+
+    isEstablished() {
+        if (this.established) {
+            return true;
+        }
+        if (this.isGatewayMode) {
+            return window.gatewaySocketBridge && window.gatewaySocketBridge.established;
+        } else {
+            return this.established;
+        }
     }
 
     heartbeatPing() {

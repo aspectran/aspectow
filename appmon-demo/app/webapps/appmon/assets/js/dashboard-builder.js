@@ -43,15 +43,15 @@ class DashboardBuilder {
                         if (this.nodeIdToJoin && this.nodeIdToJoin !== nodeData.id) {
                             return;
                         }
-                        console.log("nodeData", nodeData);
                         const node = {
                             ...nodeData,
                             index: index++,
                             random1000: random1000,
                             active: true,
-                            client: { established: false, establishCount: 0 }
+                            client: { established: false, establishCount: 0 },
+                            mine: (nodeData.id === data.myNodeId)
                         };
-                        node.endpoint.path = basePath + node.endpoint.path + "/" + node.id;
+                        node.endpoint.path = basePath + node.endpoint.path + "/" + data.myNodeId;
                         node.endpoint.token = data.token;
                         this.nodes.push(node);
                         this.viewers[node.index] = new DashboardViewer(this.settings.counterPersistInterval * 60, this.options);

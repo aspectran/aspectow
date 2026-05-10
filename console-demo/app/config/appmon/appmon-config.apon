@@ -9,18 +9,19 @@ pollingConfig: {
 }
 counterPersistInterval: 5
 app: {
-    id: root
-    title: Root
+    id: console
+    title: Console
     event: {
         id: activity
-        target: root
+        target: console
         parameters: {
             +: /**
+            -: /nodes/**/appmon/polling/**  # Ignore polling requests
         }
     }
     event: {
         id: session
-        target: tow.server/root
+        target: tow.server/console
     }
     metric: {
         id: heap
@@ -41,74 +42,14 @@ app: {
     }
     log: {
         id: app
-        file: /logs/root.log
-        sampleInterval: 300
-        lastLines: 1000
-    }
-    log: {
-        id: access
-        file: /logs/root-access.log
-        sampleInterval: 300
-        lastLines: 1000
-    }
-}
-app: {
-    id: console
-    title: Console
-    event: {
-        id: activity
-        target: console
-        parameters: {
-            +: /**
-            -: /nodes/**/appmon/polling/**  # Ignore polling requests
-        }
-    }
-    event: {
-        id: session
-        target: tow.server/console
-    }
-    log: {
-        id: app
         file: /logs/console.log
         sampleInterval: 300
-        lastLines: 1000
+        lastLines: 10
     }
     log: {
         id: access
         file: /logs/console-access.log
         sampleInterval: 300
-        lastLines: 1000
-    }
-}
-app: {
-    id: jpetstore
-    title: JPetStore
-    log: {
-        id: app
-        file: /logs/jpetstore.log
-        sampleInterval: 300
-        lastLines: 1000
-    }
-    log: {
-        id: access
-        file: /logs/jpetstore-access.log
-        sampleInterval: 300
-        lastLines: 1000
-    }
-}
-app: {
-    id: demo
-    title: Demo
-    log: {
-        id: app
-        file: /logs/demo.log
-        sampleInterval: 300
-        lastLines: 1000
-    }
-    log: {
-        id: access
-        file: /logs/demo-access.log
-        sampleInterval: 300
-        lastLines: 1000
+        lastLines: 10
     }
 }

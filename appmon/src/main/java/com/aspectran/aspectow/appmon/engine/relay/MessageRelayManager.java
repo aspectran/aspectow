@@ -19,6 +19,7 @@ import com.aspectran.aspectow.appmon.engine.exporter.ExporterManager;
 import com.aspectran.aspectow.node.config.NodeInfo;
 import com.aspectran.aspectow.node.manager.NodeRegistry;
 import com.aspectran.aspectow.node.redis.RedisMessagePublisher;
+import com.aspectran.utils.Assert;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
@@ -134,14 +135,13 @@ public class MessageRelayManager {
      * @param message the message to publish
      */
     public void broadcast(String message) {
+        relayLocally(message);
         if (messagePublisher != null) {
             try {
                 messagePublisher.publishRelay(CATEGORY_APPMON, message);
             } catch (Exception e) {
                 logger.error("Failed to publish relay message to Redis", e);
             }
-        } else {
-            relayLocally(message);
         }
     }
 
@@ -171,7 +171,7 @@ public class MessageRelayManager {
 
     private void publishControl(String targetNodeId, @NonNull CommandOptions commandOptions) {
         if (messagePublisher != null) {
-            publishControl(targetNodeId, commandOptions.toString(false));
+            publishControl(targetNodeId, commandOptions.toString());
         }
     }
 
@@ -191,17 +191,22 @@ public class MessageRelayManager {
      * @param message the message to relay
      */
     public void relayLocally(@NonNull String message) {
+        String nodeId = null;
         String appId = null;
         boolean isLog = false;
 
         int idx1 = message.indexOf(':');
         if (idx1 != -1) {
-            appId = message.substring(0, idx1);
+            nodeId = message.substring(0, idx1);
             int idx2 = message.indexOf(':', idx1 + 1);
             if (idx2 != -1) {
-                String type = message.substring(idx1 + 1, idx2);
-                if (type.startsWith("log")) {
-                    isLog = true;
+                appId = message.substring(0, idx2);
+                int idx3 = message.indexOf(':', idx2 + 1);
+                if (idx3 != -1) {
+                    String type = message.substring(idx2 + 1, idx3);
+                    if (type.startsWith("log")) {
+                        isLog = true;
+                    }
                 }
             }
         }
@@ -211,7 +216,7 @@ public class MessageRelayManager {
             Set<String> allSessionIds = subscriptionRegistry.getAllSessionIds();
             for (MessageRelayer relayer : messageRelayers) {
                 for (String sessionId : allSessionIds) {
-                    RelaySession session = relayer.getLocalRelaySession(sessionId);
+                    RelaySession session = relayer.fidnRelaySession(sessionId);
                     if (session != null && session.isValid()) {
                         if (isLog) {
                             //String targetFocus = nodeId + "/" + appId;
@@ -235,7 +240,7 @@ public class MessageRelayManager {
     @Nullable
     public RelaySession findRelaySession(String sessionId) {
         for (MessageRelayer relayer : messageRelayers) {
-            RelaySession session = relayer.getLocalRelaySession(sessionId);
+            RelaySession session = relayer.fidnRelaySession(sessionId);
             if (session != null) {
                 return session;
             }
@@ -261,30 +266,20 @@ public class MessageRelayManager {
      * @return {@code true} if the join was successful, {@code false} otherwise
      */
     public synchronized boolean subscribe(@NonNull RelaySession session, String targetNodeId) {
-        if (session.isValid()) {
-            String[] appIds = session.getJoinedApps();
-            subscriptionRegistry.addLocalSubscription(session.getId(), appIds);
-            if (appIds != null && appIds.length > 0) {
-                for (String appId : appIds) {
-                    if (targetNodeId == null || isSameNode(targetNodeId)) {
-                        startExporters(appId);
-                    }
-                    CommandOptions options = new CommandOptions();
-                    options.setCommand(COMMAND_SUBSCRIBE);
-                    options.setNodeId(targetNodeId);
-                    options.setAppId(appId);
-                    options.setTimeZone(session.getTimeZone());
-                    for (NodeInfo nodeInfo : nodeRegistry.getNodes()) {
-                        if (!isSameNode(nodeInfo.getNodeId())) {
-                            publishControl(nodeInfo.getNodeId(), options);
-                        }
-                    }
+        if (!session.isValid()) {
+            return false;
+        }
+        String[] appIds = session.getJoinedApps();
+        subscriptionRegistry.addLocalSubscription(session.getId(), appIds);
+        if (appIds != null && appIds.length > 0) {
+            for (String appId : appIds) {
+                if (targetNodeId == null || isSameNode(targetNodeId)) {
+                    startExporters(appId);
                 }
-            } else {
-                startExporters(null);
                 CommandOptions options = new CommandOptions();
                 options.setCommand(COMMAND_SUBSCRIBE);
                 options.setNodeId(targetNodeId);
+                options.setAppId(appId);
                 options.setTimeZone(session.getTimeZone());
                 for (NodeInfo nodeInfo : nodeRegistry.getNodes()) {
                     if (!isSameNode(nodeInfo.getNodeId())) {
@@ -292,13 +287,24 @@ public class MessageRelayManager {
                     }
                 }
             }
-            return true;
         } else {
-            return false;
+            startExporters(null);
+            CommandOptions options = new CommandOptions();
+            options.setCommand(COMMAND_SUBSCRIBE);
+            options.setNodeId(targetNodeId);
+            options.setTimeZone(session.getTimeZone());
+            for (NodeInfo nodeInfo : nodeRegistry.getNodes()) {
+                if (!isSameNode(nodeInfo.getNodeId())) {
+                    publishControl(nodeInfo.getNodeId(), options);
+                }
+            }
         }
+        return true;
     }
 
-    public void subscribeRemotely(String nodeId, @NonNull CommandOptions commandOptions) {
+    public void subscribeRemotely(CommandOptions commandOptions) {
+        Assert.notNull(commandOptions, "Command options must not be null");
+        String nodeId = commandOptions.getNodeId();
         String appId = commandOptions.getAppId();
         subscriptionRegistry.addRemoteSubscription(nodeId, appId);
         startExporters(appId);
@@ -324,6 +330,7 @@ public class MessageRelayManager {
                 if (isGatewayMode()) {
                     CommandOptions options = new CommandOptions();
                     options.setCommand(COMMAND_UNSUBSCRIBE);
+                    options.setNodeId(nodeId);
                     options.setAppId(appId);
                     String message = options.toString(false);
                     Set<String> remoteNodeIds = subscriptionRegistry.getNodeIdsRemotelySubscribedToApp(appId);
@@ -341,6 +348,7 @@ public class MessageRelayManager {
             if (isGatewayMode()) {
                 CommandOptions options = new CommandOptions();
                 options.setCommand(COMMAND_UNSUBSCRIBE);
+                options.setNodeId(nodeId);
                 String message = options.toString(false);
                 Set<String> remoteNodeIds = subscriptionRegistry.getNodeIdsRemotelySubscribedToApp(null);
                 if (remoteNodeIds != null) {
@@ -353,15 +361,20 @@ public class MessageRelayManager {
         session.removeJoinedApps();
     }
 
-    public void unsubscribeRemotely(String nodeId, String appId) {
+    public void unsubscribeRemotely(CommandOptions commandOptions) {
+        Assert.notNull(commandOptions, "Command options must not be null");
+        String nodeId = commandOptions.getNodeId();
+        String appId = commandOptions.getAppId();
         subscriptionRegistry.removeRemoteSubscription(nodeId, appId);
         if (!subscriptionRegistry.isAppInUse(appId)) {
             stopExporters(appId);
         }
     }
 
-    public void refreshDataRemotely(String nodeId, @NonNull CommandOptions commandOptions) {
+    public void refreshDataRemotely(CommandOptions commandOptions) {
+        Assert.notNull(commandOptions, "Command options must not be null");
         if (messagePublisher != null) {
+            String nodeId = commandOptions.getNodeId();
             String appId = commandOptions.getAppId();
             List<String> messages = new ArrayList<>();
             collectNewMessages(appId, messages, commandOptions);
@@ -393,21 +406,22 @@ public class MessageRelayManager {
      * @return a list of messages
      */
     public List<String> getLastMessages(@NonNull RelaySession session) {
-        if (session.isValid()) {
-            List<String> messages = new ArrayList<>();
-            CommandOptions commandOptions = new CommandOptions();
-            commandOptions.setTimeZone(session.getTimeZone());
-            String[] appIds = session.getJoinedApps();
-            if (appIds != null && appIds.length > 0) {
-                for (String id : appIds) {
-                    commandOptions.setAppId(id);
-                    collectLastMessages(messages, commandOptions);
-                }
-            } else {
+        if (!session.isValid()) {
+            return List.of();
+        }
+        List<String> messages = new ArrayList<>();
+        CommandOptions commandOptions = new CommandOptions();
+        commandOptions.setTimeZone(session.getTimeZone());
+        String[] appIds = session.getJoinedApps();
+        if (appIds != null && appIds.length > 0) {
+            for (String id : appIds) {
+                commandOptions.setAppId(id);
                 collectLastMessages(messages, commandOptions);
             }
+        } else {
+            collectLastMessages(messages, commandOptions);
         }
-        return List.of();
+        return messages;
     }
 
     public List<String> getLastMessages(@NonNull CommandOptions commandOptions) {
