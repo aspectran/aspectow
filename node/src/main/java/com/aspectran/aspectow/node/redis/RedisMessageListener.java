@@ -63,4 +63,14 @@ public interface RedisMessageListener {
         onRelayMessage(message);
     }
 
+    /**
+     * Called when an application-specific relay message is received for a specific session on a node.
+     * @param nodeId the node ID
+     * @param sessionId the session ID
+     * @param message the relay message content
+     */
+    default void onRelayMessage(String nodeId, String sessionId, String message) {
+        onRelayMessage(nodeId, message);
+    }
+
 }

@@ -81,6 +81,15 @@ public abstract class NodeMessageProtocol {
         return KEY_PREFIX + "relay:" + category + ":" + clusterId + ":" + nodeId;
     }
 
+    @NonNull
+    public static String getRelayChannel(String clusterId, String nodeId, String category, String sessionId) {
+        String channel = getRelayChannel(clusterId, nodeId, category);
+        if (sessionId != null) {
+            channel += ":" + sessionId;
+        }
+        return channel;
+    }
+
     /**
      * Returns the Redis Pub/Sub pattern for subscribing to all channels
      * within a specific cluster (both control and relay).
@@ -101,7 +110,7 @@ public abstract class NodeMessageProtocol {
      */
     @NonNull
     public static String getClusterSubscriptionPattern(String clusterId, String nodeId) {
-        return KEY_PREFIX + "*:*:" + clusterId + ":" + nodeId;
+        return KEY_PREFIX + "*:*:" + clusterId + ":" + nodeId + "*";
     }
 
     /**
@@ -114,7 +123,7 @@ public abstract class NodeMessageProtocol {
      */
     @NonNull
     public static String getRelaySubscriptionPattern(String clusterId, String nodeId, String category) {
-        return KEY_PREFIX + "relay:" + category + ":" + clusterId + ":" + nodeId;
+        return KEY_PREFIX + "relay:" + category + ":" + clusterId + ":" + nodeId + "*";
     }
 
 }

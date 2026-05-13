@@ -160,11 +160,15 @@ public class MessageRelayManager {
 //    }
 
     private void publishRelay(String targetNodeId, String message) {
+        publishRelay(targetNodeId, null, message);
+    }
+
+    private void publishRelay(String targetNodeId, String sessionId, String message) {
         if (messagePublisher != null) {
             try {
-                messagePublisher.publishRelay(CATEGORY_APPMON, targetNodeId, message);
+                messagePublisher.publishRelay(CATEGORY_APPMON, targetNodeId, sessionId, message);
             } catch (Exception e) {
-                logger.error("Failed to publish control message to Redis", e);
+                logger.error("Failed to publish relay message to node {}", targetNodeId, e);
             }
         }
     }
@@ -191,6 +195,16 @@ public class MessageRelayManager {
      * @param message the message to relay
      */
     public void relayLocally(@NonNull String message) {
+        relayLocally(null, message);
+    }
+
+    /**
+     * Relays a message to all registered relayers.
+     * This method does not publish the message to Redis.
+     * @param sessionId the target session ID
+     * @param message the message to relay
+     */
+    public void relayLocally(String sessionId, @NonNull String message) {
         String nodeId = null;
         String appId = null;
         boolean isLog = false;
@@ -212,18 +226,25 @@ public class MessageRelayManager {
         }
 
         if (isGatewayMode()) {
-            Set<String> allSessionIds = subscriptionRegistry.getAllSessionIds();
-            for (MessageRelayer relayer : messageRelayers) {
-                for (String sessionId : allSessionIds) {
-                    RelaySession session = relayer.fidnRelaySession(sessionId);
-                    if (session != null && session.isValid()) {
-                        if (isLog) {
-                            String targetFocus = appId;
-                            if (targetFocus.equals(session.getFocusedAppId())) {
+            if (sessionId != null) {
+                RelaySession session = findRelaySession(sessionId);
+                if (session != null && session.isValid()) {
+                    relay(session, message);
+                }
+            } else {
+                Set<String> allSessionIds = subscriptionRegistry.getAllSessionIds();
+                for (MessageRelayer relayer : messageRelayers) {
+                    for (String sid : allSessionIds) {
+                        RelaySession session = relayer.fidnRelaySession(sid);
+                        if (session != null && session.isValid()) {
+                            if (isLog) {
+                                String targetFocus = appId;
+                                if (targetFocus.equals(session.getFocusedAppId())) {
+                                    relayer.relay(session, message);
+                                }
+                            } else {
                                 relayer.relay(session, message);
                             }
-                        } else {
-                            relayer.relay(session, message);
                         }
                     }
                 }
@@ -382,10 +403,11 @@ public class MessageRelayManager {
         if (messagePublisher != null) {
             String nodeId = commandOptions.getNodeId();
             String appId = commandOptions.getAppId();
+            String sessionId = commandOptions.getSessionId();
             List<String> messages = new ArrayList<>();
             collectNewMessages(appId, messages, commandOptions);
             for (String message : messages) {
-                publishRelay(nodeId, message);
+                publishRelay(nodeId, sessionId, message);
             }
         }
     }
@@ -401,6 +423,9 @@ public class MessageRelayManager {
         }
         if (messagePublisher != null) {
             commandOptions.setCommand(COMMAND_REFRESH);
+            if (commandOptions.getSessionId() == null) {
+                commandOptions.setSessionId(session.getId());
+            }
             publishControl(targetNodeId, commandOptions);
         }
         return null;

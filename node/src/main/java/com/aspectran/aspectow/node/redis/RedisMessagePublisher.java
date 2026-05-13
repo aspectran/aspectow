@@ -95,6 +95,11 @@ public class RedisMessagePublisher {
         asyncPublish(channel, message);
     }
 
+    public void publishRelay(String category, String targetNodeId, String sessionId, String message) throws Exception {
+        String channel = NodeMessageProtocol.getRelayChannel(clusterId, targetNodeId, category, sessionId);
+        asyncPublish(channel, message);
+    }
+
     /**
      * Publishes a message to a specific channel synchronously.
      * @param channel the channel to publish to

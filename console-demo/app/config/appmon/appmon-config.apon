@@ -42,13 +42,13 @@ app: {
     }
     log: {
         id: app
-        file: /logs/console.log
+        file: console.log
         sampleInterval: 300
         lastLines: 10
     }
     log: {
         id: access
-        file: /logs/console-access.log
+        file: console-access.log
         sampleInterval: 300
         lastLines: 10
     }

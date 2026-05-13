@@ -51,8 +51,13 @@ public class RedisMessageRelayHandler implements RedisMessageListener {
 
     @Override
     public void onRelayMessage(String nodeId, String message) {
+        onRelayMessage(nodeId, null, message);
+    }
+
+    @Override
+    public void onRelayMessage(String nodeId, String sessionId, String message) {
         if (messageRelayManager.isSameNode(nodeId)) {
-            messageRelayManager.relayLocally(message);
+            messageRelayManager.relayLocally(sessionId, message);
         }
     }
 

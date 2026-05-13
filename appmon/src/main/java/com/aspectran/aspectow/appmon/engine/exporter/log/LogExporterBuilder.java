@@ -18,6 +18,7 @@ package com.aspectran.aspectow.appmon.engine.exporter.log;
 import com.aspectran.aspectow.appmon.engine.config.LogInfo;
 import com.aspectran.aspectow.appmon.engine.exporter.ExporterManager;
 import com.aspectran.core.adapter.ApplicationAdapter;
+import com.aspectran.core.context.config.AspectranConfig;
 import com.aspectran.utils.ToStringBuilder;
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
@@ -51,7 +52,14 @@ public abstract class LogExporterBuilder {
         }
         try {
             ApplicationAdapter applicationAdapter = logExporterManager.getAppMonManager().getApplicationAdapter();
-            File logFile = applicationAdapter.getRealPath(logInfo.getFile()).toFile();
+            String file = logInfo.getFile();
+            File logFile;
+            String logsDir = System.getProperty(AspectranConfig.LOGS_DIR_PROPERTY);
+            if (logsDir != null && !new File(file).isAbsolute()) {
+                logFile = new File(logsDir, file);
+            } else {
+                logFile = applicationAdapter.getRealPath(file).toFile();
+            }
             return new LogExporter(logExporterManager, logInfo, logFile);
         } catch (Exception e) {
             throw new Exception(ToStringBuilder.toString("Failed to create log exporter", logInfo), e);

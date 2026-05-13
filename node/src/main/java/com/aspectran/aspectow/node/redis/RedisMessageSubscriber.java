@@ -81,29 +81,34 @@ public class RedisMessageSubscriber extends RedisPubSubAdapter<String, String> {
     public void message(@NonNull String channel, String message) {
         // Expected patterns:
         // aspectow:cluster:control:<category>:<clusterId>:<nodeId>
-        // aspectow:cluster:relay:<category>:<clusterId>:<nodeId>
+        // aspectow:cluster:relay:<category>:<clusterId>:<nodeId>[:<sessionId>]
 
         String[] parts = channel.split(":");
-        if (parts.length < 5) {
+        if (parts.length < 6) {
             return;
         }
 
         String type = parts[2]; // control or relay
         String category = parts[3]; // appmon, commands, etc.
-        String nodeId = parts[5];   // node ID
+        String targetNodeId = parts[5]; // node ID
+
+        if (!nodeId.equals(targetNodeId)) {
+            return;
+        }
 
         if ("control".equals(type)) {
             for (RedisMessageListener listener : listeners) {
                 String listenerCategory = listener.getCategory();
                 if (listenerCategory == null || listenerCategory.equals(category)) {
-                    listener.onControlMessage(nodeId, message);
+                    listener.onControlMessage(targetNodeId, message);
                 }
             }
         } else if ("relay".equals(type)) {
+            String sessionId = (parts.length > 6 ? parts[6] : null);
             for (RedisMessageListener listener : listeners) {
                 String listenerCategory = listener.getCategory();
                 if (listenerCategory == null || listenerCategory.equals(category)) {
-                    listener.onRelayMessage(nodeId, message);
+                    listener.onRelayMessage(targetNodeId, sessionId, message);
                 }
             }
         }
