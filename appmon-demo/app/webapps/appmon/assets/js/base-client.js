@@ -18,7 +18,6 @@ class BaseClient {
         this.retryCount = 0;
         this.maxRetries = 10;
         this.retryInterval = 5000;
-        this.sessionId = null;
     }
 
     /**
@@ -42,11 +41,7 @@ class BaseClient {
      * @param {string} [nodeId] - Target node ID.
      */
     refresh(options, nodeId) {
-        this.checkSessionId();
-        let cmdOptions = [
-            "command:refresh",
-            "sessionId:" + this.sessionId
-        ];
+        let cmdOptions = ["command:refresh"];
         if (options) {
             cmdOptions.push(...options);
         }
@@ -54,37 +49,19 @@ class BaseClient {
     }
 
     focus(appId, nodeId) {
-        this.checkSessionId();
         this.sendCommand([
             "command:focus",
-            "sessionId:" + this.sessionId,
             "appId:" + appId
         ], nodeId);
     }
 
     loadPrevious(appId, logId, loadedLines, nodeId) {
-        this.checkSessionId();
         this.sendCommand([
             "command:loadPrevious",
-            "sessionId:" + this.sessionId,
             "appId:" + appId,
             "logId:" + logId,
             "loadedLines:" + loadedLines
         ], nodeId);
-    }
-
-    checkSessionId() {
-        if (!this.sessionId) {
-            throw new Error("Session ID is not set. Cannot perform operation.");
-        }
-    }
-
-    setSessionId(sessionId) {
-        this.sessionId = sessionId;
-    }
-
-    clearSessionId() {
-        this.sessionId = null;
     }
 
     /**

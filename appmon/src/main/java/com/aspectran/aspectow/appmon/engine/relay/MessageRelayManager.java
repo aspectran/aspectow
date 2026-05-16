@@ -78,8 +78,8 @@ public class MessageRelayManager {
         return nodeId;
     }
 
-    public boolean isSameNode(String nodeId) {
-        return (nodeId != null && nodeId.equals(this.nodeId));
+    public boolean isSameNode(String targetNodeId) {
+        return (targetNodeId != null && targetNodeId.equals(this.nodeId));
     }
 
     /**
@@ -175,14 +175,8 @@ public class MessageRelayManager {
 
     private void publishControl(String targetNodeId, @NonNull CommandOptions commandOptions) {
         if (messagePublisher != null) {
-            publishControl(targetNodeId, commandOptions.toString());
-        }
-    }
-
-    private void publishControl(String targetNodeId, String message) {
-        if (messagePublisher != null) {
             try {
-                messagePublisher.publishControl(CATEGORY_APPMON, targetNodeId, message);
+                messagePublisher.publishControl(CATEGORY_APPMON, targetNodeId, commandOptions.toString());
             } catch (Exception e) {
                 logger.error("Failed to publish control message to node {}", targetNodeId, e);
             }
@@ -284,7 +278,7 @@ public class MessageRelayManager {
      * @param session the client session that is joining
      * @return {@code true} if the join was successful, {@code false} otherwise
      */
-    public synchronized boolean subscribe(@NonNull RelaySession session, String targetNodeId) {
+    public synchronized boolean subscribe(@NonNull RelaySession session) {
         if (!session.isValid()) {
             return false;
         }
@@ -292,20 +286,16 @@ public class MessageRelayManager {
         subscriptionRegistry.addLocalSubscription(session.getId(), appIds);
         if (appIds != null && appIds.length > 0) {
             for (String appId : appIds) {
-                if (targetNodeId == null || isSameNode(targetNodeId)) {
-                    startExporters(appId);
-                }
+                startExporters(appId);
                 if (isGatewayMode()) {
-                    CommandOptions options = new CommandOptions();
-                    options.setCommand(COMMAND_SUBSCRIBE);
-                    options.setNodeId(this.nodeId);
-                    options.setAppId(appId);
-                    options.setTimeZone(session.getTimeZone());
+                    CommandOptions commandOptions = new CommandOptions();
+                    commandOptions.setCommand(COMMAND_SUBSCRIBE);
+                    commandOptions.setNodeId(nodeId);
+                    commandOptions.setAppId(appId);
+                    commandOptions.setTimeZone(session.getTimeZone());
                     for (NodeInfo nodeInfo : nodeRegistry.getNodes()) {
                         if (!isSameNode(nodeInfo.getNodeId())) {
-                           // if (targetNodeId == null || targetNodeId.equals(nodeInfo.getNodeId())) {
-                                publishControl(nodeInfo.getNodeId(), options);
-                            //}
+                            publishControl(nodeInfo.getNodeId(), commandOptions);
                         }
                     }
                 }
@@ -315,13 +305,11 @@ public class MessageRelayManager {
             if (isGatewayMode()) {
                 CommandOptions options = new CommandOptions();
                 options.setCommand(COMMAND_SUBSCRIBE);
-                options.setNodeId(this.nodeId);
+                options.setNodeId(nodeId);
                 options.setTimeZone(session.getTimeZone());
                 for (NodeInfo nodeInfo : nodeRegistry.getNodes()) {
                     if (!isSameNode(nodeInfo.getNodeId())) {
-                        //if (targetNodeId == null || targetNodeId.equals(nodeInfo.getNodeId())) {
-                            publishControl(nodeInfo.getNodeId(), options);
-                        //}
+                        publishControl(nodeInfo.getNodeId(), options);
                     }
                 }
             }
@@ -355,15 +343,14 @@ public class MessageRelayManager {
                     stopExporters(appId);
                 }
                 if (isGatewayMode()) {
-                    CommandOptions options = new CommandOptions();
-                    options.setCommand(COMMAND_UNSUBSCRIBE);
-                    options.setNodeId(nodeId);
-                    options.setAppId(appId);
-                    String message = options.toString(false);
+                    CommandOptions commandOptions = new CommandOptions();
+                    commandOptions.setCommand(COMMAND_UNSUBSCRIBE);
+                    commandOptions.setNodeId(nodeId);
+                    commandOptions.setAppId(appId);
                     Set<String> remoteNodeIds = subscriptionRegistry.getNodeIdsRemotelySubscribedToApp(appId);
                     if (remoteNodeIds != null) {
                         for (String remoteNodeId : remoteNodeIds) {
-                            publishControl(remoteNodeId, message);
+                            publishControl(remoteNodeId, commandOptions);
                         }
                     }
                 }
@@ -373,14 +360,13 @@ public class MessageRelayManager {
                 stopExporters(null);
             }
             if (isGatewayMode()) {
-                CommandOptions options = new CommandOptions();
-                options.setCommand(COMMAND_UNSUBSCRIBE);
-                options.setNodeId(nodeId);
-                String message = options.toString(false);
+                CommandOptions commandOptions = new CommandOptions();
+                commandOptions.setCommand(COMMAND_UNSUBSCRIBE);
+                commandOptions.setNodeId(nodeId);
                 Set<String> remoteNodeIds = subscriptionRegistry.getNodeIdsRemotelySubscribedToApp(null);
                 if (remoteNodeIds != null) {
                     for (String remoteNodeId : remoteNodeIds) {
-                        publishControl(remoteNodeId, message);
+                        publishControl(remoteNodeId, commandOptions);
                     }
                 }
             }
@@ -418,14 +404,13 @@ public class MessageRelayManager {
             commandOptions.setTimeZone(session.getTimeZone());
         }
         String targetNodeId = commandOptions.getNodeId();
-        if (targetNodeId == null || isSameNode(targetNodeId)) {
+        if (isSameNode(targetNodeId)) {
             return getNewMessages(session, commandOptions);
         }
+        commandOptions.setNodeId(nodeId);
+        commandOptions.setSessionId(session.getId());
         if (messagePublisher != null) {
             commandOptions.setCommand(COMMAND_REFRESH);
-            if (commandOptions.getSessionId() == null) {
-                commandOptions.setSessionId(session.getId());
-            }
             publishControl(targetNodeId, commandOptions);
         }
         return null;

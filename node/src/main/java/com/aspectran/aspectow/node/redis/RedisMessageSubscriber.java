@@ -25,6 +25,9 @@ import org.slf4j.LoggerFactory;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
+import static com.aspectran.aspectow.node.manager.NodeMessageProtocol.TYPE_CONTROL;
+import static com.aspectran.aspectow.node.manager.NodeMessageProtocol.TYPE_RELAY;
+
 /**
  * Listens to management control and transparent relay channels and notifies
  * registered listeners based on the message category.
@@ -81,7 +84,7 @@ public class RedisMessageSubscriber extends RedisPubSubAdapter<String, String> {
     public void message(@NonNull String channel, String message) {
         // Expected patterns:
         // aspectow:cluster:control:<category>:<clusterId>:<nodeId>
-        // aspectow:cluster:relay:<category>:<clusterId>:<nodeId>[:<sessionId>]
+        // aspectow:cluster:relay:<category>:<clusterId>:<nodeId>:<sessionId>
 
         String[] parts = channel.split(":");
         if (parts.length < 6) {
@@ -91,20 +94,20 @@ public class RedisMessageSubscriber extends RedisPubSubAdapter<String, String> {
         String type = parts[2]; // control or relay
         String category = parts[3]; // appmon, commands, etc.
         String targetNodeId = parts[5]; // node ID
+        String sessionId = (parts.length > 6 ? parts[6] : null); // session ID
 
         if (!nodeId.equals(targetNodeId)) {
             return;
         }
 
-        if ("control".equals(type)) {
+        if (TYPE_CONTROL.equals(type)) {
             for (RedisMessageListener listener : listeners) {
                 String listenerCategory = listener.getCategory();
                 if (listenerCategory == null || listenerCategory.equals(category)) {
                     listener.onControlMessage(targetNodeId, message);
                 }
             }
-        } else if ("relay".equals(type)) {
-            String sessionId = (parts.length > 6 ? parts[6] : null);
+        } else if (TYPE_RELAY.equals(type)) {
             for (RedisMessageListener listener : listeners) {
                 String listenerCategory = listener.getCategory();
                 if (listenerCategory == null || listenerCategory.equals(category)) {

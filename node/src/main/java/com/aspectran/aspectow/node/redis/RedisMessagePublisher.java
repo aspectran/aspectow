@@ -74,7 +74,7 @@ public class RedisMessagePublisher {
      * @throws Exception if an error occurs during publication
      */
     public void publishControl(String category, String targetNodeId, String message) throws Exception {
-        String channel = NodeMessageProtocol.getControlChannel(clusterId, targetNodeId, category);
+        String channel = NodeMessageProtocol.getControlChannel(category, clusterId, targetNodeId);
         syncPublish(channel, message);
     }
 
@@ -86,17 +86,17 @@ public class RedisMessagePublisher {
      * @throws Exception if an error occurs while obtaining a connection
      */
     public void publishRelay(String category, String message) throws Exception {
-        String channel = NodeMessageProtocol.getRelayChannel(clusterId, nodeId, category);
+        String channel = NodeMessageProtocol.getRelayChannel(category, clusterId, nodeId);
         asyncPublish(channel, message);
     }
 
     public void publishRelay(String category, String targetNodeId, String message) throws Exception {
-        String channel = NodeMessageProtocol.getRelayChannel(clusterId, targetNodeId, category);
+        String channel = NodeMessageProtocol.getRelayChannel(category, clusterId, targetNodeId);
         asyncPublish(channel, message);
     }
 
     public void publishRelay(String category, String targetNodeId, String sessionId, String message) throws Exception {
-        String channel = NodeMessageProtocol.getRelayChannel(clusterId, targetNodeId, category, sessionId);
+        String channel = NodeMessageProtocol.getRelayChannel(category, clusterId, targetNodeId, sessionId);
         asyncPublish(channel, message);
     }
 

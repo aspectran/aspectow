@@ -48,7 +48,8 @@ class DashboardBuilder {
                             index: index++,
                             random1000: random1000,
                             active: true,
-                            client: { established: false, establishCount: 0 }
+                            established: false,
+                            establishCount: 0
                         };
                         node.endpoint.path = basePath + node.endpoint.path + "/" + node.id;
                         node.endpoint.token = data.token;
@@ -88,20 +89,20 @@ class DashboardBuilder {
         const node = this.nodes[nodeIndex];
         const viewer = this.viewers[nodeIndex];
 
-        const onJoined = (node, payload) => {
+        const onJoined = (node) => {
             this.clearConsole(node.index);
         };
 
         const onEstablished = (node) => {
-            node.client.established = true;
-            node.client.establishCount++;
-            console.log(node.id, "connection established:", node.client.establishCount);
+            node.established = true;
+            node.establishCount++;
+            console.log(node.id, "connection established:", node.establishCount);
             this.changeNodeState(node);
             viewer.setEnable(true);
             if (node.active) {
                 viewer.setVisible(true);
             }
-            if (node.client.establishCount === 1) {
+            if (node.establishCount === 1) {
                 this.initView();
             } else {
                 this.clearSessions(node.index);
@@ -112,7 +113,7 @@ class DashboardBuilder {
         };
 
         const onClosed = (node) => {
-            node.client.established = false;
+            node.established = false;
             this.changeNodeState(node);
             viewer.setEnable(false);
         };
@@ -128,14 +129,7 @@ class DashboardBuilder {
             this.clients[node.index] = this.sharedClient;
 
             // Trigger explicit join for this node over the shared connection
-            // const options = [
-            //     "command:join",
-            //     "timeZone:" + Intl.DateTimeFormat().resolvedOptions().timeZone
-            // ];
-            // if (appsToJoin) {
-            //     options.push("appsToJoin:" + appsToJoin);
-            // }
-            // this.sharedClient.sendCommand(options, node.id);
+            this.sharedClient.join(node.id);
             return;
         }
 
@@ -231,7 +225,7 @@ class DashboardBuilder {
                            $indicator.data("icon-error") + " error");
         if (errorOccurred) {
             $indicator.addClass($indicator.data("icon-error") + " error");
-        } else if (node.client.established) {
+        } else if (node.established) {
             $indicator.addClass($indicator.data("icon-connected") + " connected");
         } else {
             $indicator.addClass($indicator.data("icon-disconnected") + " disconnected");

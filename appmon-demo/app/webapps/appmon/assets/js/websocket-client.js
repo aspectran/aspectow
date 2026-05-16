@@ -16,6 +16,7 @@ class WebsocketClient extends BaseClient {
         this.heartbeatTimer = null;
         this.pendingMessages = [];
         this.established = false;
+        this.establishedNodeId = node.id
         this.isGatewayMode = isGatewayMode;
         this.clusterViewers = {};
         this.clusterNodes = {};
@@ -37,17 +38,6 @@ class WebsocketClient extends BaseClient {
         this.closeSocket();
     }
 
-    sendCommand(options, targetNodeId) {
-        if (this.socket && this.socket.readyState === WebSocket.OPEN) {
-            let cmd = options ? options.slice() : [];
-            if (this.isGatewayMode && targetNodeId) {
-                cmd.push("nodeId:" + targetNodeId);
-            }
-            console.log("cmd", cmd);
-            this.socket.send(cmd.join(";"));
-        }
-    }
-
     openSocket(appsToJoin) {
         this.closeSocket(false);
         const url = new URL(this.node.endpoint.path + "/appmon/websocket/" + this.node.endpoint.token, location.href);
@@ -61,14 +51,7 @@ class WebsocketClient extends BaseClient {
             this.pendingMessages.push("Socket connection successful");
             
             // Join the first node
-            const options = [
-                "command:join",
-                "timeZone:" + Intl.DateTimeFormat().resolvedOptions().timeZone
-            ];
-            if (appsToJoin) {
-                options.push("appsToJoin:" + appsToJoin);
-            }
-            this.socket.send(options.join(";"));
+            this.join(this.node.id, appsToJoin);
             this.heartbeatPing();
             this.retryCount = 0;
         };
@@ -81,28 +64,40 @@ class WebsocketClient extends BaseClient {
             const idx = msg.indexOf(':');
             if (idx === -1) return;
 
-            const firstPart = msg.substring(0, idx);
-            const remaining = msg.substring(idx + 1);
+            const nodeId = msg.substring(0, idx);
+            const message = msg.substring(idx + 1);
 
-            if (this.isEstablished()) {
-                if (remaining.startsWith("pong:")) {
-                    this.node.endpoint.token = remaining.substring(5);
+            if (this.established) {
+                // Standard control messages
+                if (message.startsWith("pong:")) {
+                    this.node.endpoint.token = message.substring(5);
                     this.heartbeatPing();
-                } else {
-                    const viewer = this.clusterViewers[firstPart];
-                    if (viewer) {
-                        viewer.processMessage(remaining);
-                    } else {
-                        console.warn("No viewer registered for nodeId:", firstPart, "Message:", remaining);
-                    }
+                    return;
                 }
-            } else if (remaining.startsWith("joined:")) {
-                // Control messages in Gateway Mode: [nodeId]:joined:[sessionId]
-                console.log(this.node.id, remaining, this.node.endpoint.token);
-                const payload = remaining.substring(7);
-                this.establish(payload, firstPart);
+
+                // Control messages in Gateway Mode
+                if (this.isGatewayMode && message.startsWith("joined:")) {
+                    this.establish(nodeId);
+                    return;
+                }
+
+                // Data messages
+                if (this.isGatewayMode) {
+                    // Data messages
+                    const viewer = this.clusterViewers[nodeId];
+                    if (viewer) {
+                        viewer.processMessage(message);
+                    } else {
+                        console.warn("No viewer registered for nodeId:", nodeId, "Message:", message);
+                    }
+                } else {
+                    this.viewer.processMessage(msg);
+                }
+            } else if (message.startsWith("joined:")) {
+                const payload = message.substring(7);
+                this.establish(nodeId, payload);
             } else {
-                console.error("Unexpected message received before establishment:", remaining);
+                console.error("Unexpected message received before establishment:", message);
             }
         };
 
@@ -140,26 +135,45 @@ class WebsocketClient extends BaseClient {
         }
     }
 
-    establish(payload, targetNodeId) {
+    join(nodeId, appsToJoin) {
+        const options = ["command:join"];
+        if (!this.established) {
+            // Join the first node
+            options.push("timeZone:" + Intl.DateTimeFormat().resolvedOptions().timeZone);
+            if (appsToJoin) {
+                options.push("appsToJoin:" + appsToJoin);
+            }
+            this.sendCommand(options, nodeId);
+        } else if (nodeId !== this.establishedNodeId) {
+            // Join other nodes in Gateway mode
+            this.sendCommand(options, nodeId);
+        }
+    }
+
+    establish(nodeId) {
         if (!this.established) {
             this.established = true;
-            this.setSessionId(payload);
+            this.establishedNodeId = nodeId;
             while (this.pendingMessages.length) {
                 this.viewer.printMessage(this.pendingMessages.shift());
             }
         }
 
-        const nodeId = targetNodeId || this.node.id;
         const config = (this.isGatewayMode && this.clusterNodes[nodeId]) ? this.clusterNodes[nodeId] : this;
-
-        if (config.onJoined) config.onJoined(config.node, payload);
+        if (config.onJoined) config.onJoined(config.node);
         if (config.onEstablished) config.onEstablished(config.node);
         
         this.sendCommand(["command:established"], nodeId);
     }
 
-    isEstablished() {
-        return this.established;
+    sendCommand(options, nodeId) {
+        if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+            let cmd = options ? options.slice() : [];
+            const targetNodeId = nodeId || this.establishedNodeId;
+            cmd.push("nodeId:" + targetNodeId);
+            console.log("cmd", cmd);
+            this.socket.send(cmd.join(";"));
+        }
     }
 
     heartbeatPing() {
