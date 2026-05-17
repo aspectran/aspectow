@@ -195,7 +195,7 @@ public class PollingMessageRelayer implements MessageRelayer {
     }
 
     @Override
-    public RelaySession fidnRelaySession(String sessionId) {
+    public RelaySession findRelaySession(String sessionId) {
         return pollingSessionManager.getSession(sessionId);
     }
 

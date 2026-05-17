@@ -144,7 +144,7 @@ public class WebsocketMessageRelayer extends SimplifiedEndpoint implements Messa
 
     private void pong(Session session) {
         String newToken = AppMonTokenIssuer.issueToken(1800); // 30 min.
-        sendText(session, appMonManager.getNodeId() + ":" + RESPONSE_PONG + newToken);
+        sendText(session, appMonManager.getNodeId() + "::" + RESPONSE_PONG + newToken);
     }
 
     private void join(Session session, @NonNull CommandOptions commandOptions) {
@@ -160,11 +160,11 @@ public class WebsocketMessageRelayer extends SimplifiedEndpoint implements Messa
             if (appIds.length > 0) {
                 relaySession.setJoinedApps(appIds);
             }
-            relay(relaySession, appMonManager.getNodeId() + ":" + RESPONSE_JOINED + session.getId());
+            relay(relaySession, appMonManager.getNodeId() + "::" + RESPONSE_JOINED + session.getId());
         } else if (messageRelayManager.isGatewayMode()) {
             String otherNodeId = commandOptions.getNodeId();
             WebsocketRelaySession relaySession = new WebsocketRelaySession(session);
-            relay(relaySession, otherNodeId + ":" + RESPONSE_JOINED + session.getId());
+            relay(relaySession, otherNodeId + "::" + RESPONSE_JOINED + session.getId());
         }
     }
 
@@ -210,7 +210,7 @@ public class WebsocketMessageRelayer extends SimplifiedEndpoint implements Messa
     }
 
     @Override
-    public RelaySession fidnRelaySession(String sessionId) {
+    public RelaySession findRelaySession(String sessionId) {
         Session session = findSession(sessionId);
         return (session != null ? new WebsocketRelaySession(session) : null);
     }

@@ -41,6 +41,6 @@ public interface MessageRelayer {
      * @param sessionId the session ID
      * @return the relay session, or {@code null} if not found
      */
-    RelaySession fidnRelaySession(String sessionId);
+    RelaySession findRelaySession(String sessionId);
 
 }

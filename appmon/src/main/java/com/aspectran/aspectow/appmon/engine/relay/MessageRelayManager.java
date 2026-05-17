@@ -136,10 +136,20 @@ public class MessageRelayManager {
      */
     public void broadcast(String message) {
         relayLocally(message);
-        if (messagePublisher != null) {
-            for (NodeInfo nodeInfo : nodeRegistry.getNodes()) {
-                if (!isSameNode(nodeInfo.getNodeId())) {
-                    publishRelay(nodeInfo.getNodeId(), message);
+        if (isGatewayMode()) {
+            String appId = extractAppId(message);
+            if (appId != null) {
+                Set<String> remoteNodeIds = subscriptionRegistry.getNodeIdsRemotelySubscribedToApp(appId);
+                if (remoteNodeIds != null) {
+                    for (String remoteNodeId : remoteNodeIds) {
+                        publishRelay(remoteNodeId, message);
+                    }
+                }
+            } else {
+                for (NodeInfo nodeInfo : nodeRegistry.getNodes()) {
+                    if (!isSameNode(nodeInfo.getNodeId())) {
+                        publishRelay(nodeInfo.getNodeId(), message);
+                    }
                 }
             }
         }
@@ -186,42 +196,31 @@ public class MessageRelayManager {
      */
     public void relayLocally(String sessionId, @NonNull String message) {
         if (isGatewayMode()) {
-            String appId = null;
-            boolean isLog = false;
-
-            int idx1 = message.indexOf(':');
-            if (idx1 != -1) {
-                int idx2 = message.indexOf(':', idx1 + 1);
-                if (idx2 != -1) {
-                    appId = message.substring(idx1 + 1, idx2);
-                    int idx3 = message.indexOf(':', idx2 + 1);
-                    if (idx3 != -1) {
-                        String type = message.substring(idx2 + 1, idx3);
-                        if (type.startsWith("log")) {
-                            isLog = true;
-                        }
-                    }
-                }
-            }
-
             if (sessionId != null) {
                 RelaySession session = findRelaySession(sessionId);
                 if (session != null && session.isValid()) {
                     relay(session, message);
                 }
             } else {
-                Set<String> allSessionIds = subscriptionRegistry.getAllSessionIds();
-                for (MessageRelayer relayer : messageRelayers) {
-                    for (String sid : allSessionIds) {
-                        RelaySession session = relayer.fidnRelaySession(sid);
-                        if (session != null && session.isValid()) {
-                            if (isLog) {
-                                String focusedAppId = session.getFocusedAppId();
-                                if (focusedAppId == null || appId.equals(focusedAppId)) {
-                                    relayer.relay(session, message);
+                String appId = extractAppId(message);
+                if (appId != null) {
+                    String type = extractType(message);
+                    boolean isLog = "log".equals(type);
+                    Set<String> sessionIds = subscriptionRegistry.getSessionsSubscribedToApp(appId);
+                    if (!sessionIds.isEmpty()) {
+                        for (MessageRelayer relayer : messageRelayers) {
+                            for (String sid : sessionIds) {
+                                RelaySession session = relayer.findRelaySession(sid);
+                                if (session != null && session.isValid()) {
+                                    if (isLog) {
+                                        String focusedAppId = session.getFocusedAppId();
+                                        if (focusedAppId == null || focusedAppId.equals(appId)) {
+                                            relayer.relay(session, message);
+                                        }
+                                    } else {
+                                        relayer.relay(session, message);
+                                    }
                                 }
-                            } else {
-                                relayer.relay(session, message);
                             }
                         }
                     }
@@ -235,9 +234,37 @@ public class MessageRelayManager {
     }
 
     @Nullable
+    private String extractAppId(String message) {
+        int idx1 = message.indexOf(':');
+        if (idx1 != -1) {
+            int idx2 = message.indexOf(':', idx1 + 1);
+            if (idx2 != -1) {
+                String appId = message.substring(idx1 + 1, idx2);
+                return (!appId.isEmpty() ? appId : null);
+            }
+        }
+        return null;
+    }
+
+    @Nullable
+    private String extractType(String message) {
+        int idx1 = message.indexOf(':');
+        if (idx1 != -1) {
+            int idx2 = message.indexOf(':', idx1 + 1);
+            if (idx2 != -1) {
+                int idx3 = message.indexOf(':', idx2 + 1);
+                if (idx3 != -1) {
+                    return message.substring(idx2 + 1, idx3);
+                }
+            }
+        }
+        return null;
+    }
+
+    @Nullable
     public RelaySession findRelaySession(String sessionId) {
         for (MessageRelayer relayer : messageRelayers) {
-            RelaySession session = relayer.fidnRelaySession(sessionId);
+            RelaySession session = relayer.findRelaySession(sessionId);
             if (session != null) {
                 return session;
             }
@@ -270,10 +297,11 @@ public class MessageRelayManager {
         if (joinedApps == null || joinedApps.length == 0) {
             return false;
         }
-        subscriptionRegistry.addLocalSubscription(session.getId(), joinedApps);
         for (String appId : joinedApps) {
-            startExporters(appId);
-            if (isGatewayMode()) {
+            if (!subscriptionRegistry.isAppInUse(appId)) {
+                startExporters(appId);
+            }
+            if (isGatewayMode() && !subscriptionRegistry.isAppInUseLocally(appId)) {
                 CommandOptions commandOptions = new CommandOptions();
                 commandOptions.setCommand(COMMAND_SUBSCRIBE);
                 commandOptions.setNodeId(nodeId);
@@ -286,6 +314,7 @@ public class MessageRelayManager {
                 }
             }
         }
+        subscriptionRegistry.addLocalSubscription(session.getId(), joinedApps);
         return true;
     }
 

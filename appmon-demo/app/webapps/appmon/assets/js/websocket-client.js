@@ -69,21 +69,20 @@ class WebsocketClient extends BaseClient {
 
             if (this.established) {
                 // Standard control messages
-                if (message.startsWith("pong:")) {
-                    this.node.endpoint.token = message.substring(5);
+                if (message.startsWith(":pong:")) {
+                    this.node.endpoint.token = message.substring(6);
                     this.heartbeatPing();
                     return;
                 }
 
                 // Control messages in Gateway Mode
-                if (this.isGatewayMode && message.startsWith("joined:")) {
+                if (this.isGatewayMode && message.startsWith(":joined:")) {
                     this.establish(nodeId);
                     return;
                 }
 
                 // Data messages
                 if (this.isGatewayMode) {
-                    // Data messages
                     const viewer = this.clusterViewers[nodeId];
                     if (viewer) {
                         viewer.processMessage(message);
@@ -93,8 +92,8 @@ class WebsocketClient extends BaseClient {
                 } else {
                     this.viewer.processMessage(msg);
                 }
-            } else if (message.startsWith("joined:")) {
-                const payload = message.substring(7);
+            } else if (message.startsWith(":joined:")) {
+                const payload = message.substring(8);
                 this.establish(nodeId, payload);
             } else {
                 console.error("Unexpected message received before establishment:", message);
