@@ -19,8 +19,8 @@ import com.aspectran.aspectow.appmon.engine.config.AppInfo;
 import com.aspectran.aspectow.appmon.engine.config.PollingConfig;
 import com.aspectran.aspectow.appmon.engine.manager.AppMonManager;
 import com.aspectran.aspectow.appmon.engine.relay.CommandOptions;
-import com.aspectran.aspectow.appmon.engine.relay.MessageRelayer;
 import com.aspectran.aspectow.appmon.engine.relay.MessageRelayManager;
+import com.aspectran.aspectow.appmon.engine.relay.MessageRelayer;
 import com.aspectran.aspectow.appmon.engine.relay.RelaySession;
 import com.aspectran.core.activity.Translet;
 import com.aspectran.core.component.bean.annotation.Autowired;
@@ -39,6 +39,10 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import static com.aspectran.aspectow.appmon.engine.relay.CommandOptions.COMMAND_ESTABLISHED;
+import static com.aspectran.aspectow.appmon.engine.relay.CommandOptions.COMMAND_FOCUS;
+import static com.aspectran.aspectow.appmon.engine.relay.CommandOptions.COMMAND_JOIN;
+import static com.aspectran.aspectow.appmon.engine.relay.CommandOptions.COMMAND_LOAD_PREVIOUS;
 import static com.aspectran.aspectow.appmon.engine.relay.CommandOptions.COMMAND_REFRESH;
 import static com.aspectran.aspectow.node.manager.NodeMessageProtocol.NODES_BASE_PATH;
 
@@ -148,23 +152,68 @@ public class PollingMessageRelayer implements MessageRelayer {
         }
 
         if (commands != null) {
-            CommandOptions commandOptions = new CommandOptions(commands);
-            if (!commandOptions.hasTimeZone()) {
-                commandOptions.setTimeZone(relaySession.getTimeZone());
-            }
-            if (commandOptions.hasCommand(COMMAND_REFRESH) ||
-                    commandOptions.hasCommand(CommandOptions.COMMAND_LOAD_PREVIOUS)) {
-                List<String> newMessages = appMonManager.getMessageRelayManager().getNewMessages(relaySession, commandOptions);
-                for (String msg : newMessages) {
-                    pollingSessionManager.push(msg);
-                }
-            }
+            handleCommand(relaySession, commands);
         }
 
         String[] messages = pollingSessionManager.pull(relaySession);
         return Map.of(
                 "messages", (messages != null ? messages : new String[0])
         );
+    }
+
+    private void handleCommand(PollingRelaySession relaySession, String[] commands) {
+        CommandOptions commandOptions = new CommandOptions(commands);
+        switch (commandOptions.getCommand()) {
+            case COMMAND_JOIN:
+                joinRemotely(relaySession, commandOptions);
+                break;
+            case COMMAND_ESTABLISHED:
+                established(relaySession, commandOptions);
+                break;
+            case COMMAND_REFRESH:
+            case COMMAND_LOAD_PREVIOUS:
+                refreshData(relaySession, commandOptions);
+                break;
+            case COMMAND_FOCUS:
+                focus(relaySession, commandOptions);
+                break;
+        }
+    }
+
+    private void joinRemotely(PollingRelaySession relaySession, @NonNull CommandOptions commandOptions) {
+        if (appMonManager.getMessageRelayManager().isGatewayMode()) {
+            String targetNodeId = commandOptions.getNodeId();
+            pollingSessionManager.push(targetNodeId + "::joined:" + relaySession.getId());
+        }
+    }
+
+    private void established(@NonNull PollingRelaySession relaySession, @NonNull CommandOptions commandOptions) {
+        String targetNodeId = commandOptions.getNodeId();
+        if (appMonManager.getNodeId().equals(targetNodeId)) {
+            if (appMonManager.getMessageRelayManager().subscribe(relaySession)) {
+                List<String> messages = appMonManager.getMessageRelayManager().getLastMessages(relaySession);
+                for (String message : messages) {
+                    pollingSessionManager.push(message);
+                }
+            }
+        }
+    }
+
+    private void focus(@NonNull PollingRelaySession relaySession, @NonNull CommandOptions commandOptions) {
+        String focusedAppId = commandOptions.getAppId();
+        relaySession.setFocusedAppId(focusedAppId);
+    }
+
+    private void refreshData(@NonNull PollingRelaySession relaySession, @NonNull CommandOptions commandOptions) {
+        if (!commandOptions.hasTimeZone()) {
+            commandOptions.setTimeZone(relaySession.getTimeZone());
+        }
+        List<String> newMessages = appMonManager.getMessageRelayManager().refreshData(relaySession, commandOptions);
+        if (newMessages != null) {
+            for (String message : newMessages) {
+                pollingSessionManager.push(message);
+            }
+        }
     }
 
     /**
