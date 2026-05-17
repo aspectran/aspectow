@@ -27,7 +27,9 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
 
@@ -49,6 +51,8 @@ public class MessageRelayManager {
     public static final String CATEGORY_APPMON = "appmon";
 
     private final Set<MessageRelayer> messageRelayers = new CopyOnWriteArraySet<>();
+
+    private final Map<String, MessageRelayer> sessionRelayerMap = new ConcurrentHashMap<>();
 
     private final List<ExporterManager> exporterManagers = new CopyOnWriteArrayList<>();
 
@@ -104,6 +108,14 @@ public class MessageRelayManager {
      */
     public void removeRelayer(MessageRelayer messageRelayer) {
         messageRelayers.remove(messageRelayer);
+    }
+
+    public void registerSession(String sessionId, MessageRelayer messageRelayer) {
+        sessionRelayerMap.put(sessionId, messageRelayer);
+    }
+
+    public void unregisterSession(String sessionId) {
+        sessionRelayerMap.remove(sessionId);
     }
 
     /**
@@ -197,9 +209,12 @@ public class MessageRelayManager {
     public void relayLocally(String sessionId, @NonNull String message) {
         if (isGatewayMode()) {
             if (sessionId != null) {
-                RelaySession session = findRelaySession(sessionId);
-                if (session != null && session.isValid()) {
-                    relay(session, message);
+                MessageRelayer relayer = sessionRelayerMap.get(sessionId);
+                if (relayer != null) {
+                    RelaySession session = relayer.findRelaySession(sessionId);
+                    if (session != null && session.isValid()) {
+                        relayer.relay(session, message);
+                    }
                 }
             } else {
                 String appId = extractAppId(message);
@@ -208,8 +223,9 @@ public class MessageRelayManager {
                     boolean isLog = "log".equals(type);
                     Set<String> sessionIds = subscriptionRegistry.getSessionsSubscribedToApp(appId);
                     if (!sessionIds.isEmpty()) {
-                        for (MessageRelayer relayer : messageRelayers) {
-                            for (String sid : sessionIds) {
+                        for (String sid : sessionIds) {
+                            MessageRelayer relayer = sessionRelayerMap.get(sid);
+                            if (relayer != null) {
                                 RelaySession session = relayer.findRelaySession(sid);
                                 if (session != null && session.isValid()) {
                                     if (isLog) {
@@ -234,7 +250,7 @@ public class MessageRelayManager {
     }
 
     @Nullable
-    private String extractAppId(String message) {
+    private String extractAppId(@NonNull String message) {
         int idx1 = message.indexOf(':');
         if (idx1 != -1) {
             int idx2 = message.indexOf(':', idx1 + 1);
@@ -247,7 +263,7 @@ public class MessageRelayManager {
     }
 
     @Nullable
-    private String extractType(String message) {
+    private String extractType(@NonNull String message) {
         int idx1 = message.indexOf(':');
         if (idx1 != -1) {
             int idx2 = message.indexOf(':', idx1 + 1);
@@ -263,11 +279,9 @@ public class MessageRelayManager {
 
     @Nullable
     public RelaySession findRelaySession(String sessionId) {
-        for (MessageRelayer relayer : messageRelayers) {
-            RelaySession session = relayer.findRelaySession(sessionId);
-            if (session != null) {
-                return session;
-            }
+        MessageRelayer relayer = sessionRelayerMap.get(sessionId);
+        if (relayer != null) {
+            return relayer.findRelaySession(sessionId);
         }
         return null;
     }

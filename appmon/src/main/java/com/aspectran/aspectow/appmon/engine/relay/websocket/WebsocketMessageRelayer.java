@@ -137,7 +137,8 @@ public class WebsocketMessageRelayer extends SimplifiedEndpoint implements Messa
     }
 
     @Override
-    protected void onSessionRemoved(Session session) {
+    protected void onSessionRemoved(@NonNull Session session) {
+        messageRelayManager.unregisterSession(session.getId());
         RelaySession relaySession = new WebsocketRelaySession(session);
         messageRelayManager.unsubscribe(relaySession);
     }
@@ -149,6 +150,7 @@ public class WebsocketMessageRelayer extends SimplifiedEndpoint implements Messa
 
     private void join(Session session, @NonNull CommandOptions commandOptions) {
         if (addSession(session)) {
+            messageRelayManager.registerSession(session.getId(), this);
             WebsocketRelaySession relaySession = new WebsocketRelaySession(session);
             String timeZone = commandOptions.getTimeZone();
             if (StringUtils.hasText(timeZone)) {
