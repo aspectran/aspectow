@@ -332,12 +332,14 @@ public class MessageRelayManager {
         return true;
     }
 
-    public void subscribeRemotely(CommandOptions commandOptions) {
+    public synchronized void subscribeRemotely(CommandOptions commandOptions) {
         Assert.notNull(commandOptions, "Command options must not be null");
         String nodeId = commandOptions.getNodeId();
         String appId = commandOptions.getAppId();
+        if (!subscriptionRegistry.isAppInUse(appId)) {
+            startExporters(appId);
+        }
         subscriptionRegistry.addRemoteSubscription(nodeId, appId);
-        startExporters(appId);
         List<String> messages = getLastMessages(commandOptions);
         for (String message : messages) {
             publishRelay(nodeId, message);
@@ -373,7 +375,7 @@ public class MessageRelayManager {
         session.removeJoinedApps();
     }
 
-    public void unsubscribeRemotely(CommandOptions commandOptions) {
+    public synchronized void unsubscribeRemotely(CommandOptions commandOptions) {
         Assert.notNull(commandOptions, "Command options must not be null");
         String nodeId = commandOptions.getNodeId();
         String appId = commandOptions.getAppId();
