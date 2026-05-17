@@ -92,7 +92,7 @@ public class DashboardActivity {
         Map<String, Object> data = Map.of(
                 "token", AppMonTokenIssuer.issueToken(30),
                 "myNodeId", appMonManager.getNodeId(),
-                "verifiedAppIds", verifiedAppIds,
+                "verifiedAppIds", StringUtils.joinWithCommas(verifiedAppIds),
                 "settings", settings,
                 "nodes", nodeInfoList,
                 "apps", appInfoList

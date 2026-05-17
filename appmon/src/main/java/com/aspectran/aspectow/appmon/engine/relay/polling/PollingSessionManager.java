@@ -199,6 +199,7 @@ public class PollingSessionManager extends AbstractComponent {
             sessions.entrySet().removeIf(entry -> {
                 PollingRelaySession session = entry.getValue();
                 if (session.isExpired()) {
+                    appMonManager.getMessageRelayManager().unregisterSession(session.getId());
                     appMonManager.getMessageRelayManager().unsubscribe(session);
                     session.destroy();
                     return true;

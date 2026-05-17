@@ -7,21 +7,35 @@
  * HTTP Polling implementation of the AppMon client.
  */
 class PollingClient extends BaseClient {
-    constructor(node, viewer, onJoined, onEstablished, onClosed, onFailed) {
+    constructor(node, viewer, onJoined, onEstablished, onClosed, onFailed, isGatewayMode = false) {
         super(node, viewer, onJoined, onEstablished, onClosed, onFailed);
         this.endpointMode = "polling";
         this.commands = [];
         this.pollingTimer = null;
         this.stopped = false;
+        this.established = false;
+        this.establishedNodeId = node.id
+        this.isGatewayMode = isGatewayMode;
+        this.clusterViewers = {};
+        this.clusterNodes = {};
+    }
+
+    addClusterViewer(nodeId, viewer) {
+        this.clusterViewers[nodeId] = viewer;
+    }
+
+    addClusterNode(nodeId, node, onJoined, onEstablished) {
+        this.clusterNodes[nodeId] = { node, onJoined, onEstablished };
     }
 
     start(appsToJoin) {
         this.stopped = false;
-        this.join(appsToJoin);
+        this.join(this.node.id, appsToJoin);
     }
 
     stop() {
         this.stopped = true;
+        this.established = false;
         if (this.pollingTimer) {
             clearTimeout(this.pollingTimer);
             this.pollingTimer = null;
@@ -32,9 +46,12 @@ class PollingClient extends BaseClient {
         this.changePollingInterval(speed);
     }
 
-    sendCommand(options) {
+    sendCommand(options, nodeId) {
         if (options) {
-            options.forEach(option => this.withCommand(option));
+            let cmd = options ? options.slice() : [];
+            const targetNodeId = nodeId || this.establishedNodeId;
+            cmd.push("nodeId:" + targetNodeId);
+            cmd.forEach(option => this.withCommand(option));
         }
     }
 
@@ -44,18 +61,23 @@ class PollingClient extends BaseClient {
         }
     }
 
-    join(appsToJoin) {
+    join(nodeId, appsToJoin) {
+        if (this.isGatewayMode && this.established && nodeId !== this.establishedNodeId) {
+            this.sendCommand(["command:join"], nodeId);
+            return;
+        }
         $.ajax({
             url: this.node.endpoint.path + "/appmon/polling/join",
             type: "post",
             dataType: "json",
             data: {
+                nodeId: nodeId,
                 timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
                 appsToJoin: appsToJoin
             },
             success: (data) => {
                 if (data) {
-                    if (!data.verifiedAppIds || data.verifiedAppIds.length === 0) {
+                    if (!data.appsToJoin) {
                         alert("No verified apps found. Please check the configuration of the backend.");
                         return;
                     }
@@ -63,14 +85,19 @@ class PollingClient extends BaseClient {
                     this.retryCount = 0;
                     this.node.endpoint['mode'] = this.endpointMode;
                     this.node.endpoint['pollingInterval'] = data.pollingInterval;
-                    if (this.onJoined) {
-                        this.onJoined(this.node, data);
+
+                    // Establish explicitly on successful join response for the first node
+                    // (Subsequent nodes in gateway mode will receive ::joined: messages via polling)
+                    if (!this.established || nodeId === this.establishedNodeId) {
+                         this.establish(nodeId);
                     }
-                    if (this.onEstablished) {
-                        this.onEstablished(this.node);
+
+                    if (data.messages) {
+                        this.processMessages(data.messages);
                     }
-                    this.viewer.printMessage("Polling every " + data.pollingInterval + " milliseconds.");
-                    this.polling(data.verifiedAppIds);
+                    if (!this.stopped) {
+                        this.polling(appsToJoin);
+                    }
                 } else {
                     console.log(this.node.id, "connection failed");
                     this.viewer.printErrorMessage("Connection failed.");
@@ -97,12 +124,12 @@ class PollingClient extends BaseClient {
             type: "get",
             cache: false,
             data: withCommands ? {
-                commands: withCommands
+                "commands[]": withCommands
             } : null,
             success: (data) => {
                 if (this.stopped) return;
                 if (data && data.messages) {
-                    data.messages.forEach(msg => this.viewer.processMessage(msg));
+                    this.processMessages(data.messages);
                     this.pollingTimer = setTimeout(() => {
                         this.polling(appsToJoin);
                     }, this.node.endpoint.pollingInterval);
@@ -125,6 +152,58 @@ class PollingClient extends BaseClient {
                 this.rejoin(appsToJoin);
             }
         });
+    }
+
+    processMessages(messages) {
+        if (messages) {
+            messages.forEach(msg => {
+                console.log(msg);
+                const idx = msg.indexOf(':');
+                if (idx === -1) return;
+
+                const nodeId = msg.substring(0, idx);
+                const message = msg.substring(idx + 1);
+
+                if (this.established) {
+                    // Control messages in Gateway Mode
+                    if (this.isGatewayMode && message.startsWith(":joined:")) {
+                        this.establish(nodeId);
+                        return;
+                    }
+
+                    // Data messages
+                    if (this.isGatewayMode) {
+                        const viewer = this.clusterViewers[nodeId];
+                        if (viewer) {
+                            viewer.processMessage(message);
+                        } else {
+                            console.warn("No viewer registered for nodeId:", nodeId, "Message:", message);
+                        }
+                    } else {
+                        this.viewer.processMessage(message);
+                    }
+                } else if (message.startsWith(":joined:")) {
+                    const payload = message.substring(8);
+                    this.establish(nodeId, payload);
+                } else {
+                    console.error("Unexpected message received before establishment:", message);
+                }
+            });
+        }
+    }
+
+    establish(nodeId) {
+        if (!this.established) {
+            this.established = true;
+            this.establishedNodeId = nodeId;
+            this.viewer.printMessage("Polling every " + this.node.endpoint.pollingInterval + " milliseconds.");
+        }
+
+        const config = (this.isGatewayMode && this.clusterNodes[nodeId]) ? this.clusterNodes[nodeId] : this;
+        if (config.onJoined) config.onJoined(config.node);
+        if (config.onEstablished) config.onEstablished(config.node);
+
+        this.sendCommand(["command:established"], nodeId);
     }
 
     changePollingInterval(speed) {

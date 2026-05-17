@@ -30,7 +30,7 @@ class DashboardBuilder {
             data: appsToJoin ? { appsToJoin: appsToJoin } : null,
             success: (data) => {
                 if (data) {
-                    if (!data.verifiedAppIds || data.verifiedAppIds.length === 0) {
+                    if (!data.appsToJoin) {
                         alert("No verified apps found. Please check the configuration of the backend.");
                         return;
                     }
@@ -72,7 +72,7 @@ class DashboardBuilder {
                     this.buildView();
                     this.bindEvents();
                     if (this.nodes.length) {
-                        this.establish(0, data.verifiedAppIds);
+                        this.establish(0, data.appsToJoin);
                     }
                 }
             },
@@ -141,7 +141,12 @@ class DashboardBuilder {
         console.log("establishing", nodeIndex);
         let client;
         if (node.endpoint.mode === "polling") {
-            client = new PollingClient(node, viewer, onJoined, onEstablished, onClosed, onFailed);
+            client = new PollingClient(node, viewer, onJoined, onEstablished, onClosed, onFailed, isGatewayMode);
+            if (isGatewayMode) {
+                this.sharedClient = client;
+                client.addClusterViewer(node.id, viewer);
+                client.addClusterNode(node.id, node, onJoined, onEstablished);
+            }
         } else {
             client = new WebsocketClient(node, viewer, onJoined, onEstablished, onClosed, onFailed, isGatewayMode);
             if (isGatewayMode) {

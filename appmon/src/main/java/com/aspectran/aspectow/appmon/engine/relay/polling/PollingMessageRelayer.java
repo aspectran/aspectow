@@ -90,32 +90,41 @@ public class PollingMessageRelayer implements MessageRelayer {
     public Map<String, Object> join(@NonNull Translet translet) throws IOException {
         PollingConfig pollingConfig = appMonManager.getPollingConfig();
 
-        String nodeId = translet.getParameter("nodeId");
-        if (!StringUtils.hasText(nodeId)) {
-            nodeId = null;
+        String targetNodeId = translet.getParameter("nodeId");
+        if (!StringUtils.hasText(targetNodeId)) {
+            targetNodeId = appMonManager.getNodeId();
         }
 
         String appsToJoin = translet.getParameter("appsToJoin");
         String[] appIds = StringUtils.splitWithComma(appsToJoin);
         String[] verifiedAppIds = appMonManager.getVerifiedAppIds(appIds);
-        if (verifiedAppIds.length == 0) {
-            return null;
-        }
 
-        PollingRelaySession relaySession = pollingSessionManager.createSession(translet, pollingConfig, nodeId, appIds);
-        String timeZone = translet.getParameter("timeZone");
-        if (StringUtils.hasText(timeZone)) {
-            relaySession.setTimeZone(timeZone);
-        }
-
-        if (!appMonManager.getMessageRelayManager().subscribe(relaySession)) {
+        PollingRelaySession relaySession = pollingSessionManager.getSession(translet);
+        if (relaySession == null) {
+            if (verifiedAppIds.length == 0) {
+                return null;
+            }
+            relaySession = pollingSessionManager.createSession(translet, pollingConfig, targetNodeId, verifiedAppIds);
+            String timeZone = translet.getParameter("timeZone");
+            if (StringUtils.hasText(timeZone)) {
+                relaySession.setTimeZone(timeZone);
+            }
+            appMonManager.getMessageRelayManager().registerSession(relaySession.getId(), this);
+            if (!appMonManager.getMessageRelayManager().subscribe(relaySession)) {
+                return null;
+            }
+            pollingSessionManager.push(targetNodeId + "::joined:" + relaySession.getId());
+        } else if (appMonManager.getMessageRelayManager().isGatewayMode()) {
+            relaySession.setJoinedApps(verifiedAppIds);
+            pollingSessionManager.push(targetNodeId + "::joined:" + relaySession.getId());
+        } else {
             return null;
         }
 
         List<AppInfo> appInfoList = appMonManager.getAppInfoList(relaySession.getJoinedApps());
         List<String> messages = appMonManager.getMessageRelayManager().getLastMessages(relaySession);
         return Map.of(
-                "verifiedAppIds", verifiedAppIds,
+                "appsToJoin", StringUtils.joinWithCommas(verifiedAppIds),
                 "apps", appInfoList,
                 "pollingInterval", relaySession.getPollingInterval(),
                 "messages", messages
@@ -191,7 +200,7 @@ public class PollingMessageRelayer implements MessageRelayer {
 
     @Override
     public void relay(RelaySession relaySession, String message) {
-        // Not applicable for polling relayer
+        pollingSessionManager.push(message);
     }
 
     @Override

@@ -90,7 +90,7 @@ class WebsocketClient extends BaseClient {
                         console.warn("No viewer registered for nodeId:", nodeId, "Message:", message);
                     }
                 } else {
-                    this.viewer.processMessage(msg);
+                    this.viewer.processMessage(message);
                 }
             } else if (message.startsWith(":joined:")) {
                 const payload = message.substring(8);
