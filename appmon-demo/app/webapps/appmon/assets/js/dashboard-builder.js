@@ -27,9 +27,14 @@ class DashboardBuilder {
             url: basePath + "/appmon/config/data",
             type: "get",
             dataType: "json",
-            data: appsToJoin ? { apps: appsToJoin } : null,
+            data: appsToJoin ? { appsToJoin: appsToJoin } : null,
             success: (data) => {
                 if (data) {
+                    if (!data.verifiedAppIds || data.verifiedAppIds.length === 0) {
+                        alert("No verified apps found. Please check the configuration of the backend.");
+                        return;
+                    }
+
                     this.settings = { ...data.settings };
                     this.nodes = [];
                     this.apps = [];
@@ -39,12 +44,12 @@ class DashboardBuilder {
                     let index = 0;
                     const random1000 = this.random(1, 1000);
 
-                    data.nodes.forEach(nodeData => {
-                        if (this.nodeIdToJoin && this.nodeIdToJoin !== nodeData.id) {
+                    data.nodes.forEach(nodeInfo => {
+                        if (this.nodeIdToJoin && this.nodeIdToJoin !== nodeInfo.id) {
                             return;
                         }
                         const node = {
-                            ...nodeData,
+                            ...nodeInfo,
                             index: index++,
                             random1000: random1000,
                             active: true,
@@ -58,8 +63,8 @@ class DashboardBuilder {
                         console.log("node", node);
                     });
 
-                    data.apps.forEach(appData => {
-                        const app = { ...appData, active: false };
+                    data.apps.forEach(appInfo => {
+                        const app = { ...appInfo, active: false };
                         this.apps.push(app);
                         console.log("app", app);
                     });
@@ -67,14 +72,14 @@ class DashboardBuilder {
                     this.buildView();
                     this.bindEvents();
                     if (this.nodes.length) {
-                        this.establish(0, appsToJoin);
+                        this.establish(0, data.verifiedAppIds);
                     }
                 }
             },
             error: (xhr) => {
                 if (xhr.status === 403) {
                     alert("Authentication has expired. You will be redirected to the main page.");
-                    //location.href = (typeof contextPath !== 'undefined' && contextPath ? contextPath : "/");
+                    location.href = basePath;
                 }
             }
         });
@@ -538,7 +543,7 @@ class DashboardBuilder {
             this.addNodeMetricsBar(node);
         });
         this.apps.forEach(app => {
-            const $appTab = this.addInstanceTab(app);
+            const $appTab = this.addAppTab(app);
             const $appIndicator = $appTab.find(".indicator");
             this.addControlBar(app);
             this.nodes.forEach(node => {
@@ -596,7 +601,7 @@ class DashboardBuilder {
         return $tab.show().appendTo($tabs);
     }
 
-    addInstanceTab(appInfo) {
+    addAppTab(appInfo) {
         const $tabs = $(".app.tabs");
         const $tab = $tabs.find(".tabs-title").first().hide().clone().addClass("available")
             .attr({ "data-app-id": appInfo.id, "title": appInfo.title });

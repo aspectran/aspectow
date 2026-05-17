@@ -97,8 +97,8 @@ public class PollingMessageRelayer implements MessageRelayer {
 
         String appsToJoin = translet.getParameter("appsToJoin");
         String[] appIds = StringUtils.splitWithComma(appsToJoin);
-        appIds = appMonManager.getVerifiedAppIds(appIds);
-        if (StringUtils.hasText(appsToJoin) && appIds.length == 0) {
+        String[] verifiedAppIds = appMonManager.getVerifiedAppIds(appIds);
+        if (verifiedAppIds.length == 0) {
             return null;
         }
 
@@ -115,6 +115,7 @@ public class PollingMessageRelayer implements MessageRelayer {
         List<AppInfo> appInfoList = appMonManager.getAppInfoList(relaySession.getJoinedApps());
         List<String> messages = appMonManager.getMessageRelayManager().getLastMessages(relaySession);
         return Map.of(
+                "verifiedAppIds", verifiedAppIds,
                 "apps", appInfoList,
                 "pollingInterval", relaySession.getPollingInterval(),
                 "messages", messages

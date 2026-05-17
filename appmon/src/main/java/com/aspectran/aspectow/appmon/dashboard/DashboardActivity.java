@@ -24,6 +24,7 @@ import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Component;
 import com.aspectran.core.component.bean.annotation.Dispatch;
 import com.aspectran.core.component.bean.annotation.Profile;
+import com.aspectran.core.component.bean.annotation.Qualifier;
 import com.aspectran.core.component.bean.annotation.Request;
 import com.aspectran.core.component.bean.annotation.RequestToGet;
 import com.aspectran.utils.StringUtils;
@@ -57,39 +58,41 @@ public class DashboardActivity {
 
     /**
      * Displays the main monitoring page.
-     * @param apps the comma-separated list of instances to monitor
+     * @param appsToJoin the comma-separated list of instances to monitor
      * @return a map of attributes for rendering the view
      */
     @Request("/dashboard/${apps}")
     @Dispatch("appmon/dashboard")
     @Action("page")
-    public Map<String, String> dashboard(String apps) {
+    public Map<String, String> dashboard(String appsToJoin) {
         return Map.of(
                 "headinclude", "appmon/_nodes",
                 "style", "fluid compact",
-                "apps", StringUtils.nullToEmpty(apps)
+                "appsToJoin", StringUtils.nullToEmpty(appsToJoin)
         );
     }
 
     /**
      * Provides configuration data to a backend agent.
-     * @param apps a comma-separated list of instance names to get configuration for
+     * @param appsToJoin a comma-separated list of instance names to get configuration for
      * @return a {@link RestResponse} containing the configuration data
      */
     @RequestToGet("/appmon/config/data")
-    public RestResponse getConfigData(String apps) {
+    public RestResponse getConfigData(String appsToJoin) {
         Map<String, Object> settings = Map.of(
                 "counterPersistInterval", appMonManager.getCounterPersistInterval()
         );
 
         List<NodeInfo> nodeInfoList = appMonManager.getNodeInfoList();
 
-        String[] appIds = StringUtils.splitWithComma(apps);
-        appIds = appMonManager.getVerifiedAppIds(appIds);
+        String[] appIds = StringUtils.splitWithComma(appsToJoin);
+        String[] verifiedAppIds = appMonManager.getVerifiedAppIds(appIds);
         List<AppInfo> appInfoList = appMonManager.getAppInfoList(appIds);
 
         Map<String, Object> data = Map.of(
                 "token", AppMonTokenIssuer.issueToken(30),
+                "myNodeId", appMonManager.getNodeId(),
+                "verifiedAppIds", verifiedAppIds,
                 "settings", settings,
                 "nodes", nodeInfoList,
                 "apps", appInfoList

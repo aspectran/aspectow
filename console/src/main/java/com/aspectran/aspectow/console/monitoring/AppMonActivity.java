@@ -74,29 +74,29 @@ public class AppMonActivity {
 
     /**
      * Displays the monitoring page as a popup.
-     * @param apps the comma-separated list of apps to monitor
+     * @param appsToJoin the comma-separated list of apps to monitor
      * @return a map of attributes for rendering the view
      */
-    @Request("/dashboard/popup/${apps}")
+    @Request("/dashboard/popup/${appsToJoin}")
     @Dispatch("appmon/dashboard")
     @Action("page")
     @Hint(type = "layout", value = "layout: popup")
-    public Map<String, String> dashboardPopup(String apps) {
+    public Map<String, String> dashboardPopup(String appsToJoin) {
         return Map.of(
                 "title", "Application Monitoring",
                 "style", "monitoring-page",
-                "apps", StringUtils.nullToEmpty(apps),
+                "appsToJoin", StringUtils.nullToEmpty(appsToJoin),
                 "layout", "popup"
         );
     }
 
     /**
      * Provides configuration data to a backend agent.
-     * @param apps a comma-separated list of app names to get configuration for
+     * @param appsToJoin a comma-separated list of app names to get configuration for
      * @return a {@link RestResponse} containing the configuration data
      */
     @RequestToGet("/config/data")
-    public RestResponse getConfigData(String apps) {
+    public RestResponse getConfigData(String appsToJoin) {
         Map<String, Object> settings = Map.of(
                 "counterPersistInterval", appMonManager.getCounterPersistInterval(),
                 "clusterMode", appMonManager.getClusterMode()
@@ -104,13 +104,14 @@ public class AppMonActivity {
 
         List<NodeInfo> nodeInfoList = appMonManager.getNodeInfoList();
 
-        String[] appIds = StringUtils.splitWithComma(apps);
-        appIds = appMonManager.getVerifiedAppIds(appIds);
+        String[] appIds = StringUtils.splitWithComma(appsToJoin);
+        String[] verifiedAppIds = appMonManager.getVerifiedAppIds(appIds);
         List<AppInfo> appInfoList = appMonManager.getAppInfoList(appIds);
 
         Map<String, Object> data = Map.of(
                 "token", AppMonTokenIssuer.issueToken(30),
                 "myNodeId", appMonManager.getNodeId(),
+                "verifiedAppIds", verifiedAppIds,
                 "settings", settings,
                 "nodes", nodeInfoList,
                 "apps", appInfoList

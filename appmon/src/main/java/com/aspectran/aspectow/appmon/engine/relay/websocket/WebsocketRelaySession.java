@@ -28,7 +28,7 @@ import jakarta.websocket.Session;
  */
 public class WebsocketRelaySession extends WrappedSession implements RelaySession {
 
-    private static final String JOINED_APPS_PROPERTY = "appmon:JoinedApps";
+    private static final String JOINED_APPS_PROPERTY = "appmon:joinedApps";
 
     private static final String TIME_ZONE_PROPERTY = "appmon:timeZone";
 

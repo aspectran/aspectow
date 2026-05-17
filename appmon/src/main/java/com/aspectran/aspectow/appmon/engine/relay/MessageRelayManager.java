@@ -116,7 +116,7 @@ public class MessageRelayManager {
 
     private void startExporters(String appId) {
         for (ExporterManager exporterManager : exporterManagers) {
-            if (appId == null || exporterManager.getAppId().equals(appId)) {
+            if (exporterManager.getAppId().equals(appId)) {
                 exporterManager.start();
             }
         }
@@ -124,7 +124,7 @@ public class MessageRelayManager {
 
     private void stopExporters(String appId) {
         for (ExporterManager exporterManager : exporterManagers) {
-            if (appId == null || exporterManager.getAppId().equals(appId)) {
+            if (exporterManager.getAppId().equals(appId)) {
                 exporterManager.stop();
             }
         }
@@ -144,20 +144,6 @@ public class MessageRelayManager {
             }
         }
     }
-
-//    /**
-//     * Publishes a management control message for this node.
-//     * @param message the control message to publish
-//     */
-//    private void publishControl(String message) {
-//        if (messagePublisher != null) {
-//            try {
-//                messagePublisher.publishControl(message);
-//            } catch (Exception e) {
-//                logger.error("Failed to publish control message to Redis", e);
-//            }
-//        }
-//    }
 
     private void publishRelay(String targetNodeId, String message) {
         publishRelay(targetNodeId, null, message);
@@ -199,27 +185,25 @@ public class MessageRelayManager {
      * @param message the message to relay
      */
     public void relayLocally(String sessionId, @NonNull String message) {
-        String nodeId = null;
-        String appId = null;
-        boolean isLog = false;
+        if (isGatewayMode()) {
+            String appId = null;
+            boolean isLog = false;
 
-        int idx1 = message.indexOf(':');
-        if (idx1 != -1) {
-            nodeId = message.substring(0, idx1);
-            int idx2 = message.indexOf(':', idx1 + 1);
-            if (idx2 != -1) {
-                appId = message.substring(idx1 + 1, idx2);
-                int idx3 = message.indexOf(':', idx2 + 1);
-                if (idx3 != -1) {
-                    String type = message.substring(idx2 + 1, idx3);
-                    if (type.startsWith("log")) {
-                        //isLog = true;
+            int idx1 = message.indexOf(':');
+            if (idx1 != -1) {
+                int idx2 = message.indexOf(':', idx1 + 1);
+                if (idx2 != -1) {
+                    appId = message.substring(idx1 + 1, idx2);
+                    int idx3 = message.indexOf(':', idx2 + 1);
+                    if (idx3 != -1) {
+                        String type = message.substring(idx2 + 1, idx3);
+                        if (type.startsWith("log")) {
+                            isLog = true;
+                        }
                     }
                 }
             }
-        }
 
-        if (isGatewayMode()) {
             if (sessionId != null) {
                 RelaySession session = findRelaySession(sessionId);
                 if (session != null && session.isValid()) {
@@ -232,8 +216,8 @@ public class MessageRelayManager {
                         RelaySession session = relayer.fidnRelaySession(sid);
                         if (session != null && session.isValid()) {
                             if (isLog) {
-                                String targetFocus = appId;
-                                if (targetFocus.equals(session.getFocusedAppId())) {
+                                String focusedAppId = session.getFocusedAppId();
+                                if (focusedAppId == null || appId.equals(focusedAppId)) {
                                     relayer.relay(session, message);
                                 }
                             } else {
@@ -282,34 +266,22 @@ public class MessageRelayManager {
         if (!session.isValid()) {
             return false;
         }
-        String[] appIds = session.getJoinedApps();
-        subscriptionRegistry.addLocalSubscription(session.getId(), appIds);
-        if (appIds != null && appIds.length > 0) {
-            for (String appId : appIds) {
-                startExporters(appId);
-                if (isGatewayMode()) {
-                    CommandOptions commandOptions = new CommandOptions();
-                    commandOptions.setCommand(COMMAND_SUBSCRIBE);
-                    commandOptions.setNodeId(nodeId);
-                    commandOptions.setAppId(appId);
-                    commandOptions.setTimeZone(session.getTimeZone());
-                    for (NodeInfo nodeInfo : nodeRegistry.getNodes()) {
-                        if (!isSameNode(nodeInfo.getNodeId())) {
-                            publishControl(nodeInfo.getNodeId(), commandOptions);
-                        }
-                    }
-                }
-            }
-        } else {
-            startExporters(null);
+        String[] joinedApps = session.getJoinedApps();
+        if (joinedApps == null || joinedApps.length == 0) {
+            return false;
+        }
+        subscriptionRegistry.addLocalSubscription(session.getId(), joinedApps);
+        for (String appId : joinedApps) {
+            startExporters(appId);
             if (isGatewayMode()) {
-                CommandOptions options = new CommandOptions();
-                options.setCommand(COMMAND_SUBSCRIBE);
-                options.setNodeId(nodeId);
-                options.setTimeZone(session.getTimeZone());
+                CommandOptions commandOptions = new CommandOptions();
+                commandOptions.setCommand(COMMAND_SUBSCRIBE);
+                commandOptions.setNodeId(nodeId);
+                commandOptions.setAppId(appId);
+                commandOptions.setTimeZone(session.getTimeZone());
                 for (NodeInfo nodeInfo : nodeRegistry.getNodes()) {
                     if (!isSameNode(nodeInfo.getNodeId())) {
-                        publishControl(nodeInfo.getNodeId(), options);
+                        publishControl(nodeInfo.getNodeId(), commandOptions);
                     }
                 }
             }
@@ -335,10 +307,10 @@ public class MessageRelayManager {
      * @param session the client session that is being released
      */
     public synchronized void unsubscribe(@NonNull RelaySession session) {
-        String[] appIds = session.getJoinedApps();
         subscriptionRegistry.removeLocalSubscription(session.getId());
-        if (appIds != null && appIds.length > 0) {
-            for (String appId : appIds) {
+        String[] joinedApps = session.getJoinedApps();
+        if (joinedApps != null) {
+            for (String appId : joinedApps) {
                 if (!subscriptionRegistry.isAppInUseLocally(appId)) {
                     stopExporters(appId);
                 }
@@ -352,21 +324,6 @@ public class MessageRelayManager {
                         for (String remoteNodeId : remoteNodeIds) {
                             publishControl(remoteNodeId, commandOptions);
                         }
-                    }
-                }
-            }
-        } else {
-            if (!subscriptionRegistry.isAppInUseLocally(null)) {
-                stopExporters(null);
-            }
-            if (isGatewayMode()) {
-                CommandOptions commandOptions = new CommandOptions();
-                commandOptions.setCommand(COMMAND_UNSUBSCRIBE);
-                commandOptions.setNodeId(nodeId);
-                Set<String> remoteNodeIds = subscriptionRegistry.getNodeIdsRemotelySubscribedToApp(null);
-                if (remoteNodeIds != null) {
-                    for (String remoteNodeId : remoteNodeIds) {
-                        publishControl(remoteNodeId, commandOptions);
                     }
                 }
             }

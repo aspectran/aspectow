@@ -121,7 +121,6 @@ class WebsocketClient extends BaseClient {
     }
 
     closeSocket(afterClosing) {
-        this.clearSessionId();
         if (this.socket) {
             this.established = false;
             if (!afterClosing) {

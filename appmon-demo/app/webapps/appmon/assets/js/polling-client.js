@@ -55,6 +55,11 @@ class PollingClient extends BaseClient {
             },
             success: (data) => {
                 if (data) {
+                    if (!data.verifiedAppIds || data.verifiedAppIds.length === 0) {
+                        alert("No verified apps found. Please check the configuration of the backend.");
+                        return;
+                    }
+
                     this.retryCount = 0;
                     this.node.endpoint['mode'] = this.endpointMode;
                     this.node.endpoint['pollingInterval'] = data.pollingInterval;
@@ -65,7 +70,7 @@ class PollingClient extends BaseClient {
                         this.onEstablished(this.node);
                     }
                     this.viewer.printMessage("Polling every " + data.pollingInterval + " milliseconds.");
-                    this.polling(appsToJoin);
+                    this.polling(data.verifiedAppIds);
                 } else {
                     console.log(this.node.id, "connection failed");
                     this.viewer.printErrorMessage("Connection failed.");

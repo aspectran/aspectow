@@ -157,7 +157,7 @@ public class WebsocketMessageRelayer extends SimplifiedEndpoint implements Messa
             String appsToJoin = commandOptions.getAppsToJoin();
             String[] appIds = StringUtils.splitWithComma(appsToJoin);
             appIds = appMonManager.getVerifiedAppIds(appIds);
-            if (!StringUtils.hasText(appsToJoin) || appIds.length > 0) {
+            if (appIds.length > 0) {
                 relaySession.setJoinedApps(appIds);
             }
             relay(relaySession, appMonManager.getNodeId() + ":" + RESPONSE_JOINED + session.getId());

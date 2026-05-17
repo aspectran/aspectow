@@ -15,8 +15,7 @@
  */
 package com.aspectran.aspectow.appmon.engine.relay;
 
-import com.aspectran.utils.StringUtils;
-import org.jspecify.annotations.NonNull;
+import com.aspectran.utils.Assert;
 
 import java.util.Map;
 import java.util.Set;
@@ -39,26 +38,21 @@ public class SubscriptionRegistry {
     /** session ID -> Array of joined app IDs */
     private final Map<String, String[]> sessionToApps = new ConcurrentHashMap<>();
 
-    public void addLocalSubscription(@NonNull String sessionId, String[] appIds) {
-        sessionToApps.put(sessionId, appIds != null ? appIds : new String[0]);
-        if (appIds != null && appIds.length > 0) {
-            for (String appId : appIds) {
-                localSubscriptions.computeIfAbsent(appId, k -> ConcurrentHashMap.newKeySet()).add(sessionId);
-            }
-        } else {
-            localSubscriptions.computeIfAbsent("", k -> ConcurrentHashMap.newKeySet()).add(sessionId);
+    public void addLocalSubscription(String sessionId, String[] joinedApps) {
+        Assert.hasLength(sessionId, "sessionId must not be null or empty");
+        Assert.notEmpty(joinedApps, "joinedApps must not be null or empty");
+        sessionToApps.put(sessionId, joinedApps);
+        for (String appId : joinedApps) {
+            localSubscriptions.computeIfAbsent(appId, k -> ConcurrentHashMap.newKeySet()).add(sessionId);
         }
     }
 
-    public void removeLocalSubscription(@NonNull String sessionId) {
+    public void removeLocalSubscription(String sessionId) {
+        Assert.hasLength(sessionId, "sessionId must not be null or empty");
         String[] appIds = sessionToApps.remove(sessionId);
         if (appIds != null) {
-            if (appIds.length > 0) {
-                for (String appId : appIds) {
-                    removeLocalAppSubscription(appId, sessionId);
-                }
-            } else {
-                removeLocalAppSubscription("", sessionId);
+            for (String appId : appIds) {
+                removeLocalAppSubscription(appId, sessionId);
             }
         }
     }
@@ -74,14 +68,15 @@ public class SubscriptionRegistry {
     }
 
     public void addRemoteSubscription(String nodeId, String appId) {
-        remoteSubscriptions.computeIfAbsent(StringUtils.nullToEmpty(appId),
+        Assert.hasLength(nodeId, "nodeId must not be null or empty");
+        Assert.hasLength(appId, "appId must not be null or empty");
+        remoteSubscriptions.computeIfAbsent(appId,
                 k -> ConcurrentHashMap.newKeySet()).add(nodeId);
     }
 
     public void removeRemoteSubscription(String nodeId, String appId) {
-        if (appId == null) {
-            appId = "";
-        }
+        Assert.hasLength(nodeId, "nodeId must not be null or empty");
+        Assert.hasLength(appId, "appId must not be null or empty");
         Set<String> nodes = remoteSubscriptions.get(appId);
         if (nodes != null) {
             nodes.remove(nodeId);
@@ -92,13 +87,12 @@ public class SubscriptionRegistry {
     }
 
     public Set<String> getNodeIdsRemotelySubscribedToApp(String appId) {
-        return remoteSubscriptions.get(StringUtils.nullToEmpty(appId));
+        Assert.hasLength(appId, "appId must not be null or empty");
+        return remoteSubscriptions.get(appId);
     }
 
     public boolean isAppInUse(String appId) {
-        if (appId == null) {
-            appId = "";
-        }
+        Assert.hasLength(appId, "appId must not be null or empty");
         Set<String> sessions = localSubscriptions.get(appId);
         if (sessions != null && !sessions.isEmpty()) {
             return true;
@@ -108,12 +102,14 @@ public class SubscriptionRegistry {
     }
 
     public boolean isAppInUseLocally(String appId) {
-        Set<String> sessions = localSubscriptions.get(StringUtils.nullToEmpty(appId));
+        Assert.hasLength(appId, "appId must not be null or empty");
+        Set<String> sessions = localSubscriptions.get(appId);
         return (sessions != null && !sessions.isEmpty());
     }
 
     public Set<String> getSessionsSubscribedToApp(String appId) {
-        Set<String> sessions = localSubscriptions.get(StringUtils.nullToEmpty(appId));
+        Assert.hasLength(appId, "appId must not be null or empty");
+        Set<String> sessions = localSubscriptions.get(appId);
         return (sessions != null ? sessions : Set.of());
     }
 
