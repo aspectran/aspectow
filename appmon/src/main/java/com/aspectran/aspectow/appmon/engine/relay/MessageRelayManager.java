@@ -311,18 +311,17 @@ public class MessageRelayManager {
         String[] joinedApps = session.getJoinedApps();
         if (joinedApps != null) {
             for (String appId : joinedApps) {
-                if (!subscriptionRegistry.isAppInUseLocally(appId)) {
+                if (!subscriptionRegistry.isAppInUse(appId)) {
                     stopExporters(appId);
                 }
-                if (isGatewayMode()) {
+                if (isGatewayMode() && !subscriptionRegistry.isAppInUseLocally(appId)) {
                     CommandOptions commandOptions = new CommandOptions();
                     commandOptions.setCommand(COMMAND_UNSUBSCRIBE);
                     commandOptions.setNodeId(nodeId);
                     commandOptions.setAppId(appId);
-                    Set<String> remoteNodeIds = subscriptionRegistry.getNodeIdsRemotelySubscribedToApp(appId);
-                    if (remoteNodeIds != null) {
-                        for (String remoteNodeId : remoteNodeIds) {
-                            publishControl(remoteNodeId, commandOptions);
+                    for (NodeInfo nodeInfo : nodeRegistry.getNodes()) {
+                        if (!isSameNode(nodeInfo.getNodeId())) {
+                            publishControl(nodeInfo.getNodeId(), commandOptions);
                         }
                     }
                 }
@@ -385,10 +384,10 @@ public class MessageRelayManager {
         List<String> messages = new ArrayList<>();
         CommandOptions commandOptions = new CommandOptions();
         commandOptions.setTimeZone(session.getTimeZone());
-        String[] appIds = session.getJoinedApps();
-        if (appIds != null && appIds.length > 0) {
-            for (String id : appIds) {
-                commandOptions.setAppId(id);
+        String[] joinedApps = session.getJoinedApps();
+        if (joinedApps != null && joinedApps.length > 0) {
+            for (String appId : joinedApps) {
+                commandOptions.setAppId(appId);
                 collectLastMessages(messages, commandOptions);
             }
         } else {
