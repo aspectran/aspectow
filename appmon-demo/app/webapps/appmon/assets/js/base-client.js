@@ -8,13 +8,16 @@
  * Provides common functionality for connection management and retries.
  */
 class BaseClient {
-    constructor(node, viewer, onJoined, onEstablished, onClosed, onFailed) {
+    constructor(node, viewer, onConnected, onEstablished, onClosed, onFailed, isGatewayMode) {
         this.node = node;
         this.viewer = viewer;
-        this.onJoined = onJoined;
+        this.onConnected = onConnected;
         this.onEstablished = onEstablished;
         this.onClosed = onClosed;
         this.onFailed = onFailed;
+        this.isGatewayMode = isGatewayMode;
+        this.established = false;
+        this.establishedNodeId = node.id
         this.retryCount = 0;
         this.maxRetries = 10;
         this.retryInterval = 5000;
@@ -77,7 +80,7 @@ class BaseClient {
      * Handles reconnection logic when a connection is lost or fails.
      * @param {string} [appsToJoin] - Names of apps to join.
      */
-    rejoin(appsToJoin) {
+    reconnect(appsToJoin) {
         if (this.retryCount++ < this.maxRetries) {
             const retryInterval = (this.retryInterval * this.retryCount) + (this.node.index * 200) + this.node.random1000;
             const status = "(" + this.retryCount + "/" + this.maxRetries + ", interval=" + retryInterval + ")";

@@ -92,23 +92,18 @@ public class PollingMessageRelayer implements MessageRelayer {
     @RequestToPost("/polling/join")
     @Transform(FormatType.JSON)
     public Map<String, Object> join(@NonNull Translet translet) throws IOException {
-        PollingConfig pollingConfig = appMonManager.getPollingConfig();
-
-        String targetNodeId = translet.getParameter("nodeId");
-        if (!StringUtils.hasText(targetNodeId)) {
-            targetNodeId = appMonManager.getNodeId();
-        }
-
-        String appsToJoin = translet.getParameter("appsToJoin");
-        String[] appIds = StringUtils.splitWithComma(appsToJoin);
-        String[] verifiedAppIds = appMonManager.getVerifiedAppIds(appIds);
-
         PollingRelaySession relaySession = pollingSessionManager.getSession(translet);
         if (relaySession == null) {
+            String appsToJoin = translet.getParameter("appsToJoin");
+            String[] appIds = StringUtils.splitWithComma(appsToJoin);
+            String[] verifiedAppIds = appMonManager.getVerifiedAppIds(appIds);
+
             if (verifiedAppIds.length == 0) {
                 return null;
             }
-            relaySession = pollingSessionManager.createSession(translet, pollingConfig, targetNodeId, verifiedAppIds);
+
+            PollingConfig pollingConfig = appMonManager.getPollingConfig();
+            relaySession = pollingSessionManager.createSession(translet, pollingConfig, verifiedAppIds);
             String timeZone = translet.getParameter("timeZone");
             if (StringUtils.hasText(timeZone)) {
                 relaySession.setTimeZone(timeZone);
@@ -117,22 +112,31 @@ public class PollingMessageRelayer implements MessageRelayer {
             if (!appMonManager.getMessageRelayManager().subscribe(relaySession)) {
                 return null;
             }
-            pollingSessionManager.push(targetNodeId + "::joined:" + relaySession.getId());
+            //pollingSessionManager.push(appMonManager.getNodeId() + "::joined:" + relaySession.getId());
+            return Map.of(
+                    "appsToJoin", StringUtils.joinWithCommas(verifiedAppIds),
+                    "pollingInterval", relaySession.getPollingInterval(),
+                    "nodeId", appMonManager.getNodeId()
+            );
         } else if (appMonManager.getMessageRelayManager().isGatewayMode()) {
-            relaySession.setJoinedApps(verifiedAppIds);
-            pollingSessionManager.push(targetNodeId + "::joined:" + relaySession.getId());
+            String otherNodeId = translet.getParameter("nodeId");
+            //relaySession.setJoinedApps(verifiedAppIds);
+            //pollingSessionManager.push(otherNodeId + "::joined:" + relaySession.getId());
+            return Map.of(
+                    "nodeId", otherNodeId
+            );
         } else {
             return null;
         }
-
-        List<AppInfo> appInfoList = appMonManager.getAppInfoList(relaySession.getJoinedApps());
-        List<String> messages = appMonManager.getMessageRelayManager().getLastMessages(relaySession);
-        return Map.of(
-                "appsToJoin", StringUtils.joinWithCommas(verifiedAppIds),
-                "apps", appInfoList,
-                "pollingInterval", relaySession.getPollingInterval(),
-                "messages", messages
-        );
+//
+//        List<AppInfo> appInfoList = appMonManager.getAppInfoList(relaySession.getJoinedApps());
+//        List<String> messages = appMonManager.getMessageRelayManager().getLastMessages(relaySession);
+//        return Map.of(
+//                "appsToJoin", StringUtils.joinWithCommas(verifiedAppIds),
+//                "apps", appInfoList,
+//                "pollingInterval", relaySession.getPollingInterval(),
+//                "messages", messages
+//        );
     }
 
     /**
@@ -164,12 +168,12 @@ public class PollingMessageRelayer implements MessageRelayer {
     private void handleCommand(PollingRelaySession relaySession, String[] commands) {
         CommandOptions commandOptions = new CommandOptions(commands);
         switch (commandOptions.getCommand()) {
-            case COMMAND_JOIN:
-                joinRemotely(relaySession, commandOptions);
-                break;
-            case COMMAND_ESTABLISHED:
-                established(relaySession, commandOptions);
-                break;
+//            case COMMAND_JOIN:
+//                joinRemotely(relaySession, commandOptions);
+//                break;
+//            case COMMAND_ESTABLISHED:
+//                established(relaySession, commandOptions);
+//                break;
             case COMMAND_REFRESH:
             case COMMAND_LOAD_PREVIOUS:
                 refreshData(relaySession, commandOptions);

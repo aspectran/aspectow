@@ -8,26 +8,28 @@
  * In Gateway Mode, it manages a single physical connection for the entire cluster.
  */
 class WebsocketClient extends BaseClient {
-    constructor(node, viewer, onJoined, onEstablished, onClosed, onFailed, isGatewayMode = false) {
-        super(node, viewer, onJoined, onEstablished, onClosed, onFailed);
+    constructor(node, viewer, onConnected, onEstablished, onClosed, onFailed, isGatewayMode) {
+        super(node, viewer, onConnected, onEstablished, onClosed, onFailed, isGatewayMode);
         this.endpointMode = "websocket";
         this.heartbeatInterval = 5000;
         this.socket = null;
         this.heartbeatTimer = null;
         this.pendingMessages = [];
-        this.established = false;
-        this.establishedNodeId = node.id
-        this.isGatewayMode = isGatewayMode;
         this.clusterViewers = {};
         this.clusterNodes = {};
+        this.joinedNodes = new Set();
     }
 
     addClusterViewer(nodeId, viewer) {
         this.clusterViewers[nodeId] = viewer;
     }
 
-    addClusterNode(nodeId, node, onJoined, onEstablished) {
-        this.clusterNodes[nodeId] = { node, onJoined, onEstablished };
+    addClusterNode(nodeId, node, onConnected, onEstablished) {
+        const config = { node, onConnected, onEstablished };
+        this.clusterNodes[nodeId] = config;
+        if (this.joinedNodes.has(nodeId)) {
+            this.establish(nodeId);
+        }
     }
 
     start(appsToJoin) {
@@ -43,15 +45,15 @@ class WebsocketClient extends BaseClient {
         const url = new URL(this.node.endpoint.path + "/appmon/websocket/" + this.node.endpoint.token, location.href);
         url.protocol = url.protocol.replace("https:", "wss:").replace("http:", "ws:");
 
-        console.log("Connecting to:", url.href);
+        console.log("connect:", url.href);
         this.socket = new WebSocket(url.href);
 
         this.socket.onopen = () => {
             console.log(this.node.id, "socket connected");
             this.pendingMessages.push("Socket connection successful");
             
-            // Join the first node
-            this.join(this.node.id, appsToJoin);
+            // Connect to the first node
+            this.connect(this.node.id, appsToJoin);
             this.heartbeatPing();
             this.retryCount = 0;
         };
@@ -93,8 +95,7 @@ class WebsocketClient extends BaseClient {
                     this.viewer.processMessage(message);
                 }
             } else if (message.startsWith(":joined:")) {
-                const payload = message.substring(8);
-                this.establish(nodeId, payload);
+                this.establish(nodeId);
             } else {
                 console.error("Unexpected message received before establishment:", message);
             }
@@ -106,7 +107,7 @@ class WebsocketClient extends BaseClient {
                 this.onClosed(this.node);
             }
             if (!event || event.code !== 1000) {
-                this.rejoin(appsToJoin);
+                this.reconnect(appsToJoin);
             }
         };
 
@@ -133,17 +134,17 @@ class WebsocketClient extends BaseClient {
         }
     }
 
-    join(nodeId, appsToJoin) {
+    connect(nodeId, appsToJoin) {
         const options = ["command:join"];
         if (!this.established) {
-            // Join the first node
+            // Connect to the first node
             options.push("timeZone:" + Intl.DateTimeFormat().resolvedOptions().timeZone);
             if (appsToJoin) {
                 options.push("appsToJoin:" + appsToJoin);
             }
             this.sendCommand(options, nodeId);
         } else if (nodeId !== this.establishedNodeId) {
-            // Join other nodes in Gateway mode
+            // Connect to another node in Gateway mode
             this.sendCommand(options, nodeId);
         }
     }
@@ -152,16 +153,25 @@ class WebsocketClient extends BaseClient {
         if (!this.established) {
             this.established = true;
             this.establishedNodeId = nodeId;
-            while (this.pendingMessages.length) {
-                this.viewer.printMessage(this.pendingMessages.shift());
+        }
+
+        this.joinedNodes.add(nodeId);
+
+        const config = this.isGatewayMode ? this.clusterNodes[nodeId] : (this.node.id === nodeId ? this : null);
+        if (config && config.onConnected) {
+            if (!config.node.connected) {
+                config.onConnected(config.node);
             }
         }
 
-        const config = (this.isGatewayMode && this.clusterNodes[nodeId]) ? this.clusterNodes[nodeId] : this;
-        if (config.onJoined) config.onJoined(config.node);
-        if (config.onEstablished) config.onEstablished(config.node);
-        
-        this.sendCommand(["command:established"], nodeId);
+        const thisNodeId = this.node.id;
+        if (this.established && nodeId === thisNodeId) {
+            if (config && config.onEstablished) config.onEstablished(config.node);
+            while (this.pendingMessages.length) {
+                this.viewer.printMessage(this.pendingMessages.shift());
+            }
+            this.sendCommand(["command:established"], nodeId);
+        }
     }
 
     sendCommand(options, nodeId) {
