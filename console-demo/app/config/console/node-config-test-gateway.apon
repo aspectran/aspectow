@@ -12,7 +12,7 @@ node: {
     title: Node-1
     port: 8082
     endpoint: {
-        mode: auto
+        mode: polling
     }
 }
 node: {
@@ -21,6 +21,6 @@ node: {
     title: Node-2
     port: 8092
     endpoint: {
-        mode: auto
+        mode: polling
     }
 }

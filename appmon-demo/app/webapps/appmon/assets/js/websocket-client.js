@@ -157,7 +157,7 @@ class WebsocketClient extends BaseClient {
 
         this.joinedNodes.add(nodeId);
 
-        const config = this.isGatewayMode ? this.clusterNodes[nodeId] : (this.node.id === nodeId ? this : null);
+        const config = this.isGatewayMode ? this.clusterNodes[nodeId] : this;
         if (config && config.onConnected) {
             if (!config.node.connected) {
                 config.onConnected(config.node);

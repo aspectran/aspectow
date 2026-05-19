@@ -15,7 +15,6 @@
  */
 package com.aspectran.aspectow.appmon.engine.relay.polling;
 
-import com.aspectran.aspectow.appmon.engine.config.AppInfo;
 import com.aspectran.aspectow.appmon.engine.config.PollingConfig;
 import com.aspectran.aspectow.appmon.engine.manager.AppMonManager;
 import com.aspectran.aspectow.appmon.engine.relay.CommandOptions;
@@ -39,9 +38,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-import static com.aspectran.aspectow.appmon.engine.relay.CommandOptions.COMMAND_ESTABLISHED;
 import static com.aspectran.aspectow.appmon.engine.relay.CommandOptions.COMMAND_FOCUS;
-import static com.aspectran.aspectow.appmon.engine.relay.CommandOptions.COMMAND_JOIN;
 import static com.aspectran.aspectow.appmon.engine.relay.CommandOptions.COMMAND_LOAD_PREVIOUS;
 import static com.aspectran.aspectow.appmon.engine.relay.CommandOptions.COMMAND_REFRESH;
 import static com.aspectran.aspectow.node.manager.NodeMessageProtocol.NODES_BASE_PATH;
@@ -52,7 +49,7 @@ import static com.aspectran.aspectow.node.manager.NodeMessageProtocol.NODES_BASE
  *
  * <p>Created: 2020. 12. 24.</p>
  */
-@Component(NODES_BASE_PATH + "/${nodeId}/appmon")
+@Component(NODES_BASE_PATH + "/${thisNodeId}/appmon")
 public class PollingMessageRelayer implements MessageRelayer {
 
     private final AppMonManager appMonManager;
@@ -92,8 +89,8 @@ public class PollingMessageRelayer implements MessageRelayer {
     @RequestToPost("/polling/join")
     @Transform(FormatType.JSON)
     public Map<String, Object> join(@NonNull Translet translet) throws IOException {
-        PollingRelaySession relaySession = pollingSessionManager.getSession(translet);
-        if (relaySession == null) {
+        String nodeId = translet.getParameter("nodeId");
+        if (appMonManager.getMessageRelayManager().isSameNode(nodeId)) {
             String appsToJoin = translet.getParameter("appsToJoin");
             String[] appIds = StringUtils.splitWithComma(appsToJoin);
             String[] verifiedAppIds = appMonManager.getVerifiedAppIds(appIds);
@@ -103,7 +100,7 @@ public class PollingMessageRelayer implements MessageRelayer {
             }
 
             PollingConfig pollingConfig = appMonManager.getPollingConfig();
-            relaySession = pollingSessionManager.createSession(translet, pollingConfig, verifiedAppIds);
+            PollingRelaySession relaySession = pollingSessionManager.createSession(translet, pollingConfig, verifiedAppIds);
             String timeZone = translet.getParameter("timeZone");
             if (StringUtils.hasText(timeZone)) {
                 relaySession.setTimeZone(timeZone);
@@ -116,14 +113,13 @@ public class PollingMessageRelayer implements MessageRelayer {
             return Map.of(
                     "appsToJoin", StringUtils.joinWithCommas(verifiedAppIds),
                     "pollingInterval", relaySession.getPollingInterval(),
-                    "nodeId", appMonManager.getNodeId()
+                    "nodeId", nodeId
             );
         } else if (appMonManager.getMessageRelayManager().isGatewayMode()) {
-            String otherNodeId = translet.getParameter("nodeId");
             //relaySession.setJoinedApps(verifiedAppIds);
             //pollingSessionManager.push(otherNodeId + "::joined:" + relaySession.getId());
             return Map.of(
-                    "nodeId", otherNodeId
+                    "nodeId", nodeId
             );
         } else {
             return null;
@@ -209,9 +205,6 @@ public class PollingMessageRelayer implements MessageRelayer {
     }
 
     private void refreshData(@NonNull PollingRelaySession relaySession, @NonNull CommandOptions commandOptions) {
-        if (!commandOptions.hasTimeZone()) {
-            commandOptions.setTimeZone(relaySession.getTimeZone());
-        }
         List<String> newMessages = appMonManager.getMessageRelayManager().refreshData(relaySession, commandOptions);
         if (newMessages != null) {
             for (String message : newMessages) {

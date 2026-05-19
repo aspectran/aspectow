@@ -32,7 +32,7 @@ class PollingClient extends BaseClient {
 
     start(appsToJoin) {
         this.stopped = false;
-        this.join(this.node.id, appsToJoin);
+        this.connect(this.node.id, appsToJoin);
     }
 
     stop() {
@@ -45,10 +45,6 @@ class PollingClient extends BaseClient {
     }
 
     connect(nodeId, appsToJoin) {
-        // if (this.isGatewayMode && this.established && nodeId !== this.establishedNodeId) {
-        //     this.sendCommand(["command:join"], nodeId);
-        //     return;
-        // }
         $.ajax({
             url: this.node.endpoint.path + "/appmon/polling/join",
             type: "post",
@@ -65,15 +61,13 @@ class PollingClient extends BaseClient {
                         return;
                     }
 
-                    this.retryCount = 0;
-                    this.node.endpoint['mode'] = this.endpointMode;
-                    this.node.endpoint['pollingInterval'] = data.pollingInterval;
+                    if (!this.established) {
+                        this.retryCount = 0;
+                        this.node.endpoint['mode'] = this.endpointMode;
+                        this.node.endpoint['pollingInterval'] = data.pollingInterval;
+                    }
 
-                    // Establish explicitly on successful join response for the first node
-                    // (Subsequent nodes in gateway mode will receive ::joined: messages via polling)
-                    //if (!this.established || nodeId === this.establishedNodeId) {
-                         this.establish(data.nodeId);
-                    //}
+                     this.establish(data.nodeId);
 
                     // if (data.messages) {
                     //     this.processMessages(data.messages);
@@ -82,7 +76,7 @@ class PollingClient extends BaseClient {
                     this.joinedNodes.forEach(node => {
                     });
 
-                    if (!this.stopped) {
+                    if (this.established && !this.stopped) {
                         this.polling(appsToJoin);
                     }
                 } else {
@@ -175,12 +169,6 @@ class PollingClient extends BaseClient {
                 const message = msg.substring(idx + 1);
 
                 if (this.established) {
-                    // Control messages in Gateway Mode
-                    // if (this.isGatewayMode && message.startsWith(":joined:")) {
-                    //     this.establish(nodeId);
-                    //     return;
-                    // }
-
                     // Data messages
                     if (this.isGatewayMode) {
                         const viewer = this.clusterViewers[nodeId];
@@ -192,9 +180,6 @@ class PollingClient extends BaseClient {
                     } else {
                         this.viewer.processMessage(message);
                     }
-                // } else if (message.startsWith(":joined:")) {
-                //     const payload = message.substring(8);
-                //     this.establish(nodeId, payload);
                 } else {
                     console.error("Unexpected message received before establishment:", message);
                 }
@@ -210,11 +195,16 @@ class PollingClient extends BaseClient {
 
         this.joinedNodes.add(nodeId);
 
-        const config = (this.isGatewayMode && this.clusterNodes[nodeId]) ? this.clusterNodes[nodeId] : this;
-        if (config.onConnected) config.onConnected(config.node);
+        const config = this.isGatewayMode ? this.clusterNodes[nodeId] : this;
+        if (config && config.onConnected) {
+            if (!config.node.connected) {
+                config.onConnected(config.node);
+            }
+        }
 
-        if (this.established && this.establishedNodeId === nodeId) {
-            if (config.onEstablished) config.onEstablished(config.node);
+        const thisNodeId = this.node.id;
+        if (this.established && nodeId === thisNodeId) {
+            if (config && config.onEstablished) config.onEstablished(config.node);
             this.viewer.printMessage("Polling every " + this.node.endpoint.pollingInterval + " milliseconds.");
         }
     }
