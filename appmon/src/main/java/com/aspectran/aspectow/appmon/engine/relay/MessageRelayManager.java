@@ -78,6 +78,10 @@ public class MessageRelayManager {
         return subscriptionRegistry;
     }
 
+    public NodeRegistry getNodeRegistry() {
+        return nodeRegistry;
+    }
+
     public String getNodeId() {
         return nodeId;
     }

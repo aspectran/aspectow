@@ -149,24 +149,31 @@ public class WebsocketMessageRelayer extends SimplifiedEndpoint implements Messa
     }
 
     private void join(Session session, @NonNull CommandOptions commandOptions) {
-        if (addSession(session)) {
-            messageRelayManager.registerSession(session.getId(), this);
-            WebsocketRelaySession relaySession = new WebsocketRelaySession(session);
-            String timeZone = commandOptions.getTimeZone();
-            if (StringUtils.hasText(timeZone)) {
-                relaySession.setTimeZone(timeZone);
+        String nodeId = commandOptions.getNodeId();
+        if (!StringUtils.hasText(nodeId)) {
+            return;
+        }
+        if (messageRelayManager.isSameNode(nodeId)) {
+            if (addSession(session)) {
+                messageRelayManager.registerSession(session.getId(), this);
+                WebsocketRelaySession relaySession = new WebsocketRelaySession(session);
+                String timeZone = commandOptions.getTimeZone();
+                if (StringUtils.hasText(timeZone)) {
+                    relaySession.setTimeZone(timeZone);
+                }
+                String appsToJoin = commandOptions.getAppsToJoin();
+                String[] appIds = StringUtils.splitWithComma(appsToJoin);
+                appIds = appMonManager.getVerifiedAppIds(appIds);
+                if (appIds.length > 0) {
+                    relaySession.setJoinedApps(appIds);
+                }
+                relay(relaySession, nodeId + "::" + RESPONSE_JOINED + "established");
             }
-            String appsToJoin = commandOptions.getAppsToJoin();
-            String[] appIds = StringUtils.splitWithComma(appsToJoin);
-            appIds = appMonManager.getVerifiedAppIds(appIds);
-            if (appIds.length > 0) {
-                relaySession.setJoinedApps(appIds);
-            }
-            relay(relaySession, appMonManager.getNodeId() + "::" + RESPONSE_JOINED);
         } else if (messageRelayManager.isGatewayMode()) {
-            String otherNodeId = commandOptions.getNodeId();
+            String nodeInfo = messageRelayManager.getNodeRegistry().getNode(nodeId);
+            String alive = (nodeInfo != null ? "alive" : "");
             WebsocketRelaySession relaySession = new WebsocketRelaySession(session);
-            relay(relaySession, otherNodeId + "::" + RESPONSE_JOINED);
+            relay(relaySession, nodeId + "::" + RESPONSE_JOINED + alive);
         }
     }
 

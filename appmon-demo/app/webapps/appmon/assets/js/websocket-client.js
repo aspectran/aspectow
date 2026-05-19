@@ -17,19 +17,14 @@ class WebsocketClient extends BaseClient {
         this.pendingMessages = [];
         this.clusterViewers = {};
         this.clusterNodes = {};
-        this.joinedNodes = new Set();
     }
 
     addClusterViewer(nodeId, viewer) {
         this.clusterViewers[nodeId] = viewer;
     }
 
-    addClusterNode(nodeId, node, onConnected, onEstablished) {
-        const config = { node, onConnected, onEstablished };
-        this.clusterNodes[nodeId] = config;
-        if (this.joinedNodes.has(nodeId)) {
-            this.establish(nodeId);
-        }
+    addClusterNode(node, onConnected, onEstablished) {
+        this.clusterNodes[node.id] = {node, onConnected, onEstablished};
     }
 
     start(appsToJoin) {
@@ -79,7 +74,8 @@ class WebsocketClient extends BaseClient {
 
                 // Control messages in Gateway Mode
                 if (this.isGatewayMode && message.startsWith(":joined:")) {
-                    this.establish(nodeId);
+                    const alive = (message === ":joined:alive");
+                    this.establish(nodeId, false, alive);
                     return;
                 }
 
@@ -95,7 +91,8 @@ class WebsocketClient extends BaseClient {
                     this.viewer.processMessage(message);
                 }
             } else if (message.startsWith(":joined:")) {
-                this.establish(nodeId);
+                const established = (message === ":joined:established");
+                this.establish(nodeId, established, true);
             } else {
                 console.error("Unexpected message received before establishment:", message);
             }
@@ -136,39 +133,35 @@ class WebsocketClient extends BaseClient {
 
     connect(nodeId, appsToJoin) {
         const options = ["command:join"];
-        if (!this.established) {
-            // Connect to the first node
-            options.push("timeZone:" + Intl.DateTimeFormat().resolvedOptions().timeZone);
-            if (appsToJoin) {
-                options.push("appsToJoin:" + appsToJoin);
-            }
-            this.sendCommand(options, nodeId);
-        } else if (nodeId !== this.establishedNodeId) {
-            // Connect to another node in Gateway mode
-            this.sendCommand(options, nodeId);
+        options.push("timeZone:" + Intl.DateTimeFormat().resolvedOptions().timeZone);
+        if (appsToJoin) {
+            options.push("appsToJoin:" + appsToJoin);
         }
+        this.sendCommand(options, nodeId);
     }
 
-    establish(nodeId) {
-        if (!this.established) {
+    establish(nodeId, established, alive) {
+        if (established) {
             this.established = true;
             this.establishedNodeId = nodeId;
         }
 
-        this.joinedNodes.add(nodeId);
-
         const config = this.isGatewayMode ? this.clusterNodes[nodeId] : this;
-        if (config && config.onConnected) {
-            if (!config.node.connected) {
+        if (config) {
+            config.node.alive = !!alive;
+            if (config.onConnected && !config.node.connected) {
                 config.onConnected(config.node);
             }
         }
 
-        const thisNodeId = this.node.id;
-        if (this.established && nodeId === thisNodeId) {
+        const viewer = this.isGatewayMode ? this.clusterViewers[nodeId] : this.viewer;
+        if (!alive) {
+            viewer.printMessage("Node " + nodeId + " not alive");
+        }
+        if (established) {
             if (config && config.onEstablished) config.onEstablished(config.node);
             while (this.pendingMessages.length) {
-                this.viewer.printMessage(this.pendingMessages.shift());
+                viewer.printMessage(this.pendingMessages.shift());
             }
             this.sendCommand(["command:established"], nodeId);
         }

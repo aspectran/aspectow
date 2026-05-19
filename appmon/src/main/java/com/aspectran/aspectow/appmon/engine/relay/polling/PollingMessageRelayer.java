@@ -93,14 +93,10 @@ public class PollingMessageRelayer implements MessageRelayer {
         if (appMonManager.getMessageRelayManager().isSameNode(nodeId)) {
             String appsToJoin = translet.getParameter("appsToJoin");
             String[] appIds = StringUtils.splitWithComma(appsToJoin);
-            String[] verifiedAppIds = appMonManager.getVerifiedAppIds(appIds);
-
-            if (verifiedAppIds.length == 0) {
-                return null;
-            }
+            appIds = appMonManager.getVerifiedAppIds(appIds);
 
             PollingConfig pollingConfig = appMonManager.getPollingConfig();
-            PollingRelaySession relaySession = pollingSessionManager.createSession(translet, pollingConfig, verifiedAppIds);
+            PollingRelaySession relaySession = pollingSessionManager.createSession(translet, pollingConfig, appIds);
             String timeZone = translet.getParameter("timeZone");
             if (StringUtils.hasText(timeZone)) {
                 relaySession.setTimeZone(timeZone);
@@ -109,17 +105,19 @@ public class PollingMessageRelayer implements MessageRelayer {
             if (!appMonManager.getMessageRelayManager().subscribe(relaySession)) {
                 return null;
             }
-            //pollingSessionManager.push(appMonManager.getNodeId() + "::joined:" + relaySession.getId());
             return Map.of(
-                    "appsToJoin", StringUtils.joinWithCommas(verifiedAppIds),
+                    "appsToJoin", StringUtils.joinWithCommas(appIds),
                     "pollingInterval", relaySession.getPollingInterval(),
-                    "nodeId", nodeId
+                    "nodeId", nodeId,
+                    "established", true,
+                    "alive", true
             );
         } else if (appMonManager.getMessageRelayManager().isGatewayMode()) {
-            //relaySession.setJoinedApps(verifiedAppIds);
-            //pollingSessionManager.push(otherNodeId + "::joined:" + relaySession.getId());
+            String nodeInfo = appMonManager.getMessageRelayManager().getNodeRegistry().getNode(nodeId);
             return Map.of(
-                    "nodeId", nodeId
+                    "nodeId", nodeId,
+                    "established", false,
+                    "alive", (nodeInfo != null ? nodeId : StringUtils.EMPTY)
             );
         } else {
             return null;

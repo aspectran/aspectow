@@ -99,9 +99,7 @@ public class PollingSessionManager extends AbstractComponent {
             PollingRelaySession newSession = new PollingRelaySession(sessionId, this);
             newSession.setSessionTimeout(sessionTimeout);
             newSession.setPollingInterval(pollingInterval);
-            if (appIds != null) {
-                newSession.setJoinedApps(appIds);
-            }
+            newSession.setJoinedApps(appIds);
             existingSession = sessions.put(sessionId, newSession);
             if (existingSession != null) {
                 return existingSession;

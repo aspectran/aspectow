@@ -53,6 +53,7 @@ class DashboardBuilder {
                             index: index++,
                             random1000: random1000,
                             active: true,
+                            alive: false,
                             connected: false,
                             connectCount: 0
                         };
@@ -103,7 +104,7 @@ class DashboardBuilder {
             console.log(node.id, "connection count:", node.connectCount);
             this.changeNodeState(node);
             viewer.setEnable(true);
-            if (node.active) {
+            if (node.active && node.alive) {
                 viewer.setVisible(true);
             }
             if (node.connectCount === 1) {
@@ -132,12 +133,12 @@ class DashboardBuilder {
 
         if (isGatewayMode && this.sharedClient) {
             this.sharedClient.addClusterViewer(node.id, viewer);
-            this.sharedClient.addClusterNode(node.id, node, onConnected, onEstablished);
+            this.sharedClient.addClusterNode(node, onConnected, onEstablished);
             viewer.setClient(this.sharedClient);
             this.clients[node.index] = this.sharedClient;
 
             // Trigger explicit connection for this node over the shared connection
-            this.sharedClient.connect(node.id);
+            this.sharedClient.connect(node.id, appsToJoin);
             return;
         }
 
@@ -151,7 +152,7 @@ class DashboardBuilder {
         if (isGatewayMode) {
             this.sharedClient = client;
             client.addClusterViewer(node.id, viewer);
-            client.addClusterNode(node.id, node, onConnected, onEstablished);
+            client.addClusterNode(node, onConnected, onEstablished);
         }
         viewer.setClient(client);
         this.clients[nodeIndex] = client;
@@ -495,8 +496,10 @@ class DashboardBuilder {
         }
         setTimeout(() => {
             this.nodes.forEach(node => {
-                this.viewers[node.index].setLoading(appId, true);
-                this.clients[node.index].refresh(options, node.id);
+                if (node.active && node.alive) {
+                    this.viewers[node.index].setLoading(appId, true);
+                    this.clients[node.index].refresh(options, node.id);
+                }
             });
         }, 50);
     }
