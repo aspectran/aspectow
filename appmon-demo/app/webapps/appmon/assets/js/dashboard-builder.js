@@ -93,6 +93,7 @@ class DashboardBuilder {
     }
 
     connect(nodeIndex, appsToSubscribe) {
+        console.log("connecting node index:", nodeIndex);
         const node = this.nodes[nodeIndex];
         if (node.subscribed) return;
         const viewer = this.viewers[nodeIndex];
@@ -132,9 +133,20 @@ class DashboardBuilder {
 
         const onFailed = (node) => {
             this.changeNodeState(node, true);
+            if (node.endpoint.mode !== "websocket") {
+                setTimeout(() => {
+                    const client = new PollingClient(node, viewer, onSubscribed, onPrimary, onClosed, onFailed, isGatewayMode);
+                    if (isGatewayMode) {
+                        this.sharedClient = client;
+                        client.addClusterViewer(node.id, viewer);
+                        client.addClusterNode(node, onSubscribed, onPrimary);
+                    }
+                    viewer.setClient(client);
+                    this.clients[nodeIndex] = client;
+                    client.start(appsToSubscribe);
+                }, (node.index - 1) * 1000);
+            }
         };
-
-        console.log("connecting node index:", nodeIndex);
 
         if (isGatewayMode && this.sharedClient) {
             this.sharedClient.addClusterViewer(node.id, viewer);

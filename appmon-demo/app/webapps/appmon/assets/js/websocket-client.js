@@ -86,20 +86,30 @@ class WebsocketClient extends BaseClient {
 
         this.socket.onclose = (event) => {
             this.closeSocket(true);
-            if (this.onClosed) {
-                this.onClosed(this.node);
+            if (this.onClosed) this.onClosed(this.node);
+            if (event.code === 1003) {
+                console.warn("Websocket connection refused: ", event.code);
+                this.viewer.printErrorMessage("Socket connection refused by server.");
+                return;
             }
-            if (!event || event.code !== 1000) {
+            if (event.code === 1011) {
+                console.log("Websocket connection closed: ", event.code);
+                this.viewer.printErrorMessage("Websocket connection closed due to server error.");
+                return;
+            }
+            if (event.code === 1000 || this.retryCount === 0) {
+                console.log("Websocket connection closed: ", event.code);
+                this.viewer.printMessage("Websocket connection closed.");
+            }
+            if (event.code !== 1000 && event.code !== 1011) {
                 this.reconnect(appsToSubscribe);
             }
         };
 
         this.socket.onerror = (event) => {
-            console.log(this.node.id, "websocket error:", event);
+            console.error(this.node.id, "websocket error:", event);
             this.viewer.printErrorMessage("Could not connect to the WebSocket server.");
-            if (this.onFailed) {
-                this.onFailed(this.node);
-            }
+            if (this.onFailed) this.onFailed(this.node);
         };
     }
 
