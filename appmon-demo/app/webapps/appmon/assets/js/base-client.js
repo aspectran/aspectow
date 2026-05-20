@@ -8,18 +8,18 @@
  * Provides common functionality for connection management and retries.
  */
 class BaseClient {
-    constructor(node, viewer, onConnected, onEstablished, onClosed, onFailed, isGatewayMode) {
+    constructor(node, viewer, onJoined, onPrimary, onClosed, onFailed, isGatewayMode) {
         this.node = node;
         this.viewer = viewer;
         this.clusterViewers = {};
         this.clusterNodes = {};
-        this.onConnected = onConnected;
-        this.onEstablished = onEstablished;
+        this.onJoined = onJoined;
+        this.onPrimary = onPrimary;
         this.onClosed = onClosed;
         this.onFailed = onFailed;
         this.isGatewayMode = isGatewayMode;
-        this.established = false;
-        this.establishedNodeId = node.id
+        this.primary = false;
+        this.primaryNodeId = node.id
         this.retryCount = 0;
         this.maxRetries = 10;
         this.retryInterval = 5000;
@@ -29,8 +29,8 @@ class BaseClient {
         this.clusterViewers[nodeId] = viewer;
     }
 
-    addClusterNode(node, onConnected, onEstablished) {
-        this.clusterNodes[node.id] = {node, onConnected, onEstablished};
+    addClusterNode(node, onJoined, onPrimary) {
+        this.clusterNodes[node.id] = {node, onJoined, onPrimary};
     }
 
     /**

@@ -54,9 +54,9 @@ class DashboardBuilder {
                             random1000: random1000,
                             active: true,
                             alive: false,
-                            established: false,
-                            connected: false,
-                            connectCount: 0
+                            primary: false,
+                            joined: false,
+                            joinCount: 0
                         };
                         node.endpoint.mode = node.endpoint.mode || "auto";
                         node.endpoint.path = basePath + node.endpoint.path + "/" + node.id;
@@ -94,38 +94,38 @@ class DashboardBuilder {
 
     connect(nodeIndex, appsToJoin) {
         const node = this.nodes[nodeIndex];
-        if (node.connected) return;
+        if (node.joined) return;
         const viewer = this.viewers[nodeIndex];
         const isGatewayMode = (this.settings.clusterMode === "gateway");
 
-        const onConnected = (node) => {
-            if (node.connected && node.connectCount > 0) return;
+        const onJoined = (node) => {
+            if (node.joined && node.joinCount > 0) return;
             this.clearConsole(node.index);
-            node.connected = true;
-            node.connectCount++;
-            console.log(node.id, "connection count:", node.connectCount);
+            node.joined = true;
+            node.joinCount++;
+            console.log(node.id, "join count:", node.joinCount);
             this.changeNodeState(node);
             viewer.setEnable(true);
             if (node.active && node.alive) {
                 viewer.setVisible(true);
             }
-            if (node.connectCount === 1) {
+            if (node.joinCount === 1) {
                 this.initView();
             } else {
                 this.clearSessions(node.index);
             }
-            if (node.connectCount === 1 && nodeIndex + 1 < this.nodes.length) {
+            if (node.joinCount === 1 && nodeIndex + 1 < this.nodes.length) {
                 this.connect(nodeIndex + 1, appsToJoin);
             }
         };
 
-        const onEstablished = (node) => {
-            console.log("established:", node.id);
-            node.established = true;
+        const onPrimary = (node) => {
+            console.log("primary:", node.id);
+            node.primary = true;
         };
 
         const onClosed = (node) => {
-            node.connected = false;
+            node.joined = false;
             this.changeNodeState(node);
             viewer.setEnable(false);
         };
@@ -136,7 +136,7 @@ class DashboardBuilder {
 
         if (isGatewayMode && this.sharedClient) {
             this.sharedClient.addClusterViewer(node.id, viewer);
-            this.sharedClient.addClusterNode(node, onConnected, onEstablished);
+            this.sharedClient.addClusterNode(node, onJoined, onPrimary);
             viewer.setClient(this.sharedClient);
             this.clients[node.index] = this.sharedClient;
 
@@ -148,14 +148,14 @@ class DashboardBuilder {
         console.log("connecting node index:", nodeIndex);
         let client;
         if (node.endpoint.mode === "polling") {
-            client = new PollingClient(node, viewer, onConnected, onEstablished, onClosed, onFailed, isGatewayMode);
+            client = new PollingClient(node, viewer, onJoined, onPrimary, onClosed, onFailed, isGatewayMode);
         } else {
-            client = new WebsocketClient(node, viewer, onConnected, onEstablished, onClosed, onFailed, isGatewayMode);
+            client = new WebsocketClient(node, viewer, onJoined, onPrimary, onClosed, onFailed, isGatewayMode);
         }
         if (isGatewayMode) {
             this.sharedClient = client;
             client.addClusterViewer(node.id, viewer);
-            client.addClusterNode(node, onConnected, onEstablished);
+            client.addClusterNode(node, onJoined, onPrimary);
         }
         viewer.setClient(client);
         this.clients[nodeIndex] = client;
@@ -237,7 +237,7 @@ class DashboardBuilder {
                            $indicator.data("icon-error") + " error");
         if (errorOccurred) {
             $indicator.addClass($indicator.data("icon-error") + " error");
-        } else if (node.connected) {
+        } else if (node.joined) {
             $indicator.addClass($indicator.data("icon-connected") + " connected");
         } else {
             $indicator.addClass($indicator.data("icon-disconnected") + " disconnected");
@@ -258,7 +258,7 @@ class DashboardBuilder {
                 // Inform the backend about the current UI focus to filter logs
                 this.nodes.forEach(node => {
                     console.log(node);
-                    if (node.established) {
+                    if (node.primary) {
                         const client = this.clients[node.index];
                         if (client && client.focus) client.focus(appId, node.id);
                     }

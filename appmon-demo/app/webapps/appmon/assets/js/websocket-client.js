@@ -8,8 +8,8 @@
  * In Gateway Mode, it manages a single physical connection for the entire cluster.
  */
 class WebsocketClient extends BaseClient {
-    constructor(node, viewer, onConnected, onEstablished, onClosed, onFailed, isGatewayMode) {
-        super(node, viewer, onConnected, onEstablished, onClosed, onFailed, isGatewayMode);
+    constructor(node, viewer, onJoined, onPrimary, onClosed, onFailed, isGatewayMode) {
+        super(node, viewer, onJoined, onPrimary, onClosed, onFailed, isGatewayMode);
         this.heartbeatInterval = 5000;
         this.socket = null;
         this.heartbeatTimer = null;
@@ -53,7 +53,7 @@ class WebsocketClient extends BaseClient {
             const nodeId = msg.substring(0, idx);
             const message = msg.substring(idx + 1);
 
-            if (this.established) {
+            if (this.primary) {
                 // Standard control messages
                 if (message.startsWith(":pong:")) {
                     this.node.endpoint.token = message.substring(6);
@@ -64,7 +64,7 @@ class WebsocketClient extends BaseClient {
                 // Control messages in Gateway Mode
                 if (this.isGatewayMode && message.startsWith(":joined:")) {
                     const alive = (message === ":joined:alive");
-                    this.establish(nodeId, false, alive);
+                    this.primaryConnection(nodeId, false, alive);
                     return;
                 }
 
@@ -80,10 +80,10 @@ class WebsocketClient extends BaseClient {
                     this.viewer.processMessage(message);
                 }
             } else if (message.startsWith(":joined:")) {
-                const established = (message === ":joined:established");
-                this.establish(nodeId, established, true);
+                const primary = (message === ":joined:established");
+                this.primaryConnection(nodeId, primary, true);
             } else {
-                console.error("Unexpected message received before establishment:", message);
+                console.error("Unexpected message received before primary connection established:", message);
             }
         };
 
@@ -108,7 +108,7 @@ class WebsocketClient extends BaseClient {
 
     closeSocket(afterClosing) {
         if (this.socket) {
-            this.established = false;
+            this.primary = false;
             if (!afterClosing) {
                 this.socket.close();
             }
@@ -129,17 +129,17 @@ class WebsocketClient extends BaseClient {
         this.sendCommand(options, nodeId);
     }
 
-    establish(nodeId, established, alive) {
-        if (established) {
-            this.established = true;
-            this.establishedNodeId = nodeId;
+    primaryConnection(nodeId, primary, alive) {
+        if (primary) {
+            this.primary = true;
+            this.primaryNodeId = nodeId;
         }
 
         const config = this.isGatewayMode ? this.clusterNodes[nodeId] : this;
         if (config) {
             config.node.alive = !!alive;
-            if (config.onConnected && !config.node.connected) {
-                config.onConnected(config.node);
+            if (config.onJoined && !config.node.joined) {
+                config.onJoined(config.node);
             }
         }
 
@@ -147,8 +147,8 @@ class WebsocketClient extends BaseClient {
         if (!alive) {
             viewer.printMessage("Node " + nodeId + " not alive");
         }
-        if (established) {
-            if (config && config.onEstablished) config.onEstablished(config.node);
+        if (primary) {
+            if (config && config.onPrimary) config.onPrimary(config.node);
             while (this.pendingMessages.length) {
                 viewer.printMessage(this.pendingMessages.shift());
             }
@@ -159,7 +159,7 @@ class WebsocketClient extends BaseClient {
     sendCommand(options, nodeId) {
         if (options && this.socket && this.socket.readyState === WebSocket.OPEN) {
             const arr = options.slice();
-            arr.push("nodeId:" + (nodeId || this.establishedNodeId));
+            arr.push("nodeId:" + (nodeId || this.primaryNodeId));
             const cmd = arr.join(";");
             console.log("command:", cmd);
             this.socket.send(cmd);

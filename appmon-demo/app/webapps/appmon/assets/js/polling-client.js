@@ -7,8 +7,8 @@
  * HTTP Polling implementation of the AppMon client.
  */
 class PollingClient extends BaseClient {
-    constructor(node, viewer, onConnected, onEstablished, onClosed, onFailed, isGatewayMode = false) {
-        super(node, viewer, onConnected, onEstablished, onClosed, onFailed, isGatewayMode);
+    constructor(node, viewer, onJoined, onPrimary, onClosed, onFailed, isGatewayMode = false) {
+        super(node, viewer, onJoined, onPrimary, onClosed, onFailed, isGatewayMode);
         this.pendingCommands = [];
         this.pollingTimer = null;
         this.stopped = false;
@@ -18,8 +18,8 @@ class PollingClient extends BaseClient {
         this.clusterViewers[nodeId] = viewer;
     }
 
-    addClusterNode(node, onConnected, onEstablished) {
-        this.clusterNodes[node.id] = {node, onConnected, onEstablished};
+    addClusterNode(node, onJoined, onPrimary) {
+        this.clusterNodes[node.id] = {node, onJoined, onPrimary};
     }
 
     start(appsToJoin) {
@@ -29,7 +29,7 @@ class PollingClient extends BaseClient {
 
     stop() {
         this.stopped = true;
-        this.established = false;
+        this.primary = false;
         if (this.pollingTimer) {
             clearTimeout(this.pollingTimer);
             this.pollingTimer = null;
@@ -59,13 +59,13 @@ class PollingClient extends BaseClient {
                         this.node.endpoint['pollingInterval'] = data.pollingInterval;
                     }
 
-                     this.establish(data.nodeId, data.established, data.alive);
+                     this.primaryConnection(data.nodeId, data.established, data.alive);
 
                     // if (data.messages) {
                     //     this.processMessages(data.messages);
                     // }
 
-                    if (this.established && !this.stopped) {
+                    if (this.primary && !this.stopped) {
                         this.polling(data.appsToJoin);
                     }
                 } else {
@@ -152,7 +152,7 @@ class PollingClient extends BaseClient {
                 const nodeId = msg.substring(0, idx);
                 const message = msg.substring(idx + 1);
 
-                if (this.established) {
+                if (this.primary) {
                     // Data messages
                     if (this.isGatewayMode) {
                         const viewer = this.clusterViewers[nodeId];
@@ -165,23 +165,23 @@ class PollingClient extends BaseClient {
                         this.viewer.processMessage(message);
                     }
                 } else {
-                    console.error("Unexpected message received before establishment:", message);
+                    console.error("Unexpected message received before primary connection established:", message);
                 }
             });
         }
     }
 
-    establish(nodeId, established, alive) {
-        if (established) {
-            this.established = true;
-            this.establishedNodeId = nodeId;
+    primaryConnection(nodeId, primary, alive) {
+        if (primary) {
+            this.primary = true;
+            this.primaryNodeId = nodeId;
         }
 
         const config = this.isGatewayMode ? this.clusterNodes[nodeId] : this;
         if (config) {
             config.node.alive = !!alive;
-            if (config.onConnected && !config.node.connected) {
-                config.onConnected(config.node);
+            if (config.onJoined && !config.node.joined) {
+                config.onJoined(config.node);
             }
         }
 
@@ -189,8 +189,8 @@ class PollingClient extends BaseClient {
         if (!alive) {
             viewer.printMessage("Node " + nodeId + " not alive");
         }
-        if (established) {
-            if (config && config.onEstablished) config.onEstablished(config.node);
+        if (primary) {
+            if (config && config.onPrimary) config.onPrimary(config.node);
             viewer.printMessage("Polling every " + this.node.endpoint.pollingInterval + " milliseconds.");
             this.sendCommand(["command:established"], nodeId);
         }
@@ -199,7 +199,7 @@ class PollingClient extends BaseClient {
     sendCommand(options, nodeId) {
         if (options) {
             let arr = options.slice();
-            arr.push("nodeId:" + (nodeId || this.establishedNodeId));
+            arr.push("nodeId:" + (nodeId || this.primaryNodeId));
             const cmd = arr.join(";");
             console.log("command:", cmd);
             if (!this.pendingCommands.includes(cmd)) {
