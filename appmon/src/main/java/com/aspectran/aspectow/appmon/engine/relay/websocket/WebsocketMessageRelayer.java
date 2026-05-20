@@ -178,8 +178,8 @@ public class WebsocketMessageRelayer extends SimplifiedEndpoint implements Messa
     }
 
     private void established(@NonNull Session session, @NonNull CommandOptions commandOptions) {
-        String establishedNodeId = commandOptions.getNodeId();
-        if (messageRelayManager.isSameNode(establishedNodeId)) {
+        String nodeId = commandOptions.getNodeId();
+        if (messageRelayManager.isSameNode(nodeId)) {
             RelaySession relaySession = new WebsocketRelaySession(session);
             if (messageRelayManager.subscribe(relaySession)) {
                 List<String> messages = messageRelayManager.getLastMessages(relaySession);
@@ -191,9 +191,12 @@ public class WebsocketMessageRelayer extends SimplifiedEndpoint implements Messa
     }
 
     private void focus(@NonNull Session session, @NonNull CommandOptions commandOptions) {
-        String focusedAppId = commandOptions.getAppId();
-        RelaySession relaySession = new WebsocketRelaySession(session);
-        relaySession.setFocusedAppId(focusedAppId);
+        String nodeId = commandOptions.getNodeId();
+        if (messageRelayManager.isSameNode(nodeId)) {
+            String focusedAppId = commandOptions.getAppId();
+            RelaySession relaySession = new WebsocketRelaySession(session);
+            relaySession.setFocusedAppId(focusedAppId);
+        }
     }
 
     private void refreshData(@NonNull Session session, @NonNull CommandOptions commandOptions) {

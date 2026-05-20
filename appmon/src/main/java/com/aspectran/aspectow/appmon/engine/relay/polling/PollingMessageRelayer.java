@@ -122,15 +122,6 @@ public class PollingMessageRelayer implements MessageRelayer {
         } else {
             return null;
         }
-//
-//        List<AppInfo> appInfoList = appMonManager.getAppInfoList(relaySession.getJoinedApps());
-//        List<String> messages = messageRelayManager.getLastMessages(relaySession);
-//        return Map.of(
-//                "appsToJoin", StringUtils.joinWithCommas(verifiedAppIds),
-//                "apps", appInfoList,
-//                "pollingInterval", relaySession.getPollingInterval(),
-//                "messages", messages
-//        );
     }
 
     /**
@@ -178,27 +169,30 @@ public class PollingMessageRelayer implements MessageRelayer {
     }
 
     private void established(@NonNull PollingRelaySession relaySession, @NonNull CommandOptions commandOptions) {
-        String establishedNodeId = commandOptions.getNodeId();
-        if (messageRelayManager.isSameNode(establishedNodeId)) {
+        String nodeId = commandOptions.getNodeId();
+        if (messageRelayManager.isSameNode(nodeId)) {
             if (messageRelayManager.subscribe(relaySession)) {
                 List<String> messages = messageRelayManager.getLastMessages(relaySession);
                 for (String message : messages) {
-                    pollingSessionManager.push(message);
+                    pollingSessionManager.push(relaySession, message);
                 }
             }
         }
     }
 
     private void focus(@NonNull PollingRelaySession relaySession, @NonNull CommandOptions commandOptions) {
-        String focusedAppId = commandOptions.getAppId();
-        relaySession.setFocusedAppId(focusedAppId);
+        String nodeId = commandOptions.getNodeId();
+        if (messageRelayManager.isSameNode(nodeId)) {
+            String focusedAppId = commandOptions.getAppId();
+            relaySession.setFocusedAppId(focusedAppId);
+        }
     }
 
     private void refreshData(@NonNull PollingRelaySession relaySession, @NonNull CommandOptions commandOptions) {
         List<String> newMessages = messageRelayManager.refreshData(relaySession, commandOptions);
         if (newMessages != null) {
             for (String message : newMessages) {
-                pollingSessionManager.push(message);
+                pollingSessionManager.push(relaySession, message);
             }
         }
     }
@@ -236,7 +230,7 @@ public class PollingMessageRelayer implements MessageRelayer {
 
     @Override
     public void relay(RelaySession relaySession, String message) {
-        pollingSessionManager.push(message);
+        pollingSessionManager.push(relaySession, message);
     }
 
     @Override

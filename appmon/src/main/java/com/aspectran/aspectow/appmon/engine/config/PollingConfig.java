@@ -30,19 +30,16 @@ public class PollingConfig extends DefaultParameters {
 
     private static final ParameterKey pollingInterval;
     private static final ParameterKey sessionTimeout;
-    private static final ParameterKey initialBufferSize;
 
     private static final ParameterKey[] parameterKeys;
 
     static {
         pollingInterval = new ParameterKey("pollingInterval", ValueType.INT);
         sessionTimeout = new ParameterKey("sessionTimeout", ValueType.INT);
-        initialBufferSize = new ParameterKey("initialBufferSize", ValueType.INT);
 
         parameterKeys = new ParameterKey[] {
                 pollingInterval,
-                sessionTimeout,
-                initialBufferSize
+                sessionTimeout
         };
     }
 
@@ -80,22 +77,6 @@ public class PollingConfig extends DefaultParameters {
      */
     public void setSessionTimeout(int sessionTimeout) {
         putValue(PollingConfig.sessionTimeout, sessionTimeout);
-    }
-
-    /**
-     * Gets the initial buffer size for polling messages.
-     * @return the initial buffer size
-     */
-    public int getInitialBufferSize() {
-        return getInt(initialBufferSize, 0);
-    }
-
-    /**
-     * Sets the initial buffer size for polling messages.
-     * @param initialBufferSize the initial buffer size
-     */
-    public void setInitialBufferSize(int initialBufferSize) {
-        putValue(PollingConfig.initialBufferSize, initialBufferSize);
     }
 
 }

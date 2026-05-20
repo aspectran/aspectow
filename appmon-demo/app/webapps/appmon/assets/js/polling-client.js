@@ -91,7 +91,7 @@ class PollingClient extends BaseClient {
         }
         $.ajax({
             url: this.node.endpoint.path + "/appmon/polling/pull",
-            type: "get",
+            type: "post",
             cache: false,
             data: commands ? {
                 "commands[]": commands
@@ -146,7 +146,6 @@ class PollingClient extends BaseClient {
     processMessages(messages) {
         if (messages) {
             messages.forEach(msg => {
-                console.log(msg);
                 const idx = msg.indexOf(':');
                 if (idx === -1) return;
 

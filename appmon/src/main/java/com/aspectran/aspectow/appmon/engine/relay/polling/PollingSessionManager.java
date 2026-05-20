@@ -18,6 +18,7 @@ package com.aspectran.aspectow.appmon.engine.relay.polling;
 import com.aspectran.aspectow.appmon.engine.config.PollingConfig;
 import com.aspectran.aspectow.appmon.engine.manager.AppMonManager;
 import com.aspectran.aspectow.appmon.engine.relay.MessageRelayManager;
+import com.aspectran.aspectow.appmon.engine.relay.RelaySession;
 import com.aspectran.core.activity.Translet;
 import com.aspectran.core.component.AbstractComponent;
 import com.aspectran.core.component.session.SessionIdGenerator;
@@ -35,7 +36,7 @@ import java.util.Map;
 
 /**
  * Manages {@link PollingRelaySession} apps for the polling export service.
- * It handles session creation, retrieval, and expiration, as well as managing a central message buffer.
+ * It handles session creation, retrieval, and expiration, as well as managing a broadcast message buffer.
  *
  * <p>Created: 2020. 12. 24.</p>
  */
@@ -55,7 +56,7 @@ public class PollingSessionManager extends AbstractComponent {
 
     private final PollingConfig pollingConfig;
 
-    private final BufferedMessages bufferedMessages;
+    private final BroadcastMessageBuffer broadcastMessageBuffer;
 
     /**
      * Instantiates a new PollingSessionManager.
@@ -64,7 +65,7 @@ public class PollingSessionManager extends AbstractComponent {
     public PollingSessionManager(@NonNull AppMonManager appMonManager) {
         this.messageRelayManager = appMonManager.getMessageRelayManager();
         this.pollingConfig = appMonManager.getPollingConfig();
-        this.bufferedMessages = new BufferedMessages(pollingConfig.getInitialBufferSize());
+        this.broadcastMessageBuffer = new BroadcastMessageBuffer();
     }
 
     public PollingRelaySession getSession(String sessionId) {
@@ -148,7 +149,13 @@ public class PollingSessionManager extends AbstractComponent {
      */
     public void push(String message) {
         if (!sessions.isEmpty()) {
-            bufferedMessages.push(message);
+            broadcastMessageBuffer.push(message);
+        }
+    }
+
+    public void push(RelaySession relaySession, String message) {
+        if (relaySession instanceof PollingRelaySession pollingRelaySession) {
+            pollingRelaySession.push(message);
         }
     }
 
@@ -158,17 +165,32 @@ public class PollingSessionManager extends AbstractComponent {
      * @return an array of new messages, or {@code null} if there are no new messages
      */
     public String[] pull(PollingRelaySession session) {
-        String[] messages = bufferedMessages.pop(session);
-        if (messages != null && messages.length > 0) {
+        String[] bMessages = broadcastMessageBuffer.pop(session);
+        java.util.List<String> pMessages = session.popMessages();
+        if (bMessages == null && pMessages == null) {
+            return null;
+        }
+        if (bMessages != null && bMessages.length > 0) {
             shrinkBuffer();
         }
-        return messages;
+        if (bMessages != null && pMessages != null) {
+            String[] messages = new String[bMessages.length + pMessages.size()];
+            System.arraycopy(bMessages, 0, messages, 0, bMessages.length);
+            for (int i = 0; i < pMessages.size(); i++) {
+                messages[bMessages.length + i] = pMessages.get(i);
+            }
+            return messages;
+        } else if (bMessages != null) {
+            return bMessages;
+        } else {
+            return pMessages.toArray(new String[0]);
+        }
     }
 
     private void shrinkBuffer() {
         int minLineIndex = getMinLineIndex();
         if (minLineIndex > -1) {
-            bufferedMessages.shrink(minLineIndex);
+            broadcastMessageBuffer.shrink(minLineIndex);
         }
     }
 
@@ -200,7 +222,7 @@ public class PollingSessionManager extends AbstractComponent {
                 return false;
             });
             if (sessions.isEmpty()) {
-                bufferedMessages.clear();
+                broadcastMessageBuffer.clear();
             } else {
                 shrinkBuffer();
             }
@@ -219,7 +241,7 @@ public class PollingSessionManager extends AbstractComponent {
     @Override
     protected void doDestroy() throws Exception {
         scheduler.stop();
-        bufferedMessages.clear();
+        broadcastMessageBuffer.clear();
     }
 
 }

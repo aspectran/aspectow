@@ -18,7 +18,7 @@ package com.aspectran.aspectow.appmon.engine.relay.polling;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -28,32 +28,26 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  * <p>Created: 2020. 12. 24.</p>
  */
-public class BufferedMessages {
+public class BroadcastMessageBuffer {
 
     private final AtomicInteger lineCounter = new AtomicInteger(0);
 
-    private final List<String> buffer;
+    private final List<String> buffer = new LinkedList<>();
 
     /**
-     * Instantiates a new BufferedMessages.
-     * @param initialBufferSize the initial size of the buffer
+     * Instantiates a new BroadcastMessageBuffer.
      */
-    public BufferedMessages(int initialBufferSize) {
-        if (initialBufferSize > 0) {
-            this.buffer = new ArrayList<>(initialBufferSize);
-        } else {
-            this.buffer = new ArrayList<>();
-        }
+    public BroadcastMessageBuffer() {
     }
 
     /**
      * Pushes a new message (line) into the buffer.
-     * @param line the message to add
+     * @param message the message to add
      * @return the new line index
      */
-    public int push(String line) {
+    public int push(String message) {
         synchronized (buffer) {
-            buffer.add(line);
+            buffer.add(message);
             return lineCounter.incrementAndGet();
         }
     }

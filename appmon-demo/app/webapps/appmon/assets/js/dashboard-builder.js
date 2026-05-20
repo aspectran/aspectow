@@ -54,10 +54,11 @@ class DashboardBuilder {
                             random1000: random1000,
                             active: true,
                             alive: false,
+                            established: false,
                             connected: false,
                             connectCount: 0
                         };
-                        node.endpoint.mode = "auto";
+                        node.endpoint.mode = node.endpoint.mode || "auto";
                         node.endpoint.path = basePath + node.endpoint.path + "/" + node.id;
                         node.endpoint.token = data.token;
                         this.nodes.push(node);
@@ -120,6 +121,7 @@ class DashboardBuilder {
 
         const onEstablished = (node) => {
             console.log("established:", node.id);
+            node.established = true;
         };
 
         const onClosed = (node) => {
@@ -255,8 +257,11 @@ class DashboardBuilder {
 
                 // Inform the backend about the current UI focus to filter logs
                 this.nodes.forEach(node => {
-                    const client = this.clients[node.index];
-                    if (client && client.focus) client.focus(appId, node.id);
+                    console.log(node);
+                    if (node.established) {
+                        const client = this.clients[node.index];
+                        if (client && client.focus) client.focus(appId, node.id);
+                    }
                 });
             } else {
                 app.active = false;
