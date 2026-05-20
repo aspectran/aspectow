@@ -11,6 +11,8 @@ class BaseClient {
     constructor(node, viewer, onConnected, onEstablished, onClosed, onFailed, isGatewayMode) {
         this.node = node;
         this.viewer = viewer;
+        this.clusterViewers = {};
+        this.clusterNodes = {};
         this.onConnected = onConnected;
         this.onEstablished = onEstablished;
         this.onClosed = onClosed;
@@ -21,6 +23,14 @@ class BaseClient {
         this.retryCount = 0;
         this.maxRetries = 10;
         this.retryInterval = 5000;
+    }
+
+    addClusterViewer(nodeId, viewer) {
+        this.clusterViewers[nodeId] = viewer;
+    }
+
+    addClusterNode(node, onConnected, onEstablished) {
+        this.clusterNodes[node.id] = {node, onConnected, onEstablished};
     }
 
     /**

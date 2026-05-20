@@ -38,6 +38,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import static com.aspectran.aspectow.appmon.engine.relay.CommandOptions.COMMAND_ESTABLISHED;
 import static com.aspectran.aspectow.appmon.engine.relay.CommandOptions.COMMAND_FOCUS;
 import static com.aspectran.aspectow.appmon.engine.relay.CommandOptions.COMMAND_LOAD_PREVIOUS;
 import static com.aspectran.aspectow.appmon.engine.relay.CommandOptions.COMMAND_REFRESH;
@@ -53,12 +54,15 @@ import static com.aspectran.aspectow.node.manager.NodeMessageProtocol.NODES_BASE
 public class PollingMessageRelayer implements MessageRelayer {
 
     private final AppMonManager appMonManager;
+    
+    private final MessageRelayManager messageRelayManager;
 
     private final PollingSessionManager pollingSessionManager;
 
     @Autowired
     public PollingMessageRelayer(@NonNull AppMonManager appMonManager) {
         this.appMonManager = appMonManager;
+        this.messageRelayManager = appMonManager.getMessageRelayManager();
         this.pollingSessionManager = new PollingSessionManager(appMonManager);
     }
 
@@ -68,7 +72,7 @@ public class PollingMessageRelayer implements MessageRelayer {
     @Initialize
     public void registerRelayer() throws Exception {
         pollingSessionManager.initialize();
-        appMonManager.getMessageRelayManager().addRelayer(this);
+        messageRelayManager.addRelayer(this);
     }
 
     /**
@@ -77,7 +81,7 @@ public class PollingMessageRelayer implements MessageRelayer {
     @Destroy
     public void destroy() throws Exception {
         pollingSessionManager.destroy();
-        appMonManager.getMessageRelayManager().removeRelayer(this);
+        messageRelayManager.removeRelayer(this);
     }
 
     /**
@@ -90,21 +94,17 @@ public class PollingMessageRelayer implements MessageRelayer {
     @Transform(FormatType.JSON)
     public Map<String, Object> join(@NonNull Translet translet) throws IOException {
         String nodeId = translet.getParameter("nodeId");
-        if (appMonManager.getMessageRelayManager().isSameNode(nodeId)) {
+        if (messageRelayManager.isSameNode(nodeId)) {
             String appsToJoin = translet.getParameter("appsToJoin");
             String[] appIds = StringUtils.splitWithComma(appsToJoin);
             appIds = appMonManager.getVerifiedAppIds(appIds);
 
-            PollingConfig pollingConfig = appMonManager.getPollingConfig();
-            PollingRelaySession relaySession = pollingSessionManager.createSession(translet, pollingConfig, appIds);
+            PollingRelaySession relaySession = pollingSessionManager.createSession(translet, appIds);
             String timeZone = translet.getParameter("timeZone");
             if (StringUtils.hasText(timeZone)) {
                 relaySession.setTimeZone(timeZone);
             }
-            appMonManager.getMessageRelayManager().registerSession(relaySession.getId(), this);
-            if (!appMonManager.getMessageRelayManager().subscribe(relaySession)) {
-                return null;
-            }
+            messageRelayManager.registerSession(relaySession.getId(), this);
             return Map.of(
                     "appsToJoin", StringUtils.joinWithCommas(appIds),
                     "pollingInterval", relaySession.getPollingInterval(),
@@ -112,8 +112,8 @@ public class PollingMessageRelayer implements MessageRelayer {
                     "established", true,
                     "alive", true
             );
-        } else if (appMonManager.getMessageRelayManager().isGatewayMode()) {
-            String nodeInfo = appMonManager.getMessageRelayManager().getNodeRegistry().getNode(nodeId);
+        } else if (messageRelayManager.isGatewayMode()) {
+            String nodeInfo = messageRelayManager.getNodeRegistry().getNode(nodeId);
             return Map.of(
                     "nodeId", nodeId,
                     "established", false,
@@ -124,7 +124,7 @@ public class PollingMessageRelayer implements MessageRelayer {
         }
 //
 //        List<AppInfo> appInfoList = appMonManager.getAppInfoList(relaySession.getJoinedApps());
-//        List<String> messages = appMonManager.getMessageRelayManager().getLastMessages(relaySession);
+//        List<String> messages = messageRelayManager.getLastMessages(relaySession);
 //        return Map.of(
 //                "appsToJoin", StringUtils.joinWithCommas(verifiedAppIds),
 //                "apps", appInfoList,
@@ -150,7 +150,9 @@ public class PollingMessageRelayer implements MessageRelayer {
         }
 
         if (commands != null) {
-            handleCommand(relaySession, commands);
+            for (String command : commands) {
+                handleCommand(relaySession, command);
+            }
         }
 
         String[] messages = pollingSessionManager.pull(relaySession);
@@ -159,15 +161,12 @@ public class PollingMessageRelayer implements MessageRelayer {
         );
     }
 
-    private void handleCommand(PollingRelaySession relaySession, String[] commands) {
-        CommandOptions commandOptions = new CommandOptions(commands);
+    private void handleCommand(PollingRelaySession relaySession, String command) {
+        CommandOptions commandOptions = new CommandOptions(command);
         switch (commandOptions.getCommand()) {
-//            case COMMAND_JOIN:
-//                joinRemotely(relaySession, commandOptions);
-//                break;
-//            case COMMAND_ESTABLISHED:
-//                established(relaySession, commandOptions);
-//                break;
+            case COMMAND_ESTABLISHED:
+                established(relaySession, commandOptions);
+                break;
             case COMMAND_REFRESH:
             case COMMAND_LOAD_PREVIOUS:
                 refreshData(relaySession, commandOptions);
@@ -178,18 +177,11 @@ public class PollingMessageRelayer implements MessageRelayer {
         }
     }
 
-    private void joinRemotely(PollingRelaySession relaySession, @NonNull CommandOptions commandOptions) {
-        if (appMonManager.getMessageRelayManager().isGatewayMode()) {
-            String targetNodeId = commandOptions.getNodeId();
-            pollingSessionManager.push(targetNodeId + "::joined:" + relaySession.getId());
-        }
-    }
-
     private void established(@NonNull PollingRelaySession relaySession, @NonNull CommandOptions commandOptions) {
-        String targetNodeId = commandOptions.getNodeId();
-        if (appMonManager.getNodeId().equals(targetNodeId)) {
-            if (appMonManager.getMessageRelayManager().subscribe(relaySession)) {
-                List<String> messages = appMonManager.getMessageRelayManager().getLastMessages(relaySession);
+        String establishedNodeId = commandOptions.getNodeId();
+        if (messageRelayManager.isSameNode(establishedNodeId)) {
+            if (messageRelayManager.subscribe(relaySession)) {
+                List<String> messages = messageRelayManager.getLastMessages(relaySession);
                 for (String message : messages) {
                     pollingSessionManager.push(message);
                 }
@@ -203,7 +195,7 @@ public class PollingMessageRelayer implements MessageRelayer {
     }
 
     private void refreshData(@NonNull PollingRelaySession relaySession, @NonNull CommandOptions commandOptions) {
-        List<String> newMessages = appMonManager.getMessageRelayManager().refreshData(relaySession, commandOptions);
+        List<String> newMessages = messageRelayManager.refreshData(relaySession, commandOptions);
         if (newMessages != null) {
             for (String message : newMessages) {
                 pollingSessionManager.push(message);

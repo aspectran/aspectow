@@ -10,21 +10,10 @@
 class WebsocketClient extends BaseClient {
     constructor(node, viewer, onConnected, onEstablished, onClosed, onFailed, isGatewayMode) {
         super(node, viewer, onConnected, onEstablished, onClosed, onFailed, isGatewayMode);
-        this.endpointMode = "websocket";
         this.heartbeatInterval = 5000;
         this.socket = null;
         this.heartbeatTimer = null;
         this.pendingMessages = [];
-        this.clusterViewers = {};
-        this.clusterNodes = {};
-    }
-
-    addClusterViewer(nodeId, viewer) {
-        this.clusterViewers[nodeId] = viewer;
-    }
-
-    addClusterNode(node, onConnected, onEstablished) {
-        this.clusterNodes[node.id] = {node, onConnected, onEstablished};
     }
 
     start(appsToJoin) {
@@ -168,12 +157,12 @@ class WebsocketClient extends BaseClient {
     }
 
     sendCommand(options, nodeId) {
-        if (this.socket && this.socket.readyState === WebSocket.OPEN) {
-            let cmd = options ? options.slice() : [];
-            const targetNodeId = nodeId || this.establishedNodeId;
-            cmd.push("nodeId:" + targetNodeId);
-            console.log("cmd", cmd);
-            this.socket.send(cmd.join(";"));
+        if (options && this.socket && this.socket.readyState === WebSocket.OPEN) {
+            const arr = options.slice();
+            arr.push("nodeId:" + (nodeId || this.establishedNodeId));
+            const cmd = arr.join(";");
+            console.log("command:", cmd);
+            this.socket.send(cmd);
         }
     }
 

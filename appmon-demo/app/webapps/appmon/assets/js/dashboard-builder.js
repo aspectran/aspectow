@@ -57,6 +57,7 @@ class DashboardBuilder {
                             connected: false,
                             connectCount: 0
                         };
+                        node.endpoint.mode = "auto";
                         node.endpoint.path = basePath + node.endpoint.path + "/" + node.id;
                         node.endpoint.token = data.token;
                         this.nodes.push(node);

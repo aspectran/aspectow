@@ -17,6 +17,7 @@ package com.aspectran.aspectow.appmon.engine.relay.polling;
 
 import com.aspectran.aspectow.appmon.engine.config.PollingConfig;
 import com.aspectran.aspectow.appmon.engine.manager.AppMonManager;
+import com.aspectran.aspectow.appmon.engine.relay.MessageRelayManager;
 import com.aspectran.core.activity.Translet;
 import com.aspectran.core.component.AbstractComponent;
 import com.aspectran.core.component.session.SessionIdGenerator;
@@ -50,7 +51,9 @@ public class PollingSessionManager extends AbstractComponent {
 
     private final Map<String, PollingRelaySession> sessions = new CopyOnWriteMap<>();
 
-    private final AppMonManager appMonManager;
+    private final MessageRelayManager messageRelayManager;
+
+    private final PollingConfig pollingConfig;
 
     private final BufferedMessages bufferedMessages;
 
@@ -59,14 +62,9 @@ public class PollingSessionManager extends AbstractComponent {
      * @param appMonManager the main application manager
      */
     public PollingSessionManager(@NonNull AppMonManager appMonManager) {
-        this.appMonManager = appMonManager;
-
-        PollingConfig pollingConfig = appMonManager.getPollingConfig();
+        this.messageRelayManager = appMonManager.getMessageRelayManager();
+        this.pollingConfig = appMonManager.getPollingConfig();
         this.bufferedMessages = new BufferedMessages(pollingConfig.getInitialBufferSize());
-    }
-
-    public String getNodeId() {
-        return appMonManager.getNodeId();
     }
 
     public PollingRelaySession getSession(String sessionId) {
@@ -76,12 +74,10 @@ public class PollingSessionManager extends AbstractComponent {
     /**
      * Creates a new polling session or retrieves an existing one.
      * @param translet the current translet
-     * @param pollingConfig the polling configuration
      * @param appIds the IDs of the apps to join
      * @return a new or existing {@link PollingRelaySession}
      */
-    public PollingRelaySession createSession(
-            @NonNull Translet translet, @NonNull PollingConfig pollingConfig, String[] appIds) {
+    public PollingRelaySession createSession(@NonNull Translet translet, String[] appIds) {
         int pollingInterval = pollingConfig.getPollingInterval();
         int sessionTimeout = pollingConfig.getSessionTimeout();
         if (pollingInterval > 0 && sessionTimeout <= 0) {
@@ -178,11 +174,11 @@ public class PollingSessionManager extends AbstractComponent {
 
     private int getMinLineIndex() {
         int minLineIndex = -1;
-        for (PollingRelaySession serviceSession : sessions.values()) {
+        for (PollingRelaySession session : sessions.values()) {
             if (minLineIndex == -1) {
-                minLineIndex = serviceSession.getLastLineIndex();
-            } else if (serviceSession.getLastLineIndex() < minLineIndex) {
-                minLineIndex = serviceSession.getLastLineIndex();
+                minLineIndex = session.getLastLineIndex();
+            } else if (session.getLastLineIndex() < minLineIndex) {
+                minLineIndex = session.getLastLineIndex();
             }
         }
         return minLineIndex;
@@ -196,8 +192,8 @@ public class PollingSessionManager extends AbstractComponent {
             sessions.entrySet().removeIf(entry -> {
                 PollingRelaySession session = entry.getValue();
                 if (session.isExpired()) {
-                    appMonManager.getMessageRelayManager().unregisterSession(session.getId());
-                    appMonManager.getMessageRelayManager().unsubscribe(session);
+                    messageRelayManager.unregisterSession(session.getId());
+                    messageRelayManager.unsubscribe(session);
                     session.destroy();
                     return true;
                 }

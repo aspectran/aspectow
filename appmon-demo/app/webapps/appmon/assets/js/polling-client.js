@@ -9,12 +9,9 @@
 class PollingClient extends BaseClient {
     constructor(node, viewer, onConnected, onEstablished, onClosed, onFailed, isGatewayMode = false) {
         super(node, viewer, onConnected, onEstablished, onClosed, onFailed, isGatewayMode);
-        this.endpointMode = "polling";
-        this.commands = [];
+        this.pendingCommands = [];
         this.pollingTimer = null;
         this.stopped = false;
-        this.clusterViewers = {};
-        this.clusterNodes = {};
     }
 
     addClusterViewer(nodeId, viewer) {
@@ -52,13 +49,13 @@ class PollingClient extends BaseClient {
             success: (data) => {
                 if (data) {
                     if (data.established && !data.appsToJoin) {
-                        console.log("No verified apps found. Please check the configuration of the backend.");
+                        console.warn("No verified apps found. Please check the configuration of the backend.");
                         return;
                     }
 
                     if (data.established) {
                         this.retryCount = 0;
-                        this.node.endpoint['mode'] = this.endpointMode;
+                        this.node.endpoint['mode'] = "polling";
                         this.node.endpoint['pollingInterval'] = data.pollingInterval;
                     }
 
@@ -87,17 +84,17 @@ class PollingClient extends BaseClient {
 
     polling(appsToJoin) {
         if (this.stopped) return;
-        let withCommands = null;
-        if (this.commands.length) {
-            withCommands = this.commands.slice();
-            this.commands.length = 0;
+        let commands = null;
+        if (this.pendingCommands.length) {
+            commands = this.pendingCommands.slice();
+            this.pendingCommands.length = 0;
         }
         $.ajax({
             url: this.node.endpoint.path + "/appmon/polling/pull",
             type: "get",
             cache: false,
-            data: withCommands ? {
-                "commands[]": withCommands
+            data: commands ? {
+                "commands[]": commands
             } : null,
             success: (data) => {
                 if (this.stopped) return;
@@ -109,9 +106,7 @@ class PollingClient extends BaseClient {
                 } else {
                     console.log(this.node.id, "connection lost");
                     this.viewer.printErrorMessage("Connection lost.");
-                    if (this.onClosed) {
-                        this.onClosed(this.node);
-                    }
+                    if (this.onClosed) this.onClosed(this.node);
                     this.reconnect(appsToJoin);
                 }
             },
@@ -119,9 +114,7 @@ class PollingClient extends BaseClient {
                 if (this.stopped) return;
                 console.log(this.node.id, "connection lost", error);
                 this.viewer.printErrorMessage("Connection lost.");
-                if (this.onClosed) {
-                    this.onClosed(this.node);
-                }
+                if (this.onClosed) this.onClosed(this.node);
                 this.reconnect(appsToJoin);
             }
         });
@@ -180,7 +173,7 @@ class PollingClient extends BaseClient {
     }
 
     establish(nodeId, established, alive) {
-        if (!established) {
+        if (established) {
             this.established = true;
             this.establishedNodeId = nodeId;
         }
@@ -200,21 +193,19 @@ class PollingClient extends BaseClient {
         if (established) {
             if (config && config.onEstablished) config.onEstablished(config.node);
             viewer.printMessage("Polling every " + this.node.endpoint.pollingInterval + " milliseconds.");
+            this.sendCommand(["command:established"], nodeId);
         }
     }
 
     sendCommand(options, nodeId) {
         if (options) {
-            let cmd = options ? options.slice() : [];
-            const targetNodeId = nodeId || this.establishedNodeId;
-            cmd.push("nodeId:" + targetNodeId);
-            cmd.forEach(option => this.withCommand(option));
-        }
-    }
-
-    withCommand(command) {
-        if (!this.commands.includes(command)) {
-            this.commands.push(command);
+            let arr = options.slice();
+            arr.push("nodeId:" + (nodeId || this.establishedNodeId));
+            const cmd = arr.join(";");
+            console.log("command:", cmd);
+            if (!this.pendingCommands.includes(cmd)) {
+                this.pendingCommands.push(cmd);
+            }
         }
     }
 }
