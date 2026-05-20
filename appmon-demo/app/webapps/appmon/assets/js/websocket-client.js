@@ -11,8 +11,8 @@ class WebsocketClient extends BaseClient {
     constructor(node, viewer, onSubscribed, onPrimary, onClosed, onFailed, isGatewayMode) {
         super(node, viewer, onSubscribed, onPrimary, onClosed, onFailed, isGatewayMode);
         this.heartbeatInterval = 5000;
-        this.socket = null;
         this.heartbeatTimer = null;
+        this.socket = null;
         this.pendingMessages = [];
     }
 
@@ -38,17 +38,18 @@ class WebsocketClient extends BaseClient {
             
             // Connect to the first node
             this.connect(this.node.id, appsToSubscribe);
-            this.heartbeatPing();
+            this.sendPing();
             this.retryCount = 0;
         };
 
         this.socket.onmessage = (event) => {
             if (typeof event.data !== "string") return;
             const msg = event.data;
-            //console.log(msg);
-
             const idx = msg.indexOf(':');
-            if (idx === -1) return;
+            if (idx === -1) {
+                console.warn("Invalid message format received:", msg);
+                return;
+            }
 
             const nodeId = msg.substring(0, idx);
             const message = msg.substring(idx + 1);
@@ -57,31 +58,27 @@ class WebsocketClient extends BaseClient {
                 // Standard control messages
                 if (message.startsWith(":pong:")) {
                     this.node.endpoint.token = message.substring(6);
-                    this.heartbeatPing();
+                    this.sendPing();
                     return;
                 }
 
                 // Control messages in Gateway Mode
                 if (this.isGatewayMode && message.startsWith(":subscribed:")) {
                     const alive = (message === ":subscribed:alive");
-                    this.primaryConnection(nodeId, false, alive);
+                    this.establish(nodeId, false, alive);
                     return;
                 }
 
                 // Data messages
-                if (this.isGatewayMode) {
-                    const viewer = this.clusterViewers[nodeId];
-                    if (viewer) {
-                        viewer.processMessage(message);
-                    } else {
-                        console.warn("No viewer registered for nodeId:", nodeId, "Message:", message);
-                    }
+                const viewer = this.getViewer(nodeId);
+                if (viewer) {
+                    viewer.processMessage(message);
                 } else {
-                    this.viewer.processMessage(message);
+                    console.warn("No viewer registered for nodeId:", nodeId, "Message:", message);
                 }
             } else if (message.startsWith(":subscribed:")) {
                 const primary = (message === ":subscribed:established");
-                this.primaryConnection(nodeId, primary, true);
+                this.establish(nodeId, primary, true);
             } else {
                 console.error("Unexpected message received before primary connection established:", message);
             }
@@ -129,13 +126,13 @@ class WebsocketClient extends BaseClient {
         this.sendCommand(options, nodeId);
     }
 
-    primaryConnection(nodeId, primary, alive) {
+    establish(nodeId, primary, alive) {
         if (primary) {
             this.primary = true;
             this.primaryNodeId = nodeId;
         }
 
-        const config = this.isGatewayMode ? this.clusterNodes[nodeId] : this;
+        const config = this.getNodeConfig(nodeId);
         if (config) {
             config.node.alive = !!alive;
             if (config.onSubscribed && !config.node.subscribed) {
@@ -143,7 +140,7 @@ class WebsocketClient extends BaseClient {
             }
         }
 
-        const viewer = this.isGatewayMode ? this.clusterViewers[nodeId] : this.viewer;
+        const viewer = this.getViewer(nodeId);
         if (!alive) {
             viewer.printMessage("Node " + nodeId + " not alive");
         }
@@ -161,12 +158,12 @@ class WebsocketClient extends BaseClient {
             const arr = options.slice();
             arr.push("nodeId:" + (nodeId || this.primaryNodeId));
             const cmd = arr.join(";");
-            console.log("command:", cmd);
+            console.log("send", cmd);
             this.socket.send(cmd);
         }
     }
 
-    heartbeatPing() {
+    sendPing() {
         if (this.heartbeatTimer) {
             clearTimeout(this.heartbeatTimer);
         }

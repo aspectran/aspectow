@@ -33,6 +33,14 @@ class BaseClient {
         this.clusterNodes[node.id] = {node, onSubscribed, onPrimary};
     }
 
+    getViewer(nodeId) {
+        return this.isGatewayMode ? this.clusterViewers[nodeId] : this.viewer;
+    }
+
+    getNodeConfig (nodeId) {
+        return this.isGatewayMode ? this.clusterNodes[nodeId] : this;
+    }
+
     /**
      * Starts the client connection.
      * @param {string} [appsToSubscribe] - Names of apps to join.
@@ -55,9 +63,7 @@ class BaseClient {
      */
     refresh(options, nodeId) {
         let cmdOptions = ["command:refresh"];
-        if (options) {
-            cmdOptions.push(...options);
-        }
+        if (options) cmdOptions.push(...options);
         this.sendCommand(cmdOptions, nodeId);
     }
 

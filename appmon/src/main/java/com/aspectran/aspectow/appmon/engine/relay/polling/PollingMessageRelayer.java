@@ -54,7 +54,7 @@ import static com.aspectran.aspectow.node.manager.NodeMessageProtocol.NODES_BASE
 public class PollingMessageRelayer implements MessageRelayer {
 
     private final AppMonManager appMonManager;
-    
+
     private final MessageRelayManager messageRelayManager;
 
     private final PollingSessionManager pollingSessionManager;
@@ -109,15 +109,15 @@ public class PollingMessageRelayer implements MessageRelayer {
                     "appsToSubscribe", StringUtils.joinWithCommas(appIds),
                     "pollingInterval", relaySession.getPollingInterval(),
                     "nodeId", nodeId,
-                    "established", true,
+                    "primary", true,
                     "alive", true
             );
         } else if (messageRelayManager.isGatewayMode()) {
             String nodeInfo = messageRelayManager.getNodeRegistry().getNode(nodeId);
             return Map.of(
                     "nodeId", nodeId,
-                    "established", false,
-                    "alive", (nodeInfo != null ? nodeId : StringUtils.EMPTY)
+                    "primary", false,
+                    "alive", (nodeInfo != null)
             );
         } else {
             return null;

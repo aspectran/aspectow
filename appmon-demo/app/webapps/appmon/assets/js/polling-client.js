@@ -48,22 +48,18 @@ class PollingClient extends BaseClient {
             },
             success: (data) => {
                 if (data) {
-                    if (data.established && !data.appsToSubscribe) {
+                    if (data.primary && !data.appsToSubscribe) {
                         console.warn("No verified apps found. Please check the configuration of the backend.");
                         return;
                     }
 
-                    if (data.established) {
+                    if (data.primary) {
                         this.retryCount = 0;
                         this.node.endpoint['mode'] = "polling";
                         this.node.endpoint['pollingInterval'] = data.pollingInterval;
                     }
 
-                     this.primaryConnection(data.nodeId, data.established, data.alive);
-
-                    // if (data.messages) {
-                    //     this.processMessages(data.messages);
-                    // }
+                     this.establish(data.nodeId, data.primary, data.alive);
 
                     if (this.primary && !this.stopped) {
                         this.polling(data.appsToSubscribe);
@@ -154,15 +150,11 @@ class PollingClient extends BaseClient {
 
                 if (this.primary) {
                     // Data messages
-                    if (this.isGatewayMode) {
-                        const viewer = this.clusterViewers[nodeId];
-                        if (viewer) {
-                            viewer.processMessage(message);
-                        } else {
-                            console.warn("No viewer registered for nodeId:", nodeId, "Message:", message);
-                        }
+                    const viewer = this.getViewer(nodeId);
+                    if (viewer) {
+                        viewer.processMessage(message);
                     } else {
-                        this.viewer.processMessage(message);
+                        console.warn("No viewer registered for nodeId:", nodeId, "Message:", message);
                     }
                 } else {
                     console.error("Unexpected message received before primary connection established:", message);
@@ -171,13 +163,13 @@ class PollingClient extends BaseClient {
         }
     }
 
-    primaryConnection(nodeId, primary, alive) {
+    establish(nodeId, primary, alive) {
         if (primary) {
             this.primary = true;
             this.primaryNodeId = nodeId;
         }
 
-        const config = this.isGatewayMode ? this.clusterNodes[nodeId] : this;
+        const config = this.getNodeConfig(nodeId);
         if (config) {
             config.node.alive = !!alive;
             if (config.onSubscribed && !config.node.subscribed) {
@@ -185,13 +177,14 @@ class PollingClient extends BaseClient {
             }
         }
 
-        const viewer = this.isGatewayMode ? this.clusterViewers[nodeId] : this.viewer;
+        const viewer = this.getViewer(nodeId);
         if (!alive) {
             viewer.printMessage("Node " + nodeId + " not alive");
+        } else {
+            viewer.printMessage("Polling every " + this.node.endpoint.pollingInterval + " milliseconds.");
         }
         if (primary) {
             if (config && config.onPrimary) config.onPrimary(config.node);
-            viewer.printMessage("Polling every " + this.node.endpoint.pollingInterval + " milliseconds.");
             this.sendCommand(["command:established"], nodeId);
         }
     }
@@ -201,7 +194,7 @@ class PollingClient extends BaseClient {
             let arr = options.slice();
             arr.push("nodeId:" + (nodeId || this.primaryNodeId));
             const cmd = arr.join(";");
-            console.log("command:", cmd);
+            console.log("send", cmd);
             if (!this.pendingCommands.includes(cmd)) {
                 this.pendingCommands.push(cmd);
             }

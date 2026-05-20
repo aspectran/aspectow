@@ -56,7 +56,7 @@ class DashboardBuilder {
                             alive: false,
                             primary: false,
                             subscribed: false,
-                            subscribeCount: 0
+                            subscribeAttempts: 0
                         };
                         node.endpoint.mode = node.endpoint.mode || "auto";
                         node.endpoint.path = basePath + node.endpoint.path + "/" + node.id;
@@ -99,28 +99,28 @@ class DashboardBuilder {
         const isGatewayMode = (this.settings.clusterMode === "gateway");
 
         const onSubscribed = (node) => {
-            if (node.subscribed && node.subscribeCount > 0) return;
+            if (node.subscribed && node.subscribeAttempts > 0) return;
             this.clearConsole(node.index);
             node.subscribed = true;
-            node.subscribeCount++;
-            console.log(node.id, "join count:", node.subscribeCount);
+            node.subscribeAttempts++;
+            console.log(node.id, "subscribe attempts:", node.subscribeAttempts);
             this.changeNodeState(node);
             viewer.setEnable(true);
             if (node.active && node.alive) {
                 viewer.setVisible(true);
             }
-            if (node.subscribeCount === 1) {
+            if (node.subscribeAttempts === 1) {
                 this.initView();
             } else {
                 this.clearSessions(node.index);
             }
-            if (node.subscribeCount === 1 && nodeIndex + 1 < this.nodes.length) {
+            if (node.subscribeAttempts === 1 && nodeIndex + 1 < this.nodes.length) {
                 this.connect(nodeIndex + 1, appsToSubscribe);
             }
         };
 
         const onPrimary = (node) => {
-            console.log("primary:", node.id);
+            console.log("primary connection node:", node.id);
             node.primary = true;
         };
 
@@ -134,6 +134,8 @@ class DashboardBuilder {
             this.changeNodeState(node, true);
         };
 
+        console.log("connecting node index:", nodeIndex);
+
         if (isGatewayMode && this.sharedClient) {
             this.sharedClient.addClusterViewer(node.id, viewer);
             this.sharedClient.addClusterNode(node, onSubscribed, onPrimary);
@@ -145,7 +147,6 @@ class DashboardBuilder {
             return;
         }
 
-        console.log("connecting node index:", nodeIndex);
         let client;
         if (node.endpoint.mode === "polling") {
             client = new PollingClient(node, viewer, onSubscribed, onPrimary, onClosed, onFailed, isGatewayMode);
