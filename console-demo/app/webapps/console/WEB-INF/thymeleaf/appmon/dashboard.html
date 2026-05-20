@@ -193,13 +193,13 @@
     <script layout:fragment="script" th:inline="javascript">
         $(function () {
             const basePath = [[@{/}]].replace(/\/$/, '');
-            const appsToJoin = [[${page.appsToJoin}]];
+            const appsToSubscribe = [[${page.appsToSubscribe}]];
             const options = {
                 // flagsUrl: "https://cdn.jsdelivr.net/gh/aspectran/aspectran-assets@main/assets/countries/flags/"
             };
             const urlParams = new URLSearchParams(window.location.search);
             const nodeId = urlParams.get('nodeId');
-            new DashboardBuilder(options).build(basePath, appsToJoin, nodeId);
+            new DashboardBuilder(options).build(basePath, appsToSubscribe, nodeId);
         });
     </script>
 </body>

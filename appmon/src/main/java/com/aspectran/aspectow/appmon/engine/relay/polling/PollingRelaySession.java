@@ -25,7 +25,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * Represents a client session for the {@link PollingMessageRelayer}.
- * It manages session-specific state like timeouts, polling intervals, and joined apps.
+ * It manages session-specific state like timeouts, polling intervals, and subscribed apps.
  *
  * <p>Created: 2020. 12. 24.</p>
  */
@@ -53,7 +53,7 @@ public class PollingRelaySession implements RelaySession {
 
     private boolean expired;
 
-    private String[] joinedApps;
+    private String[] subscribedApps;
 
     private String timeZone;
 
@@ -92,18 +92,18 @@ public class PollingRelaySession implements RelaySession {
     }
 
     @Override
-    public String[] getJoinedApps() {
-        return joinedApps;
+    public String[] getSubscribedApps() {
+        return subscribedApps;
     }
 
     @Override
-    public void setJoinedApps(String[] appIds) {
-        this.joinedApps = appIds;
+    public void setSubscribedApps(String[] appIds) {
+        this.subscribedApps = appIds;
     }
 
     @Override
-    public void removeJoinedApps() {
-        this.joinedApps = null;
+    public void removeSubscribedApps() {
+        this.subscribedApps = null;
     }
 
     @Override
@@ -121,8 +121,8 @@ public class PollingRelaySession implements RelaySession {
     }
 
     @Override
-    public void setFocusedAppId(String focusedAppId) {
-        this.focusedAppId = focusedAppId;
+    public void setFocusedAppId(String appId) {
+        this.focusedAppId = appId;
     }
 
     /**

@@ -46,7 +46,7 @@ import static com.aspectran.aspectow.node.manager.NodeMessageProtocol.NODES_BASE
 
 /**
  * An {@link MessageRelayer} implementation based on HTTP long-polling.
- * Clients connect to join, then periodically pull for new messages.
+ * Clients connect to subscribe, then periodically pull for new messages.
  *
  * <p>Created: 2020. 12. 24.</p>
  */
@@ -85,18 +85,18 @@ public class PollingMessageRelayer implements MessageRelayer {
     }
 
     /**
-     * Allows a client to join and start a polling session.
+     * Allows a client to subscribe and start a polling session.
      * @param translet the current translet
      * @return a map containing the app info, and initial messages
      * @throws IOException if an I/O error occurs
      */
-    @RequestToPost("/polling/join")
+    @RequestToPost("/polling/subscribe")
     @Transform(FormatType.JSON)
-    public Map<String, Object> join(@NonNull Translet translet) throws IOException {
+    public Map<String, Object> subscribe(@NonNull Translet translet) throws IOException {
         String nodeId = translet.getParameter("nodeId");
         if (messageRelayManager.isSameNode(nodeId)) {
-            String appsToJoin = translet.getParameter("appsToJoin");
-            String[] appIds = StringUtils.splitWithComma(appsToJoin);
+            String appsToSubscribe = translet.getParameter("appsToSubscribe");
+            String[] appIds = StringUtils.splitWithComma(appsToSubscribe);
             appIds = appMonManager.getVerifiedAppIds(appIds);
 
             PollingRelaySession relaySession = pollingSessionManager.createSession(translet, appIds);
@@ -106,7 +106,7 @@ public class PollingMessageRelayer implements MessageRelayer {
             }
             messageRelayManager.registerSession(relaySession.getId(), this);
             return Map.of(
-                    "appsToJoin", StringUtils.joinWithCommas(appIds),
+                    "appsToSubscribe", StringUtils.joinWithCommas(appIds),
                     "pollingInterval", relaySession.getPollingInterval(),
                     "nodeId", nodeId,
                     "established", true,

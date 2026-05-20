@@ -7,8 +7,8 @@
  * HTTP Polling implementation of the AppMon client.
  */
 class PollingClient extends BaseClient {
-    constructor(node, viewer, onJoined, onPrimary, onClosed, onFailed, isGatewayMode = false) {
-        super(node, viewer, onJoined, onPrimary, onClosed, onFailed, isGatewayMode);
+    constructor(node, viewer, onSubscribed, onPrimary, onClosed, onFailed, isGatewayMode = false) {
+        super(node, viewer, onSubscribed, onPrimary, onClosed, onFailed, isGatewayMode);
         this.pendingCommands = [];
         this.pollingTimer = null;
         this.stopped = false;
@@ -18,13 +18,13 @@ class PollingClient extends BaseClient {
         this.clusterViewers[nodeId] = viewer;
     }
 
-    addClusterNode(node, onJoined, onPrimary) {
-        this.clusterNodes[node.id] = {node, onJoined, onPrimary};
+    addClusterNode(node, onSubscribed, onPrimary) {
+        this.clusterNodes[node.id] = {node, onSubscribed, onPrimary};
     }
 
-    start(appsToJoin) {
+    start(appsToSubscribe) {
         this.stopped = false;
-        this.connect(this.node.id, appsToJoin);
+        this.connect(this.node.id, appsToSubscribe);
     }
 
     stop() {
@@ -36,19 +36,19 @@ class PollingClient extends BaseClient {
         }
     }
 
-    connect(nodeId, appsToJoin) {
+    connect(nodeId, appsToSubscribe) {
         $.ajax({
-            url: this.node.endpoint.path + "/appmon/polling/join",
+            url: this.node.endpoint.path + "/appmon/polling/subscribe",
             type: "post",
             dataType: "json",
             data: {
                 nodeId: nodeId,
                 timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-                appsToJoin: appsToJoin
+                appsToSubscribe: appsToSubscribe
             },
             success: (data) => {
                 if (data) {
-                    if (data.established && !data.appsToJoin) {
+                    if (data.established && !data.appsToSubscribe) {
                         console.warn("No verified apps found. Please check the configuration of the backend.");
                         return;
                     }
@@ -66,23 +66,23 @@ class PollingClient extends BaseClient {
                     // }
 
                     if (this.primary && !this.stopped) {
-                        this.polling(data.appsToJoin);
+                        this.polling(data.appsToSubscribe);
                     }
                 } else {
                     console.log(this.node.id, "connection failed");
                     this.viewer.printErrorMessage("Connection failed.");
-                    this.reconnect(appsToJoin);
+                    this.reconnect(appsToSubscribe);
                 }
             },
             error: (xhr, status, error) => {
                 console.log(this.node.id, "connection failed", error);
                 this.viewer.printErrorMessage("Connection failed.");
-                this.reconnect(appsToJoin);
+                this.reconnect(appsToSubscribe);
             }
         });
     }
 
-    polling(appsToJoin) {
+    polling(appsToSubscribe) {
         if (this.stopped) return;
         let commands = null;
         if (this.pendingCommands.length) {
@@ -101,13 +101,13 @@ class PollingClient extends BaseClient {
                 if (data && data.messages) {
                     this.processMessages(data.messages);
                     this.pollingTimer = setTimeout(() => {
-                        this.polling(appsToJoin);
+                        this.polling(appsToSubscribe);
                     }, this.node.endpoint.pollingInterval);
                 } else {
                     console.log(this.node.id, "connection lost");
                     this.viewer.printErrorMessage("Connection lost.");
                     if (this.onClosed) this.onClosed(this.node);
-                    this.reconnect(appsToJoin);
+                    this.reconnect(appsToSubscribe);
                 }
             },
             error: (xhr, status, error) => {
@@ -115,7 +115,7 @@ class PollingClient extends BaseClient {
                 console.log(this.node.id, "connection lost", error);
                 this.viewer.printErrorMessage("Connection lost.");
                 if (this.onClosed) this.onClosed(this.node);
-                this.reconnect(appsToJoin);
+                this.reconnect(appsToSubscribe);
             }
         });
     }
@@ -180,8 +180,8 @@ class PollingClient extends BaseClient {
         const config = this.isGatewayMode ? this.clusterNodes[nodeId] : this;
         if (config) {
             config.node.alive = !!alive;
-            if (config.onJoined && !config.node.joined) {
-                config.onJoined(config.node);
+            if (config.onSubscribed && !config.node.subscribed) {
+                config.onSubscribed(config.node);
             }
         }
 

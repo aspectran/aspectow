@@ -75,7 +75,7 @@ public class PollingSessionManager extends AbstractComponent {
     /**
      * Creates a new polling session or retrieves an existing one.
      * @param translet the current translet
-     * @param appIds the IDs of the apps to join
+     * @param appIds the IDs of the apps to subscribe to
      * @return a new or existing {@link PollingRelaySession}
      */
     public PollingRelaySession createSession(@NonNull Translet translet, String[] appIds) {
@@ -96,7 +96,7 @@ public class PollingSessionManager extends AbstractComponent {
             PollingRelaySession newSession = new PollingRelaySession(sessionId, this);
             newSession.setSessionTimeout(sessionTimeout);
             newSession.setPollingInterval(pollingInterval);
-            newSession.setJoinedApps(appIds);
+            newSession.setSubscribedApps(appIds);
             existingSession = sessions.put(sessionId, newSession);
             if (existingSession != null) {
                 return existingSession;

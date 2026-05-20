@@ -34,15 +34,13 @@ public class CommandOptions extends DefaultParameters {
 
     public static final String COMMAND_PING = "ping";
 
-    public static final String COMMAND_JOIN = "join";
+    public static final String COMMAND_SUBSCRIBE = "subscribe";
+
+    public static final String COMMAND_UNSUBSCRIBE = "unsubscribe";
 
     public static final String COMMAND_ESTABLISHED = "established";
 
     public static final String COMMAND_RELEASE = "release";
-
-    public static final String COMMAND_SUBSCRIBE = "subscribe";
-
-    public static final String COMMAND_UNSUBSCRIBE = "unsubscribe";
 
     /** Command to refresh the current view or data */
     public static final String COMMAND_REFRESH = "refresh";
@@ -56,7 +54,7 @@ public class CommandOptions extends DefaultParameters {
     private static final ParameterKey command;
     private static final ParameterKey nodeId;
     private static final ParameterKey appId;
-    private static final ParameterKey appsToJoin;
+    private static final ParameterKey appsToSubscribe;
     private static final ParameterKey timeZone;
     private static final ParameterKey dateUnit;
     private static final ParameterKey dateOffset;
@@ -70,7 +68,7 @@ public class CommandOptions extends DefaultParameters {
         command = new ParameterKey("command", ValueType.STRING);
         nodeId = new ParameterKey("nodeId", ValueType.STRING);
         appId = new ParameterKey("appId", ValueType.STRING);
-        appsToJoin = new ParameterKey("appsToJoin", ValueType.STRING);
+        appsToSubscribe = new ParameterKey("appsToSubscribe", ValueType.STRING);
         timeZone = new ParameterKey("timeZone", ValueType.STRING);
         dateUnit = new ParameterKey("dateUnit", ValueType.STRING);
         dateOffset = new ParameterKey("dateOffset", ValueType.STRING);
@@ -82,7 +80,7 @@ public class CommandOptions extends DefaultParameters {
                 command,
                 nodeId,
                 appId,
-                appsToJoin,
+                appsToSubscribe,
                 timeZone,
                 dateUnit,
                 dateOffset,
@@ -182,19 +180,19 @@ public class CommandOptions extends DefaultParameters {
     }
 
     /**
-     * Returns the list of instances to join, usually as a comma-separated string.
-     * @return the instances to join
+     * Returns the list of instances to subscribe to, usually as a comma-separated string.
+     * @return the instances to subscribe to
      */
-    public String getAppsToJoin() {
-        return getString(appsToJoin);
+    public String getAppsToSubscribe() {
+        return getString(appsToSubscribe);
     }
 
     /**
-     * Sets the list of instances to join.
-     * @param appsToJoin the instances to join
+     * Sets the list of instances to subscribe to.
+     * @param appsToSubscribe the instances to subscribe to
      */
-    public void setAppsToJoin(String appsToJoin) {
-        putValue(CommandOptions.appsToJoin, appsToJoin);
+    public void setAppsToSubscribe(String appsToSubscribe) {
+        putValue(CommandOptions.appsToSubscribe, appsToSubscribe);
     }
 
     /**

@@ -35,14 +35,14 @@ public class SubscriptionRegistry {
     /** appId -> Set of remote node IDs */
     private final Map<String, Set<String>> remoteSubscriptions = new ConcurrentHashMap<>();
 
-    /** session ID -> Array of joined app IDs */
+    /** session ID -> Array of subscribeed app IDs */
     private final Map<String, String[]> sessionToApps = new ConcurrentHashMap<>();
 
-    public void addLocalSubscription(String sessionId, String[] joinedApps) {
+    public void addLocalSubscription(String sessionId, String[] subscribedApps) {
         Assert.hasLength(sessionId, "sessionId must not be null or empty");
-        Assert.notEmpty(joinedApps, "joinedApps must not be null or empty");
-        sessionToApps.put(sessionId, joinedApps);
-        for (String appId : joinedApps) {
+        Assert.notEmpty(subscribedApps, "subscribedApps must not be null or empty");
+        sessionToApps.put(sessionId, subscribedApps);
+        for (String appId : subscribedApps) {
             localSubscriptions.computeIfAbsent(appId, k -> ConcurrentHashMap.newKeySet()).add(sessionId);
         }
     }

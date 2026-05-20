@@ -22,13 +22,13 @@ import jakarta.websocket.Session;
 
 /**
  * A {@link RelaySession} implementation that wraps a JSR-356 {@link Session}.
- * It stores session-specific data, like joined instances, in the WebSocket session's user properties.
+ * It stores session-specific data, like subscribeed instances, in the WebSocket session's user properties.
  *
  * <p>Created: 2020. 12. 24.</p>
  */
 public class WebsocketRelaySession extends WrappedSession implements RelaySession {
 
-    private static final String JOINED_APPS_PROPERTY = "appmon:joinedApps";
+    private static final String SUBSCRIBED_APPS_PROPERTY = "appmon:subscribedApps";
 
     private static final String TIME_ZONE_PROPERTY = "appmon:timeZone";
 
@@ -48,19 +48,19 @@ public class WebsocketRelaySession extends WrappedSession implements RelaySessio
     }
 
     @Override
-    public String[] getJoinedApps() {
-        return (String[])getSession().getUserProperties().get(JOINED_APPS_PROPERTY);
+    public String[] getSubscribedApps() {
+        return (String[])getSession().getUserProperties().get(SUBSCRIBED_APPS_PROPERTY);
     }
 
     @Override
-    public void setJoinedApps(String[] appIds) {
+    public void setSubscribedApps(String[] appIds) {
         Assert.notNull(appIds, "appIds must not be null");
-        getSession().getUserProperties().put(JOINED_APPS_PROPERTY, appIds);
+        getSession().getUserProperties().put(SUBSCRIBED_APPS_PROPERTY, appIds);
     }
 
     @Override
-    public void removeJoinedApps() {
-        getSession().getUserProperties().remove(JOINED_APPS_PROPERTY);
+    public void removeSubscribedApps() {
+        getSession().getUserProperties().remove(SUBSCRIBED_APPS_PROPERTY);
     }
 
     @Override

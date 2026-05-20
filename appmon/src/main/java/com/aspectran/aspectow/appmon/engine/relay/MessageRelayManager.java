@@ -39,7 +39,7 @@ import static com.aspectran.aspectow.appmon.engine.relay.CommandOptions.COMMAND_
 
 /**
  * Manages all {@link MessageRelayer} and {@link ExporterManager} apps.
- * This class is a central hub for handling client sessions (join/release),
+ * This class is a central hub for handling client sessions (subscribe/release),
  * collecting messages from exporters, and relaying them to clients.
  *
  * <p>Created: 2025-02-12</p>
@@ -302,20 +302,20 @@ public class MessageRelayManager {
     }
 
     /**
-     * Handles a client joining to monitor apps.
-     * Starts the necessary exporters for the joined apps.
-     * @param session the client session that is joining
-     * @return {@code true} if the join was successful, {@code false} otherwise
+     * Handles a client subscribing to monitor apps.
+     * Starts the necessary exporters for the subscribeed apps.
+     * @param session the client session that is subscribing
+     * @return {@code true} if the subscribe was successful, {@code false} otherwise
      */
     public synchronized boolean subscribe(@NonNull RelaySession session) {
         if (!session.isValid()) {
             return false;
         }
-        String[] joinedApps = session.getJoinedApps();
-        if (joinedApps == null || joinedApps.length == 0) {
+        String[] subscribedApps = session.getSubscribedApps();
+        if (subscribedApps == null || subscribedApps.length == 0) {
             return false;
         }
-        for (String appId : joinedApps) {
+        for (String appId : subscribedApps) {
             if (!subscriptionRegistry.isAppInUse(appId)) {
                 startExporters(appId);
             }
@@ -332,7 +332,7 @@ public class MessageRelayManager {
                 }
             }
         }
-        subscriptionRegistry.addLocalSubscription(session.getId(), joinedApps);
+        subscriptionRegistry.addLocalSubscription(session.getId(), subscribedApps);
         return true;
     }
 
@@ -357,9 +357,9 @@ public class MessageRelayManager {
      */
     public synchronized void unsubscribe(@NonNull RelaySession session) {
         subscriptionRegistry.removeLocalSubscription(session.getId());
-        String[] joinedApps = session.getJoinedApps();
-        if (joinedApps != null) {
-            for (String appId : joinedApps) {
+        String[] subscribedApps = session.getSubscribedApps();
+        if (subscribedApps != null) {
+            for (String appId : subscribedApps) {
                 if (!subscriptionRegistry.isAppInUse(appId)) {
                     stopExporters(appId);
                 }
@@ -376,7 +376,7 @@ public class MessageRelayManager {
                 }
             }
         }
-        session.removeJoinedApps();
+        session.removeSubscribedApps();
     }
 
     public synchronized void unsubscribeRemotely(CommandOptions commandOptions) {
@@ -422,7 +422,7 @@ public class MessageRelayManager {
     }
 
     /**
-     * Gets the last known messages for the apps joined by the session.
+     * Gets the last known messages for the apps subscribeed by the session.
      * @param session the client session
      * @return a list of messages
      */
@@ -433,9 +433,9 @@ public class MessageRelayManager {
         List<String> messages = new ArrayList<>();
         CommandOptions commandOptions = new CommandOptions();
         commandOptions.setTimeZone(session.getTimeZone());
-        String[] joinedApps = session.getJoinedApps();
-        if (joinedApps != null && joinedApps.length > 0) {
-            for (String appId : joinedApps) {
+        String[] subscribedApps = session.getSubscribedApps();
+        if (subscribedApps != null && subscribedApps.length > 0) {
+            for (String appId : subscribedApps) {
                 commandOptions.setAppId(appId);
                 collectLastMessages(messages, commandOptions);
             }
@@ -471,7 +471,7 @@ public class MessageRelayManager {
         String appId = commandOptions.getAppId();
         List<String> messages = new ArrayList<>();
         if (session == null || session.isValid()) {
-            String[] appIds = (session != null ? session.getJoinedApps() : null);
+            String[] appIds = (session != null ? session.getSubscribedApps() : null);
             if (appIds != null) {
                 for (String id : appIds) {
                     if (appId == null || id.equals(appId)) {

@@ -8,12 +8,12 @@
  * Provides common functionality for connection management and retries.
  */
 class BaseClient {
-    constructor(node, viewer, onJoined, onPrimary, onClosed, onFailed, isGatewayMode) {
+    constructor(node, viewer, onSubscribed, onPrimary, onClosed, onFailed, isGatewayMode) {
         this.node = node;
         this.viewer = viewer;
         this.clusterViewers = {};
         this.clusterNodes = {};
-        this.onJoined = onJoined;
+        this.onSubscribed = onSubscribed;
         this.onPrimary = onPrimary;
         this.onClosed = onClosed;
         this.onFailed = onFailed;
@@ -29,15 +29,15 @@ class BaseClient {
         this.clusterViewers[nodeId] = viewer;
     }
 
-    addClusterNode(node, onJoined, onPrimary) {
-        this.clusterNodes[node.id] = {node, onJoined, onPrimary};
+    addClusterNode(node, onSubscribed, onPrimary) {
+        this.clusterNodes[node.id] = {node, onSubscribed, onPrimary};
     }
 
     /**
      * Starts the client connection.
-     * @param {string} [appsToJoin] - Names of apps to join.
+     * @param {string} [appsToSubscribe] - Names of apps to join.
      */
-    start(appsToJoin) {
+    start(appsToSubscribe) {
         throw new Error("Method 'start()' must be implemented.");
     }
 
@@ -88,16 +88,16 @@ class BaseClient {
 
     /**
      * Handles reconnection logic when a connection is lost or fails.
-     * @param {string} [appsToJoin] - Names of apps to join.
+     * @param {string} [appsToSubscribe] - Names of apps to join.
      */
-    reconnect(appsToJoin) {
+    reconnect(appsToSubscribe) {
         if (this.retryCount++ < this.maxRetries) {
             const retryInterval = (this.retryInterval * this.retryCount) + (this.node.index * 200) + this.node.random1000;
             const status = "(" + this.retryCount + "/" + this.maxRetries + ", interval=" + retryInterval + ")";
             console.log(this.node.id, "trying to reconnect", status);
             this.viewer.printMessage("Trying to reconnect... " + status);
             setTimeout(() => {
-                this.start(appsToJoin);
+                this.start(appsToSubscribe);
             }, retryInterval);
         } else {
             console.log(this.node.id, "abort reconnect attempt");

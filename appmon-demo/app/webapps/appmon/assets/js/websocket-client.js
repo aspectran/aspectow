@@ -8,23 +8,23 @@
  * In Gateway Mode, it manages a single physical connection for the entire cluster.
  */
 class WebsocketClient extends BaseClient {
-    constructor(node, viewer, onJoined, onPrimary, onClosed, onFailed, isGatewayMode) {
-        super(node, viewer, onJoined, onPrimary, onClosed, onFailed, isGatewayMode);
+    constructor(node, viewer, onSubscribed, onPrimary, onClosed, onFailed, isGatewayMode) {
+        super(node, viewer, onSubscribed, onPrimary, onClosed, onFailed, isGatewayMode);
         this.heartbeatInterval = 5000;
         this.socket = null;
         this.heartbeatTimer = null;
         this.pendingMessages = [];
     }
 
-    start(appsToJoin) {
-        this.openSocket(appsToJoin);
+    start(appsToSubscribe) {
+        this.openSocket(appsToSubscribe);
     }
 
     stop() {
         this.closeSocket();
     }
 
-    openSocket(appsToJoin) {
+    openSocket(appsToSubscribe) {
         this.closeSocket(false);
         const url = new URL(this.node.endpoint.path + "/appmon/websocket/" + this.node.endpoint.token, location.href);
         url.protocol = url.protocol.replace("https:", "wss:").replace("http:", "ws:");
@@ -37,7 +37,7 @@ class WebsocketClient extends BaseClient {
             this.pendingMessages.push("Socket connection successful");
             
             // Connect to the first node
-            this.connect(this.node.id, appsToJoin);
+            this.connect(this.node.id, appsToSubscribe);
             this.heartbeatPing();
             this.retryCount = 0;
         };
@@ -62,8 +62,8 @@ class WebsocketClient extends BaseClient {
                 }
 
                 // Control messages in Gateway Mode
-                if (this.isGatewayMode && message.startsWith(":joined:")) {
-                    const alive = (message === ":joined:alive");
+                if (this.isGatewayMode && message.startsWith(":subscribed:")) {
+                    const alive = (message === ":subscribed:alive");
                     this.primaryConnection(nodeId, false, alive);
                     return;
                 }
@@ -79,8 +79,8 @@ class WebsocketClient extends BaseClient {
                 } else {
                     this.viewer.processMessage(message);
                 }
-            } else if (message.startsWith(":joined:")) {
-                const primary = (message === ":joined:established");
+            } else if (message.startsWith(":subscribed:")) {
+                const primary = (message === ":subscribed:established");
                 this.primaryConnection(nodeId, primary, true);
             } else {
                 console.error("Unexpected message received before primary connection established:", message);
@@ -93,7 +93,7 @@ class WebsocketClient extends BaseClient {
                 this.onClosed(this.node);
             }
             if (!event || event.code !== 1000) {
-                this.reconnect(appsToJoin);
+                this.reconnect(appsToSubscribe);
             }
         };
 
@@ -120,11 +120,11 @@ class WebsocketClient extends BaseClient {
         }
     }
 
-    connect(nodeId, appsToJoin) {
-        const options = ["command:join"];
+    connect(nodeId, appsToSubscribe) {
+        const options = ["command:subscribe"];
         options.push("timeZone:" + Intl.DateTimeFormat().resolvedOptions().timeZone);
-        if (appsToJoin) {
-            options.push("appsToJoin:" + appsToJoin);
+        if (appsToSubscribe) {
+            options.push("appsToSubscribe:" + appsToSubscribe);
         }
         this.sendCommand(options, nodeId);
     }
@@ -138,8 +138,8 @@ class WebsocketClient extends BaseClient {
         const config = this.isGatewayMode ? this.clusterNodes[nodeId] : this;
         if (config) {
             config.node.alive = !!alive;
-            if (config.onJoined && !config.node.joined) {
-                config.onJoined(config.node);
+            if (config.onSubscribed && !config.node.subscribed) {
+                config.onSubscribed(config.node);
             }
         }
 

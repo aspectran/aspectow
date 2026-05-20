@@ -58,41 +58,41 @@ public class DashboardActivity {
 
     /**
      * Displays the main monitoring page.
-     * @param appsToJoin the comma-separated list of instances to monitor
+     * @param appsToSubscribe the comma-separated list of instances to monitor
      * @return a map of attributes for rendering the view
      */
     @Request("/dashboard/${apps}")
     @Dispatch("appmon/dashboard")
     @Action("page")
-    public Map<String, String> dashboard(String appsToJoin) {
+    public Map<String, String> dashboard(String appsToSubscribe) {
         return Map.of(
                 "headinclude", "appmon/_nodes",
                 "style", "fluid compact",
-                "appsToJoin", StringUtils.nullToEmpty(appsToJoin)
+                "appsToSubscribe", StringUtils.nullToEmpty(appsToSubscribe)
         );
     }
 
     /**
      * Provides configuration data to a backend agent.
-     * @param appsToJoin a comma-separated list of instance names to get configuration for
+     * @param appsToSubscribe a comma-separated list of instance names to get configuration for
      * @return a {@link RestResponse} containing the configuration data
      */
     @RequestToGet("/appmon/config/data")
-    public RestResponse getConfigData(String appsToJoin) {
+    public RestResponse getConfigData(String appsToSubscribe) {
         Map<String, Object> settings = Map.of(
                 "counterPersistInterval", appMonManager.getCounterPersistInterval()
         );
 
         List<NodeInfo> nodeInfoList = appMonManager.getNodeInfoList();
 
-        String[] appIds = StringUtils.splitWithComma(appsToJoin);
+        String[] appIds = StringUtils.splitWithComma(appsToSubscribe);
         String[] verifiedAppIds = appMonManager.getVerifiedAppIds(appIds);
         List<AppInfo> appInfoList = appMonManager.getAppInfoList(appIds);
 
         Map<String, Object> data = Map.of(
                 "token", AppMonTokenIssuer.issueToken(30),
                 "myNodeId", appMonManager.getNodeId(),
-                "verifiedAppIds", StringUtils.joinWithCommas(verifiedAppIds),
+                "appsToSubscribe", StringUtils.joinWithCommas(verifiedAppIds),
                 "settings", settings,
                 "nodes", nodeInfoList,
                 "apps", appInfoList

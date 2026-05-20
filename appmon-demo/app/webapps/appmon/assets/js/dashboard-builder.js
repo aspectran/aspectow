@@ -18,19 +18,19 @@ class DashboardBuilder {
         this.clients = [];
     }
 
-    build(basePath, appsToJoin, nodeIdToJoin) {
+    build(basePath, appsToSubscribe, nodeIdToJoin) {
         this.basePath = basePath;
-        this.appsToJoin = appsToJoin;
+        this.appsToSubscribe = appsToSubscribe;
         this.nodeIdToJoin = nodeIdToJoin;
         this.clearView();
         $.ajax({
             url: basePath + "/appmon/config/data",
             type: "get",
             dataType: "json",
-            data: appsToJoin ? { appsToJoin: appsToJoin } : null,
+            data: appsToSubscribe ? { appsToSubscribe: appsToSubscribe } : null,
             success: (data) => {
                 if (data) {
-                    if (!data.appsToJoin) {
+                    if (!data.appsToSubscribe) {
                         alert("No verified apps found. Please check the configuration of the backend.");
                         return;
                     }
@@ -55,8 +55,8 @@ class DashboardBuilder {
                             active: true,
                             alive: false,
                             primary: false,
-                            joined: false,
-                            joinCount: 0
+                            subscribed: false,
+                            subscribeCount: 0
                         };
                         node.endpoint.mode = node.endpoint.mode || "auto";
                         node.endpoint.path = basePath + node.endpoint.path + "/" + node.id;
@@ -75,7 +75,7 @@ class DashboardBuilder {
                     this.buildView();
                     this.bindEvents();
                     if (this.nodes.length) {
-                        this.connect(0, data.appsToJoin);
+                        this.connect(0, data.appsToSubscribe);
                     }
                 }
             },
@@ -92,30 +92,30 @@ class DashboardBuilder {
         return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 
-    connect(nodeIndex, appsToJoin) {
+    connect(nodeIndex, appsToSubscribe) {
         const node = this.nodes[nodeIndex];
-        if (node.joined) return;
+        if (node.subscribed) return;
         const viewer = this.viewers[nodeIndex];
         const isGatewayMode = (this.settings.clusterMode === "gateway");
 
-        const onJoined = (node) => {
-            if (node.joined && node.joinCount > 0) return;
+        const onSubscribed = (node) => {
+            if (node.subscribed && node.subscribeCount > 0) return;
             this.clearConsole(node.index);
-            node.joined = true;
-            node.joinCount++;
-            console.log(node.id, "join count:", node.joinCount);
+            node.subscribed = true;
+            node.subscribeCount++;
+            console.log(node.id, "join count:", node.subscribeCount);
             this.changeNodeState(node);
             viewer.setEnable(true);
             if (node.active && node.alive) {
                 viewer.setVisible(true);
             }
-            if (node.joinCount === 1) {
+            if (node.subscribeCount === 1) {
                 this.initView();
             } else {
                 this.clearSessions(node.index);
             }
-            if (node.joinCount === 1 && nodeIndex + 1 < this.nodes.length) {
-                this.connect(nodeIndex + 1, appsToJoin);
+            if (node.subscribeCount === 1 && nodeIndex + 1 < this.nodes.length) {
+                this.connect(nodeIndex + 1, appsToSubscribe);
             }
         };
 
@@ -125,7 +125,7 @@ class DashboardBuilder {
         };
 
         const onClosed = (node) => {
-            node.joined = false;
+            node.subscribed = false;
             this.changeNodeState(node);
             viewer.setEnable(false);
         };
@@ -136,30 +136,30 @@ class DashboardBuilder {
 
         if (isGatewayMode && this.sharedClient) {
             this.sharedClient.addClusterViewer(node.id, viewer);
-            this.sharedClient.addClusterNode(node, onJoined, onPrimary);
+            this.sharedClient.addClusterNode(node, onSubscribed, onPrimary);
             viewer.setClient(this.sharedClient);
             this.clients[node.index] = this.sharedClient;
 
             // Trigger explicit connection for this node over the shared connection
-            this.sharedClient.connect(node.id, appsToJoin);
+            this.sharedClient.connect(node.id, appsToSubscribe);
             return;
         }
 
         console.log("connecting node index:", nodeIndex);
         let client;
         if (node.endpoint.mode === "polling") {
-            client = new PollingClient(node, viewer, onJoined, onPrimary, onClosed, onFailed, isGatewayMode);
+            client = new PollingClient(node, viewer, onSubscribed, onPrimary, onClosed, onFailed, isGatewayMode);
         } else {
-            client = new WebsocketClient(node, viewer, onJoined, onPrimary, onClosed, onFailed, isGatewayMode);
+            client = new WebsocketClient(node, viewer, onSubscribed, onPrimary, onClosed, onFailed, isGatewayMode);
         }
         if (isGatewayMode) {
             this.sharedClient = client;
             client.addClusterViewer(node.id, viewer);
-            client.addClusterNode(node, onJoined, onPrimary);
+            client.addClusterNode(node, onSubscribed, onPrimary);
         }
         viewer.setClient(client);
         this.clients[nodeIndex] = client;
-        client.start(appsToJoin);
+        client.start(appsToSubscribe);
     }
 
     changeNode(nodeIndex) {
@@ -237,7 +237,7 @@ class DashboardBuilder {
                            $indicator.data("icon-error") + " error");
         if (errorOccurred) {
             $indicator.addClass($indicator.data("icon-error") + " error");
-        } else if (node.joined) {
+        } else if (node.subscribed) {
             $indicator.addClass($indicator.data("icon-connected") + " connected");
         } else {
             $indicator.addClass($indicator.data("icon-disconnected") + " disconnected");
@@ -361,7 +361,7 @@ class DashboardBuilder {
             });
         });
         $(".open-popup").off("click").on("click", (e) => {
-            const url = this.basePath + "/appmon/dashboard/popup/" + (this.appsToJoin || "");
+            const url = this.basePath + "/appmon/dashboard/popup/" + (this.appsToSubscribe || "");
             const name = "appmon_dashboard_popup";
             const features = "width=1200,height=800,menubar=no,toolbar=no,location=no,status=no,resizable=yes,scrollbars=yes";
             const popup = window.open(url, name, features);

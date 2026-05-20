@@ -39,10 +39,10 @@ import java.util.List;
 
 import static com.aspectran.aspectow.appmon.engine.relay.CommandOptions.COMMAND_ESTABLISHED;
 import static com.aspectran.aspectow.appmon.engine.relay.CommandOptions.COMMAND_FOCUS;
-import static com.aspectran.aspectow.appmon.engine.relay.CommandOptions.COMMAND_JOIN;
 import static com.aspectran.aspectow.appmon.engine.relay.CommandOptions.COMMAND_LOAD_PREVIOUS;
 import static com.aspectran.aspectow.appmon.engine.relay.CommandOptions.COMMAND_PING;
 import static com.aspectran.aspectow.appmon.engine.relay.CommandOptions.COMMAND_REFRESH;
+import static com.aspectran.aspectow.appmon.engine.relay.CommandOptions.COMMAND_SUBSCRIBE;
 import static com.aspectran.aspectow.node.manager.NodeMessageProtocol.NODES_BASE_PATH;
 
 /**
@@ -61,7 +61,7 @@ public class WebsocketMessageRelayer extends SimplifiedEndpoint implements Messa
     private static final Logger logger = LoggerFactory.getLogger(WebsocketMessageRelayer.class);
 
     private static final String RESPONSE_PONG = "pong:";
-    private static final String RESPONSE_JOINED = "joined:";
+    private static final String RESPONSE_SUBSCRIBED = "subscribed:";
 
     private final AppMonManager appMonManager;
 
@@ -120,8 +120,8 @@ public class WebsocketMessageRelayer extends SimplifiedEndpoint implements Messa
             case COMMAND_PING:
                 pong(session);
                 break;
-            case COMMAND_JOIN:
-                join(session, commandOptions);
+            case COMMAND_SUBSCRIBE:
+                subscribe(session, commandOptions);
                 break;
             case COMMAND_ESTABLISHED:
                 established(session, commandOptions);
@@ -148,7 +148,7 @@ public class WebsocketMessageRelayer extends SimplifiedEndpoint implements Messa
         sendText(session, appMonManager.getNodeId() + "::" + RESPONSE_PONG + newToken);
     }
 
-    private void join(Session session, @NonNull CommandOptions commandOptions) {
+    private void subscribe(Session session, @NonNull CommandOptions commandOptions) {
         String nodeId = commandOptions.getNodeId();
         if (!StringUtils.hasText(nodeId)) {
             return;
@@ -161,19 +161,19 @@ public class WebsocketMessageRelayer extends SimplifiedEndpoint implements Messa
                 if (StringUtils.hasText(timeZone)) {
                     relaySession.setTimeZone(timeZone);
                 }
-                String appsToJoin = commandOptions.getAppsToJoin();
-                String[] appIds = StringUtils.splitWithComma(appsToJoin);
+                String appsToSubscribe = commandOptions.getAppsToSubscribe();
+                String[] appIds = StringUtils.splitWithComma(appsToSubscribe);
                 appIds = appMonManager.getVerifiedAppIds(appIds);
                 if (appIds.length > 0) {
-                    relaySession.setJoinedApps(appIds);
+                    relaySession.setSubscribedApps(appIds);
                 }
-                relay(relaySession, nodeId + "::" + RESPONSE_JOINED + "established");
+                relay(relaySession, nodeId + "::" + RESPONSE_SUBSCRIBED + "established");
             }
         } else if (messageRelayManager.isGatewayMode()) {
             String nodeInfo = messageRelayManager.getNodeRegistry().getNode(nodeId);
             String alive = (nodeInfo != null ? "alive" : "");
             WebsocketRelaySession relaySession = new WebsocketRelaySession(session);
-            relay(relaySession, nodeId + "::" + RESPONSE_JOINED + alive);
+            relay(relaySession, nodeId + "::" + RESPONSE_SUBSCRIBED + alive);
         }
     }
 
