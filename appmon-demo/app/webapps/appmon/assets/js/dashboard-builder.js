@@ -338,7 +338,7 @@ class DashboardBuilder {
                    .console-box.available[data-app-id=${appId}]`).removeClass("col-lg-6");
             }
             this.viewers.forEach(v => v.updateCanvasWidth());
-            this.refreshData(appId);
+            this.refreshData(appId, false);
         });
         $(".date-unit-options .btn").off().on("click", (e) => {
             const $btn = $(e.currentTarget);
@@ -349,7 +349,7 @@ class DashboardBuilder {
             $btn.addClass("on");
             $controlBar.find(".date-offset-options").data("offset", "").find(".btn.current").removeClass("on");
             this.viewers.forEach(v => v.updateCanvasWidth());
-            this.refreshData(appId);
+            this.refreshData(appId, false);
         });
         $(".date-offset-options .btn").off().on("click", (e) => {
             const $btn = $(e.currentTarget);
@@ -357,13 +357,14 @@ class DashboardBuilder {
             const appId = $controlBar.data("app-id");
             const offset = $btn.data("offset") || "";
             const $parent = $btn.parent();
-            if (offset !== "current") $parent.find(".btn.current").addClass("on");
-            else {
+            if (offset !== "current") {
+                $parent.find(".btn.current").addClass("on");
+            } else {
                 $parent.find(".btn").addClass("on");
                 $parent.find(".btn.current").removeClass("on");
             }
             $parent.data("offset", offset);
-            this.refreshData(appId, offset);
+            this.refreshData(appId, false, offset);
         });
         $(".speed-options .btn").off().on("click", (e) => {
             const $btn = $(e.currentTarget);
@@ -491,15 +492,16 @@ class DashboardBuilder {
                 });
                 this.apps.forEach(app => {
                     if (!app.hidden) {
-                        this.refreshData(app.id);
+                        this.refreshData(app.id, true);
                     }
                 });
             }
         });
     }
 
-    refreshData(appId, dateOffset) {
+    refreshData(appId, withLogs, dateOffset) {
         const options = ["appId:" + appId];
+        if (withLogs) options.push("withLogs:true");
         const dateUnit = $(".control-bar[data-app-id=" + appId + "] .date-unit-options").data("unit");
         if (dateUnit) options.push("dateUnit:" + dateUnit);
         if (dateOffset === "previous") {
@@ -519,7 +521,7 @@ class DashboardBuilder {
             this.nodes.forEach(node => {
                 if (node.active && node.alive) {
                     this.viewers[node.index].setLoading(appId, true);
-                    this.clearConsole(node.index);
+                    if (withLogs) this.clearConsole(node.index);
                     this.clients[node.index].refresh(options, node.id);
                 }
             });

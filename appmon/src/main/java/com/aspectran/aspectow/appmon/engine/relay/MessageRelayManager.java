@@ -265,26 +265,6 @@ public class MessageRelayManager {
         return "log".equals(extractType(message));
     }
 
-//    @Nullable
-//    public RelaySession findRelaySession(String sessionId) {
-//        MessageRelayer relayer = sessionRelayerMap.get(sessionId);
-//        if (relayer != null) {
-//            return relayer.findRelaySession(sessionId);
-//        }
-//        return null;
-//    }
-//
-//    /**
-//     * Relays a message to a specific session via all registered relayers.
-//     * @param session the target relay session
-//     * @param message the message to relay
-//     */
-//    public void relay(RelaySession session, String message) {
-//        for (MessageRelayer relayer : messageRelayers) {
-//            relayer.relay(session, message);
-//        }
-//    }
-
     /**
      * Handles a client subscribing to monitor apps.
      * Starts the necessary exporters for the subscribeed apps.
@@ -377,22 +357,9 @@ public class MessageRelayManager {
         }
     }
 
-    public void refreshDataRemotely(CommandOptions commandOptions) {
-        Assert.notNull(commandOptions, "Command options must not be null");
-        if (messagePublisher != null) {
-            String nodeId = commandOptions.getNodeId();
-            String appId = commandOptions.getAppId();
-            String sessionId = commandOptions.getSessionId();
-            List<String> messages = new ArrayList<>();
-            collectNewMessages(appId, messages, commandOptions);
-            for (String message : messages) {
-                publishRelay(nodeId, sessionId, message);
-            }
-        }
-    }
-
     @Nullable
-    public List<String> refreshData(@NonNull RelaySession session, @NonNull CommandOptions commandOptions) {
+    public List<String> refreshData(@NonNull RelaySession session, CommandOptions commandOptions) {
+        Assert.notNull(commandOptions, "Command options must not be null");
         if (!commandOptions.hasTimeZone()) {
             commandOptions.setTimeZone(session.getTimeZone());
         }
@@ -400,13 +367,27 @@ public class MessageRelayManager {
         if (isSameNode(targetNodeId)) {
             return getNewMessages(session, commandOptions);
         }
-        commandOptions.setNodeId(nodeId);
-        commandOptions.setSessionId(session.getId());
-        if (messagePublisher != null) {
+        if (isGatewayMode()) {
             commandOptions.setCommand(COMMAND_REFRESH);
+            commandOptions.setNodeId(nodeId);
+            commandOptions.setSessionId(session.getId());
             publishControl(targetNodeId, commandOptions);
         }
         return null;
+    }
+
+    public void refreshDataRemotely(CommandOptions commandOptions) {
+        Assert.notNull(commandOptions, "Command options must not be null");
+        if (isGatewayMode()) {
+            String fromNodeId = commandOptions.getNodeId();
+            String appId = commandOptions.getAppId();
+            String sessionId = commandOptions.getSessionId();
+            List<String> messages = new ArrayList<>();
+            collectNewMessages(appId, messages, commandOptions);
+            for (String message : messages) {
+                publishRelay(fromNodeId, sessionId, message);
+            }
+        }
     }
 
     /**
@@ -462,7 +443,7 @@ public class MessageRelayManager {
             String[] appIds = (session != null ? session.getSubscribedApps() : null);
             if (appIds != null) {
                 for (String id : appIds) {
-                    if (appId == null || id.equals(appId)) {
+                    if (appId == null || appId.equals(id)) {
                         collectNewMessages(id, messages, commandOptions);
                     }
                 }

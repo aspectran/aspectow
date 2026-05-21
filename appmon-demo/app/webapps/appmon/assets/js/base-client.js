@@ -94,7 +94,7 @@ class BaseClient {
 
     /**
      * Handles reconnection logic when a connection is lost or fails.
-     * @param {string} [appsToSubscribe] - Names of apps to join.
+     * @param {string} [appsToSubscribe] - Names of apps to subscribe.
      */
     reconnect(appsToSubscribe) {
         if (this.retryCount++ < this.maxRetries) {

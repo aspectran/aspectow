@@ -152,7 +152,7 @@ public class LogExporter extends AbstractExporter {
             } catch (IOException e) {
                 logger.error("Failed to read previous log lines", e);
             }
-        } else {
+        } else if (commandOptions.isWithLogs()) {
             read(messages, commandOptions);
         }
     }

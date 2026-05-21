@@ -55,12 +55,13 @@ public class CommandOptions extends DefaultParameters {
     private static final ParameterKey nodeId;
     private static final ParameterKey appId;
     private static final ParameterKey appsToSubscribe;
+    private static final ParameterKey sessionId;
     private static final ParameterKey timeZone;
     private static final ParameterKey dateUnit;
     private static final ParameterKey dateOffset;
     private static final ParameterKey logId;
     private static final ParameterKey loadedLines;
-    private static final ParameterKey sessionId;
+    private static final ParameterKey withLogs;
 
     private static final ParameterKey[] parameterKeys;
 
@@ -69,24 +70,26 @@ public class CommandOptions extends DefaultParameters {
         nodeId = new ParameterKey("nodeId", ValueType.STRING);
         appId = new ParameterKey("appId", ValueType.STRING);
         appsToSubscribe = new ParameterKey("appsToSubscribe", ValueType.STRING);
+        sessionId = new ParameterKey("sessionId", ValueType.STRING);
         timeZone = new ParameterKey("timeZone", ValueType.STRING);
         dateUnit = new ParameterKey("dateUnit", ValueType.STRING);
         dateOffset = new ParameterKey("dateOffset", ValueType.STRING);
         logId = new ParameterKey("logId", ValueType.STRING);
         loadedLines = new ParameterKey("loadedLines", ValueType.INT);
-        sessionId = new ParameterKey("sessionId", ValueType.STRING);
+        withLogs = new ParameterKey("withLogs", ValueType.BOOLEAN);
 
         parameterKeys = new ParameterKey[] {
                 command,
                 nodeId,
                 appId,
                 appsToSubscribe,
+                sessionId,
                 timeZone,
                 dateUnit,
                 dateOffset,
                 logId,
                 loadedLines,
-                sessionId
+                withLogs
         };
     }
 
@@ -146,14 +149,6 @@ public class CommandOptions extends DefaultParameters {
         }
     }
 
-    public String getNodeId() {
-        return getString(nodeId);
-    }
-
-    public void setNodeId(String nodeId) {
-        putValue(CommandOptions.nodeId, nodeId);
-    }
-
     /**
      * Returns the name of the command.
      * @return the command name
@@ -179,20 +174,12 @@ public class CommandOptions extends DefaultParameters {
         return (command != null && command.equals(getCommand()));
     }
 
-    /**
-     * Returns the list of instances to subscribe to, usually as a comma-separated string.
-     * @return the instances to subscribe to
-     */
-    public String getAppsToSubscribe() {
-        return getString(appsToSubscribe);
+    public String getNodeId() {
+        return getString(nodeId);
     }
 
-    /**
-     * Sets the list of instances to subscribe to.
-     * @param appsToSubscribe the instances to subscribe to
-     */
-    public void setAppsToSubscribe(String appsToSubscribe) {
-        putValue(CommandOptions.appsToSubscribe, appsToSubscribe);
+    public void setNodeId(String nodeId) {
+        putValue(CommandOptions.nodeId, nodeId);
     }
 
     /**
@@ -209,6 +196,30 @@ public class CommandOptions extends DefaultParameters {
      */
     public void setAppId(String appId) {
         putValue(CommandOptions.appId, appId);
+    }
+
+    /**
+     * Returns the list of instances to subscribe to, usually as a comma-separated string.
+     * @return the instances to subscribe to
+     */
+    public String getAppsToSubscribe() {
+        return getString(appsToSubscribe);
+    }
+
+    /**
+     * Sets the list of instances to subscribe to.
+     * @param appsToSubscribe the instances to subscribe to
+     */
+    public void setAppsToSubscribe(String appsToSubscribe) {
+        putValue(CommandOptions.appsToSubscribe, appsToSubscribe);
+    }
+
+    public String getSessionId() {
+        return getString(sessionId);
+    }
+
+    public void setSessionId(String sessionId) {
+        putValue(CommandOptions.sessionId, sessionId);
     }
 
     /**
@@ -299,12 +310,12 @@ public class CommandOptions extends DefaultParameters {
         putValue(CommandOptions.loadedLines, loadedLines);
     }
 
-    public String getSessionId() {
-        return getString(sessionId);
+    public boolean isWithLogs() {
+        return getBoolean(withLogs, false);
     }
 
-    public void setSessionId(String sessionId) {
-        putValue(CommandOptions.sessionId, sessionId);
+    public void setWithLogs(boolean withLogs) {
+        putValue(CommandOptions.withLogs, withLogs);
     }
 
 }
