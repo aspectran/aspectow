@@ -111,7 +111,11 @@ public class RedisMessageSubscriber extends RedisPubSubAdapter<String, String> {
             for (RedisMessageListener listener : listeners) {
                 String listenerCategory = listener.getCategory();
                 if (listenerCategory == null || listenerCategory.equals(category)) {
-                    listener.onRelayMessage(targetNodeId, sessionId, message);
+                    if (sessionId != null) {
+                        listener.onRelayMessage(targetNodeId, sessionId, message);
+                    } else {
+                        listener.onRelayMessage(targetNodeId, message);
+                    }
                 }
             }
         }

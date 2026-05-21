@@ -135,7 +135,7 @@ class DashboardBuilder {
 
         const onFailed = (node) => {
             this.changeNodeState(node, true);
-            if (node.endpoint.mode !== "websocket") {
+            if (node.endpoint.mode !== "websocket" && node.subscribeAttempts < 1) {
                 setTimeout(() => {
                     const client = new PollingClient(node, viewer, onSubscribed, onPrimary, onClosed, onFailed, isGatewayMode);
                     if (isGatewayMode) {
@@ -519,6 +519,7 @@ class DashboardBuilder {
             this.nodes.forEach(node => {
                 if (node.active && node.alive) {
                     this.viewers[node.index].setLoading(appId, true);
+                    this.clearConsole(node.index);
                     this.clients[node.index].refresh(options, node.id);
                 }
             });

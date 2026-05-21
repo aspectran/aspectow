@@ -112,6 +112,7 @@ public class MessageRelayManager {
     }
 
     private void startExporters(String appId) {
+        Assert.hasText(appId, "appId must not be null or empty");
         for (ExporterManager exporterManager : exporterManagers) {
             if (exporterManager.getAppId().equals(appId)) {
                 exporterManager.start();
@@ -120,6 +121,7 @@ public class MessageRelayManager {
     }
 
     private void stopExporters(String appId) {
+        Assert.hasText(appId, "appId must not be null or empty");
         for (ExporterManager exporterManager : exporterManagers) {
             if (exporterManager.getAppId().equals(appId)) {
                 exporterManager.stop();
@@ -306,6 +308,7 @@ public class MessageRelayManager {
                 commandOptions.setCommand(COMMAND_SUBSCRIBE);
                 commandOptions.setNodeId(nodeId);
                 commandOptions.setAppId(appId);
+                commandOptions.setSessionId(session.getId());
                 commandOptions.setTimeZone(session.getTimeZone());
                 for (NodeInfo nodeInfo : nodeRegistry.getNodes()) {
                     if (!isSameNode(nodeInfo.getNodeId())) {
@@ -322,13 +325,16 @@ public class MessageRelayManager {
         Assert.notNull(commandOptions, "Command options must not be null");
         String nodeId = commandOptions.getNodeId();
         String appId = commandOptions.getAppId();
+        String sessionId = commandOptions.getSessionId();
         if (!subscriptionRegistry.isAppInUse(appId)) {
             startExporters(appId);
         }
         subscriptionRegistry.addRemoteSubscription(nodeId, appId);
         List<String> messages = getLastMessages(commandOptions);
-        for (String message : messages) {
-            publishRelay(nodeId, message);
+        if (sessionId != null) {
+            for (String message : messages) {
+                publishRelay(nodeId, sessionId, message);
+            }
         }
     }
 
@@ -436,7 +442,7 @@ public class MessageRelayManager {
     private void collectLastMessages(List<String> messages, @NonNull CommandOptions commandOptions) {
         String appId = commandOptions.getAppId();
         for (ExporterManager exporterManager : exporterManagers) {
-            if (appId == null || exporterManager.getAppId().equals(appId)) {
+            if (appId == null || appId.equals(exporterManager.getAppId())) {
                 exporterManager.collectMessages(messages, commandOptions);
             }
         }
@@ -469,7 +475,7 @@ public class MessageRelayManager {
 
     private void collectNewMessages(String appId, List<String> messages, CommandOptions commandOptions) {
         for (ExporterManager exporterManager : exporterManagers) {
-            if (appId == null || exporterManager.getAppId().equals(appId)) {
+            if (appId == null || appId.equals(exporterManager.getAppId())) {
                 exporterManager.collectNewMessages(messages, commandOptions);
             }
         }

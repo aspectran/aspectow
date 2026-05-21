@@ -135,21 +135,25 @@ public class LogExporter extends AbstractExporter {
     @Override
     public void readIfChanged(@NonNull List<String> messages, @NonNull CommandOptions commandOptions) {
         if (commandOptions.hasCommand(CommandOptions.COMMAND_LOAD_PREVIOUS)) {
-            if (getName().equals(commandOptions.getLogId())) {
-                try {
-                    int loadedLines = commandOptions.getLoadedLines();
-                    List<String> lines = readPreviousLines(loadedLines, lastLines);
-                    if (!lines.isEmpty()) {
-                        for (String line : lines) {
-                            messages.add(plogPrefix + line);
-                        }
-                    } else {
-                        messages.add(plogPrefix);
-                    }
-                } catch (IOException e) {
-                    logger.error("Failed to read previous log lines", e);
-                }
+            if (!getName().equals(commandOptions.getLogId())) {
+                logger.warn("Log id mismatch, expected: {}, actual: {}", getName(), commandOptions.getLogId());
+                return;
             }
+            try {
+                int loadedLines = commandOptions.getLoadedLines();
+                List<String> lines = readPreviousLines(loadedLines, lastLines);
+                if (!lines.isEmpty()) {
+                    for (String line : lines) {
+                        messages.add(plogPrefix + line);
+                    }
+                } else {
+                    messages.add(plogPrefix);
+                }
+            } catch (IOException e) {
+                logger.error("Failed to read previous log lines", e);
+            }
+        } else {
+            read(messages, commandOptions);
         }
     }
 
