@@ -56,18 +56,18 @@ public class AppMonActivity {
 
     /**
      * Displays the main monitoring page.
-     * @param apps the comma-separated list of apps to monitor
+     * @param appsToSubscribe the comma-separated list of apps to monitor
      * @return a map of attributes for rendering the view
      */
     @Request("/dashboard/${apps}")
     @Dispatch("appmon/dashboard")
     @Action("page")
-    public Map<String, String> dashboard(String apps) {
+    public Map<String, String> dashboard(String appsToSubscribe) {
         return Map.of(
                 "title", "Application Monitoring",
                 "style", "monitoring-page",
                 "group", "cluster-menu",
-                "apps", StringUtils.nullToEmpty(apps),
+                "appsToSubscribe", StringUtils.nullToEmpty(appsToSubscribe),
                 "layout", "default"
         );
     }
@@ -92,11 +92,11 @@ public class AppMonActivity {
 
     /**
      * Provides configuration data to a backend agent.
-     * @param appsToJoin a comma-separated list of app names to get configuration for
+     * @param appsToSubscribe a comma-separated list of app names to get configuration for
      * @return a {@link RestResponse} containing the configuration data
      */
     @RequestToGet("/config/data")
-    public RestResponse getConfigData(String appsToJoin) {
+    public RestResponse getConfigData(String appsToSubscribe) {
         Map<String, Object> settings = Map.of(
                 "counterPersistInterval", appMonManager.getCounterPersistInterval(),
                 "clusterMode", appMonManager.getClusterMode()
@@ -104,7 +104,7 @@ public class AppMonActivity {
 
         List<NodeInfo> nodeInfoList = appMonManager.getNodeInfoList();
 
-        String[] appIds = StringUtils.splitWithComma(appsToJoin);
+        String[] appIds = StringUtils.splitWithComma(appsToSubscribe);
         String[] verifiedAppIds = appMonManager.getVerifiedAppIds(appIds);
         List<AppInfo> appInfoList = appMonManager.getAppInfoList(appIds);
 

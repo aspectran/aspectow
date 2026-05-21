@@ -70,9 +70,8 @@ public class PollingMessageRelayer implements MessageRelayer {
      * Initializes the service by registering it with the {@link MessageRelayManager}.
      */
     @Initialize
-    public void registerRelayer() throws Exception {
+    public void initialize() throws Exception {
         pollingSessionManager.initialize();
-        messageRelayManager.addRelayer(this);
     }
 
     /**
@@ -81,7 +80,6 @@ public class PollingMessageRelayer implements MessageRelayer {
     @Destroy
     public void destroy() throws Exception {
         pollingSessionManager.destroy();
-        messageRelayManager.removeRelayer(this);
     }
 
     /**

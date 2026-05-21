@@ -93,7 +93,9 @@ class DashboardBuilder {
     }
 
     connect(nodeIndex, appsToSubscribe) {
+        console.log("cluster mode:", this.settings.clusterMode);
         console.log("connecting node index:", nodeIndex);
+
         const node = this.nodes[nodeIndex];
         if (node.subscribed) return;
         const viewer = this.viewers[nodeIndex];

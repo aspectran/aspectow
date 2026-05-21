@@ -24,7 +24,6 @@ import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Component;
 import com.aspectran.core.component.bean.annotation.Dispatch;
 import com.aspectran.core.component.bean.annotation.Profile;
-import com.aspectran.core.component.bean.annotation.Qualifier;
 import com.aspectran.core.component.bean.annotation.Request;
 import com.aspectran.core.component.bean.annotation.RequestToGet;
 import com.aspectran.utils.StringUtils;
@@ -58,7 +57,7 @@ public class DashboardActivity {
 
     /**
      * Displays the main monitoring page.
-     * @param appsToSubscribe the comma-separated list of instances to monitor
+     * @param appsToSubscribe the comma-separated list of apps to monitor
      * @return a map of attributes for rendering the view
      */
     @Request("/dashboard/${apps}")
@@ -74,13 +73,14 @@ public class DashboardActivity {
 
     /**
      * Provides configuration data to a backend agent.
-     * @param appsToSubscribe a comma-separated list of instance names to get configuration for
+     * @param appsToSubscribe a comma-separated list of app names to get configuration for
      * @return a {@link RestResponse} containing the configuration data
      */
     @RequestToGet("/appmon/config/data")
     public RestResponse getConfigData(String appsToSubscribe) {
         Map<String, Object> settings = Map.of(
-                "counterPersistInterval", appMonManager.getCounterPersistInterval()
+                "counterPersistInterval", appMonManager.getCounterPersistInterval(),
+                "clusterMode", appMonManager.getClusterMode()
         );
 
         List<NodeInfo> nodeInfoList = appMonManager.getNodeInfoList();

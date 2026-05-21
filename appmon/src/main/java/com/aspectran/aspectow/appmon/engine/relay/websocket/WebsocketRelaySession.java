@@ -17,6 +17,7 @@ package com.aspectran.aspectow.appmon.engine.relay.websocket;
 
 import com.aspectran.aspectow.appmon.engine.relay.RelaySession;
 import com.aspectran.utils.Assert;
+import com.aspectran.utils.StringUtils;
 import com.aspectran.web.websocket.jsr356.WrappedSession;
 import jakarta.websocket.Session;
 
@@ -79,7 +80,11 @@ public class WebsocketRelaySession extends WrappedSession implements RelaySessio
 
     @Override
     public void setFocusedAppId(String appId) {
-        getSession().getUserProperties().put(FOCUSED_APP_ID_PROPERTY, appId);
+        if (StringUtils.hasText(appId)) {
+            getSession().getUserProperties().put(FOCUSED_APP_ID_PROPERTY, appId);
+        } else {
+            getSession().getUserProperties().remove(FOCUSED_APP_ID_PROPERTY);
+        }
     }
 
     @Override

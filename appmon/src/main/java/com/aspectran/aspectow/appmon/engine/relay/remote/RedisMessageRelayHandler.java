@@ -49,7 +49,7 @@ public class RedisMessageRelayHandler implements RedisMessageListener {
 
     @Override
     public void onRelayMessage(String nodeId, String message) {
-        onRelayMessage(nodeId, null, message);
+        messageRelayManager.relayLocally(message);
     }
 
     @Override

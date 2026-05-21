@@ -102,7 +102,7 @@ class WebsocketClient extends BaseClient {
                 this.viewer.printMessage("Websocket connection closed.");
             }
             if (event.code !== 1000) {
-                this.reconnect(appsToSubscribe);
+                setTimeout(() => this.reconnect(appsToSubscribe), 1000);
             }
         };
 

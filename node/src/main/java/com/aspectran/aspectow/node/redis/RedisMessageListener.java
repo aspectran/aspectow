@@ -60,7 +60,6 @@ public interface RedisMessageListener {
      * @param message the relay message content
      */
     default void onRelayMessage(String nodeId, String message) {
-        onRelayMessage(message);
     }
 
     /**
@@ -70,7 +69,6 @@ public interface RedisMessageListener {
      * @param message the relay message content
      */
     default void onRelayMessage(String nodeId, String sessionId, String message) {
-        onRelayMessage(nodeId, message);
     }
 
 }

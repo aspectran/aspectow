@@ -73,22 +73,6 @@ public class WebsocketMessageRelayer extends SimplifiedEndpoint implements Messa
         this.messageRelayManager = appMonManager.getMessageRelayManager();
     }
 
-    /**
-     * Initializes the service by registering it with the {@link MessageRelayManager}.
-     */
-    @Initialize
-    public void registerRelayer() {
-        messageRelayManager.addRelayer(this);
-    }
-
-    /**
-     * Destroys the service, unregistering from the manager.
-     */
-    @Destroy
-    public void destroy() throws Exception {
-        messageRelayManager.removeRelayer(this);
-    }
-
     @Override
     protected boolean checkAuthorized(@NonNull Session session) {
         String token = session.getPathParameters().get("token");

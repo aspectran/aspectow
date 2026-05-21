@@ -31,7 +31,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.CopyOnWriteArraySet;
 
 import static com.aspectran.aspectow.appmon.engine.relay.CommandOptions.COMMAND_REFRESH;
 import static com.aspectran.aspectow.appmon.engine.relay.CommandOptions.COMMAND_SUBSCRIBE;
@@ -49,8 +48,6 @@ public class MessageRelayManager {
     private static final Logger logger = LoggerFactory.getLogger(MessageRelayManager.class);
 
     public static final String CATEGORY_APPMON = "appmon";
-
-    private final Set<MessageRelayer> messageRelayers = new CopyOnWriteArraySet<>();
 
     private final Map<String, MessageRelayer> sessionRelayerMap = new ConcurrentHashMap<>();
 
@@ -96,22 +93,6 @@ public class MessageRelayManager {
      */
     public boolean isGatewayMode() {
         return (messagePublisher != null);
-    }
-
-    /**
-     * Adds a message relayer to the manager.
-     * @param messageRelayer the message relayer to add
-     */
-    public void addRelayer(MessageRelayer messageRelayer) {
-        messageRelayers.add(messageRelayer);
-    }
-
-    /**
-     * Removes a message relayer from the manager.
-     * @param messageRelayer the message relayer to remove
-     */
-    public void removeRelayer(MessageRelayer messageRelayer) {
-        messageRelayers.remove(messageRelayer);
     }
 
     public void registerSession(String sessionId, MessageRelayer messageRelayer) {
@@ -200,8 +181,20 @@ public class MessageRelayManager {
      * This method does not publish the message to Redis.
      * @param message the message to relay
      */
-    public void relayLocally(@NonNull String message) {
-        relayLocally(null, message);
+    public void relayLocally(String message) {
+        Assert.notNull(message, "message must not be null");
+        String appId = extractAppId(message);
+        boolean isLog = isLogMessage(message);
+        Set<String> sessionIds = subscriptionRegistry.getSessionsSubscribedToApp(appId);
+        for (String sid : sessionIds) {
+            MessageRelayer relayer = sessionRelayerMap.get(sid);
+            if (relayer != null) {
+                RelaySession session = relayer.findRelaySession(sid);
+                if (session != null) {
+                    relayLocally(relayer, session, message, appId, isLog);
+                }
+            }
+        }
     }
 
     /**
@@ -210,46 +203,31 @@ public class MessageRelayManager {
      * @param sessionId the target session ID
      * @param message the message to relay
      */
-    public void relayLocally(String sessionId, @NonNull String message) {
-        if (isGatewayMode()) {
-            if (sessionId != null) {
-                MessageRelayer relayer = sessionRelayerMap.get(sessionId);
-                if (relayer != null) {
-                    RelaySession session = relayer.findRelaySession(sessionId);
-                    if (session != null && session.isValid()) {
-                        relayer.relay(session, message);
-                    }
-                }
-            } else {
+    public void relayLocally(String sessionId, String message) {
+        Assert.notNull(sessionId, "sessionId must not be null");
+        Assert.notNull(message, "message must not be null");
+        MessageRelayer relayer = sessionRelayerMap.get(sessionId);
+        if (relayer != null) {
+            RelaySession session = relayer.findRelaySession(sessionId);
+            if (session != null) {
                 String appId = extractAppId(message);
-                if (appId != null) {
-                    String type = extractType(message);
-                    boolean isLog = "log".equals(type);
-                    Set<String> sessionIds = subscriptionRegistry.getSessionsSubscribedToApp(appId);
-                    if (!sessionIds.isEmpty()) {
-                        for (String sid : sessionIds) {
-                            MessageRelayer relayer = sessionRelayerMap.get(sid);
-                            if (relayer != null) {
-                                RelaySession session = relayer.findRelaySession(sid);
-                                if (session != null && session.isValid()) {
-                                    if (isLog) {
-                                        String focusedAppId = session.getFocusedAppId();
-                                        if (focusedAppId == null || focusedAppId.equals(appId)) {
-                                            relayer.relay(session, message);
-                                        }
-                                    } else {
-                                        relayer.relay(session, message);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+                boolean isLog = isLogMessage(message);
+                relayLocally(relayer, session, message, appId, isLog);
             }
-        } else {
-            for (MessageRelayer relayer : messageRelayers) {
-                relayer.relay(message);
+        }
+    }
+
+    private void relayLocally(
+            @NonNull MessageRelayer relayer, @NonNull RelaySession session, @NonNull String message,
+            @Nullable String appId, boolean isLog) {
+        if (appId != null && isLog) {
+            String focusedAppId = session.getFocusedAppId();
+            if (focusedAppId != null && !focusedAppId.equals(appId)) {
+                return;
             }
+        }
+        if (session.isValid()) {
+            relayer.relay(session, message);
         }
     }
 
@@ -281,25 +259,29 @@ public class MessageRelayManager {
         return null;
     }
 
-    @Nullable
-    public RelaySession findRelaySession(String sessionId) {
-        MessageRelayer relayer = sessionRelayerMap.get(sessionId);
-        if (relayer != null) {
-            return relayer.findRelaySession(sessionId);
-        }
-        return null;
+    private boolean isLogMessage(@NonNull String message) {
+        return "log".equals(extractType(message));
     }
 
-    /**
-     * Relays a message to a specific session via all registered relayers.
-     * @param session the target relay session
-     * @param message the message to relay
-     */
-    public void relay(RelaySession session, String message) {
-        for (MessageRelayer relayer : messageRelayers) {
-            relayer.relay(session, message);
-        }
-    }
+//    @Nullable
+//    public RelaySession findRelaySession(String sessionId) {
+//        MessageRelayer relayer = sessionRelayerMap.get(sessionId);
+//        if (relayer != null) {
+//            return relayer.findRelaySession(sessionId);
+//        }
+//        return null;
+//    }
+//
+//    /**
+//     * Relays a message to a specific session via all registered relayers.
+//     * @param session the target relay session
+//     * @param message the message to relay
+//     */
+//    public void relay(RelaySession session, String message) {
+//        for (MessageRelayer relayer : messageRelayers) {
+//            relayer.relay(session, message);
+//        }
+//    }
 
     /**
      * Handles a client subscribing to monitor apps.

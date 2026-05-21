@@ -143,7 +143,7 @@
         <div class="col-12 console-box">
             <div class="status-bar">
                 <h4 class="ellipses"></h4>
-                <a class="load-previous" title="Load previous logs" style="display: none;">
+                <a class="load-previous" title="Load previous logs">
                     <i class="icon bi bi-arrow-up-circle"></i>
                 </a>
                 <a class="clear-screen" title="Clear screen">
@@ -165,11 +165,11 @@
 </div>
 <script>
     $(function () {
-        const BASE_PATH = "${pageContext.request.contextPath}";
-        const INSTANCES = "${page.instances}";
+        const basePath = "${pageContext.request.contextPath}";
+        const appsToSubscribe = "${page.appsToSubscribe}";
         const options = {
             // flagsUrl: "https://cdn.jsdelivr.net/gh/aspectran/aspectran-assets@main/assets/countries/flags/"
         };
-        new DashboardBuilder(options).build(BASE_PATH, INSTANCES);
+        new DashboardBuilder(options).build(basePath, appsToSubscribe);
     });
 </script>

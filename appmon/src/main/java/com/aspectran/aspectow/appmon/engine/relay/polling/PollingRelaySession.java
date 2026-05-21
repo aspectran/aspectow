@@ -16,6 +16,7 @@
 package com.aspectran.aspectow.appmon.engine.relay.polling;
 
 import com.aspectran.aspectow.appmon.engine.relay.RelaySession;
+import com.aspectran.utils.StringUtils;
 import com.aspectran.utils.concurrent.AutoLock;
 import com.aspectran.utils.timer.CyclicTimeout;
 
@@ -122,7 +123,11 @@ public class PollingRelaySession implements RelaySession {
 
     @Override
     public void setFocusedAppId(String appId) {
-        this.focusedAppId = appId;
+        if (StringUtils.hasText(appId)) {
+            this.focusedAppId = appId;
+        } else {
+            this.focusedAppId = null;
+        }
     }
 
     /**
