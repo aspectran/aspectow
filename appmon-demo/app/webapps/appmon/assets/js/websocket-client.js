@@ -30,15 +30,17 @@ class WebsocketClient extends BaseClient {
         this.pendingMessages = [];
     }
 
-    start(appsToSubscribe) {
-        this.openSocket(appsToSubscribe);
+    start(appsToSubscribe, nodeToSubscribe) {
+        this.nodeToSubscribe = nodeToSubscribe;
+        this.appsToSubscribe = appsToSubscribe;
+        this.openSocket();
     }
 
     stop() {
         this.closeSocket();
     }
 
-    openSocket(appsToSubscribe) {
+    openSocket() {
         this.closeSocket(false);
         const url = new URL(this.node.endpoint.path + "/appmon/websocket/" + this.node.endpoint.token, location.href);
         url.protocol = url.protocol.replace("https:", "wss:").replace("http:", "ws:");
@@ -51,7 +53,7 @@ class WebsocketClient extends BaseClient {
             this.pendingMessages.push("Socket connection successful");
             
             // Connect to the first node
-            this.connect(this.node.id, appsToSubscribe);
+            this.connect(this.node.id);
             this.sendPing();
             this.retryCount = 0;
         };
@@ -116,7 +118,7 @@ class WebsocketClient extends BaseClient {
                 this.viewer.printMessage("Websocket connection closed.");
             }
             if (event.code !== 1000) {
-                setTimeout(() => this.reconnect(appsToSubscribe), 1000);
+                setTimeout(() => this.reconnect(), 1000);
             }
         };
 
@@ -141,11 +143,14 @@ class WebsocketClient extends BaseClient {
         }
     }
 
-    connect(nodeId, appsToSubscribe) {
+    connect(nodeId) {
         const options = ["command:subscribe"];
         options.push("timeZone:" + Intl.DateTimeFormat().resolvedOptions().timeZone);
-        if (appsToSubscribe) {
-            options.push("appsToSubscribe:" + appsToSubscribe);
+        if (this.nodeToSubscribe) {
+            options.push("nodeToSubscribe:" + this.nodeToSubscribe);
+        }
+        if (this.appsToSubscribe) {
+            options.push("appsToSubscribe:" + this.appsToSubscribe);
         }
         this.sendCommand(options, nodeId);
     }
@@ -173,7 +178,7 @@ class WebsocketClient extends BaseClient {
             while (this.pendingMessages.length) {
                 viewer.printMessage(this.pendingMessages.shift());
             }
-            this.sendCommand(["command:established"], nodeId);
+            this.sendCommand(["command:established", "nodeToSubscribe:" + this.nodeToSubscribe], nodeId);
         }
     }
 

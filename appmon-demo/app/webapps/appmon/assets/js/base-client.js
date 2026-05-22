@@ -32,6 +32,8 @@ class BaseClient {
         this.onClosed = onClosed;
         this.onFailed = onFailed;
         this.isGatewayMode = isGatewayMode;
+        this.nodeToSubscribe = null;
+        this.appsToSubscribe = null;
         this.primary = false;
         this.primaryNodeId = node.id
         this.retryCount = 0;
@@ -57,9 +59,10 @@ class BaseClient {
 
     /**
      * Starts the client connection.
-     * @param {string} [appsToSubscribe] - Names of apps to join.
+     * @param {string} [appsToSubscribe] - Names of apps to subscribe.
+     * @param {string} [nodeToSubscribe] - Node ID to subscribe.
      */
-    start(appsToSubscribe) {
+    start(appsToSubscribe, nodeToSubscribe) {
         throw new Error("Method 'start()' must be implemented.");
     }
 
@@ -108,15 +111,14 @@ class BaseClient {
 
     /**
      * Handles reconnection logic when a connection is lost or fails.
-     * @param {string} [appsToSubscribe] - Names of apps to subscribe.
      */
-    reconnect(appsToSubscribe) {
+    reconnect() {
         if (this.retryCount++ < this.maxRetries) {
             const retryInterval = (this.retryInterval * this.retryCount) + (this.node.index * 200) + this.node.random1000;
             const status = "(" + this.retryCount + "/" + this.maxRetries + ", interval=" + retryInterval + ")";
             console.log(this.node.id, "trying to reconnect", status);
             this.viewer.printMessage("Trying to reconnect... " + status);
-            setTimeout(() => this.start(appsToSubscribe), retryInterval);
+            setTimeout(() => this.start(this.appsToSubscribe, this.nodeToSubscribe), retryInterval);
         } else {
             console.log(this.node.id, "abort reconnect attempt");
             this.viewer.printMessage("Max connection attempts exceeded.");

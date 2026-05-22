@@ -271,7 +271,7 @@ public class MessageRelayManager {
      * @param session the client session that is subscribing
      * @return {@code true} if the subscribe was successful, {@code false} otherwise
      */
-    public synchronized boolean subscribe(@NonNull RelaySession session, String nodeId) {
+    public synchronized boolean subscribe(@NonNull RelaySession session, String nodeId, boolean specified) {
         if (!session.isValid()) {
             return false;
         }
@@ -279,20 +279,24 @@ public class MessageRelayManager {
         if (subscribedApps == null || subscribedApps.length == 0) {
             return false;
         }
+        CommandOptions commandOptions = new CommandOptions();
+        commandOptions.setCommand(COMMAND_SUBSCRIBE);
+        commandOptions.setNodeId(this.nodeId);
+        commandOptions.setSessionId(session.getId());
+        commandOptions.setTimeZone(session.getTimeZone());
         for (String appId : subscribedApps) {
             if (isSameNode(nodeId) && !subscriptionRegistry.isAppInUse(appId)) {
                 startExporters(appId);
             }
-            if (isGatewayMode() && !subscriptionRegistry.isAppInUseLocally(appId)) {
-                CommandOptions commandOptions = new CommandOptions();
-                commandOptions.setCommand(COMMAND_SUBSCRIBE);
-                commandOptions.setNodeId(nodeId);
+            if (isGatewayMode()) {
                 commandOptions.setAppId(appId);
-                commandOptions.setSessionId(session.getId());
-                commandOptions.setTimeZone(session.getTimeZone());
-                for (NodeInfo nodeInfo : nodeRegistry.getNodes()) {
-                    if (!isSameNode(nodeInfo.getNodeId())) {
-                        publishControl(nodeInfo.getNodeId(), commandOptions);
+                if (specified) {
+                    publishControl(nodeId, commandOptions);
+                } else {
+                    for (NodeInfo nodeInfo : nodeRegistry.getNodes()) {
+                        if (!isSameNode(nodeInfo.getNodeId())) {
+                            publishControl(nodeInfo.getNodeId(), commandOptions);
+                        }
                     }
                 }
             }
@@ -331,7 +335,7 @@ public class MessageRelayManager {
                 if (!subscriptionRegistry.isAppInUse(appId)) {
                     stopExporters(appId);
                 }
-                if (isGatewayMode() && !subscriptionRegistry.isAppInUseLocally(appId)) {
+                if (isGatewayMode()) {
                     CommandOptions commandOptions = new CommandOptions();
                     commandOptions.setCommand(COMMAND_UNSUBSCRIBE);
                     commandOptions.setNodeId(nodeId);

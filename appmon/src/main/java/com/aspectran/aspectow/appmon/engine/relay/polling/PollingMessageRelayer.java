@@ -31,6 +31,7 @@ import com.aspectran.core.component.bean.annotation.RequestToGet;
 import com.aspectran.core.component.bean.annotation.RequestToPost;
 import com.aspectran.core.component.bean.annotation.Transform;
 import com.aspectran.core.context.rule.type.FormatType;
+import com.aspectran.utils.Assert;
 import com.aspectran.utils.StringUtils;
 import org.jspecify.annotations.NonNull;
 
@@ -92,7 +93,9 @@ public class PollingMessageRelayer implements MessageRelayer {
     @Transform(FormatType.JSON)
     public Map<String, Object> subscribe(@NonNull Translet translet) throws IOException {
         String nodeId = translet.getParameter("nodeId");
-        if (messageRelayManager.isSameNode(nodeId)) {
+        Assert.hasText(nodeId, "Node ID cannot be empty");
+        String nodeToSubscribe = translet.getParameter("nodeId");
+        if (messageRelayManager.isSameNode(nodeId) || StringUtils.hasText(nodeToSubscribe)) {
             String appsToSubscribe = translet.getParameter("appsToSubscribe");
             String[] appIds = StringUtils.splitWithComma(appsToSubscribe);
             appIds = appMonManager.getVerifiedAppIds(appIds);
@@ -168,8 +171,11 @@ public class PollingMessageRelayer implements MessageRelayer {
 
     private void established(@NonNull PollingRelaySession relaySession, @NonNull CommandOptions commandOptions) {
         String nodeId = commandOptions.getNodeId();
-        if (messageRelayManager.isSameNode(nodeId)) {
-            if (messageRelayManager.subscribe(relaySession, nodeId)) {
+        Assert.hasText(nodeId, "Node ID cannot be empty");
+        String nodeToSubscribe = commandOptions.getNodeToSubscribe();
+        if (messageRelayManager.isSameNode(nodeId) || StringUtils.hasText(nodeToSubscribe)) {
+            boolean specified = (!messageRelayManager.isSameNode(nodeId) && StringUtils.hasText(nodeToSubscribe));
+            if (messageRelayManager .subscribe(relaySession, nodeId, specified)) {
                 List<String> messages = messageRelayManager.getLastMessages(relaySession);
                 for (String message : messages) {
                     pollingSessionManager.push(relaySession, message);

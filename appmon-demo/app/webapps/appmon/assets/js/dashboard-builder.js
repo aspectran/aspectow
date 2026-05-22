@@ -89,7 +89,7 @@ class DashboardBuilder {
                     this.buildView();
                     this.bindEvents();
                     if (this.nodes.length) {
-                        this.connect(0, data.appsToSubscribe);
+                        this.connect(0, data.appsToSubscribe, this.nodeIdToSubscribe);
                     }
                 }
             },
@@ -106,7 +106,7 @@ class DashboardBuilder {
         return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 
-    connect(nodeIndex, appsToSubscribe) {
+    connect(nodeIndex, appsToSubscribe, nodeIdToSubscribe) {
         console.log("cluster mode:", this.settings.clusterMode);
         console.log("connecting node index:", nodeIndex);
 
@@ -188,7 +188,7 @@ class DashboardBuilder {
         }
         viewer.setClient(client);
         this.clients[nodeIndex] = client;
-        client.start(appsToSubscribe);
+        client.start(appsToSubscribe, nodeIdToSubscribe);
     }
 
     changeNode(nodeIndex) {

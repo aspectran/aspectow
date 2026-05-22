@@ -36,9 +36,11 @@ class PollingClient extends BaseClient {
         this.clusterNodes[node.id] = {node, onSubscribed, onPrimary};
     }
 
-    start(appsToSubscribe) {
+    start(appsToSubscribe, nodeToSubscribe) {
         this.stopped = false;
-        this.connect(this.node.id, appsToSubscribe);
+        this.nodeToSubscribe = nodeToSubscribe;
+        this.appsToSubscribe = appsToSubscribe;
+        this.connect(this.node.id);
     }
 
     stop() {
@@ -50,7 +52,7 @@ class PollingClient extends BaseClient {
         }
     }
 
-    connect(nodeId, appsToSubscribe) {
+    connect(nodeId) {
         $.ajax({
             url: this.node.endpoint.path + "/appmon/polling/subscribe",
             type: "post",
@@ -58,7 +60,8 @@ class PollingClient extends BaseClient {
             data: {
                 nodeId: nodeId,
                 timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-                appsToSubscribe: appsToSubscribe
+                nodeToSubscribe: this.nodeToSubscribe,
+                appsToSubscribe: this.appsToSubscribe
             },
             success: (data) => {
                 if (data) {
@@ -76,23 +79,24 @@ class PollingClient extends BaseClient {
                      this.establish(data.nodeId, data.primary, data.alive);
 
                     if (this.primary && !this.stopped) {
-                        this.polling(data.appsToSubscribe);
+                        this.appsToSubscribe = data.appsToSubscribe;
+                        this.poll();
                     }
                 } else {
                     console.log(this.node.id, "connection failed");
                     this.viewer.printErrorMessage("Connection failed.");
-                    this.reconnect(appsToSubscribe);
+                    this.reconnect();
                 }
             },
             error: (xhr, status, error) => {
                 console.log(this.node.id, "connection failed", error);
                 this.viewer.printErrorMessage("Connection failed.");
-                this.reconnect(appsToSubscribe);
+                this.reconnect();
             }
         });
     }
 
-    polling(appsToSubscribe) {
+    poll() {
         if (this.stopped) return;
         let commands = null;
         if (this.pendingCommands.length) {
@@ -111,13 +115,13 @@ class PollingClient extends BaseClient {
                 if (data && data.messages) {
                     this.processMessages(data.messages);
                     this.pollingTimer = setTimeout(() => {
-                        this.polling(appsToSubscribe);
+                        this.poll();
                     }, this.node.endpoint.pollingInterval);
                 } else {
                     console.log(this.node.id, "connection lost");
                     this.viewer.printErrorMessage("Connection lost.");
                     if (this.onClosed) this.onClosed(this.node);
-                    this.reconnect(appsToSubscribe);
+                    this.reconnect();
                 }
             },
             error: (xhr, status, error) => {
@@ -125,7 +129,7 @@ class PollingClient extends BaseClient {
                 console.log(this.node.id, "connection lost", error);
                 this.viewer.printErrorMessage("Connection lost.");
                 if (this.onClosed) this.onClosed(this.node);
-                this.reconnect(appsToSubscribe);
+                this.reconnect();
             }
         });
     }

@@ -18,13 +18,11 @@ package com.aspectran.aspectow.appmon.engine.relay.websocket;
 import com.aspectran.aspectow.appmon.common.auth.AppMonTokenIssuer;
 import com.aspectran.aspectow.appmon.engine.manager.AppMonManager;
 import com.aspectran.aspectow.appmon.engine.relay.CommandOptions;
-import com.aspectran.aspectow.appmon.engine.relay.MessageRelayer;
 import com.aspectran.aspectow.appmon.engine.relay.MessageRelayManager;
+import com.aspectran.aspectow.appmon.engine.relay.MessageRelayer;
 import com.aspectran.aspectow.appmon.engine.relay.RelaySession;
 import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Component;
-import com.aspectran.core.component.bean.annotation.Destroy;
-import com.aspectran.core.component.bean.annotation.Initialize;
 import com.aspectran.utils.Assert;
 import com.aspectran.utils.StringUtils;
 import com.aspectran.utils.security.InvalidPBTokenException;
@@ -136,7 +134,8 @@ public class WebsocketMessageRelayer extends SimplifiedEndpoint implements Messa
     private void subscribe(Session session, @NonNull CommandOptions commandOptions) {
         String nodeId = commandOptions.getNodeId();
         Assert.hasText(nodeId, "Node ID cannot be empty");
-        if (messageRelayManager.isSameNode(nodeId)) {
+        String nodeToSubscribe = commandOptions.getNodeToSubscribe();
+        if (messageRelayManager.isSameNode(nodeId) || StringUtils.hasText(nodeToSubscribe)) {
             if (addSession(session)) {
                 messageRelayManager.registerSession(session.getId(), this);
                 WebsocketRelaySession relaySession = new WebsocketRelaySession(session);
@@ -162,9 +161,12 @@ public class WebsocketMessageRelayer extends SimplifiedEndpoint implements Messa
 
     private void established(@NonNull Session session, @NonNull CommandOptions commandOptions) {
         String nodeId = commandOptions.getNodeId();
-        if (messageRelayManager.isSameNode(nodeId)) {
+        Assert.hasText(nodeId, "Node ID cannot be empty");
+        String nodeToSubscribe = commandOptions.getNodeToSubscribe();
+        if (messageRelayManager.isSameNode(nodeId) || StringUtils.hasText(nodeToSubscribe)) {
             RelaySession relaySession = new WebsocketRelaySession(session);
-            if (messageRelayManager.subscribe(relaySession, nodeId)) {
+            boolean specified = (!messageRelayManager.isSameNode(nodeId) && StringUtils.hasText(nodeToSubscribe));
+            if (messageRelayManager.subscribe(relaySession, nodeId, specified) && !specified) {
                 List<String> messages = messageRelayManager.getLastMessages(relaySession);
                 for (String message : messages) {
                     sendText(session, message);

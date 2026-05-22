@@ -54,8 +54,9 @@ public class CommandOptions extends DefaultParameters {
     private static final ParameterKey command;
     private static final ParameterKey nodeId;
     private static final ParameterKey appId;
-    private static final ParameterKey appsToSubscribe;
     private static final ParameterKey sessionId;
+    private static final ParameterKey nodeToSubscribe;
+    private static final ParameterKey appsToSubscribe;
     private static final ParameterKey timeZone;
     private static final ParameterKey dateUnit;
     private static final ParameterKey dateOffset;
@@ -69,8 +70,9 @@ public class CommandOptions extends DefaultParameters {
         command = new ParameterKey("command", ValueType.STRING);
         nodeId = new ParameterKey("nodeId", ValueType.STRING);
         appId = new ParameterKey("appId", ValueType.STRING);
-        appsToSubscribe = new ParameterKey("appsToSubscribe", ValueType.STRING);
         sessionId = new ParameterKey("sessionId", ValueType.STRING);
+        nodeToSubscribe = new ParameterKey("nodeToSubscribe", ValueType.STRING);
+        appsToSubscribe = new ParameterKey("appsToSubscribe", ValueType.STRING);
         timeZone = new ParameterKey("timeZone", ValueType.STRING);
         dateUnit = new ParameterKey("dateUnit", ValueType.STRING);
         dateOffset = new ParameterKey("dateOffset", ValueType.STRING);
@@ -82,8 +84,9 @@ public class CommandOptions extends DefaultParameters {
                 command,
                 nodeId,
                 appId,
-                appsToSubscribe,
                 sessionId,
+                nodeToSubscribe,
+                appsToSubscribe,
                 timeZone,
                 dateUnit,
                 dateOffset,
@@ -212,6 +215,14 @@ public class CommandOptions extends DefaultParameters {
      */
     public void setAppsToSubscribe(String appsToSubscribe) {
         putValue(CommandOptions.appsToSubscribe, appsToSubscribe);
+    }
+
+    public String getNodeToSubscribe() {
+        return getString(nodeToSubscribe);
+    }
+
+    public void setNodeToSubscribe(String nodeToSubscribe) {
+        putValue(CommandOptions.nodeToSubscribe, nodeToSubscribe);
     }
 
     public String getSessionId() {
