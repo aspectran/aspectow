@@ -40,8 +40,6 @@ public class CommandOptions extends DefaultParameters {
 
     public static final String COMMAND_ESTABLISHED = "established";
 
-    public static final String COMMAND_RELEASE = "release";
-
     /** Command to refresh the current view or data */
     public static final String COMMAND_REFRESH = "refresh";
 
@@ -57,12 +55,12 @@ public class CommandOptions extends DefaultParameters {
     private static final ParameterKey sessionId;
     private static final ParameterKey nodeToSubscribe;
     private static final ParameterKey appsToSubscribe;
-    private static final ParameterKey timeZone;
-    private static final ParameterKey dateUnit;
-    private static final ParameterKey dateOffset;
     private static final ParameterKey logId;
     private static final ParameterKey loadedLines;
     private static final ParameterKey withLogs;
+    private static final ParameterKey dateUnit;
+    private static final ParameterKey dateOffset;
+    private static final ParameterKey timeZone;
 
     private static final ParameterKey[] parameterKeys;
 
@@ -73,12 +71,12 @@ public class CommandOptions extends DefaultParameters {
         sessionId = new ParameterKey("sessionId", ValueType.STRING);
         nodeToSubscribe = new ParameterKey("nodeToSubscribe", ValueType.STRING);
         appsToSubscribe = new ParameterKey("appsToSubscribe", ValueType.STRING);
-        timeZone = new ParameterKey("timeZone", ValueType.STRING);
-        dateUnit = new ParameterKey("dateUnit", ValueType.STRING);
-        dateOffset = new ParameterKey("dateOffset", ValueType.STRING);
         logId = new ParameterKey("logId", ValueType.STRING);
         loadedLines = new ParameterKey("loadedLines", ValueType.INT);
         withLogs = new ParameterKey("withLogs", ValueType.BOOLEAN);
+        dateUnit = new ParameterKey("dateUnit", ValueType.STRING);
+        dateOffset = new ParameterKey("dateOffset", ValueType.STRING);
+        timeZone = new ParameterKey("timeZone", ValueType.STRING);
 
         parameterKeys = new ParameterKey[] {
                 command,
@@ -87,12 +85,12 @@ public class CommandOptions extends DefaultParameters {
                 sessionId,
                 nodeToSubscribe,
                 appsToSubscribe,
-                timeZone,
-                dateUnit,
-                dateOffset,
                 logId,
                 loadedLines,
-                withLogs
+                withLogs,
+                dateUnit,
+                dateOffset,
+                timeZone
         };
     }
 
@@ -234,19 +232,43 @@ public class CommandOptions extends DefaultParameters {
     }
 
     /**
-     * Returns whether a time zone has been specified.
-     * @return true if a time zone exists, false otherwise
+     * Returns the log file name.
+     * @return the log name
      */
-    public boolean hasTimeZone() {
-        return hasValue(timeZone);
+    public String getLogId() {
+        return getString(logId);
     }
 
     /**
-     * Returns the time zone ID.
-     * @return the time zone ID
+     * Sets the log file name.
+     * @param logName the log name
      */
-    public String getTimeZone() {
-        return getString(timeZone);
+    public void setLogId(String logName) {
+        putValue(CommandOptions.logId, logName);
+    }
+
+    /**
+     * Returns the number of lines already loaded from the log.
+     * @return the number of loaded lines
+     */
+    public int getLoadedLines() {
+        return getInt(loadedLines);
+    }
+
+    /**
+     * Sets the number of lines already loaded from the log.
+     * @param loadedLines the number of loaded lines
+     */
+    public void setLoadedLines(int loadedLines) {
+        putValue(CommandOptions.loadedLines, loadedLines);
+    }
+
+    public boolean isWithLogs() {
+        return getBoolean(withLogs, false);
+    }
+
+    public void setWithLogs(boolean withLogs) {
+        putValue(CommandOptions.withLogs, withLogs);
     }
 
     /**
@@ -290,43 +312,19 @@ public class CommandOptions extends DefaultParameters {
     }
 
     /**
-     * Returns the log file name.
-     * @return the log name
+     * Returns whether a time zone has been specified.
+     * @return true if a time zone exists, false otherwise
      */
-    public String getLogId() {
-        return getString(logId);
+    public boolean hasTimeZone() {
+        return hasValue(timeZone);
     }
 
     /**
-     * Sets the log file name.
-     * @param logName the log name
+     * Returns the time zone ID.
+     * @return the time zone ID
      */
-    public void setLogId(String logName) {
-        putValue(CommandOptions.logId, logName);
-    }
-
-    /**
-     * Returns the number of lines already loaded from the log.
-     * @return the number of loaded lines
-     */
-    public int getLoadedLines() {
-        return getInt(loadedLines);
-    }
-
-    /**
-     * Sets the number of lines already loaded from the log.
-     * @param loadedLines the number of loaded lines
-     */
-    public void setLoadedLines(int loadedLines) {
-        putValue(CommandOptions.loadedLines, loadedLines);
-    }
-
-    public boolean isWithLogs() {
-        return getBoolean(withLogs, false);
-    }
-
-    public void setWithLogs(boolean withLogs) {
-        putValue(CommandOptions.withLogs, withLogs);
+    public String getTimeZone() {
+        return getString(timeZone);
     }
 
 }
