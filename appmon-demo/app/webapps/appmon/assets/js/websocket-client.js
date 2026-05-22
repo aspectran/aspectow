@@ -178,7 +178,7 @@ class WebsocketClient extends BaseClient {
             }
             this.sendCommand([
                 "command:established",
-                "nodeToSubscribe:" + this.nodeToSubscribe
+                "nodeToSubscribe:" + (this.nodeToSubscribe || "")
             ], nodeId);
         }
         if (!alive) {

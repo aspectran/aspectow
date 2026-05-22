@@ -157,7 +157,7 @@ class DashboardBuilder {
                     }
                     viewer.setClient(client);
                     this.clients[nodeIndex] = client;
-                    client.start(appsToSubscribe);
+                    client.start(appsToSubscribe, nodeIdToSubscribe);
                 }, (node.index - 1) * 1000);
             }
         };
@@ -169,7 +169,7 @@ class DashboardBuilder {
             this.clients[node.index] = this.sharedClient;
 
             // Trigger explicit connection for this node over the shared connection
-            this.sharedClient.connect(node.id, appsToSubscribe);
+            this.sharedClient.connect(node.id);
             return;
         }
 

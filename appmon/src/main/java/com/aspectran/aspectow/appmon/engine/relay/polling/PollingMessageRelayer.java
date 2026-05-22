@@ -107,7 +107,7 @@ public class PollingMessageRelayer implements MessageRelayer {
             }
             messageRelayManager.registerSession(relaySession.getId(), this);
             return Map.of(
-                    "appsToSubscribe", StringUtils.joinWithCommas(appIds),
+                    "appsToSubscribe", StringUtils.join(appIds, ","),
                     "pollingInterval", relaySession.getPollingInterval(),
                     "nodeId", nodeId,
                     "primary", true,

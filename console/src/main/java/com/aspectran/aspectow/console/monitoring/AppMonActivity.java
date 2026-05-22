@@ -111,7 +111,7 @@ public class AppMonActivity {
         Map<String, Object> data = Map.of(
                 "token", AppMonTokenIssuer.issueToken(30),
                 "myNodeId", appMonManager.getNodeId(),
-                "appsToSubscribe", StringUtils.joinWithCommas(verifiedAppIds),
+                "appsToSubscribe", StringUtils.join(verifiedAppIds, ","),
                 "settings", settings,
                 "nodes", nodeInfoList,
                 "apps", appInfoList
