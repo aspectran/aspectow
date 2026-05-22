@@ -93,8 +93,9 @@ class WebsocketClient extends BaseClient {
                     console.warn("No viewer registered for nodeId:", nodeId, "Message:", message);
                 }
             } else if (message.startsWith(":subscribed:")) {
-                const primary = (message === ":subscribed:established");
-                this.establish(nodeId, primary, true);
+                const primary = message.startsWith(":subscribed:primary:");
+                const alive = message.endsWith(":alive");
+                this.establish(nodeId, primary, alive);
             } else {
                 console.error("Unexpected message received before primary connection established:", message);
             }
@@ -170,15 +171,18 @@ class WebsocketClient extends BaseClient {
         }
 
         const viewer = this.getViewer(nodeId);
-        if (!alive) {
-            viewer.printMessage("Node " + nodeId + " not alive");
-        }
         if (primary) {
             if (config && config.onPrimary) config.onPrimary(config.node);
             while (this.pendingMessages.length) {
                 viewer.printMessage(this.pendingMessages.shift());
             }
-            this.sendCommand(["command:established", "nodeToSubscribe:" + this.nodeToSubscribe], nodeId);
+            this.sendCommand([
+                "command:established",
+                "nodeToSubscribe:" + this.nodeToSubscribe
+            ], nodeId);
+        }
+        if (!alive) {
+            viewer.printErrorMessage("Node " + nodeId + " not alive");
         }
     }
 

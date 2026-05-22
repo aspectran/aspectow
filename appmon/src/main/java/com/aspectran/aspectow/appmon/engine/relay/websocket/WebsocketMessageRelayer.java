@@ -149,11 +149,12 @@ public class WebsocketMessageRelayer extends SimplifiedEndpoint implements Messa
                 if (appIds.length > 0) {
                     relaySession.setSubscribedApps(appIds);
                 }
-                relay(relaySession, nodeId + "::" + RESPONSE_SUBSCRIBED + "established");
+                String alive = (!messageRelayManager.isGatewayMode() ||
+                        messageRelayManager.getNodeRegistry().isFound(nodeId)) ? "alive" : "";
+                relay(relaySession, nodeId + "::" + RESPONSE_SUBSCRIBED + "primary:" + alive);
             }
         } else if (messageRelayManager.isGatewayMode()) {
-            String nodeInfo = messageRelayManager.getNodeRegistry().getNode(nodeId);
-            String alive = (nodeInfo != null ? "alive" : "");
+            String alive = messageRelayManager.getNodeRegistry().isFound(nodeId) ? "alive" : "";
             WebsocketRelaySession relaySession = new WebsocketRelaySession(session);
             relay(relaySession, nodeId + "::" + RESPONSE_SUBSCRIBED + alive);
         }

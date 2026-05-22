@@ -122,10 +122,8 @@ class DashboardBuilder {
             node.subscribeAttempts++;
             console.log(node.id, "subscribe attempts:", node.subscribeAttempts);
             this.changeNodeState(node);
-            viewer.setEnable(true);
-            if (node.active && node.alive) {
-                viewer.setVisible(true);
-            }
+            if (node.alive) viewer.setEnable(true);
+            if (node.alive && node.active) viewer.setVisible(true);
             if (node.subscribeAttempts === 1) {
                 this.initView();
             } else {
@@ -266,7 +264,7 @@ class DashboardBuilder {
                            $indicator.data("icon-error") + " error");
         if (errorOccurred) {
             $indicator.addClass($indicator.data("icon-error") + " error");
-        } else if (node.subscribed) {
+        } else if (node.subscribed && node.alive) {
             $indicator.addClass($indicator.data("icon-connected") + " connected");
         } else {
             $indicator.addClass($indicator.data("icon-disconnected") + " disconnected");

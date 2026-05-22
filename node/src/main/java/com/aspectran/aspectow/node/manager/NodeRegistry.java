@@ -128,6 +128,10 @@ public class NodeRegistry {
         }
     }
 
+    public boolean isFound(String nodeId) {
+        return getNode(nodeId) != null;
+    }
+
     /**
      * Checks if a node is considered 'live' based on its last pulse timestamp.
      * @param nodeId the node ID
