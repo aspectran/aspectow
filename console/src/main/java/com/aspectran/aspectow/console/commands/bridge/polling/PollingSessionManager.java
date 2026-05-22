@@ -48,7 +48,7 @@ public class PollingSessionManager extends AbstractComponent {
         newSession.setSessionTimeout(60); // 1 minute default
         newSession.access(true);
         sessions.put(sessionId, newSession);
-        bridge.getBroker().join(newSession);
+        bridge.getBroker().subscribe(newSession);
         return newSession;
     }
 

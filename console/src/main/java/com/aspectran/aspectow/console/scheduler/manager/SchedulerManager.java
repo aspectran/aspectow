@@ -94,7 +94,7 @@ public class SchedulerManager implements ApplicationAdapterAware, InitializableB
     }
 
     public void handleControlMessage(String nodeId, @NonNull String message) {
-        if (message.startsWith(SchedulerBroker.CONTROL_JOIN)) {
+        if (message.startsWith(SchedulerBroker.CONTROL_SUBSCRIBE)) {
             broker.getSubscriptionRegistry().addRemoteSubscription(nodeId);
             startExporters();
         } else if (message.startsWith(SchedulerBroker.CONTROL_RELEASE)) {

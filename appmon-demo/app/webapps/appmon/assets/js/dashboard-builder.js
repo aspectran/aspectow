@@ -1,11 +1,25 @@
 /*
- * Aspectow AppMon 4.0
- * Last modified: 2026-04-29
+ * Copyright (c) 2020-present The Aspectran Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 /**
  * The builder component for the AppMon dashboard.
  * Responsible for assembling the dashboard UI based on configuration data.
+ *
+ * @version 4.0
+ * @last-modified 2026-05-22
  */
 class DashboardBuilder {
     constructor(options = {}) {
@@ -18,10 +32,10 @@ class DashboardBuilder {
         this.clients = [];
     }
 
-    build(basePath, appsToSubscribe, nodeIdToJoin) {
+    build(basePath, appsToSubscribe, nodeIdToSubscribe) {
         this.basePath = basePath;
         this.appsToSubscribe = appsToSubscribe;
-        this.nodeIdToJoin = nodeIdToJoin;
+        this.nodeIdToSubscribe = nodeIdToSubscribe;
         this.clearView();
         $.ajax({
             url: basePath + "/appmon/config/data",
@@ -45,7 +59,7 @@ class DashboardBuilder {
                     const random1000 = this.random(1, 1000);
 
                     data.nodes.forEach(nodeInfo => {
-                        if (this.nodeIdToJoin && this.nodeIdToJoin !== nodeInfo.id) {
+                        if (this.nodeIdToSubscribe && this.nodeIdToSubscribe !== nodeInfo.id) {
                             return;
                         }
                         const node = {

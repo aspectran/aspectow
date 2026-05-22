@@ -198,8 +198,8 @@
                 // flagsUrl: "https://cdn.jsdelivr.net/gh/aspectran/aspectran-assets@main/assets/countries/flags/"
             };
             const urlParams = new URLSearchParams(window.location.search);
-            const nodeId = urlParams.get('nodeId');
-            new DashboardBuilder(options).build(basePath, appsToSubscribe, nodeId);
+            const nodeIdToSubscribe = urlParams.get('nodeId');
+            new DashboardBuilder(options).build(basePath, appsToSubscribe, nodeIdToSubscribe);
         });
     </script>
 </body>

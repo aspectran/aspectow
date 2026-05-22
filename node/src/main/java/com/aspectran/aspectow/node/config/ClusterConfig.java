@@ -124,7 +124,7 @@ public class ClusterConfig extends DefaultParameters {
      * Returns the interval between heartbeat signals in milliseconds.
      * @return the heartbeat interval
      */
-    public long getHeartbeatInterval() {
+    public Long getHeartbeatInterval() {
         return getLong(heartbeatInterval);
     }
 

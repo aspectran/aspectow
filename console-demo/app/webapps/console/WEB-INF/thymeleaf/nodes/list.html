@@ -83,10 +83,10 @@
     <th:block layout:fragment="script">
         <script th:src="@{/assets/js/console-client.js}"></script>
         <script th:inline="javascript">
-            const BASE_PATH = [[@{/}]].replace(/\/$/, '');
+            const basePath = [[@{/}]].replace(/\/$/, '');
 
             function openAppMon(nodeId) {
-                const url = BASE_PATH + "/appmon/dashboard/popup/?nodeId=" + nodeId;
+                const url = basePath + "/appmon/dashboard/popup/?nodeId=" + nodeId;
                 const name = "appmon_dashboard_popup_" + nodeId.replace(/[^a-zA-Z0-9]/g, '_');
                 const features = "width=1500,height=1045,menubar=no,toolbar=no,location=no,status=no,resizable=yes,scrollbars=yes";
                 const popup = window.open(url, name, features);
@@ -128,22 +128,21 @@
                         const node = {
                             id: n.id,
                             endpoint: {
-                                path: BASE_PATH + "/nodes/" + n.id,
+                                path: basePath + "/nodes/" + n.id,
                                 token: token
                             }
                         };
                         const client = new ConsoleClient(node, {
                             onBeforeConnect: () => {
-                                return fetch(BASE_PATH + "/nodes/token", {
-                                    headers: { 'Accept': 'application/json' }
-                                })
+                                return fetch(basePath + "/nodes/token", {
+                                        headers: { 'Accept': 'application/json' }
+                                    })
                                     .then(response => response.json())
                                     .then(res => res.success ? res.data : null)
                                     .catch(err => {
                                         console.error("Failed to fetch new token:", err);
                                         return null;
                                     });
-                            },
                             },
                             onMessage: (msg) => {
                                 try {
@@ -164,19 +163,18 @@
                     });
                 } else {
                     const node = [[${page.node}]];
-                    node.endpoint.path = BASE_PATH + "/nodes/" + node.id;
+                    node.endpoint.path = basePath + "/nodes/" + node.id;
                     const client = new ConsoleClient(node, {
                         onBeforeConnect: () => {
-                            return fetch(BASE_PATH + "/nodes/token", {
-                                headers: { 'Accept': 'application/json' }
-                            })
+                            return fetch(basePath + "/nodes/token", {
+                                    headers: { 'Accept': 'application/json' }
+                                })
                                 .then(response => response.json())
                                 .then(res => res.success ? res.data : null)
                                 .catch(err => {
                                     console.error("Failed to fetch new token:", err);
                                     return null;
                                 });
-                        },
                         },
                         onMessage: (msg) => {
                             if (isUnloading) return;

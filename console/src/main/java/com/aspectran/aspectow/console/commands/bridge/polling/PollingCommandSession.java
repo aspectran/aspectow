@@ -26,11 +26,6 @@ import java.util.concurrent.atomic.AtomicInteger;
  * A {@link CommandSession} implementation for HTTP polling.
  * It tracks the last message index retrieved by the client.
  */
-
-/**
- * A {@link CommandSession} implementation for HTTP polling.
- * It tracks the last message index retrieved by the client.
- */
 public class PollingCommandSession implements CommandSession {
 
     private static final int MIN_SESSION_TIMEOUT = 500;

@@ -169,7 +169,7 @@ public class PollingMessageRelayer implements MessageRelayer {
     private void established(@NonNull PollingRelaySession relaySession, @NonNull CommandOptions commandOptions) {
         String nodeId = commandOptions.getNodeId();
         if (messageRelayManager.isSameNode(nodeId)) {
-            if (messageRelayManager.subscribe(relaySession)) {
+            if (messageRelayManager.subscribe(relaySession, nodeId)) {
                 List<String> messages = messageRelayManager.getLastMessages(relaySession);
                 for (String message : messages) {
                     pollingSessionManager.push(relaySession, message);

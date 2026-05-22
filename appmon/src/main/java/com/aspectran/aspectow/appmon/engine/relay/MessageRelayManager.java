@@ -271,7 +271,7 @@ public class MessageRelayManager {
      * @param session the client session that is subscribing
      * @return {@code true} if the subscribe was successful, {@code false} otherwise
      */
-    public synchronized boolean subscribe(@NonNull RelaySession session) {
+    public synchronized boolean subscribe(@NonNull RelaySession session, String nodeId) {
         if (!session.isValid()) {
             return false;
         }
@@ -280,7 +280,7 @@ public class MessageRelayManager {
             return false;
         }
         for (String appId : subscribedApps) {
-            if (!subscriptionRegistry.isAppInUse(appId)) {
+            if (isSameNode(nodeId) && !subscriptionRegistry.isAppInUse(appId)) {
                 startExporters(appId);
             }
             if (isGatewayMode() && !subscriptionRegistry.isAppInUseLocally(appId)) {

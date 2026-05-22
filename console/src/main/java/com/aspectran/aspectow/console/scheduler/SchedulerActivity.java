@@ -79,6 +79,7 @@ public class SchedulerActivity {
     @Action("page")
     public Map<String, Object> scheduler(String nodeId) {
         String clusterMode = nodeManager.getClusterConfig().getMode();
+        long heartbeatInterval = nodeManager.getClusterConfig().getHeartbeatInterval(50000);
         List<Map<String, Object>> nodes = nodeConsoleHelper.getNodes(true);
         NodeInfo nodeInfo = (nodeId != null ? nodeManager.getNodeInfoHolder().getNodeInfo(nodeId) : null);
         if (nodeInfo == null) {
@@ -89,6 +90,7 @@ public class SchedulerActivity {
                 "style", "scheduler-page",
                 "group", "cluster-menu",
                 "clusterMode", clusterMode,
+                "heartbeatInterval", heartbeatInterval,
                 "nodes", nodes,
                 "node", nodeConsoleHelper.createNodeMap(nodeInfo, true, true),
                 "token", AppMonTokenIssuer.issueToken(30),
@@ -115,8 +117,8 @@ public class SchedulerActivity {
      * @param nodeId the node ID to join
      * @return the node ID
      */
-    @Request("/join")
-    public RestResponse join(String nodeId) {
+    @Request("/subscribe")
+    public RestResponse subscribe(String nodeId) {
         if (StringUtils.isEmpty(nodeId)) {
             nodeId = nodeManager.getNodeId();
         }

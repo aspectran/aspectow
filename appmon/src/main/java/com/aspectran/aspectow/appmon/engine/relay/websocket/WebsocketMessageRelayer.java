@@ -25,6 +25,7 @@ import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Component;
 import com.aspectran.core.component.bean.annotation.Destroy;
 import com.aspectran.core.component.bean.annotation.Initialize;
+import com.aspectran.utils.Assert;
 import com.aspectran.utils.StringUtils;
 import com.aspectran.utils.security.InvalidPBTokenException;
 import com.aspectran.web.websocket.jsr356.AspectranConfigurator;
@@ -134,9 +135,7 @@ public class WebsocketMessageRelayer extends SimplifiedEndpoint implements Messa
 
     private void subscribe(Session session, @NonNull CommandOptions commandOptions) {
         String nodeId = commandOptions.getNodeId();
-        if (!StringUtils.hasText(nodeId)) {
-            return;
-        }
+        Assert.hasText(nodeId, "Node ID cannot be empty");
         if (messageRelayManager.isSameNode(nodeId)) {
             if (addSession(session)) {
                 messageRelayManager.registerSession(session.getId(), this);
@@ -165,7 +164,7 @@ public class WebsocketMessageRelayer extends SimplifiedEndpoint implements Messa
         String nodeId = commandOptions.getNodeId();
         if (messageRelayManager.isSameNode(nodeId)) {
             RelaySession relaySession = new WebsocketRelaySession(session);
-            if (messageRelayManager.subscribe(relaySession)) {
+            if (messageRelayManager.subscribe(relaySession, nodeId)) {
                 List<String> messages = messageRelayManager.getLastMessages(relaySession);
                 for (String message : messages) {
                     sendText(session, message);

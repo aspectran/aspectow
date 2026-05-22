@@ -42,12 +42,12 @@ app: {
         id: app
         file: console.log
         sampleInterval: 300
-        lastLines: 10
+        lastLines: 100
     }
     log: {
         id: access
         file: console-access.log
         sampleInterval: 300
-        lastLines: 10
+        lastLines: 100
     }
 }

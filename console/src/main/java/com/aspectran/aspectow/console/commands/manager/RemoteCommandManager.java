@@ -121,7 +121,7 @@ public class RemoteCommandManager implements InitializableBean {
      * Processes an incoming message received from the cluster relay.
      * @param message the raw relay message
      */
-    public void process(String message) {
+    public void process(@NonNull String message) {
         // Since categorization is handled by the BridgeHandler,
         // we just need to distinguish between a command and a result.
         // For RemoteCommandManager, we assume if it's not a known result format, it's a command.

@@ -18,14 +18,15 @@
  * ConsoleClient provides a unified interface for real-time communication with Console activities,
  * automatically falling back to HTTP long-polling if WebSockets are unavailable.
  *
- * @author Juho Jeong
+ * @version 4.0
+ * @last-modified 2026-05-22
  */
 class ConsoleClient {
 
     constructor(node, options = {}) {
         this.node = node;
         this.options = Object.assign({
-            heartbeatInterval: 5000,
+            heartbeatInterval: 50000,
             pollingInterval: 3000,
             maxRetries: 10,
             retryInterval: 5000,
@@ -35,10 +36,10 @@ class ConsoleClient {
             onClose: null,
             onRetry: null,
             onBeforeConnect: null,
-            onError: null,
+            onSubscribed: null,
             onEstablished: null,
-            onJoined: null,
             onFailed: null,
+            onError: null,
             viewer: {
                 printMessage: (msg) => console.log(this.node.id, msg),
                 printErrorMessage: (msg) => console.error(this.node.id, msg),
@@ -90,13 +91,13 @@ class ConsoleClient {
                 if (token) {
                     this.node.endpoint.token = token;
                 }
-                this.doOpenSocket();
+                this.connect();
             }).catch((err) => {
                 console.error(this.node.id, "failed to prepare connection:", err);
                 this.switchToPolling();
             });
         } else {
-            this.doOpenSocket();
+            this.connect();
         }
     }
 
@@ -104,7 +105,7 @@ class ConsoleClient {
      * Actually opens a new WebSocket connection.
      * @private
      */
-    doOpenSocket() {
+    connect() {
         this.mode = 'websocket';
         this.closeSocket(false);
 
@@ -126,11 +127,9 @@ class ConsoleClient {
                 this.retryCount = 0;
                 this.pendingMessages.push("Socket connection successful");
 
-                const joinMessage = {
-                    header: "join"
-                };
-                this.socket.send(JSON.stringify(joinMessage));
-                this.heartbeatPing();
+                const subscribeMessage = { header: "subscribe" };
+                this.socket.send(JSON.stringify(subscribeMessage));
+                this.sendPing();
 
                 if (this.options.onOpen) {
                     this.options.onOpen(event);
@@ -143,11 +142,11 @@ class ConsoleClient {
                         const message = JSON.parse(event.data);
                         const header = message.header;
 
-                        if (header === 'joined') {
-                            console.log(this.node.id, "joined", this.activityPath);
+                        if (header === 'subscribed') {
+                            console.log(this.node.id, "subscribed", this.activityPath);
                             this.establish(message);
                         } else if (header === 'pong') {
-                            this.heartbeatPing();
+                            this.sendPing();
                         } else if (header === 'result' || header === 'error') {
                             this.handleMessage(message);
                         }
@@ -167,7 +166,7 @@ class ConsoleClient {
                         this.options.viewer.printErrorMessage("Connection rejected: " + (event.reason || "Unauthorized"));
                         this.switchToPolling();
                     } else {
-                        this.rejoin();
+                        this.reconnect();
                     }
                 }
             };
@@ -199,8 +198,8 @@ class ConsoleClient {
             path = p + a;
         }
 
-        const joinUrl = path + "/join?nodeId=" + this.node.id;
-        fetch(joinUrl, {
+        const subscribeUrl = path + "/subscribe?nodeId=" + this.node.id;
+        fetch(subscribeUrl, {
             headers: {
                 'Accept': 'application/json'
             }
@@ -304,13 +303,13 @@ class ConsoleClient {
     }
 
     /**
-     * Completes the connection process after receiving the 'joined' message.
+     * Completes the connection process after receiving the 'subscribed' message.
      * @param {Object} payload - payload from the server
      * @private
      */
     establish(payload) {
-        if (this.options.onJoined) {
-            this.options.onJoined(this.node, payload);
+        if (this.options.onSubscribed) {
+            this.options.onSubscribed(this.node, payload);
         }
         while (this.pendingMessages.length) {
             this.options.viewer.printMessage(this.pendingMessages.shift());
@@ -326,7 +325,7 @@ class ConsoleClient {
      * Retries the connection with exponential backoff.
      * @private
      */
-    rejoin() {
+    reconnect() {
         if (this.retryCount < this.options.maxRetries) {
             this.retryCount++;
             const jitter = Math.floor(Math.random() * 1000);
@@ -412,7 +411,7 @@ class ConsoleClient {
      * Sends a heartbeat ping to the server.
      * @private
      */
-    heartbeatPing() {
+    sendPing() {
         if (this.heartbeatTimer) {
             clearTimeout(this.heartbeatTimer);
         }

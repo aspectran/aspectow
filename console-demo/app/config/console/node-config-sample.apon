@@ -6,7 +6,7 @@ cluster: {
         password: "your-node-management-password"
         # salt: "optional-salt"
     }
-    heartbeatInterval: 5000
+    heartbeatInterval: 50000
     endpoint: {
         mode: auto  # or websocket or polling
     }

@@ -157,15 +157,17 @@
     <th:block layout:fragment="script">
         <script th:src="@{/assets/js/console-client.js}"></script>
         <script th:inline="javascript">
+            const basePath = [[@{/}]].replace(/\/$/, '');
+            const clusterMode = [[${page.clusterMode}]];
+            const heartbeatInterval = [[${page.heartbeatInterval}]];
             let nodes = [[${page.nodes}]];
-            const BASE_PATH = [[@{/}]].replace(/\/$/, '');
             let consoleClient = null;
             let currentNodeId = [[${page.node.id}]];
 
             function refreshNodeList() {
-                return fetch(BASE_PATH + "/nodes/scheduler/list", {
-                    headers: { 'Accept': 'application/json' }
-                })
+                return fetch(basePath + "/nodes/scheduler/list", {
+                        headers: { 'Accept': 'application/json' }
+                    })
                     .then(res => res.json())
                     .then(res => {
                         if (res.success) {
@@ -230,15 +232,16 @@
                 const node = {
                     id: nodeId,
                     endpoint: {
-                        path: BASE_PATH + "/nodes"
+                        path: basePath + "/nodes"
                     }
                 };
 
                 consoleClient = new ConsoleClient(node, {
+                    heartbeatInterval: heartbeatInterval,
                     onBeforeConnect: () => {
-                        return fetch(BASE_PATH + "/nodes/token", {
-                            headers: { 'Accept': 'application/json' }
-                        })
+                        return fetch(basePath + "/nodes/token", {
+                                headers: { 'Accept': 'application/json' }
+                            })
                             .then(response => response.json())
                             .then(res => res.success ? res.data : null)
                             .catch(err => {
@@ -253,7 +256,7 @@
                             return;
                         }
 
-                        // Handle header-based messages (e.g., joined, pong)
+                        // Handle header-based messages (e.g., subscribed, pong)
                         if (message.header && message.header !== 'result') {
                             handleRelayMessage(message);
                             return;

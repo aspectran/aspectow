@@ -52,11 +52,11 @@ public class NodeGatewayEndpoint extends SimplifiedEndpoint implements RedisMess
     private static final Logger logger = LoggerFactory.getLogger(NodeGatewayEndpoint.class);
 
     private static final String COMMAND_PING = "ping";
-    private static final String COMMAND_JOIN = "join";
+    private static final String COMMAND_SUBSCRIBED = "subscribed";
     private static final String COMMAND_ESTABLISHED = "established";
 
     private static final String MESSAGE_PONG = "pong:";
-    private static final String MESSAGE_JOINED = "joined:";
+    private static final String MESSAGE_SUBSCRIBED = "subscribed:";
 
     private final NodeManager nodeManager;
 
@@ -151,11 +151,11 @@ public class NodeGatewayEndpoint extends SimplifiedEndpoint implements RedisMess
                 case COMMAND_PING:
                     pong(session);
                     break;
-                case COMMAND_JOIN:
-                    join(session);
+                case COMMAND_SUBSCRIBED:
+                    subscribe(session);
                     break;
                 case COMMAND_ESTABLISHED:
-                    joinComplete(session);
+                    established(session);
                     break;
             }
         }
@@ -166,13 +166,13 @@ public class NodeGatewayEndpoint extends SimplifiedEndpoint implements RedisMess
         sendText(session, MESSAGE_PONG + newToken);
     }
 
-    private void join(Session session) {
+    private void subscribe(Session session) {
         if (addSession(session)) {
-            sendText(session, MESSAGE_JOINED);
+            sendText(session, MESSAGE_SUBSCRIBED);
         }
     }
 
-    private void joinComplete(@NonNull Session session) {
+    private void established(@NonNull Session session) {
         String nodeId = session.getPathParameters().get("nodeId");
         logger.info("Node management session established: {} (nodeId: {})", session.getId(), nodeId);
     }

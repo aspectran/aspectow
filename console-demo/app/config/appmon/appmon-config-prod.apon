@@ -41,13 +41,13 @@ app: {
         id: app
         file: /logs/root.log
         sampleInterval: 300
-        lastLines: 1000
+        lastLines: 300
     }
     log: {
         id: access
         file: /logs/root-access.log
         sampleInterval: 300
-        lastLines: 1000
+        lastLines: 100
     }
 }
 app: {
@@ -69,13 +69,13 @@ app: {
         id: app
         file: /logs/console.log
         sampleInterval: 300
-        lastLines: 1000
+        lastLines: 300
     }
     log: {
         id: access
         file: /logs/console-access.log
         sampleInterval: 300
-        lastLines: 1000
+        lastLines: 100
     }
 }
 app: {
@@ -85,13 +85,13 @@ app: {
         id: app
         file: /logs/jpetstore.log
         sampleInterval: 300
-        lastLines: 1000
+        lastLines: 300
     }
     log: {
         id: access
         file: /logs/jpetstore-access.log
         sampleInterval: 300
-        lastLines: 1000
+        lastLines: 100
     }
 }
 app: {
@@ -101,12 +101,12 @@ app: {
         id: app
         file: /logs/demo.log
         sampleInterval: 300
-        lastLines: 1000
+        lastLines: 300
     }
     log: {
         id: access
         file: /logs/demo-access.log
         sampleInterval: 300
-        lastLines: 1000
+        lastLines: 100
     }
 }
