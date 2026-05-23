@@ -60,7 +60,7 @@ public class DashboardActivity {
      * @param appsToSubscribe the comma-separated list of apps to monitor
      * @return a map of attributes for rendering the view
      */
-    @Request("/dashboard/${apps}")
+    @Request("/dashboard/${appsToSubscribe}")
     @Dispatch("appmon/dashboard")
     @Action("page")
     public Map<String, String> dashboard(String appsToSubscribe) {

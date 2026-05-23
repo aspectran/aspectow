@@ -197,7 +197,7 @@ class PollingClient extends BaseClient {
 
         const viewer = this.getViewer(nodeId);
         if (!alive) {
-            viewer.printMessage("Node " + nodeId + " not alive");
+            viewer.printMessage("Node '" + nodeId + "' not alive");
         } else {
             viewer.printMessage("Polling every " + this.node.endpoint.pollingInterval + " milliseconds.");
         }

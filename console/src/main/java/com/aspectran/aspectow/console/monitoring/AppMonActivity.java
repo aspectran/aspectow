@@ -59,7 +59,7 @@ public class AppMonActivity {
      * @param appsToSubscribe the comma-separated list of apps to monitor
      * @return a map of attributes for rendering the view
      */
-    @Request("/dashboard/${apps}")
+    @Request("/dashboard/${appsToSubscribe}")
     @Dispatch("appmon/dashboard")
     @Action("page")
     public Map<String, String> dashboard(String appsToSubscribe) {
@@ -74,18 +74,18 @@ public class AppMonActivity {
 
     /**
      * Displays the monitoring page as a popup.
-     * @param appsToJoin the comma-separated list of apps to monitor
+     * @param appsToSubscribe the comma-separated list of apps to monitor
      * @return a map of attributes for rendering the view
      */
-    @Request("/dashboard/popup/${appsToJoin}")
+    @Request("/dashboard/popup/${appsToSubscribe}")
     @Dispatch("appmon/dashboard")
     @Action("page")
     @Hint(type = "layout", value = "layout: popup")
-    public Map<String, String> dashboardPopup(String appsToJoin) {
+    public Map<String, String> dashboardPopup(String appsToSubscribe) {
         return Map.of(
                 "title", "Application Monitoring",
                 "style", "monitoring-page",
-                "appsToJoin", StringUtils.nullToEmpty(appsToJoin),
+                "appsToJoin", StringUtils.nullToEmpty(appsToSubscribe),
                 "layout", "popup"
         );
     }
