@@ -15,6 +15,7 @@
  */
 package com.aspectran.aspectow.node.manager;
 
+import com.aspectran.utils.StringUtils;
 import org.jspecify.annotations.NonNull;
 
 /**
@@ -27,9 +28,11 @@ public abstract class NodeMessageProtocol {
 
     public static final String CATEGORY_CLUSTER = "cluster";
 
-    private static final String KEY_PREFIX = "aspectow:cluster:";
+    public static final String TYPE_CONTROL = "control";
 
-    private static final String NODES_HASH_KEY_PREFIX = KEY_PREFIX + "nodes:";
+    public static final String TYPE_RELAY = "relay";
+
+    private static final String KEY_PREFIX = "aspectow:nodes:";
 
     /**
      * Returns the Redis Hash key for storing node metadata for a specific cluster.
@@ -38,7 +41,7 @@ public abstract class NodeMessageProtocol {
      */
     @NonNull
     public static String getNodesHashKey(String clusterId) {
-        return NODES_HASH_KEY_PREFIX + clusterId;
+        return KEY_PREFIX + clusterId;
     }
 
     /**
@@ -48,7 +51,7 @@ public abstract class NodeMessageProtocol {
      */
     @NonNull
     public static String getPulsesHashKey(String clusterId) {
-        return NODES_HASH_KEY_PREFIX + clusterId + ":pulse";
+        return KEY_PREFIX + clusterId + ":pulse";
     }
 
     /**
@@ -60,20 +63,30 @@ public abstract class NodeMessageProtocol {
      */
     @NonNull
     public static String getControlChannel(String clusterId, String nodeId) {
-        return KEY_PREFIX + "control:" + clusterId + ":" + nodeId;
+        return KEY_PREFIX + TYPE_CONTROL + "::" + clusterId + ":" + nodeId + ":";
+    }
+
+    @NonNull
+    public static String getControlChannel(String category, String clusterId, String nodeId) {
+        return KEY_PREFIX + TYPE_CONTROL + ":" + category + ":" + clusterId + ":" + nodeId + ":";
     }
 
     /**
      * Returns the Redis Pub/Sub channel for transparently relaying application-specific
      * messages (e.g., AppMon logs, Remote Command data).
+     * @param category the category of the relay message
      * @param clusterId the cluster ID
      * @param nodeId the node ID
-     * @param category the category of the relay message
      * @return the channel name
      */
     @NonNull
-    public static String getRelayChannel(String clusterId, String nodeId, String category) {
-        return KEY_PREFIX + "relay:" + category + ":" + clusterId + ":" + nodeId;
+    public static String getRelayChannel(String category, String clusterId, String nodeId) {
+        return KEY_PREFIX + TYPE_RELAY + ":" + category + ":" + clusterId + ":" + nodeId + ":";
+    }
+
+    @NonNull
+    public static String getRelayChannel(String category, String clusterId, String nodeId, String sessionId) {
+        return KEY_PREFIX + TYPE_RELAY + ":" + category + ":" + clusterId + ":" + nodeId + ":" + StringUtils.nullToEmpty(sessionId);
     }
 
     /**
@@ -84,7 +97,7 @@ public abstract class NodeMessageProtocol {
      */
     @NonNull
     public static String getClusterSubscriptionPattern(String clusterId) {
-        return KEY_PREFIX + "*:" + clusterId + ":*";
+        return KEY_PREFIX + "*:*:" + clusterId + ":*:*";
     }
 
     /**
@@ -96,20 +109,20 @@ public abstract class NodeMessageProtocol {
      */
     @NonNull
     public static String getClusterSubscriptionPattern(String clusterId, String nodeId) {
-        return KEY_PREFIX + "*:" + clusterId + ":" + nodeId;
+        return KEY_PREFIX + "*:*:" + clusterId + ":" + nodeId + ":*";
     }
 
     /**
      * Returns the Redis Pub/Sub pattern for subscribing to relay channels
      * of a specific category for a node within a cluster.
+     * @param category the category of the relay message
      * @param clusterId the cluster ID
      * @param nodeId the node ID
-     * @param category the category of the relay message
      * @return the subscription pattern
      */
     @NonNull
-    public static String getRelaySubscriptionPattern(String clusterId, String nodeId, String category) {
-        return KEY_PREFIX + "relay:" + category + ":" + clusterId + ":" + nodeId;
+    public static String getRelaySubscriptionPattern(String category, String clusterId, String nodeId) {
+        return KEY_PREFIX + TYPE_RELAY + ":" + category + ":" + clusterId + ":" + nodeId + ":*";
     }
 
 }

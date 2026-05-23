@@ -109,6 +109,30 @@ public class NodeRegistry {
     }
 
     /**
+     * Retrieves a specific node's information as a NodeInfo object.
+     * @param nodeId the node ID
+     * @return the node information as a NodeInfo object, or null if not found
+     */
+    public NodeInfo getNodeInfo(String nodeId) {
+        String aponData = getNode(nodeId);
+        if (aponData == null) {
+            return null;
+        }
+        try {
+            NodeInfo nodeInfo = new NodeInfo();
+            nodeInfo.readFrom(aponData);
+            return nodeInfo;
+        } catch (IOException e) {
+            logger.warn("Failed to parse node info APON data", e);
+            return null;
+        }
+    }
+
+    public boolean isFound(String nodeId) {
+        return getNode(nodeId) != null;
+    }
+
+    /**
      * Checks if a node is considered 'live' based on its last pulse timestamp.
      * @param nodeId the node ID
      * @param timeoutMillis the timeout threshold in milliseconds

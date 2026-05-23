@@ -86,8 +86,8 @@ public class LogExporter extends AbstractExporter {
         super(TYPE);
         this.exporterManager = exporterManager;
         this.logInfo = logInfo;
-        this.prefix = logInfo.getAppId() + ":" + TYPE + ":" + logInfo.getLogId() + ":";
-        this.plogPrefix = logInfo.getAppId() + ":" + TYPE + "/p:" + logInfo.getLogId() + ":";
+        this.prefix = exporterManager.getNodeId() + ":" + logInfo.getAppId() + ":" + TYPE + ":" + logInfo.getLogId() + ":";
+        this.plogPrefix = exporterManager.getNodeId() + ":" + logInfo.getAppId() + ":" + TYPE + "/p:" + logInfo.getLogId() + ":";
         this.charset = (logInfo.getCharset() != null ? Charset.forName(logInfo.getCharset()): DEFAULT_CHARSET);
         this.sampleInterval = (logInfo.getSampleInterval() > 0 ? logInfo.getSampleInterval() : DEFAULT_SAMPLE_INTERVAL);
         this.lastLines = logInfo.getLastLines();
@@ -135,21 +135,25 @@ public class LogExporter extends AbstractExporter {
     @Override
     public void readIfChanged(@NonNull List<String> messages, @NonNull CommandOptions commandOptions) {
         if (commandOptions.hasCommand(CommandOptions.COMMAND_LOAD_PREVIOUS)) {
-            if (getName().equals(commandOptions.getLogName())) {
-                try {
-                    int loadedLines = commandOptions.getLoadedLines();
-                    List<String> lines = readPreviousLines(loadedLines, lastLines);
-                    if (!lines.isEmpty()) {
-                        for (String line : lines) {
-                            messages.add(plogPrefix + line);
-                        }
-                    } else {
-                        messages.add(plogPrefix);
-                    }
-                } catch (IOException e) {
-                    logger.error("Failed to read previous log lines", e);
-                }
+            if (!getName().equals(commandOptions.getLogId())) {
+                logger.warn("Log id mismatch, expected: {}, actual: {}", getName(), commandOptions.getLogId());
+                return;
             }
+            try {
+                int loadedLines = commandOptions.getLoadedLines();
+                List<String> lines = readPreviousLines(loadedLines, lastLines);
+                if (!lines.isEmpty()) {
+                    for (String line : lines) {
+                        messages.add(plogPrefix + line);
+                    }
+                } else {
+                    messages.add(plogPrefix);
+                }
+            } catch (IOException e) {
+                logger.error("Failed to read previous log lines", e);
+            }
+        } else if (commandOptions.isWithLogs()) {
+            read(messages, commandOptions);
         }
     }
 

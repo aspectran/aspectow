@@ -25,6 +25,9 @@ import org.slf4j.LoggerFactory;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
+import static com.aspectran.aspectow.node.manager.NodeMessageProtocol.TYPE_CONTROL;
+import static com.aspectran.aspectow.node.manager.NodeMessageProtocol.TYPE_RELAY;
+
 /**
  * Listens to management control and transparent relay channels and notifies
  * registered listeners based on the message category.
@@ -80,27 +83,39 @@ public class RedisMessageSubscriber extends RedisPubSubAdapter<String, String> {
     @Override
     public void message(@NonNull String channel, String message) {
         // Expected patterns:
-        // aspectow:cluster:control:<clusterId>:<nodeId>
-        // aspectow:cluster:relay:<category>:<clusterId>:<nodeId>
+        // aspectow:cluster:control:<category>:<clusterId>:<nodeId>
+        // aspectow:cluster:relay:<category>:<clusterId>:<nodeId>:<sessionId>
 
         String[] parts = channel.split(":");
-        if (parts.length < 5) {
+        if (parts.length < 6) {
             return;
         }
 
         String type = parts[2]; // control or relay
-        if ("control".equals(type)) {
-            String nodeId = parts[4];
-            for (RedisMessageListener listener : listeners) {
-                listener.onControlMessage(nodeId, message);
-            }
-        } else if ("relay".equals(type) && parts.length >= 6) {
-            String category = parts[3]; // appmon, commands, etc.
-            String nodeId = parts[5];   // node ID
+        String category = parts[3]; // appmon, commands, etc.
+        String targetNodeId = parts[5]; // node ID
+        String sessionId = (parts.length > 6 ? parts[6] : null); // session ID
+
+        if (!nodeId.equals(targetNodeId)) {
+            return;
+        }
+
+        if (TYPE_CONTROL.equals(type)) {
             for (RedisMessageListener listener : listeners) {
                 String listenerCategory = listener.getCategory();
                 if (listenerCategory == null || listenerCategory.equals(category)) {
-                    listener.onRelayMessage(nodeId, message);
+                    listener.onControlMessage(targetNodeId, message);
+                }
+            }
+        } else if (TYPE_RELAY.equals(type)) {
+            for (RedisMessageListener listener : listeners) {
+                String listenerCategory = listener.getCategory();
+                if (listenerCategory == null || listenerCategory.equals(category)) {
+                    if (sessionId != null) {
+                        listener.onRelayMessage(targetNodeId, sessionId, message);
+                    } else {
+                        listener.onRelayMessage(targetNodeId, message);
+                    }
                 }
             }
         }

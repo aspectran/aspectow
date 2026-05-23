@@ -1,11 +1,25 @@
 /*
- * Aspectow AppMon 4.0
- * Last modified: 2026-04-29
+ * Copyright (c) 2020-present The Aspectran Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 /**
  * The builder component for the AppMon dashboard.
  * Responsible for assembling the dashboard UI based on configuration data.
+ *
+ * @version 4.0
+ * @last-modified 2026-05-22
  */
 class DashboardBuilder {
     constructor(options = {}) {
@@ -18,18 +32,23 @@ class DashboardBuilder {
         this.clients = [];
     }
 
-    build(basePath, appsToJoin, nodeIdToJoin) {
+    build(basePath, appsToSubscribe, nodeIdToSubscribe) {
         this.basePath = basePath;
-        this.appsToJoin = appsToJoin;
-        this.nodeIdToJoin = nodeIdToJoin;
+        this.appsToSubscribe = appsToSubscribe;
+        this.nodeIdToSubscribe = nodeIdToSubscribe;
         this.clearView();
         $.ajax({
             url: basePath + "/appmon/config/data",
             type: "get",
             dataType: "json",
-            data: appsToJoin ? { apps: appsToJoin } : null,
+            data: appsToSubscribe ? { appsToSubscribe: appsToSubscribe } : null,
             success: (data) => {
                 if (data) {
+                    if (!data.appsToSubscribe) {
+                        alert("No verified apps found. Please check the configuration of the backend.");
+                        return;
+                    }
+
                     this.settings = { ...data.settings };
                     this.nodes = [];
                     this.apps = [];
@@ -39,18 +58,21 @@ class DashboardBuilder {
                     let index = 0;
                     const random1000 = this.random(1, 1000);
 
-                    data.nodes.forEach(nodeData => {
-                        if (this.nodeIdToJoin && this.nodeIdToJoin !== nodeData.id) {
+                    data.nodes.forEach(nodeInfo => {
+                        if (this.nodeIdToSubscribe && this.nodeIdToSubscribe !== nodeInfo.id) {
                             return;
                         }
-                        console.log("nodeData", nodeData);
                         const node = {
-                            ...nodeData,
+                            ...nodeInfo,
                             index: index++,
                             random1000: random1000,
                             active: true,
-                            client: { established: false, establishCount: 0 }
+                            alive: false,
+                            primary: false,
+                            subscribed: false,
+                            subscribeAttempts: 0
                         };
+                        node.endpoint.mode = node.endpoint.mode || "auto";
                         node.endpoint.path = basePath + node.endpoint.path + "/" + node.id;
                         node.endpoint.token = data.token;
                         this.nodes.push(node);
@@ -58,8 +80,8 @@ class DashboardBuilder {
                         console.log("node", node);
                     });
 
-                    data.apps.forEach(appData => {
-                        const app = { ...appData, active: false };
+                    data.apps.forEach(appInfo => {
+                        const app = { ...appInfo, active: false };
                         this.apps.push(app);
                         console.log("app", app);
                     });
@@ -67,14 +89,14 @@ class DashboardBuilder {
                     this.buildView();
                     this.bindEvents();
                     if (this.nodes.length) {
-                        this.establish(0, appsToJoin);
+                        this.connect(0, data.appsToSubscribe, this.nodeIdToSubscribe);
                     }
                 }
             },
             error: (xhr) => {
                 if (xhr.status === 403) {
                     alert("Authentication has expired. You will be redirected to the main page.");
-                    location.href = (typeof contextPath !== 'undefined' && contextPath ? contextPath : "/");
+                    location.href = basePath;
                 }
             }
         });
@@ -84,63 +106,87 @@ class DashboardBuilder {
         return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 
-    establish(nodeIndex, appsToJoin) {
+    connect(nodeIndex, appsToSubscribe, nodeIdToSubscribe) {
+        console.log("cluster mode:", this.settings.clusterMode);
+        console.log("connecting node index:", nodeIndex);
+
         const node = this.nodes[nodeIndex];
+        if (node.subscribed) return;
         const viewer = this.viewers[nodeIndex];
+        const isGatewayMode = (this.settings.clusterMode === "gateway");
 
-        const onJoined = (node, payload) => {
+        const onSubscribed = (node) => {
+            if (node.subscribed && node.subscribeAttempts > 0) return;
             this.clearConsole(node.index);
-            if (payload && payload.messages) {
-                payload.messages.forEach(msg => viewer.processMessage(msg));
-            }
-        };
-
-        const onEstablished = (node) => {
-            node.client.established = true;
-            node.client.establishCount++;
-            console.log(node.id, "connection established:", node.client.establishCount);
+            node.subscribed = true;
+            node.subscribeAttempts++;
+            console.log(node.id, "subscribe attempts:", node.subscribeAttempts);
             this.changeNodeState(node);
-            viewer.setEnable(true);
-            if (node.active) {
-                viewer.setVisible(true);
-            }
-            if (node.client.establishCount === 1) {
+            if (node.alive) viewer.setEnable(true);
+            if (node.alive && node.active) viewer.setVisible(true);
+            if (node.subscribeAttempts === 1) {
                 this.initView();
             } else {
                 this.clearSessions(node.index);
             }
-            if (node.client.establishCount + node.index < this.nodes.length) {
-                this.establish(node.index + 1, appsToJoin);
+            if (node.subscribeAttempts === 1 && nodeIndex + 1 < this.nodes.length) {
+                this.connect(nodeIndex + 1, appsToSubscribe);
             }
         };
 
+        const onPrimary = (node) => {
+            console.log("primary connection node:", node.id);
+            node.primary = true;
+        };
+
         const onClosed = (node) => {
-            node.client.established = false;
+            node.subscribed = false;
             this.changeNodeState(node);
             viewer.setEnable(false);
         };
 
         const onFailed = (node) => {
             this.changeNodeState(node, true);
-            if (node.endpoint.mode !== "websocket") {
+            if (node.endpoint.mode !== "websocket" && node.subscribeAttempts < 1) {
                 setTimeout(() => {
-                    const client = new PollingClient(node, viewer, onJoined, onEstablished, onClosed, onFailed);
-                    this.clients[node.index] = client;
-                    client.start(appsToJoin);
+                    const client = new PollingClient(node, viewer, onSubscribed, onPrimary, onClosed, onFailed, isGatewayMode);
+                    if (isGatewayMode) {
+                        this.sharedClient = client;
+                        client.addClusterViewer(node.id, viewer);
+                        client.addClusterNode(node, onSubscribed, onPrimary);
+                    }
+                    viewer.setClient(client);
+                    this.clients[nodeIndex] = client;
+                    client.start(appsToSubscribe, nodeIdToSubscribe);
                 }, (node.index - 1) * 1000);
             }
         };
 
-        console.log("establishing", nodeIndex);
+        if (isGatewayMode && this.sharedClient) {
+            this.sharedClient.addClusterViewer(node.id, viewer);
+            this.sharedClient.addClusterNode(node, onSubscribed, onPrimary);
+            viewer.setClient(this.sharedClient);
+            this.clients[node.index] = this.sharedClient;
+
+            // Trigger explicit connection for this node over the shared connection
+            this.sharedClient.connect(node.id);
+            return;
+        }
+
         let client;
         if (node.endpoint.mode === "polling") {
-            client = new PollingClient(node, viewer, onJoined, onEstablished, onClosed, onFailed);
+            client = new PollingClient(node, viewer, onSubscribed, onPrimary, onClosed, onFailed, isGatewayMode);
         } else {
-            client = new WebsocketClient(node, viewer, onJoined, onEstablished, onClosed, onFailed);
+            client = new WebsocketClient(node, viewer, onSubscribed, onPrimary, onClosed, onFailed, isGatewayMode);
+        }
+        if (isGatewayMode) {
+            this.sharedClient = client;
+            client.addClusterViewer(node.id, viewer);
+            client.addClusterNode(node, onSubscribed, onPrimary);
         }
         viewer.setClient(client);
         this.clients[nodeIndex] = client;
-        client.start(appsToJoin);
+        client.start(appsToSubscribe, nodeIdToSubscribe);
     }
 
     changeNode(nodeIndex) {
@@ -218,33 +264,42 @@ class DashboardBuilder {
                            $indicator.data("icon-error") + " error");
         if (errorOccurred) {
             $indicator.addClass($indicator.data("icon-error") + " error");
-        } else if (node.client.established) {
+        } else if (node.subscribed && node.alive) {
             $indicator.addClass($indicator.data("icon-connected") + " connected");
         } else {
             $indicator.addClass($indicator.data("icon-disconnected") + " disconnected");
         }
     }
 
-    changeInstance(appId) {
+    changeApp(appId) {
         let exists = false;
         this.apps.forEach(app => {
             if (!appId) appId = app.id;
             const $tabTitle = $(".app.tabs .tabs-title[data-app-id=" + app.id + "]");
             if (app.id === appId) {
                 app.active = true;
-                this.showNodeInstance(appId);
+                this.showNodeApp(appId);
                 $tabTitle.addClass("active");
                 exists = true;
+
+                // Inform the backend about the current UI focus to filter logs
+                this.nodes.forEach(node => {
+                    console.log(node);
+                    if (node.primary) {
+                        const client = this.clients[node.index];
+                        if (client && client.focus) client.focus(appId, node.id);
+                    }
+                });
             } else {
                 app.active = false;
                 $tabTitle.removeClass("active");
             }
         });
-        if (!exists && appId) return this.changeInstance();
+        if (!exists && appId) return this.changeApp();
         return appId;
     }
 
-    showNodeInstance(appId) {
+    showNodeApp(appId) {
         $(".control-bar[data-app-id!=" + appId + "]").hide();
         $(".control-bar[data-app-id=" + appId + "]").show();
         this.nodes.forEach(node => {
@@ -275,7 +330,7 @@ class DashboardBuilder {
         });
         $(".app.tabs .tabs-title.available a").off("click").on("click", (e) => {
             const appId = $(e.currentTarget).closest(".tabs-title").data("app-id");
-            this.changeInstance(appId);
+            this.changeApp(appId);
         });
         $(".layout-options .btn").off().on("click", (e) => {
             const $btn = $(e.currentTarget);
@@ -295,7 +350,7 @@ class DashboardBuilder {
                    .console-box.available[data-app-id=${appId}]`).removeClass("col-lg-6");
             }
             this.viewers.forEach(v => v.updateCanvasWidth());
-            this.refreshData(appId);
+            this.refreshData(appId, false);
         });
         $(".date-unit-options .btn").off().on("click", (e) => {
             const $btn = $(e.currentTarget);
@@ -306,7 +361,7 @@ class DashboardBuilder {
             $btn.addClass("on");
             $controlBar.find(".date-offset-options").data("offset", "").find(".btn.current").removeClass("on");
             this.viewers.forEach(v => v.updateCanvasWidth());
-            this.refreshData(appId);
+            this.refreshData(appId, false);
         });
         $(".date-offset-options .btn").off().on("click", (e) => {
             const $btn = $(e.currentTarget);
@@ -314,13 +369,14 @@ class DashboardBuilder {
             const appId = $controlBar.data("app-id");
             const offset = $btn.data("offset") || "";
             const $parent = $btn.parent();
-            if (offset !== "current") $parent.find(".btn.current").addClass("on");
-            else {
+            if (offset !== "current") {
+                $parent.find(".btn.current").addClass("on");
+            } else {
                 $parent.find(".btn").addClass("on");
                 $parent.find(".btn.current").removeClass("on");
             }
             $parent.data("offset", offset);
-            this.refreshData(appId, offset);
+            this.refreshData(appId, false, offset);
         });
         $(".speed-options .btn").off().on("click", (e) => {
             const $btn = $(e.currentTarget);
@@ -328,12 +384,12 @@ class DashboardBuilder {
             $btn.toggleClass("on", faster);
             this.nodes.forEach(node => {
                 if (node.endpoint.mode === "polling") {
-                    this.clients[node.index].speed(faster ? 1 : 0);
+                    this.clients[node.index].changePollingInterval(faster ? 1 : 0);
                 }
             });
         });
         $(".open-popup").off("click").on("click", (e) => {
-            const url = this.basePath + "/appmon/dashboard/popup/" + (this.appsToJoin || "");
+            const url = this.basePath + "/appmon/dashboard/popup/" + (this.appsToSubscribe || "");
             const name = "appmon_dashboard_popup";
             const features = "width=1200,height=800,menubar=no,toolbar=no,location=no,status=no,resizable=yes,scrollbars=yes";
             const popup = window.open(url, name, features);
@@ -436,13 +492,7 @@ class DashboardBuilder {
                 $tailingSwitch.attr("title", $tailingSwitch.data("title-off"));
             }
 
-            const options = [
-                "command:loadPrevious",
-                "appId:" + appId,
-                "logId:" + logId,
-                "loadedLines:" + loadedLines
-            ];
-            this.clients[nodeIndex].sendCommand(options);
+            this.clients[nodeIndex].loadPrevious(appId, logId, loadedLines, this.nodes[nodeIndex].id);
         });
         $(window).off("resize").on("resize", () => {
             this.viewers.forEach(v => v.updateCanvasWidth());
@@ -454,15 +504,16 @@ class DashboardBuilder {
                 });
                 this.apps.forEach(app => {
                     if (!app.hidden) {
-                        this.refreshData(app.id);
+                        this.refreshData(app.id, true);
                     }
                 });
             }
         });
     }
 
-    refreshData(appId, dateOffset) {
-        const options = ["app:" + appId];
+    refreshData(appId, withLogs, dateOffset) {
+        const options = ["appId:" + appId];
+        if (withLogs) options.push("withLogs:true");
         const dateUnit = $(".control-bar[data-app-id=" + appId + "] .date-unit-options").data("unit");
         if (dateUnit) options.push("dateUnit:" + dateUnit);
         if (dateOffset === "previous") {
@@ -471,16 +522,20 @@ class DashboardBuilder {
                 const startDate = v.getMaxStartDatetime(appId);
                 if (startDate > maxStartDate) maxStartDate = startDate;
             });
-            if (maxStartDate) options.push("dateOffset:" + maxStartDate);
-            else {
+            if (maxStartDate) {
+                options.push("dateOffset:" + maxStartDate);
+            } else {
                 $(".control-bar[data-app-id=" + appId + "] .date-offset-options .btn.previous").removeClass("on");
                 return;
             }
         }
         setTimeout(() => {
             this.nodes.forEach(node => {
-                this.viewers[node.index].setLoading(appId, true);
-                this.clients[node.index].refresh(options);
+                if (node.active && node.alive) {
+                    this.viewers[node.index].setLoading(appId, true);
+                    if (withLogs) this.clearConsole(node.index);
+                    this.clients[node.index].refresh(options, node.id);
+                }
             });
         }, 50);
     }
@@ -530,7 +585,7 @@ class DashboardBuilder {
             this.addNodeMetricsBar(node);
         });
         this.apps.forEach(app => {
-            const $appTab = this.addInstanceTab(app);
+            const $appTab = this.addAppTab(app);
             const $appIndicator = $appTab.find(".indicator");
             this.addControlBar(app);
             this.nodes.forEach(node => {
@@ -572,10 +627,10 @@ class DashboardBuilder {
                 });
             });
         });
-        let appId = this.changeInstance();
+        let appId = this.changeApp();
         if (appId && location.hash) {
             const appId2 = location.hash.substring(1);
-            if (appId !== appId2) this.changeInstance(appId2);
+            if (appId !== appId2) this.changeApp(appId2);
         }
     }
 
@@ -588,7 +643,7 @@ class DashboardBuilder {
         return $tab.show().appendTo($tabs);
     }
 
-    addInstanceTab(appInfo) {
+    addAppTab(appInfo) {
         const $tabs = $(".app.tabs");
         const $tab = $tabs.find(".tabs-title").first().hide().clone().addClass("available")
             .attr({ "data-app-id": appInfo.id, "title": appInfo.title });

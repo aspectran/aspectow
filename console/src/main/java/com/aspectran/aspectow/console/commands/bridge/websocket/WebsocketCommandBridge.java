@@ -106,8 +106,8 @@ public class WebsocketCommandBridge extends SimplifiedEndpoint implements Comman
             String header = parameters.getHeader();
             if ("execute".equals(header)) {
                 execute(session, parameters);
-            } else if ("join".equals(header)) {
-                join(session, parameters);
+            } else if ("subscribe".equals(header)) {
+                subscribe(session, parameters);
             } else if ("ping".equals(header)) {
                 pong(session);
             }
@@ -117,7 +117,7 @@ public class WebsocketCommandBridge extends SimplifiedEndpoint implements Comman
         }
     }
 
-    private void join(Session session, @NonNull RemoteCommandParameters parameters) {
+    private void subscribe(Session session, @NonNull RemoteCommandParameters parameters) {
         WebsocketCommandSession commandSession = new WebsocketCommandSession(session);
         String targetNodeId = parameters.getTargetNodeId();
         if (targetNodeId != null && !targetNodeId.isEmpty()) {
@@ -127,9 +127,9 @@ public class WebsocketCommandBridge extends SimplifiedEndpoint implements Comman
         }
 
         if (addSession(session)) {
-            remoteCommandManager.getBroker().join(commandSession);
+            remoteCommandManager.getBroker().subscribe(commandSession);
             RemoteCommandResultParameters resultParameters = new RemoteCommandResultParameters()
-                    .setHeader("joined")
+                    .setHeader("subscribed")
                     .setNodeId(nodeManager.getNodeId());
             sendText(session, resultParameters.toString());
             logger.debug("ConsoleClient joined remote command management: session {}, targetNodeId: {}", session.getId(), commandSession.getNodeId());

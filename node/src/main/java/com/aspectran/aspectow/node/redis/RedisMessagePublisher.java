@@ -36,6 +36,14 @@ public class RedisMessagePublisher {
         this.connectionPool = connectionPool;
     }
 
+    public String getClusterId() {
+        return clusterId;
+    }
+
+    public String getNodeId() {
+        return nodeId;
+    }
+
     /**
      * Publishes a management control message for this node.
      * This method waits for the publication to complete.
@@ -43,7 +51,7 @@ public class RedisMessagePublisher {
      * @throws Exception if an error occurs during publication
      */
     public void publishControl(String message) throws Exception {
-        publishControl(this.nodeId, message);
+        publishControl(nodeId, message);
     }
 
     /**
@@ -59,6 +67,18 @@ public class RedisMessagePublisher {
     }
 
     /**
+     * Publishes a management control message to a specific node.
+     * This method waits for the publication to complete.
+     * @param targetNodeId the ID of the node to receive the message
+     * @param message the message to publish
+     * @throws Exception if an error occurs during publication
+     */
+    public void publishControl(String category, String targetNodeId, String message) throws Exception {
+        String channel = NodeMessageProtocol.getControlChannel(category, clusterId, targetNodeId);
+        syncPublish(channel, message);
+    }
+
+    /**
      * Publishes a transparent application message to be relayed from this node.
      * This method sends the message asynchronously and does not wait for completion.
      * @param category the category of the relay message
@@ -66,7 +86,17 @@ public class RedisMessagePublisher {
      * @throws Exception if an error occurs while obtaining a connection
      */
     public void publishRelay(String category, String message) throws Exception {
-        String channel = NodeMessageProtocol.getRelayChannel(clusterId, nodeId, category);
+        String channel = NodeMessageProtocol.getRelayChannel(category, clusterId, nodeId);
+        asyncPublish(channel, message);
+    }
+
+    public void publishRelay(String category, String targetNodeId, String message) throws Exception {
+        String channel = NodeMessageProtocol.getRelayChannel(category, clusterId, targetNodeId);
+        asyncPublish(channel, message);
+    }
+
+    public void publishRelay(String category, String targetNodeId, String sessionId, String message) throws Exception {
+        String channel = NodeMessageProtocol.getRelayChannel(category, clusterId, targetNodeId, sessionId);
         asyncPublish(channel, message);
     }
 

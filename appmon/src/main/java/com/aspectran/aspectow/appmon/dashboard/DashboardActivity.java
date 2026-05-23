@@ -57,39 +57,42 @@ public class DashboardActivity {
 
     /**
      * Displays the main monitoring page.
-     * @param apps the comma-separated list of instances to monitor
+     * @param appsToSubscribe the comma-separated list of apps to monitor
      * @return a map of attributes for rendering the view
      */
-    @Request("/dashboard/${apps}")
+    @Request("/dashboard/${appsToSubscribe}")
     @Dispatch("appmon/dashboard")
     @Action("page")
-    public Map<String, String> dashboard(String apps) {
+    public Map<String, String> dashboard(String appsToSubscribe) {
         return Map.of(
                 "headinclude", "appmon/_nodes",
                 "style", "fluid compact",
-                "apps", StringUtils.nullToEmpty(apps)
+                "appsToSubscribe", StringUtils.nullToEmpty(appsToSubscribe)
         );
     }
 
     /**
      * Provides configuration data to a backend agent.
-     * @param apps a comma-separated list of instance names to get configuration for
+     * @param appsToSubscribe a comma-separated list of app names to get configuration for
      * @return a {@link RestResponse} containing the configuration data
      */
     @RequestToGet("/appmon/config/data")
-    public RestResponse getConfigData(String apps) {
+    public RestResponse getConfigData(String appsToSubscribe) {
         Map<String, Object> settings = Map.of(
-                "counterPersistInterval", appMonManager.getCounterPersistInterval()
+                "counterPersistInterval", appMonManager.getCounterPersistInterval(),
+                "clusterMode", appMonManager.getClusterMode()
         );
 
         List<NodeInfo> nodeInfoList = appMonManager.getNodeInfoList();
 
-        String[] appIds = StringUtils.splitWithComma(apps);
-        appIds = appMonManager.getVerifiedAppIds(appIds);
+        String[] appIds = StringUtils.splitWithComma(appsToSubscribe);
+        String[] verifiedAppIds = appMonManager.getVerifiedAppIds(appIds);
         List<AppInfo> appInfoList = appMonManager.getAppInfoList(appIds);
 
         Map<String, Object> data = Map.of(
                 "token", AppMonTokenIssuer.issueToken(30),
+                "myNodeId", appMonManager.getNodeId(),
+                "appsToSubscribe", StringUtils.join(verifiedAppIds, ","),
                 "settings", settings,
                 "nodes", nodeInfoList,
                 "apps", appInfoList

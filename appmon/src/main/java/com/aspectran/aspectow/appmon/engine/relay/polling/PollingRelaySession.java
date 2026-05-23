@@ -16,6 +16,7 @@
 package com.aspectran.aspectow.appmon.engine.relay.polling;
 
 import com.aspectran.aspectow.appmon.engine.relay.RelaySession;
+import com.aspectran.utils.StringUtils;
 import com.aspectran.utils.concurrent.AutoLock;
 import com.aspectran.utils.timer.CyclicTimeout;
 
@@ -25,7 +26,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * Represents a client session for the {@link PollingMessageRelayer}.
- * It manages session-specific state like timeouts, polling intervals, and joined apps.
+ * It manages session-specific state like timeouts, polling intervals, and subscribed apps.
  *
  * <p>Created: 2020. 12. 24.</p>
  */
@@ -39,7 +40,7 @@ public class PollingRelaySession implements RelaySession {
 
     private final String id;
 
-    private final PollingSessionManager relayManager;
+    private final PollingSessionManager sessionManager;
 
     private final SessionExpiryTimer expiryTimer;
 
@@ -53,18 +54,20 @@ public class PollingRelaySession implements RelaySession {
 
     private boolean expired;
 
-    private String[] joinedApps;
+    private String[] subscribedApps;
 
     private String timeZone;
+
+    private String focusedAppId;
 
     /**
      * Instantiates a new PollingRelaySession.
      * @param id the unique identifier of this session
-     * @param relayManager the session manager that created this session
+     * @param sessionManager the session manager that created this session
      */
-    public PollingRelaySession(String id, PollingSessionManager relayManager) {
+    public PollingRelaySession(String id, PollingSessionManager sessionManager) {
         this.id = id;
-        this.relayManager = relayManager;
+        this.sessionManager = sessionManager;
         this.expiryTimer = new SessionExpiryTimer();
     }
 
@@ -90,18 +93,18 @@ public class PollingRelaySession implements RelaySession {
     }
 
     @Override
-    public String[] getJoinedApps() {
-        return joinedApps;
+    public String[] getSubscribedApps() {
+        return subscribedApps;
     }
 
     @Override
-    public void setJoinedApps(String[] appIds) {
-        this.joinedApps = appIds;
+    public void setSubscribedApps(String[] appIds) {
+        this.subscribedApps = appIds;
     }
 
     @Override
-    public void removeJoinedApps() {
-        this.joinedApps = null;
+    public void removeSubscribedApps() {
+        this.subscribedApps = null;
     }
 
     @Override
@@ -111,6 +114,20 @@ public class PollingRelaySession implements RelaySession {
 
     public void setTimeZone(String timeZone) {
         this.timeZone = timeZone;
+    }
+
+    @Override
+    public String getFocusedAppId() {
+        return focusedAppId;
+    }
+
+    @Override
+    public void setFocusedAppId(String appId) {
+        if (StringUtils.hasText(appId)) {
+            this.focusedAppId = appId;
+        } else {
+            this.focusedAppId = null;
+        }
     }
 
     /**
@@ -196,7 +213,7 @@ public class PollingRelaySession implements RelaySession {
         try (AutoLock ignored = lock()) {
             if (!expired) {
                 expired = true;
-                relayManager.scavenge();
+                sessionManager.scavenge();
             }
         }
     }
@@ -209,7 +226,7 @@ public class PollingRelaySession implements RelaySession {
         private final CyclicTimeout timer;
 
         SessionExpiryTimer() {
-            timer = new CyclicTimeout(relayManager.getScheduler()) {
+            timer = new CyclicTimeout(sessionManager.getScheduler()) {
                 @Override
                 public void onTimeoutExpired() {
                     doExpiry();

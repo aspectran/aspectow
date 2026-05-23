@@ -89,7 +89,7 @@ public class CommandBroker {
         return sessions;
     }
 
-    public synchronized void join(@NonNull CommandSession session) {
+    public synchronized void subscribe(@NonNull CommandSession session) {
         if (session.isValid()) {
             boolean alreadyInUse = subscriptionRegistry.isInUse();
             subscriptionRegistry.addLocalSubscription(session.getId());

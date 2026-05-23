@@ -17,7 +17,7 @@ package com.aspectran.aspectow.appmon.engine.relay;
 
 /**
  * An interface representing a client session for an export service.
- * It provides a protocol-agnostic way to manage session state, such as joined apps.
+ * It provides a protocol-agnostic way to manage session state, such as subscribed apps.
  *
  * <p>Created: 2025. 2. 12.</p>
  */
@@ -30,27 +30,39 @@ public interface RelaySession {
     String getId();
 
     /**
-     * Gets the names of the apps that this session has joined.
+     * Gets the names of the apps that this session has subscribed to.
      * @return an array of app names
      */
-    String[] getJoinedApps();
+    String[] getSubscribedApps();
 
     /**
-     * Sets the names of the apps that this session has joined.
+     * Sets the names of the apps that this session has subscribed to.
      * @param appIds an array of app IDs
      */
-    void setJoinedApps(String[] appIds);
+    void setSubscribedApps(String[] appIds);
 
     /**
-     * Removes the joined apps from this session.
+     * Removes the subscribed apps from this session.
      */
-    void removeJoinedApps();
+    void removeSubscribedApps();
 
     /**
      * Gets the time zone of the client.
      * @return the time zone ID string
      */
     String getTimeZone();
+
+    /**
+     * Gets the ID of the app that this session is currently focusing on.
+     * @return the focused app ID
+     */
+    String getFocusedAppId();
+
+    /**
+     * Sets the ID of the app that this session is currently focusing on.
+     * @param appId the focused app ID
+     */
+    void setFocusedAppId(String appId);
 
     /**
      * Checks if the session is still valid (e.g., open and not expired).

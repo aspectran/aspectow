@@ -37,11 +37,9 @@ public class SchedulerBroker {
 
     public static final String CATEGORY_SCHEDULER = "scheduler";
 
-    public static final String CONTROL_JOIN = "scheduler:join";
+    public static final String CONTROL_SUBSCRIBE = "scheduler:subscribe";
 
     public static final String CONTROL_RELEASE = "scheduler:release";
-
-    private final String nodeId;
 
     private final RedisMessagePublisher messagePublisher;
 
@@ -51,14 +49,9 @@ public class SchedulerBroker {
 
     private final SubscriptionRegistry subscriptionRegistry = new SubscriptionRegistry();
 
-    public SchedulerBroker(String nodeId, RedisMessagePublisher messagePublisher, SchedulerManager schedulerManager) {
-        this.nodeId = nodeId;
+    public SchedulerBroker(RedisMessagePublisher messagePublisher, SchedulerManager schedulerManager) {
         this.messagePublisher = messagePublisher;
         this.schedulerManager = schedulerManager;
-    }
-
-    public String getNodeId() {
-        return nodeId;
     }
 
     public RedisMessagePublisher getMessagePublisher() {
@@ -89,14 +82,14 @@ public class SchedulerBroker {
         return sessions;
     }
 
-    public synchronized void join(@NonNull SchedulerSession session) {
+    public synchronized void subscribe(@NonNull SchedulerSession session) {
         if (session.isValid()) {
             boolean alreadyInUse = subscriptionRegistry.isInUse();
             subscriptionRegistry.addLocalSubscription(session.getId());
             if (!alreadyInUse) {
                 schedulerManager.startExporters();
             }
-            publishControl(CONTROL_JOIN + ":" + session.getId());
+            publishControl(CONTROL_SUBSCRIBE + ":" + session.getId());
 
             // Send initial log lines to the new session
             for (String message : schedulerManager.collectLastMessages()) {

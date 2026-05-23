@@ -104,10 +104,10 @@ public class WebsocketSchedulerBridge extends SimplifiedEndpoint implements Sche
             String header = parameters.getHeader();
             if ("execute".equals(header)) {
                 execute(session, parameters);
-            } else if ("join".equals(header)) {
-                join(session, parameters);
+            } else if ("subscribe".equals(header)) {
+                subscribe(session, parameters);
             } else if ("established".equals(header)) {
-                joinComplete(session);
+                established(session);
             } else if ("ping".equals(header)) {
                 pong(session);
             }
@@ -117,7 +117,7 @@ public class WebsocketSchedulerBridge extends SimplifiedEndpoint implements Sche
         }
     }
 
-    private void join(Session session, @NonNull SchedulerRequestParameters parameters) {
+    private void subscribe(Session session, @NonNull SchedulerRequestParameters parameters) {
         WebsocketSchedulerSession schedulerSession = new WebsocketSchedulerSession(session);
         String targetNodeId = parameters.getTargetNodeId();
         if (targetNodeId != null && !targetNodeId.isEmpty()) {
@@ -128,16 +128,16 @@ public class WebsocketSchedulerBridge extends SimplifiedEndpoint implements Sche
 
         if (addSession(session)) {
             SchedulerResponseParameters responseParameters = new SchedulerResponseParameters()
-                    .setHeader("joined")
+                    .setHeader("subscribed")
                     .setNodeId(nodeManager.getNodeId());
             sendText(session, responseParameters.toString());
             logger.debug("ConsoleClient joined scheduler management: session {}, targetNodeId: {}", session.getId(), schedulerSession.getNodeId());
         }
     }
 
-    private void joinComplete(@NonNull Session session) {
+    private void established(@NonNull Session session) {
         WebsocketSchedulerSession schedulerSession = new WebsocketSchedulerSession(session);
-        schedulerManager.getBroker().join(schedulerSession);
+        schedulerManager.getBroker().subscribe(schedulerSession);
         logger.debug("Scheduler management session established: session {}", session.getId());
     }
 

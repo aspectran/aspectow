@@ -56,59 +56,62 @@ public class AppMonActivity {
 
     /**
      * Displays the main monitoring page.
-     * @param apps the comma-separated list of apps to monitor
+     * @param appsToSubscribe the comma-separated list of apps to monitor
      * @return a map of attributes for rendering the view
      */
-    @Request("/dashboard/${apps}")
+    @Request("/dashboard/${appsToSubscribe}")
     @Dispatch("appmon/dashboard")
     @Action("page")
-    public Map<String, String> dashboard(String apps) {
+    public Map<String, String> dashboard(String appsToSubscribe) {
         return Map.of(
                 "title", "Application Monitoring",
                 "style", "monitoring-page",
                 "group", "cluster-menu",
-                "apps", StringUtils.nullToEmpty(apps),
+                "appsToSubscribe", StringUtils.nullToEmpty(appsToSubscribe),
                 "layout", "default"
         );
     }
 
     /**
      * Displays the monitoring page as a popup.
-     * @param apps the comma-separated list of apps to monitor
+     * @param appsToSubscribe the comma-separated list of apps to monitor
      * @return a map of attributes for rendering the view
      */
-    @Request("/dashboard/popup/${apps}")
+    @Request("/dashboard/popup/${appsToSubscribe}")
     @Dispatch("appmon/dashboard")
     @Action("page")
     @Hint(type = "layout", value = "layout: popup")
-    public Map<String, String> dashboardPopup(String apps) {
+    public Map<String, String> dashboardPopup(String appsToSubscribe) {
         return Map.of(
                 "title", "Application Monitoring",
                 "style", "monitoring-page",
-                "apps", StringUtils.nullToEmpty(apps),
+                "appsToJoin", StringUtils.nullToEmpty(appsToSubscribe),
                 "layout", "popup"
         );
     }
 
     /**
      * Provides configuration data to a backend agent.
-     * @param apps a comma-separated list of app names to get configuration for
+     * @param appsToSubscribe a comma-separated list of app names to get configuration for
      * @return a {@link RestResponse} containing the configuration data
      */
     @RequestToGet("/config/data")
-    public RestResponse getConfigData(String apps) {
+    public RestResponse getConfigData(String appsToSubscribe) {
         Map<String, Object> settings = Map.of(
-                "counterPersistInterval", appMonManager.getCounterPersistInterval()
+                "counterPersistInterval", appMonManager.getCounterPersistInterval(),
+                "clusterMode", appMonManager.getClusterMode()
         );
 
         List<NodeInfo> nodeInfoList = appMonManager.getNodeInfoList();
 
-        String[] appIds = StringUtils.splitWithComma(apps);
-        appIds = appMonManager.getVerifiedAppIds(appIds);
+        String[] appIds = StringUtils.splitWithComma(appsToSubscribe);
+        String[] verifiedAppIds = appMonManager.getVerifiedAppIds(appIds);
         List<AppInfo> appInfoList = appMonManager.getAppInfoList(appIds);
 
         Map<String, Object> data = Map.of(
                 "token", AppMonTokenIssuer.issueToken(30),
+                "myNodeId", appMonManager.getNodeId(),
+                "appsToSubscribe", StringUtils.join(verifiedAppIds, ","),
                 "settings", settings,
                 "nodes", nodeInfoList,
                 "apps", appInfoList

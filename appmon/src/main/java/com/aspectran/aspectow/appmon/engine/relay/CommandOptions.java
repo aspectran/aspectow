@@ -15,9 +15,11 @@
  */
 package com.aspectran.aspectow.appmon.engine.relay;
 
+import com.aspectran.utils.Assert;
 import com.aspectran.utils.StringUtils;
 import com.aspectran.utils.apon.AponFormat;
 import com.aspectran.utils.apon.AponParseException;
+import com.aspectran.utils.apon.AponRenderStyle;
 import com.aspectran.utils.apon.DefaultParameters;
 import com.aspectran.utils.apon.ParameterKey;
 import com.aspectran.utils.apon.ValueType;
@@ -30,42 +32,65 @@ import com.aspectran.utils.apon.ValueType;
  */
 public class CommandOptions extends DefaultParameters {
 
+    public static final String COMMAND_PING = "ping";
+
+    public static final String COMMAND_SUBSCRIBE = "subscribe";
+
+    public static final String COMMAND_UNSUBSCRIBE = "unsubscribe";
+
+    public static final String COMMAND_ESTABLISHED = "established";
+
     /** Command to refresh the current view or data */
     public static final String COMMAND_REFRESH = "refresh";
 
     /** Command to load previous data records */
     public static final String COMMAND_LOAD_PREVIOUS = "loadPrevious";
 
+    /** Command to focus on a specific app */
+    public static final String COMMAND_FOCUS = "focus";
+
     private static final ParameterKey command;
-    private static final ParameterKey appsToJoin;
-    private static final ParameterKey app;
-    private static final ParameterKey logName;
+    private static final ParameterKey nodeId;
+    private static final ParameterKey appId;
+    private static final ParameterKey sessionId;
+    private static final ParameterKey nodeToSubscribe;
+    private static final ParameterKey appsToSubscribe;
+    private static final ParameterKey logId;
     private static final ParameterKey loadedLines;
-    private static final ParameterKey timeZone;
+    private static final ParameterKey withLogs;
     private static final ParameterKey dateUnit;
     private static final ParameterKey dateOffset;
+    private static final ParameterKey timeZone;
 
     private static final ParameterKey[] parameterKeys;
 
     static {
         command = new ParameterKey("command", ValueType.STRING);
-        appsToJoin = new ParameterKey("appsToJoin", ValueType.STRING);
-        app = new ParameterKey("app", ValueType.STRING);
-        timeZone = new ParameterKey("timeZone", ValueType.STRING);
+        nodeId = new ParameterKey("nodeId", ValueType.STRING);
+        appId = new ParameterKey("appId", ValueType.STRING);
+        sessionId = new ParameterKey("sessionId", ValueType.STRING);
+        nodeToSubscribe = new ParameterKey("nodeToSubscribe", ValueType.STRING);
+        appsToSubscribe = new ParameterKey("appsToSubscribe", ValueType.STRING);
+        logId = new ParameterKey("logId", ValueType.STRING);
+        loadedLines = new ParameterKey("loadedLines", ValueType.INT);
+        withLogs = new ParameterKey("withLogs", ValueType.BOOLEAN);
         dateUnit = new ParameterKey("dateUnit", ValueType.STRING);
         dateOffset = new ParameterKey("dateOffset", ValueType.STRING);
-        logName = new ParameterKey("logName", ValueType.STRING);
-        loadedLines = new ParameterKey("loadedLines", ValueType.INT);
+        timeZone = new ParameterKey("timeZone", ValueType.STRING);
 
         parameterKeys = new ParameterKey[] {
                 command,
-                appsToJoin,
-                app,
-                timeZone,
+                nodeId,
+                appId,
+                sessionId,
+                nodeToSubscribe,
+                appsToSubscribe,
+                logId,
+                loadedLines,
+                withLogs,
                 dateUnit,
                 dateOffset,
-                logName,
-                loadedLines
+                timeZone
         };
     }
 
@@ -74,6 +99,7 @@ public class CommandOptions extends DefaultParameters {
      */
     public CommandOptions() {
         super(parameterKeys);
+        setRenderStyle(AponRenderStyle.COMPACT);
     }
 
     /**
@@ -81,7 +107,13 @@ public class CommandOptions extends DefaultParameters {
      * @param text the semicolon-delimited command string
      */
     public CommandOptions(String text) {
-        this(StringUtils.split(text, ";"));
+        super(parameterKeys);
+        setRenderStyle(AponRenderStyle.COMPACT);
+        try {
+            readFrom(parseAsApon(text));
+        } catch (AponParseException e) {
+            throw new RuntimeException("Failed to parse command: " + text, e);
+        }
     }
 
     /**
@@ -91,10 +123,30 @@ public class CommandOptions extends DefaultParameters {
      */
     public CommandOptions(String[] lines) {
         super(parameterKeys);
+        setRenderStyle(AponRenderStyle.COMPACT);
         try {
             readFrom(StringUtils.join(lines, AponFormat.NEW_LINE));
         } catch (AponParseException e) {
             throw new RuntimeException("Failed to parse command: " + StringUtils.join(lines, ";"), e);
+        }
+    }
+
+    private String parseAsApon(String text) {
+        Assert.hasText(text, "text must not be null or empty");
+        if (text.startsWith("[")) {
+            int idx = text.indexOf("]");
+            if (idx == -1) {
+                throw new IllegalArgumentException("Invalid command format: " + text);
+            }
+            String nodeId = text.substring(1, idx);
+            String[] options = StringUtils.split(text.substring(idx + 1), ";");
+            String[] lines = new String[options.length + 1];
+            lines[0] = CommandOptions.nodeId.getName() + ":" + nodeId;
+            System.arraycopy(options, 0, lines, 1, options.length);
+            return StringUtils.join(lines, AponFormat.NEW_LINE);
+        } else {
+            String[] lines = StringUtils.split(text, ";");
+            return StringUtils.join(lines, AponFormat.NEW_LINE);
         }
     }
 
@@ -123,52 +175,100 @@ public class CommandOptions extends DefaultParameters {
         return (command != null && command.equals(getCommand()));
     }
 
-    /**
-     * Returns the list of instances to join, usually as a comma-separated string.
-     * @return the instances to join
-     */
-    public String getAppsToJoin() {
-        return getString(appsToJoin);
+    public String getNodeId() {
+        return getString(nodeId);
     }
 
-    /**
-     * Sets the list of instances to join.
-     * @param appsToJoin the instances to join
-     */
-    public void setAppsToJoin(String appsToJoin) {
-        putValue(CommandOptions.appsToJoin, appsToJoin);
+    public void setNodeId(String nodeId) {
+        putValue(CommandOptions.nodeId, nodeId);
     }
 
     /**
      * Returns the specific instance name.
      * @return the instance name
      */
-    public String getApp() {
-        return getString(app);
+    public String getAppId() {
+        return getString(appId);
     }
 
     /**
      * Sets the specific instance name.
-     * @param app the instance name
+     * @param appId the instance name
      */
-    public void setApp(String app) {
-        putValue(CommandOptions.app, app);
+    public void setAppId(String appId) {
+        putValue(CommandOptions.appId, appId);
     }
 
     /**
-     * Returns whether a time zone has been specified.
-     * @return true if a time zone exists, false otherwise
+     * Returns the list of instances to subscribe to, usually as a comma-separated string.
+     * @return the instances to subscribe to
      */
-    public boolean hasTimeZone() {
-        return hasValue(timeZone);
+    public String getAppsToSubscribe() {
+        return getString(appsToSubscribe);
     }
 
     /**
-     * Returns the time zone ID.
-     * @return the time zone ID
+     * Sets the list of instances to subscribe to.
+     * @param appsToSubscribe the instances to subscribe to
      */
-    public String getTimeZone() {
-        return getString(timeZone);
+    public void setAppsToSubscribe(String appsToSubscribe) {
+        putValue(CommandOptions.appsToSubscribe, appsToSubscribe);
+    }
+
+    public String getNodeToSubscribe() {
+        return getString(nodeToSubscribe);
+    }
+
+    public void setNodeToSubscribe(String nodeToSubscribe) {
+        putValue(CommandOptions.nodeToSubscribe, nodeToSubscribe);
+    }
+
+    public String getSessionId() {
+        return getString(sessionId);
+    }
+
+    public void setSessionId(String sessionId) {
+        putValue(CommandOptions.sessionId, sessionId);
+    }
+
+    /**
+     * Returns the log file name.
+     * @return the log name
+     */
+    public String getLogId() {
+        return getString(logId);
+    }
+
+    /**
+     * Sets the log file name.
+     * @param logName the log name
+     */
+    public void setLogId(String logName) {
+        putValue(CommandOptions.logId, logName);
+    }
+
+    /**
+     * Returns the number of lines already loaded from the log.
+     * @return the number of loaded lines
+     */
+    public int getLoadedLines() {
+        return getInt(loadedLines);
+    }
+
+    /**
+     * Sets the number of lines already loaded from the log.
+     * @param loadedLines the number of loaded lines
+     */
+    public void setLoadedLines(int loadedLines) {
+        putValue(CommandOptions.loadedLines, loadedLines);
+    }
+
+    public boolean isWithLogs() {
+        return getBoolean(withLogs, false);
+    }
+
+    public void setWithLogs(boolean withLogs) {
+        putValue(CommandOptions.withLogs, withLogs);
     }
 
     /**
@@ -212,35 +312,19 @@ public class CommandOptions extends DefaultParameters {
     }
 
     /**
-     * Returns the log file name.
-     * @return the log name
+     * Returns whether a time zone has been specified.
+     * @return true if a time zone exists, false otherwise
      */
-    public String getLogName() {
-        return getString(logName);
+    public boolean hasTimeZone() {
+        return hasValue(timeZone);
     }
 
     /**
-     * Sets the log file name.
-     * @param logName the log name
+     * Returns the time zone ID.
+     * @return the time zone ID
      */
-    public void setLogName(String logName) {
-        putValue(CommandOptions.logName, logName);
-    }
-
-    /**
-     * Returns the number of lines already loaded from the log.
-     * @return the number of loaded lines
-     */
-    public int getLoadedLines() {
-        return getInt(loadedLines);
-    }
-
-    /**
-     * Sets the number of lines already loaded from the log.
-     * @param loadedLines the number of loaded lines
-     */
-    public void setLoadedLines(int loadedLines) {
-        putValue(CommandOptions.loadedLines, loadedLines);
+    public String getTimeZone() {
+        return getString(timeZone);
     }
 
 }

@@ -17,20 +17,23 @@ package com.aspectran.aspectow.appmon.engine.relay.websocket;
 
 import com.aspectran.aspectow.appmon.engine.relay.RelaySession;
 import com.aspectran.utils.Assert;
+import com.aspectran.utils.StringUtils;
 import com.aspectran.web.websocket.jsr356.WrappedSession;
 import jakarta.websocket.Session;
 
 /**
  * A {@link RelaySession} implementation that wraps a JSR-356 {@link Session}.
- * It stores session-specific data, like joined instances, in the WebSocket session's user properties.
+ * It stores session-specific data, like subscribeed instances, in the WebSocket session's user properties.
  *
  * <p>Created: 2020. 12. 24.</p>
  */
 public class WebsocketRelaySession extends WrappedSession implements RelaySession {
 
-    private static final String JOINED_APPS_PROPERTY = "appmon:JoinedApps";
+    private static final String SUBSCRIBED_APPS_PROPERTY = "appmon:subscribedApps";
 
     private static final String TIME_ZONE_PROPERTY = "appmon:timeZone";
+
+    private static final String FOCUSED_APP_ID_PROPERTY = "appmon:focusedAppId";
 
     /**
      * Instantiates a new WebsocketServiceSession.
@@ -46,19 +49,19 @@ public class WebsocketRelaySession extends WrappedSession implements RelaySessio
     }
 
     @Override
-    public String[] getJoinedApps() {
-        return (String[])getSession().getUserProperties().get(JOINED_APPS_PROPERTY);
+    public String[] getSubscribedApps() {
+        return (String[])getSession().getUserProperties().get(SUBSCRIBED_APPS_PROPERTY);
     }
 
     @Override
-    public void setJoinedApps(String[] appIds) {
+    public void setSubscribedApps(String[] appIds) {
         Assert.notNull(appIds, "appIds must not be null");
-        getSession().getUserProperties().put(JOINED_APPS_PROPERTY, appIds);
+        getSession().getUserProperties().put(SUBSCRIBED_APPS_PROPERTY, appIds);
     }
 
     @Override
-    public void removeJoinedApps() {
-        getSession().getUserProperties().remove(JOINED_APPS_PROPERTY);
+    public void removeSubscribedApps() {
+        getSession().getUserProperties().remove(SUBSCRIBED_APPS_PROPERTY);
     }
 
     @Override
@@ -68,6 +71,20 @@ public class WebsocketRelaySession extends WrappedSession implements RelaySessio
 
     public void setTimeZone(String timeZone) {
         getSession().getUserProperties().put(TIME_ZONE_PROPERTY, timeZone);
+    }
+
+    @Override
+    public String getFocusedAppId() {
+        return (String)getSession().getUserProperties().get(FOCUSED_APP_ID_PROPERTY);
+    }
+
+    @Override
+    public void setFocusedAppId(String appId) {
+        if (StringUtils.hasText(appId)) {
+            getSession().getUserProperties().put(FOCUSED_APP_ID_PROPERTY, appId);
+        } else {
+            getSession().getUserProperties().remove(FOCUSED_APP_ID_PROPERTY);
+        }
     }
 
     @Override

@@ -13,15 +13,15 @@
 <aspectran:profile expression="dev">
 <script>
     if (typeof DashboardBuilder === "undefined") {
-        document.write('<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/aspectran/aspectow-appmon@main/assets/appmon@3.2/css/appmon.css?v=<aspectran:token type='bean' expression='appmonAssets^cacheBustingVersion'/>">');
-        document.write('<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/aspectran/aspectow-appmon@main/assets/appmon@3.2/css/appmon-dark.css?v=<aspectran:token type='bean' expression='appmonAssets^cacheBustingVersion'/>">');
-        document.write('<script src="https://cdn.jsdelivr.net/gh/aspectran/aspectow-appmon@main/assets/appmon@3.2/js/dashboard-builder.js?v=<aspectran:token type='bean' expression='appmonAssets^cacheBustingVersion'/>">\x3C/script>');
-        document.write('<script src="https://cdn.jsdelivr.net/gh/aspectran/aspectow-appmon@main/assets/appmon@3.2/js/dashboard-viewer.js?v=<aspectran:token type='bean' expression='appmonAssets^cacheBustingVersion'/>">\x3C/script>');
-        document.write('<script src="https://cdn.jsdelivr.net/gh/aspectran/aspectow-appmon@main/assets/appmon@3.2/js/dashboard-chart.js?v=<aspectran:token type='bean' expression='appmonAssets^cacheBustingVersion'/>">\x3C/script>');
-        document.write('<script src="https://cdn.jsdelivr.net/gh/aspectran/aspectow-appmon@main/assets/appmon@3.2/js/traffic-painter.js?v=<aspectran:token type='bean' expression='appmonAssets^cacheBustingVersion'/>">\x3C/script>');
-        document.write('<script src="https://cdn.jsdelivr.net/gh/aspectran/aspectow-appmon@main/assets/appmon@3.2/js/base-client.js?v=<aspectran:token type='bean' expression='appmonAssets^cacheBustingVersion'/>">\x3C/script>');
-        document.write('<script src="https://cdn.jsdelivr.net/gh/aspectran/aspectow-appmon@main/assets/appmon@3.2/js/websocket-client.js?v=<aspectran:token type='bean' expression='appmonAssets^cacheBustingVersion'/>">\x3C/script>');
-        document.write('<script src="https://cdn.jsdelivr.net/gh/aspectran/aspectow-appmon@main/assets/appmon@3.2/js/polling-client.js?v=<aspectran:token type='bean' expression='appmonAssets^cacheBustingVersion'/>">\x3C/script>');
+        document.write('<link rel="stylesheet" href="https://aspectow-assets.aspectran.com/appmon@3.2/css/appmon.css?v=<aspectran:token type='bean' expression='appmonAssets^cacheBustingVersion'/>">');
+        document.write('<link rel="stylesheet" href="https://aspectow-assets.aspectran.com/appmon@3.2/css/appmon-dark.css?v=<aspectran:token type='bean' expression='appmonAssets^cacheBustingVersion'/>">');
+        document.write('<script src="https://aspectow-assets.aspectran.com/appmon@3.2/js/dashboard-builder.js?v=<aspectran:token type='bean' expression='appmonAssets^cacheBustingVersion'/>">\x3C/script>');
+        document.write('<script src="https://aspectow-assets.aspectran.com/appmon@3.2/js/dashboard-viewer.js?v=<aspectran:token type='bean' expression='appmonAssets^cacheBustingVersion'/>">\x3C/script>');
+        document.write('<script src="https://aspectow-assets.aspectran.com/appmon@3.2/js/dashboard-chart.js?v=<aspectran:token type='bean' expression='appmonAssets^cacheBustingVersion'/>">\x3C/script>');
+        document.write('<script src="https://aspectow-assets.aspectran.com/appmon@3.2/js/traffic-painter.js?v=<aspectran:token type='bean' expression='appmonAssets^cacheBustingVersion'/>">\x3C/script>');
+        document.write('<script src="https://aspectow-assets.aspectran.com/appmon@3.2/js/base-client.js?v=<aspectran:token type='bean' expression='appmonAssets^cacheBustingVersion'/>">\x3C/script>');
+        document.write('<script src="https://aspectow-assets.aspectran.com/appmon@3.2/js/websocket-client.js?v=<aspectran:token type='bean' expression='appmonAssets^cacheBustingVersion'/>">\x3C/script>');
+        document.write('<script src="https://aspectow-assets.aspectran.com/appmon@3.2/js/polling-client.js?v=<aspectran:token type='bean' expression='appmonAssets^cacheBustingVersion'/>">\x3C/script>');
     }
 </script>
 </aspectran:profile>
@@ -143,7 +143,7 @@
         <div class="col-12 console-box">
             <div class="status-bar">
                 <h4 class="ellipses"></h4>
-                <a class="load-previous" title="Load previous logs" style="display: none;">
+                <a class="load-previous" title="Load previous logs">
                     <i class="icon bi bi-arrow-up-circle"></i>
                 </a>
                 <a class="clear-screen" title="Clear screen">
@@ -165,11 +165,11 @@
 </div>
 <script>
     $(function () {
-        const BASE_PATH = "${pageContext.request.contextPath}";
-        const INSTANCES = "${page.instances}";
+        const basePath = "${pageContext.request.contextPath}";
+        const appsToSubscribe = "${page.appsToSubscribe}";
         const options = {
             // flagsUrl: "https://cdn.jsdelivr.net/gh/aspectran/aspectran-assets@main/assets/countries/flags/"
         };
-        new DashboardBuilder(options).build(BASE_PATH, INSTANCES);
+        new DashboardBuilder(options).build(basePath, appsToSubscribe);
     });
 </script>

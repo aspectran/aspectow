@@ -59,7 +59,7 @@ class PollingClient extends BaseClient {
             dataType: "json",
             data: {
                 timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-                appsToJoin: appsToJoin
+                apps: appsToJoin
             },
             success: (data) => {
                 if (data) {

@@ -4,8 +4,6 @@ pollingConfig: {
     pollingInterval: 3000
     # The duration in milliseconds after which an inactive polling session expires
     sessionTimeout: 30000
-    # The initial capacity of the shared message buffer
-    initialBufferSize: 9999
 }
 app: {
     id: root
@@ -43,13 +41,13 @@ app: {
         id: app
         file: /logs/root.log
         sampleInterval: 300
-        lastLines: 1000
+        lastLines: 300
     }
     log: {
         id: access
         file: /logs/root-access.log
         sampleInterval: 300
-        lastLines: 1000
+        lastLines: 100
     }
 }
 app: {
@@ -71,13 +69,13 @@ app: {
         id: app
         file: /logs/console.log
         sampleInterval: 300
-        lastLines: 1000
+        lastLines: 300
     }
     log: {
         id: access
         file: /logs/console-access.log
         sampleInterval: 300
-        lastLines: 1000
+        lastLines: 100
     }
 }
 app: {
@@ -87,13 +85,13 @@ app: {
         id: app
         file: /logs/jpetstore.log
         sampleInterval: 300
-        lastLines: 1000
+        lastLines: 300
     }
     log: {
         id: access
         file: /logs/jpetstore-access.log
         sampleInterval: 300
-        lastLines: 1000
+        lastLines: 100
     }
 }
 app: {
@@ -103,12 +101,12 @@ app: {
         id: app
         file: /logs/demo.log
         sampleInterval: 300
-        lastLines: 1000
+        lastLines: 300
     }
     log: {
         id: access
         file: /logs/demo-access.log
         sampleInterval: 300
-        lastLines: 1000
+        lastLines: 100
     }
 }

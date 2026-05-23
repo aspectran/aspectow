@@ -17,6 +17,8 @@ package com.aspectran.aspectow.appmon.engine.relay.polling;
 
 import com.aspectran.aspectow.appmon.engine.config.PollingConfig;
 import com.aspectran.aspectow.appmon.engine.manager.AppMonManager;
+import com.aspectran.aspectow.appmon.engine.relay.MessageRelayManager;
+import com.aspectran.aspectow.appmon.engine.relay.RelaySession;
 import com.aspectran.core.activity.Translet;
 import com.aspectran.core.component.AbstractComponent;
 import com.aspectran.core.component.session.SessionIdGenerator;
@@ -34,7 +36,7 @@ import java.util.Map;
 
 /**
  * Manages {@link PollingRelaySession} apps for the polling export service.
- * It handles session creation, retrieval, and expiration, as well as managing a central message buffer.
+ * It handles session creation, retrieval, and expiration, as well as managing a broadcast message buffer.
  *
  * <p>Created: 2020. 12. 24.</p>
  */
@@ -50,30 +52,33 @@ public class PollingSessionManager extends AbstractComponent {
 
     private final Map<String, PollingRelaySession> sessions = new CopyOnWriteMap<>();
 
-    private final AppMonManager appMonManager;
+    private final MessageRelayManager messageRelayManager;
 
-    private final BufferedMessages bufferedMessages;
+    private final PollingConfig pollingConfig;
+
+    private final BroadcastMessageBuffer broadcastMessageBuffer;
 
     /**
      * Instantiates a new PollingSessionManager.
      * @param appMonManager the main application manager
      */
     public PollingSessionManager(@NonNull AppMonManager appMonManager) {
-        this.appMonManager = appMonManager;
+        this.messageRelayManager = appMonManager.getMessageRelayManager();
+        this.pollingConfig = appMonManager.getPollingConfig();
+        this.broadcastMessageBuffer = new BroadcastMessageBuffer();
+    }
 
-        PollingConfig pollingConfig = appMonManager.getPollingConfig();
-        this.bufferedMessages = new BufferedMessages(pollingConfig.getInitialBufferSize());
+    public PollingRelaySession getSession(String sessionId) {
+        return sessions.get(sessionId);
     }
 
     /**
      * Creates a new polling session or retrieves an existing one.
      * @param translet the current translet
-     * @param pollingConfig the polling configuration
-     * @param appIds the IDs of the apps to join
+     * @param appIds the IDs of the apps to subscribe to
      * @return a new or existing {@link PollingRelaySession}
      */
-    public PollingRelaySession createSession(
-            @NonNull Translet translet, @NonNull PollingConfig pollingConfig, String[] appIds) {
+    public PollingRelaySession createSession(@NonNull Translet translet, String[] appIds) {
         int pollingInterval = pollingConfig.getPollingInterval();
         int sessionTimeout = pollingConfig.getSessionTimeout();
         if (pollingInterval > 0 && sessionTimeout <= 0) {
@@ -91,9 +96,7 @@ public class PollingSessionManager extends AbstractComponent {
             PollingRelaySession newSession = new PollingRelaySession(sessionId, this);
             newSession.setSessionTimeout(sessionTimeout);
             newSession.setPollingInterval(pollingInterval);
-            if (appIds != null) {
-                newSession.setJoinedApps(appIds);
-            }
+            newSession.setSubscribedApps(appIds);
             existingSession = sessions.put(sessionId, newSession);
             if (existingSession != null) {
                 return existingSession;
@@ -146,7 +149,13 @@ public class PollingSessionManager extends AbstractComponent {
      */
     public void push(String message) {
         if (!sessions.isEmpty()) {
-            bufferedMessages.push(message);
+            broadcastMessageBuffer.push(message);
+        }
+    }
+
+    public void push(RelaySession relaySession, String message) {
+        if (relaySession instanceof PollingRelaySession pollingRelaySession) {
+            pollingRelaySession.push(message);
         }
     }
 
@@ -156,27 +165,42 @@ public class PollingSessionManager extends AbstractComponent {
      * @return an array of new messages, or {@code null} if there are no new messages
      */
     public String[] pull(PollingRelaySession session) {
-        String[] messages = bufferedMessages.pop(session);
-        if (messages != null && messages.length > 0) {
+        String[] bMessages = broadcastMessageBuffer.pop(session);
+        java.util.List<String> pMessages = session.popMessages();
+        if (bMessages == null && pMessages == null) {
+            return null;
+        }
+        if (bMessages != null && bMessages.length > 0) {
             shrinkBuffer();
         }
-        return messages;
+        if (bMessages != null && pMessages != null) {
+            String[] messages = new String[bMessages.length + pMessages.size()];
+            System.arraycopy(bMessages, 0, messages, 0, bMessages.length);
+            for (int i = 0; i < pMessages.size(); i++) {
+                messages[bMessages.length + i] = pMessages.get(i);
+            }
+            return messages;
+        } else if (bMessages != null) {
+            return bMessages;
+        } else {
+            return pMessages.toArray(new String[0]);
+        }
     }
 
     private void shrinkBuffer() {
         int minLineIndex = getMinLineIndex();
         if (minLineIndex > -1) {
-            bufferedMessages.shrink(minLineIndex);
+            broadcastMessageBuffer.shrink(minLineIndex);
         }
     }
 
     private int getMinLineIndex() {
         int minLineIndex = -1;
-        for (PollingRelaySession serviceSession : sessions.values()) {
+        for (PollingRelaySession session : sessions.values()) {
             if (minLineIndex == -1) {
-                minLineIndex = serviceSession.getLastLineIndex();
-            } else if (serviceSession.getLastLineIndex() < minLineIndex) {
-                minLineIndex = serviceSession.getLastLineIndex();
+                minLineIndex = session.getLastLineIndex();
+            } else if (session.getLastLineIndex() < minLineIndex) {
+                minLineIndex = session.getLastLineIndex();
             }
         }
         return minLineIndex;
@@ -190,14 +214,15 @@ public class PollingSessionManager extends AbstractComponent {
             sessions.entrySet().removeIf(entry -> {
                 PollingRelaySession session = entry.getValue();
                 if (session.isExpired()) {
-                    appMonManager.getMessageRelayManager().release(session);
+                    messageRelayManager.unregisterSession(session.getId());
+                    messageRelayManager.unsubscribe(session);
                     session.destroy();
                     return true;
                 }
                 return false;
             });
             if (sessions.isEmpty()) {
-                bufferedMessages.clear();
+                broadcastMessageBuffer.clear();
             } else {
                 shrinkBuffer();
             }
@@ -216,7 +241,7 @@ public class PollingSessionManager extends AbstractComponent {
     @Override
     protected void doDestroy() throws Exception {
         scheduler.stop();
-        bufferedMessages.clear();
+        broadcastMessageBuffer.clear();
     }
 
 }

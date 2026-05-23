@@ -15,6 +15,8 @@
  */
 package com.aspectran.aspectow.console.scheduler.bridge.polling;
 
+import org.jspecify.annotations.NonNull;
+
 import java.util.Collections;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -43,7 +45,7 @@ public class BufferedMessages {
         }
     }
 
-    public String[] pop(PollingSchedulerSession session) {
+    public String[] pop(@NonNull PollingSchedulerSession session) {
         int lastLineIndex = session.getLastLineIndex();
         SortedMap<Integer, String> tailMap = messageMap.tailMap(lastLineIndex + 1);
         if (tailMap.isEmpty()) {
