@@ -183,7 +183,8 @@
                 const $select = $('#node-selector');
                 $select.empty();
                 nodes.forEach(n => {
-                    const option = new Option(n.title + ' (' + n.id + ')', n.id);
+                    const title = n.title ? n.title + ' (' + n.id + ')' : n.id;
+                    const option = new Option(title);
                     if (n.status && n.status.toUpperCase() === 'DEAD') {
                         $(option).addClass('text-danger');
                         option.text += ' [DEAD]';
