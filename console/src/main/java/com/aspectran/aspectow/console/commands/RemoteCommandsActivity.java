@@ -72,7 +72,6 @@ public class RemoteCommandsActivity {
     @Action("page")
     public Map<String, Object> nodeCommands(String nodeId) {
         String clusterMode = nodeManager.getClusterConfig().getMode();
-        long heartbeatInterval = nodeManager.getClusterConfig().getHeartbeatInterval(50000);
         List<Map<String, Object>> nodes = nodeConsoleHelper.getNodes(true);
         NodeInfo nodeInfo = (nodeId != null ? nodeManager.getNodeInfoHolder().getNodeInfo(nodeId) : null);
         if (nodeId != null && nodeInfo == null) {
@@ -83,7 +82,6 @@ public class RemoteCommandsActivity {
         model.put("style", "commands-page");
         model.put("group", "cluster-menu");
         model.put("clusterMode", clusterMode);
-        model.put("heartbeatInterval", heartbeatInterval);
         model.put("nodes", nodes);
         if (nodeInfo != null) {
             model.put("node", nodeConsoleHelper.createNodeMap(nodeInfo, true, true));

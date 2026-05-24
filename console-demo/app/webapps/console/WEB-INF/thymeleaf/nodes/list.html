@@ -84,6 +84,7 @@
         <script th:src="@{/assets/js/console-client.js}"></script>
         <script th:inline="javascript">
             const basePath = [[@{/}]].replace(/\/$/, '');
+            const clusterMode = [[${page.clusterMode}]];
 
             function openAppMon(nodeId) {
                 const url = basePath + "/appmon/dashboard/popup/?nodeId=" + nodeId;
@@ -98,8 +99,6 @@
             }
 
             $(function() {
-                const clusterMode = [[${page.clusterMode}]];
-
                 let isUnloading = false;
                 $(window).on('beforeunload', function() {
                     isUnloading = true;

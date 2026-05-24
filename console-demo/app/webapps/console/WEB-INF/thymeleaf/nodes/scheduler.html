@@ -159,7 +159,6 @@
         <script th:inline="javascript">
             const basePath = [[@{/}]].replace(/\/$/, '');
             const clusterMode = [[${page.clusterMode}]];
-            const heartbeatInterval = [[${page.heartbeatInterval}]];
             let nodes = [[${page.nodes}]];
             let consoleClient = null;
             let currentNodeId = [[${page.node.id}]];
@@ -237,7 +236,6 @@
                 };
 
                 consoleClient = new ConsoleClient(node, {
-                    heartbeatInterval: heartbeatInterval,
                     onBeforeConnect: () => {
                         return fetch(basePath + "/nodes/token", {
                                 headers: { 'Accept': 'application/json' }

@@ -172,7 +172,6 @@ arguments: {
         <script th:inline="javascript">
             const basePath = [[@{/}]].replace(/\/$/, '');
             const clusterMode = [[${page.clusterMode}]];
-            const heartbeatInterval = [[${page.heartbeatInterval}]];
             const currentNodeId = [[${page.node?.id}]];
             let nodes = [[${page.nodes}]];
 
@@ -408,7 +407,6 @@ arguments: {
                 };
 
                 client = new ConsoleClient(commandsNode, {
-                    heartbeatInterval: heartbeatInterval,
                     onBeforeConnect: () => {
                         return fetch(basePath + "/nodes/token", {
                             headers: { 'Accept': 'application/json' }

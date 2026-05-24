@@ -24,7 +24,7 @@
 class WebsocketClient extends BaseClient {
     constructor(node, viewer, onSubscribed, onPrimary, onClosed, onFailed, isGatewayMode) {
         super(node, viewer, onSubscribed, onPrimary, onClosed, onFailed, isGatewayMode);
-        this.heartbeatInterval = 5000;
+        this.heartbeatInterval = 50000;
         this.heartbeatTimer = null;
         this.socket = null;
         this.pendingMessages = [];
