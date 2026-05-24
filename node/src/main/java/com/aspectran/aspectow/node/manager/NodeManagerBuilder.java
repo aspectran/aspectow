@@ -146,7 +146,7 @@ public abstract class NodeManagerBuilder {
 
             NodeRegistry nodeRegistry = new NodeRegistry(clusterId, connectionPool);
             NodeMessagePublisher nodeMessagePublisher = new NodeMessagePublisher(clusterId, nodeId, connectionPool);
-            NodeReporter nodeReporter = new NodeReporter(clusterConfig, nodeInfo, connectionPool, nodeMessagePublisher, nodeRegistry, portProvider);
+            NodeReporter nodeReporter = new NodeReporter(nodeManager, portProvider);
             NodeMessageSubscriber nodeMessageSubscriber = new NodeMessageSubscriber(clusterId, nodeId, connectionPool);
             ClusterEventSubscriber clusterEventSubscriber = new ClusterEventSubscriber(clusterId, connectionPool);
 

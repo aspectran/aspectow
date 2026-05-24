@@ -272,6 +272,70 @@ public class NodeManager {
     }
 
     /**
+     * Synchronizes the local node information holder with the global registry.
+     * This acts as a compensation mechanism for potentially missed events.
+     */
+    public void syncNodes() {
+        if (nodeRegistry == null) {
+            return;
+        }
+
+        List<NodeInfo> latestNodes = nodeRegistry.getNodes();
+        if (clusterConfig.isGatewayMode()) {
+            for (NodeInfo info : latestNodes) {
+                if (nodeId.equals(info.getNodeId())) {
+                    continue;
+                }
+                NodeInfo existingInfo = nodeInfoHolder.getNodeInfo(info.getNodeId());
+                if (existingInfo != null) {
+                    // Partial update for Gateway Mode: keep static config, update dynamic state
+                    NodeInfo newInfo = new NodeInfo();
+                    newInfo.setNodeId(existingInfo.getNodeId());
+                    newInfo.setGroup(existingInfo.getGroup());
+                    newInfo.setTitle(existingInfo.getTitle());
+
+                    newInfo.setHost(info.getHost());
+                    newInfo.setPort(info.getPort());
+                    newInfo.setStartTime(info.getStartTime());
+                    newInfo.setStatus(info.getStatus());
+                    newInfo.setHeartbeatInterval(info.getHeartbeatInterval());
+                    newInfo.setEndpointConfig(info.getEndpointConfig());
+                    newInfo.setToken(info.getToken());
+
+                    nodeInfoHolder.putNodeInfo(newInfo);
+                }
+            }
+        } else if (clusterConfig.isAutoscalingMode()) {
+            // In Autoscaling mode, we need to handle additions and removals
+            // 1. Update/Add from registry
+            for (NodeInfo info : latestNodes) {
+                if (nodeId.equals(info.getNodeId())) {
+                    continue;
+                }
+                nodeInfoHolder.putNodeInfo(info);
+            }
+            // 2. Remove nodes that are no longer in registry
+            List<NodeInfo> currentNodes = nodeInfoHolder.getNodeInfoList();
+            for (NodeInfo info : currentNodes) {
+                String id = info.getNodeId();
+                if (nodeId.equals(id)) {
+                    continue;
+                }
+                boolean found = false;
+                for (NodeInfo latest : latestNodes) {
+                    if (id.equals(latest.getNodeId())) {
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    nodeInfoHolder.removeNode(id);
+                }
+            }
+        }
+    }
+
+    /**
      * Gracefully shuts down all managed components and releases resources.
      */
     public void destroy() {
