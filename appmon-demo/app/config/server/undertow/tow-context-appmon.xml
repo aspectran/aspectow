@@ -22,7 +22,7 @@
                 <property name="base">/webapps/%{tow.context.appmon.name}</property>
             </bean>
         </property>
-        <property name="scratchDir">/work/_webapps/%{tow.context.appmon.name}</property>
+        <property name="scratchDir">%{system:aspectran.workPath:/work}/_webapps/%{tow.context.appmon.name}</property>
         <property name="sessionManager">#{tow.context.appmon.sessionManager}</property>
         <property name="servletSessionConfig">
             <bean class="io.undertow.servlet.api.ServletSessionConfig">
@@ -74,7 +74,7 @@
             </item>
             <item name="sessionStore">
                 <bean class="com.aspectran.core.component.session.FileSessionStoreFactoryBean">
-                    <property name="storeDir">/work/_sessions/%{tow.context.appmon.name}</property>
+                    <property name="storeDir">%{system:aspectran.workPath:/work}/_sessions/%{tow.context.appmon.name}</property>
                 </bean>
             </item>
         </properties>
