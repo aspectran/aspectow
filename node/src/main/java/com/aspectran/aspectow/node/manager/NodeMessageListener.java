@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.aspectran.aspectow.node.redis;
+package com.aspectran.aspectow.node.manager;
 
 /**
  * Listener interface for receiving and processing Redis messages
@@ -21,7 +21,7 @@ package com.aspectran.aspectow.node.redis;
  *
  * <p>Created: 2026-04-18</p>
  */
-public interface RedisMessageListener {
+public interface NodeMessageListener {
 
     /**
      * Returns the category of the relay messages this listener is interested in.
@@ -69,13 +69,6 @@ public interface RedisMessageListener {
      * @param message the relay message content
      */
     default void onRelayMessage(String nodeId, String sessionId, String message) {
-    }
-
-    /**
-     * Called when a cluster-wide event message is received.
-     * @param message the event message content
-     */
-    default void onClusterEvent(String message) {
     }
 
 }

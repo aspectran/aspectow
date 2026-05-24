@@ -18,7 +18,7 @@ package com.aspectran.aspectow.console.scheduler.bridge;
 import com.aspectran.aspectow.console.scheduler.bridge.polling.PollingSchedulerBridge;
 import com.aspectran.aspectow.console.scheduler.bridge.websocket.WebsocketSchedulerBridge;
 import com.aspectran.aspectow.console.scheduler.manager.SchedulerManager;
-import com.aspectran.aspectow.node.redis.RedisMessagePublisher;
+import com.aspectran.aspectow.node.manager.NodeMessagePublisher;
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,7 +41,7 @@ public class SchedulerBroker {
 
     public static final String CONTROL_RELEASE = "scheduler:release";
 
-    private final RedisMessagePublisher messagePublisher;
+    private final NodeMessagePublisher messagePublisher;
 
     private final SchedulerManager schedulerManager;
 
@@ -49,12 +49,12 @@ public class SchedulerBroker {
 
     private final SubscriptionRegistry subscriptionRegistry = new SubscriptionRegistry();
 
-    public SchedulerBroker(RedisMessagePublisher messagePublisher, SchedulerManager schedulerManager) {
+    public SchedulerBroker(NodeMessagePublisher messagePublisher, SchedulerManager schedulerManager) {
         this.messagePublisher = messagePublisher;
         this.schedulerManager = schedulerManager;
     }
 
-    public RedisMessagePublisher getMessagePublisher() {
+    public NodeMessagePublisher getMessagePublisher() {
         return messagePublisher;
     }
 

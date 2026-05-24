@@ -45,7 +45,7 @@ public class RemoteCommandManager implements InitializableBean {
     public RemoteCommandManager(@NonNull NodeManager nodeManager, LocalCommandService localCommandService) {
         this.nodeManager = nodeManager;
         this.localCommandService = localCommandService;
-        this.broker = new CommandBroker(getNodeId(), nodeManager.getRedisMessagePublisher(), this);
+        this.broker = new CommandBroker(getNodeId(), nodeManager.getNodeMessagePublisher(), this);
     }
 
     @Override
@@ -53,9 +53,9 @@ public class RemoteCommandManager implements InitializableBean {
         logger.info("Initializing RemoteCommandManager for node: {}", getNodeId());
         
         // Register a listener for command relay messages (commands and results) from Redis
-        if (nodeManager.getRedisMessageSubscriber() != null) {
+        if (nodeManager.getNodeMessageSubscriber() != null) {
             CommandMessageBridgeHandler bridgeHandler = new CommandMessageBridgeHandler(this);
-            nodeManager.getRedisMessageSubscriber().addListener(bridgeHandler);
+            nodeManager.getNodeMessageSubscriber().addListener(bridgeHandler);
         }
     }
     
@@ -102,11 +102,11 @@ public class RemoteCommandManager implements InitializableBean {
             }
         } else {
             // Case 2: Target is a remote node, relay via Redis
-            if (nodeManager.getRedisMessagePublisher() != null) {
+            if (nodeManager.getNodeMessagePublisher() != null) {
                 try {
                     // Command target is embedded in the message format if needed,
                     // but for commands we currently rely on the publishRelay mechanism
-                    nodeManager.getRedisMessagePublisher().publishRelay(CommandBroker.CATEGORY_COMMANDS, commandData);
+                    nodeManager.getNodeMessagePublisher().publishRelay(CommandBroker.CATEGORY_COMMANDS, commandData);
                     logger.debug("Daemon command dispatched to cluster (target={}): {}", targetNodeId, commandData);
                 } catch (Exception e) {
                     logger.error("Failed to dispatch daemon command to cluster", e);
@@ -128,9 +128,9 @@ public class RemoteCommandManager implements InitializableBean {
         // But for consistency with SchedulerManager, we can use a prefix or check the content.
         if (message.startsWith("command:")) {
             String response = localCommandService.execute(message);
-            if (response != null && nodeManager.getRedisMessagePublisher() != null) {
+            if (response != null && nodeManager.getNodeMessagePublisher() != null) {
                 try {
-                    nodeManager.getRedisMessagePublisher().publishRelay(CommandBroker.CATEGORY_COMMANDS, response);
+                    nodeManager.getNodeMessagePublisher().publishRelay(CommandBroker.CATEGORY_COMMANDS, response);
                 } catch (Exception e) {
                     logger.error("Failed to relay daemon command response to cluster", e);
                 }

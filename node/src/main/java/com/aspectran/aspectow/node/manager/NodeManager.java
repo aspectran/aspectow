@@ -20,9 +20,6 @@ import com.aspectran.aspectow.node.config.NodeInfo;
 import com.aspectran.aspectow.node.config.NodeInfoHolder;
 import com.aspectran.aspectow.node.config.SecretConfig;
 import com.aspectran.aspectow.node.redis.RedisConnectionPool;
-import com.aspectran.aspectow.node.redis.RedisMessageListener;
-import com.aspectran.aspectow.node.redis.RedisMessagePublisher;
-import com.aspectran.aspectow.node.redis.RedisMessageSubscriber;
 import com.aspectran.utils.PBEncryptionUtils;
 import com.aspectran.utils.apon.VariableParameters;
 import com.aspectran.utils.security.InvalidPBTokenException;
@@ -30,7 +27,6 @@ import com.aspectran.utils.security.TimeLimitedPBTokenIssuer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.List;
 
 /**
@@ -55,9 +51,11 @@ public class NodeManager {
 
     private NodeReporter nodeReporter;
 
-    private RedisMessagePublisher redisMessagePublisher;
+    private NodeMessagePublisher nodeMessagePublisher;
 
-    private RedisMessageSubscriber redisMessageSubscriber;
+    private NodeMessageSubscriber nodeMessageSubscriber;
+
+    private ClusterEventSubscriber clusterEventSubscriber;
 
     /**
      * Instantiates a new NodeManager.
@@ -155,94 +153,102 @@ public class NodeManager {
      * Returns the publisher for sending relay messages via Redis.
      * @return the Redis message publisher
      */
-    public RedisMessagePublisher getRedisMessagePublisher() {
-        return redisMessagePublisher;
+    public NodeMessagePublisher getNodeMessagePublisher() {
+        return nodeMessagePublisher;
     }
 
     /**
      * Sets the Redis message publisher.
-     * @param redisMessagePublisher the Redis message publisher
+     * @param nodeMessagePublisher the Redis message publisher
      */
-    public void setRedisMessagePublisher(RedisMessagePublisher redisMessagePublisher) {
-        this.redisMessagePublisher = redisMessagePublisher;
+    public void setNodeMessagePublisher(NodeMessagePublisher nodeMessagePublisher) {
+        this.nodeMessagePublisher = nodeMessagePublisher;
     }
 
     /**
      * Returns the subscriber for receiving relay messages via Redis.
      * @return the Redis message subscriber
      */
-    public RedisMessageSubscriber getRedisMessageSubscriber() {
-        return redisMessageSubscriber;
+    public NodeMessageSubscriber getNodeMessageSubscriber() {
+        return nodeMessageSubscriber;
     }
 
     /**
      * Sets the Redis message subscriber.
-     * @param redisMessageSubscriber the Redis message subscriber
+     * @param nodeMessageSubscriber the Redis message subscriber
      */
-    public void setRedisMessageSubscriber(RedisMessageSubscriber redisMessageSubscriber) {
-        this.redisMessageSubscriber = redisMessageSubscriber;
-        if (redisMessageSubscriber != null) {
-            redisMessageSubscriber.addListener(new RedisMessageListener() {
+    public void setNodeMessageSubscriber(NodeMessageSubscriber nodeMessageSubscriber) {
+        this.nodeMessageSubscriber = nodeMessageSubscriber;
+    }
+
+    /**
+     * Returns the subscriber for cluster-wide events.
+     * @return the cluster event subscriber
+     */
+    public ClusterEventSubscriber getClusterEventSubscriber() {
+        return clusterEventSubscriber;
+    }
+
+    /**
+     * Sets the subscriber for cluster-wide events.
+     * @param clusterEventSubscriber the cluster event subscriber
+     */
+    public void setClusterEventSubscriber(ClusterEventSubscriber clusterEventSubscriber) {
+        this.clusterEventSubscriber = clusterEventSubscriber;
+        if (clusterEventSubscriber != null) {
+            clusterEventSubscriber.addListener(new ClusterEventListener() {
                 @Override
-                public void onClusterEvent(String message) {
-                    if (message.startsWith("JOINED:")) {
-                        String aponData = message.substring(7);
-                        try {
-                            NodeInfo info = new NodeInfo();
-                            info.readFrom(aponData);
+                public void onJoined(NodeInfo info) {
+                    // 1. Validate Token
+                    try {
+                        validateToken(info.getToken());
+                    } catch (Exception e) {
+                        logger.warn("Rejected join request from node '{}' due to invalid token", info.getNodeId());
+                        return;
+                    }
 
-                            // 1. Validate Token
-                            try {
-                                validateToken(info.getToken());
-                            } catch (Exception e) {
-                                logger.warn("Rejected join request from node '{}' due to invalid token", info.getNodeId());
-                                return;
-                            }
-
-                            if (clusterConfig.isGatewayMode()) {
-                                NodeInfo existingInfo = nodeInfoHolder.getNodeInfo(info.getNodeId());
-                                if (existingInfo != null) {
-                                    // 2. Partial update for Gateway Mode: keep static config, update dynamic state
-                                    existingInfo.setHost(info.getHost());
-                                    existingInfo.setPort(info.getPort());
-                                    existingInfo.setStartTime(info.getStartTime());
-                                    existingInfo.setStatus(info.getStatus());
-                                    existingInfo.setHeartbeatInterval(info.getHeartbeatInterval());
-                                    existingInfo.setEndpointConfig(info.getEndpointConfig());
-                                    existingInfo.setToken(info.getToken());
-                                    if (logger.isDebugEnabled()) {
-                                        logger.debug("Updated dynamic state for joined node: {}", info.getNodeId());
-                                    }
-                                } else {
-                                    if (logger.isDebugEnabled()) {
-                                        logger.debug("Ignored join request from undefined node: {}", info.getNodeId());
-                                    }
-                                }
-                            } else {
-                                // 3. Full update for Autoscaling Mode
-                                nodeInfoHolder.putNodeInfo(info);
-                                if (logger.isDebugEnabled()) {
-                                    logger.debug("Updated node info for joined node: {}", info.getNodeId());
-                                }
-                            }
-                        } catch (IOException e) {
-                            logger.warn("Failed to parse JOINED event data", e);
-                        }
-                    } else if (message.startsWith("LEFT:")) {
-                        String leftNodeId = message.substring(5);
-                        if (clusterConfig.isGatewayMode()) {
-                            NodeInfo info = nodeInfoHolder.getNodeInfo(leftNodeId);
-                            if (info != null) {
-                                info.setStatus("offline");
-                                if (logger.isDebugEnabled()) {
-                                    logger.debug("Set node status to 'offline' for left node: {}", leftNodeId);
-                                }
+                    if (clusterConfig.isGatewayMode()) {
+                        NodeInfo existingInfo = nodeInfoHolder.getNodeInfo(info.getNodeId());
+                        if (existingInfo != null) {
+                            // 2. Partial update for Gateway Mode: keep static config, update dynamic state
+                            existingInfo.setHost(info.getHost());
+                            existingInfo.setPort(info.getPort());
+                            existingInfo.setStartTime(info.getStartTime());
+                            existingInfo.setStatus(info.getStatus());
+                            existingInfo.setHeartbeatInterval(info.getHeartbeatInterval());
+                            existingInfo.setEndpointConfig(info.getEndpointConfig());
+                            existingInfo.setToken(info.getToken());
+                            if (logger.isDebugEnabled()) {
+                                logger.debug("Updated dynamic state for joined node: {}", info.getNodeId());
                             }
                         } else {
-                            nodeInfoHolder.removeNode(leftNodeId);
                             if (logger.isDebugEnabled()) {
-                                logger.debug("Removed node info for left node: {}", leftNodeId);
+                                logger.debug("Ignored join request from undefined node: {}", info.getNodeId());
                             }
+                        }
+                    } else {
+                        // 3. Full update for Autoscaling Mode
+                        nodeInfoHolder.putNodeInfo(info);
+                        if (logger.isDebugEnabled()) {
+                            logger.debug("Updated node info for joined node: {}", info.getNodeId());
+                        }
+                    }
+                }
+
+                @Override
+                public void onLeft(String leftNodeId) {
+                    if (clusterConfig.isGatewayMode()) {
+                        NodeInfo info = nodeInfoHolder.getNodeInfo(leftNodeId);
+                        if (info != null) {
+                            info.setStatus("offline");
+                            if (logger.isDebugEnabled()) {
+                                logger.debug("Set node status to 'offline' for left node: {}", leftNodeId);
+                            }
+                        }
+                    } else {
+                        nodeInfoHolder.removeNode(leftNodeId);
+                        if (logger.isDebugEnabled()) {
+                            logger.debug("Removed node info for left node: {}", leftNodeId);
                         }
                     }
                 }
@@ -257,8 +263,11 @@ public class NodeManager {
         if (nodeReporter != null) {
             nodeReporter.stop();
         }
-        if (redisMessageSubscriber != null) {
-            redisMessageSubscriber.stop();
+        if (nodeMessageSubscriber != null) {
+            nodeMessageSubscriber.stop();
+        }
+        if (clusterEventSubscriber != null) {
+            clusterEventSubscriber.stop();
         }
         if (redisConnectionPool != null) {
             logger.info("Closing Redis connection pool for node: {}", nodeId);

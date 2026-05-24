@@ -18,8 +18,8 @@ package com.aspectran.aspectow.console.cluster;
 import com.aspectran.aspectow.appmon.common.auth.AppMonTokenIssuer;
 import com.aspectran.aspectow.node.manager.NodeManager;
 import com.aspectran.aspectow.node.manager.NodeMessageProtocol;
-import com.aspectran.aspectow.node.redis.RedisMessageListener;
-import com.aspectran.aspectow.node.redis.RedisMessageSubscriber;
+import com.aspectran.aspectow.node.manager.NodeMessageListener;
+import com.aspectran.aspectow.node.manager.NodeMessageSubscriber;
 import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Component;
 import com.aspectran.core.component.bean.annotation.Destroy;
@@ -47,7 +47,7 @@ import static com.aspectran.aspectow.node.manager.NodeMessageProtocol.NODES_BASE
         value = NODES_BASE_PATH + "/{nodeId}/websocket/{token}",
         configurator = AspectranConfigurator.class
 )
-public class NodeGatewayEndpoint extends SimplifiedEndpoint implements RedisMessageListener {
+public class NodeGatewayEndpoint extends SimplifiedEndpoint implements NodeMessageListener {
 
     private static final Logger logger = LoggerFactory.getLogger(NodeGatewayEndpoint.class);
 
@@ -67,16 +67,16 @@ public class NodeGatewayEndpoint extends SimplifiedEndpoint implements RedisMess
 
     @Initialize
     public void registerListener() {
-        RedisMessageSubscriber subscriber = nodeManager.getRedisMessageSubscriber();
+        NodeMessageSubscriber subscriber = nodeManager.getNodeMessageSubscriber();
         if (subscriber != null) {
             subscriber.addListener(this);
-            logger.info("NodeGatewayEndpoint registered as RedisMessageListener");
+            logger.info("NodeGatewayEndpoint registered as NodeMessageListener");
         }
     }
 
     @Destroy
     public void unregisterListener() {
-        RedisMessageSubscriber subscriber = nodeManager.getRedisMessageSubscriber();
+        NodeMessageSubscriber subscriber = nodeManager.getNodeMessageSubscriber();
         if (subscriber != null) {
             subscriber.removeListener(this);
         }

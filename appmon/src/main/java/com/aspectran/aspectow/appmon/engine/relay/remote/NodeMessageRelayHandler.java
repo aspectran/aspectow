@@ -17,7 +17,7 @@ package com.aspectran.aspectow.appmon.engine.relay.remote;
 
 import com.aspectran.aspectow.appmon.engine.relay.CommandOptions;
 import com.aspectran.aspectow.appmon.engine.relay.MessageRelayManager;
-import com.aspectran.aspectow.node.redis.RedisMessageListener;
+import com.aspectran.aspectow.node.manager.NodeMessageListener;
 import org.jspecify.annotations.NonNull;
 
 import static com.aspectran.aspectow.appmon.engine.relay.CommandOptions.COMMAND_LOAD_PREVIOUS;
@@ -29,11 +29,11 @@ import static com.aspectran.aspectow.appmon.engine.relay.CommandOptions.COMMAND_
  * RedisMessageRelayHandler listens to relay messages from other nodes via Redis
  * and relays them to the local MessageRelayManager.
  */
-public class RedisMessageRelayHandler implements RedisMessageListener {
+public class NodeMessageRelayHandler implements NodeMessageListener {
 
     private final MessageRelayManager messageRelayManager;
 
-    public RedisMessageRelayHandler(MessageRelayManager messageRelayManager) {
+    public NodeMessageRelayHandler(MessageRelayManager messageRelayManager) {
         this.messageRelayManager = messageRelayManager;
     }
 

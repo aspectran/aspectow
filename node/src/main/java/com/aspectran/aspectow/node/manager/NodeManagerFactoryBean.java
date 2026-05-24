@@ -61,8 +61,11 @@ public class NodeManagerFactoryBean implements ActivityContextAware, Initializab
         if (nodeManager.getNodeReporter() != null) {
             nodeManager.getNodeReporter().start();
         }
-        if (nodeManager.getRedisMessageSubscriber() != null) {
-            nodeManager.getRedisMessageSubscriber().start();
+        if (nodeManager.getNodeMessageSubscriber() != null) {
+            nodeManager.getNodeMessageSubscriber().start();
+        }
+        if (nodeManager.getClusterEventSubscriber() != null) {
+            nodeManager.getClusterEventSubscriber().start();
         }
     }
 

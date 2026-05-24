@@ -18,7 +18,7 @@ package com.aspectran.aspectow.appmon.engine.relay;
 import com.aspectran.aspectow.appmon.engine.exporter.ExporterManager;
 import com.aspectran.aspectow.node.config.NodeInfo;
 import com.aspectran.aspectow.node.manager.NodeRegistry;
-import com.aspectran.aspectow.node.redis.RedisMessagePublisher;
+import com.aspectran.aspectow.node.manager.NodeMessagePublisher;
 import com.aspectran.utils.Assert;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
@@ -59,13 +59,13 @@ public class MessageRelayManager {
 
     private final NodeRegistry nodeRegistry;
 
-    private final RedisMessagePublisher messagePublisher;
+    private final NodeMessagePublisher messagePublisher;
 
     /**
      * Instantiates a new MessageRelayManager.
      * @param messagePublisher the Redis message publisher
      */
-    public MessageRelayManager(String nodeId, NodeRegistry nodeRegistry, RedisMessagePublisher messagePublisher) {
+    public MessageRelayManager(String nodeId, NodeRegistry nodeRegistry, NodeMessagePublisher messagePublisher) {
         this.nodeId = nodeId;
         this.nodeRegistry = nodeRegistry;
         this.messagePublisher = messagePublisher;

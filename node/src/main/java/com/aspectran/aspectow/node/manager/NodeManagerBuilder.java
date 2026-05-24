@@ -23,8 +23,6 @@ import com.aspectran.aspectow.node.config.SchedulerConfig;
 import com.aspectran.aspectow.node.config.SecretConfig;
 import com.aspectran.aspectow.node.redis.RedisConnectionPool;
 import com.aspectran.aspectow.node.redis.RedisConnectionPoolConfig;
-import com.aspectran.aspectow.node.redis.RedisMessagePublisher;
-import com.aspectran.aspectow.node.redis.RedisMessageSubscriber;
 import com.aspectran.aspectow.node.redis.RedisScheduledJobLockProvider;
 import com.aspectran.core.context.ActivityContext;
 import com.aspectran.core.service.CoreServiceHolder;
@@ -147,14 +145,16 @@ public abstract class NodeManagerBuilder {
             }
 
             NodeRegistry nodeRegistry = new NodeRegistry(clusterId, connectionPool);
-            RedisMessagePublisher redisMessagePublisher = new RedisMessagePublisher(clusterId, nodeId, connectionPool);
-            NodeReporter nodeReporter = new NodeReporter(clusterConfig, nodeInfo, connectionPool, redisMessagePublisher, nodeRegistry, portProvider);
-            RedisMessageSubscriber redisMessageSubscriber = new RedisMessageSubscriber(clusterId, nodeId, connectionPool);
+            NodeMessagePublisher nodeMessagePublisher = new NodeMessagePublisher(clusterId, nodeId, connectionPool);
+            NodeReporter nodeReporter = new NodeReporter(clusterConfig, nodeInfo, connectionPool, nodeMessagePublisher, nodeRegistry, portProvider);
+            NodeMessageSubscriber nodeMessageSubscriber = new NodeMessageSubscriber(clusterId, nodeId, connectionPool);
+            ClusterEventSubscriber clusterEventSubscriber = new ClusterEventSubscriber(clusterId, connectionPool);
 
             nodeManager.setNodeRegistry(nodeRegistry);
             nodeManager.setNodeReporter(nodeReporter);
-            nodeManager.setRedisMessagePublisher(redisMessagePublisher);
-            nodeManager.setRedisMessageSubscriber(redisMessageSubscriber);
+            nodeManager.setNodeMessagePublisher(nodeMessagePublisher);
+            nodeManager.setNodeMessageSubscriber(nodeMessageSubscriber);
+            nodeManager.setClusterEventSubscriber(clusterEventSubscriber);
 
             if (clusterConfig.isGatewayMode()) {
                 for (NodeInfo info : nodeRegistry.getNodes()) {

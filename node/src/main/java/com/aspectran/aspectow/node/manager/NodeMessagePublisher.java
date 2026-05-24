@@ -13,16 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.aspectran.aspectow.node.redis;
+package com.aspectran.aspectow.node.manager;
 
-import com.aspectran.aspectow.node.manager.NodeMessageProtocol;
+import com.aspectran.aspectow.node.redis.RedisConnectionPool;
 import io.lettuce.core.api.StatefulRedisConnection;
 
 /**
  * Provides methods to publish management control messages and transparent
  * application data to Redis Pub/Sub channels for inter-node communication relay.
  */
-public class RedisMessagePublisher {
+public class NodeMessagePublisher {
 
     private final String clusterId;
 
@@ -30,7 +30,7 @@ public class RedisMessagePublisher {
 
     private final RedisConnectionPool connectionPool;
 
-    public RedisMessagePublisher(String clusterId, String nodeId, RedisConnectionPool connectionPool) {
+    public NodeMessagePublisher(String clusterId, String nodeId, RedisConnectionPool connectionPool) {
         this.clusterId = clusterId;
         this.nodeId = nodeId;
         this.connectionPool = connectionPool;

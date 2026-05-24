@@ -35,7 +35,7 @@ import com.aspectran.aspectow.appmon.engine.exporter.metric.MetricExporterBuilde
 import com.aspectran.aspectow.appmon.engine.persist.counter.EventCounter;
 import com.aspectran.aspectow.appmon.engine.persist.counter.EventCounterBuilder;
 import com.aspectran.aspectow.appmon.engine.relay.MessageRelayManager;
-import com.aspectran.aspectow.appmon.engine.relay.remote.RedisMessageRelayHandler;
+import com.aspectran.aspectow.appmon.engine.relay.remote.NodeMessageRelayHandler;
 import com.aspectran.aspectow.node.config.NodeInfoHolder;
 import com.aspectran.aspectow.node.manager.NodeManager;
 import com.aspectran.core.context.ActivityContext;
@@ -160,16 +160,16 @@ public abstract class AppMonManagerBuilder {
         AppInfoHolder appInfoHolder = new AppInfoHolder(nodeId, appMonConfig.getAppInfoList());
 
         MessageRelayManager messageRelayManager = new MessageRelayManager(
-                nodeId, nodeManager.getNodeRegistry(), nodeManager.getRedisMessagePublisher());
+                nodeId, nodeManager.getNodeRegistry(), nodeManager.getNodeMessagePublisher());
 
         AppMonManager appMonManager = new AppMonManager(
                 nodeId, nodeManager.getClusterConfig().getMode(), pollingConfig, counterPersistInterval,
                 nodeInfoHolder, appInfoHolder, messageRelayManager);
         appMonManager.setActivityContext(context);
 
-        if (nodeManager.getRedisMessageSubscriber() != null) {
-            RedisMessageRelayHandler redisMessageRelayHandler = new RedisMessageRelayHandler(messageRelayManager);
-            nodeManager.getRedisMessageSubscriber().addListener(redisMessageRelayHandler);
+        if (nodeManager.getNodeMessageSubscriber() != null) {
+            NodeMessageRelayHandler nodeMessageRelayHandler = new NodeMessageRelayHandler(messageRelayManager);
+            nodeManager.getNodeMessageSubscriber().addListener(nodeMessageRelayHandler);
         }
 
         return appMonManager;

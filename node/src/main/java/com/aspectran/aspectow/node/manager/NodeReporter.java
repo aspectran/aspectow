@@ -19,7 +19,6 @@ import com.aspectran.aspectow.node.config.ClusterConfig;
 import com.aspectran.aspectow.node.config.NodeInfo;
 import com.aspectran.aspectow.node.config.SecretConfig;
 import com.aspectran.aspectow.node.redis.RedisConnectionPool;
-import com.aspectran.aspectow.node.redis.RedisMessagePublisher;
 import com.aspectran.utils.PBEncryptionUtils;
 import com.aspectran.utils.ToStringBuilder;
 import com.aspectran.utils.apon.AponWriter;
@@ -52,7 +51,7 @@ public class NodeReporter {
 
     private final RedisConnectionPool connectionPool;
 
-    private final RedisMessagePublisher messagePublisher;
+    private final NodeMessagePublisher messagePublisher;
 
     private final NodeRegistry nodeRegistry;
 
@@ -61,7 +60,7 @@ public class NodeReporter {
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
     public NodeReporter(ClusterConfig clusterConfig, NodeInfo nodeInfo,
-                        RedisConnectionPool connectionPool, RedisMessagePublisher messagePublisher,
+                        RedisConnectionPool connectionPool, NodeMessagePublisher messagePublisher,
                         NodeRegistry nodeRegistry, NodePortProvider portProvider) {
         this.clusterConfig = clusterConfig;
         this.nodeInfo = nodeInfo;

@@ -18,7 +18,7 @@ package com.aspectran.aspectow.console.commands.bridge;
 import com.aspectran.aspectow.console.commands.bridge.polling.PollingCommandBridge;
 import com.aspectran.aspectow.console.commands.bridge.websocket.WebsocketCommandBridge;
 import com.aspectran.aspectow.console.commands.manager.RemoteCommandManager;
-import com.aspectran.aspectow.node.redis.RedisMessagePublisher;
+import com.aspectran.aspectow.node.manager.NodeMessagePublisher;
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,7 +43,7 @@ public class CommandBroker {
 
     private final String nodeId;
 
-    private final RedisMessagePublisher messagePublisher;
+    private final NodeMessagePublisher messagePublisher;
 
     private final RemoteCommandManager commandManager;
 
@@ -51,7 +51,7 @@ public class CommandBroker {
 
     private final SubscriptionRegistry subscriptionRegistry = new SubscriptionRegistry();
 
-    public CommandBroker(String nodeId, RedisMessagePublisher messagePublisher, RemoteCommandManager commandManager) {
+    public CommandBroker(String nodeId, NodeMessagePublisher messagePublisher, RemoteCommandManager commandManager) {
         this.nodeId = nodeId;
         this.messagePublisher = messagePublisher;
         this.commandManager = commandManager;
@@ -61,7 +61,7 @@ public class CommandBroker {
         return nodeId;
     }
 
-    public RedisMessagePublisher getMessagePublisher() {
+    public NodeMessagePublisher getMessagePublisher() {
         return messagePublisher;
     }
 

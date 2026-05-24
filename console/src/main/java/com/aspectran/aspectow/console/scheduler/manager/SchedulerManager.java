@@ -71,7 +71,7 @@ public class SchedulerManager implements ApplicationAdapterAware, InitializableB
     public SchedulerManager(@NonNull NodeManager nodeManager) {
         this.nodeManager = nodeManager;
         this.localSchedulerService = new LocalSchedulerService();
-        this.broker = new SchedulerBroker(nodeManager.getRedisMessagePublisher(), this);
+        this.broker = new SchedulerBroker(nodeManager.getNodeMessagePublisher(), this);
     }
 
     @Override
@@ -83,9 +83,9 @@ public class SchedulerManager implements ApplicationAdapterAware, InitializableB
     public void initialize() throws Exception {
         logger.info("Initializing SchedulerManager for node: {}", getNodeId());
 
-        if (nodeManager.getRedisMessageSubscriber() != null) {
+        if (nodeManager.getNodeMessageSubscriber() != null) {
             SchedulerMessageBridgeHandler bridgeHandler = new SchedulerMessageBridgeHandler(this);
-            nodeManager.getRedisMessageSubscriber().addListener(bridgeHandler);
+            nodeManager.getNodeMessageSubscriber().addListener(bridgeHandler);
         }
     }
     
@@ -187,11 +187,11 @@ public class SchedulerManager implements ApplicationAdapterAware, InitializableB
                 broadcast(response);
             }
         } else {
-            if (nodeManager.getRedisMessagePublisher() != null) {
+            if (nodeManager.getNodeMessagePublisher() != null) {
                 try {
                     // Convert to string only when sending over the network (Redis)
                     String message = "command:" + request.toString() + ";" + targetNodeId;
-                    nodeManager.getRedisMessagePublisher().publishRelay(SchedulerBroker.CATEGORY_SCHEDULER, message);
+                    nodeManager.getNodeMessagePublisher().publishRelay(SchedulerBroker.CATEGORY_SCHEDULER, message);
                     logger.debug("Scheduler request dispatched to node {}: {}", targetNodeId, request.getCommand());
                 } catch (Exception e) {
                     logger.error("Failed to dispatch scheduler request to node {}", targetNodeId, e);
@@ -229,8 +229,8 @@ public class SchedulerManager implements ApplicationAdapterAware, InitializableB
                 request.readFrom(requestData);
 
                 String response = execute(request);
-                if (response != null && nodeManager.getRedisMessagePublisher() != null) {
-                    nodeManager.getRedisMessagePublisher().publishRelay(SchedulerBroker.CATEGORY_SCHEDULER, response);
+                if (response != null && nodeManager.getNodeMessagePublisher() != null) {
+                    nodeManager.getNodeMessagePublisher().publishRelay(SchedulerBroker.CATEGORY_SCHEDULER, response);
                 }
             } catch (Exception e) {
                 logger.error("Failed to process scheduler relay message", e);

@@ -17,13 +17,13 @@ package com.aspectran.aspectow.console.commands.bridge.redis;
 
 import com.aspectran.aspectow.console.commands.bridge.CommandBroker;
 import com.aspectran.aspectow.console.commands.manager.RemoteCommandManager;
-import com.aspectran.aspectow.node.redis.RedisMessageListener;
+import com.aspectran.aspectow.node.manager.NodeMessageListener;
 
 /**
  * CommandMessageBridgeHandler listens to Redis relay messages and forwards
  * them to the RemoteCommandManager.
  */
-public class CommandMessageBridgeHandler implements RedisMessageListener {
+public class CommandMessageBridgeHandler implements NodeMessageListener {
 
     private final RemoteCommandManager remoteCommandManager;
 

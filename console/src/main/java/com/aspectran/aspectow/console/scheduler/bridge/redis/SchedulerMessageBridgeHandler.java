@@ -17,14 +17,14 @@ package com.aspectran.aspectow.console.scheduler.bridge.redis;
 
 import com.aspectran.aspectow.console.scheduler.bridge.SchedulerBroker;
 import com.aspectran.aspectow.console.scheduler.manager.SchedulerManager;
-import com.aspectran.aspectow.node.redis.RedisMessageListener;
+import com.aspectran.aspectow.node.manager.NodeMessageListener;
 import org.jspecify.annotations.NonNull;
 
 /**
  * SchedulerMessageBridgeHandler listens to Redis relay messages related to
  * scheduler management and forwards them to the SchedulerManager.
  */
-public class SchedulerMessageBridgeHandler implements RedisMessageListener {
+public class SchedulerMessageBridgeHandler implements NodeMessageListener {
 
     private final SchedulerManager schedulerManager;
 

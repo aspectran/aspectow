@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.aspectran.aspectow.node.redis;
+package com.aspectran.aspectow.node.manager;
 
-import com.aspectran.aspectow.node.manager.NodeMessageProtocol;
+import com.aspectran.aspectow.node.redis.RedisConnectionPool;
 import io.lettuce.core.pubsub.RedisPubSubAdapter;
 import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
 import org.jspecify.annotations.NonNull;
@@ -32,9 +32,9 @@ import static com.aspectran.aspectow.node.manager.NodeMessageProtocol.TYPE_RELAY
  * Listens to management control and transparent relay channels and notifies
  * registered listeners based on the message category.
  */
-public class RedisMessageSubscriber extends RedisPubSubAdapter<String, String> {
+public class NodeMessageSubscriber extends RedisPubSubAdapter<String, String> {
 
-    private static final Logger logger = LoggerFactory.getLogger(RedisMessageSubscriber.class);
+    private static final Logger logger = LoggerFactory.getLogger(NodeMessageSubscriber.class);
 
     private final String clusterId;
 
@@ -42,13 +42,13 @@ public class RedisMessageSubscriber extends RedisPubSubAdapter<String, String> {
 
     private final RedisConnectionPool connectionPool;
 
-    private final Set<RedisMessageListener> listeners = new CopyOnWriteArraySet<>();
+    private final Set<NodeMessageListener> listeners = new CopyOnWriteArraySet<>();
 
     private StatefulRedisPubSubConnection<String, String> pubSubConnection;
 
     private String subscribePattern;
 
-    public RedisMessageSubscriber(String clusterId, String nodeId, RedisConnectionPool connectionPool) {
+    public NodeMessageSubscriber(String clusterId, String nodeId, RedisConnectionPool connectionPool) {
         this.clusterId = clusterId;
         this.nodeId = nodeId;
         this.connectionPool = connectionPool;
@@ -58,11 +58,11 @@ public class RedisMessageSubscriber extends RedisPubSubAdapter<String, String> {
         return nodeId;
     }
 
-    public void addListener(RedisMessageListener listener) {
+    public void addListener(NodeMessageListener listener) {
         listeners.add(listener);
     }
 
-    public void removeListener(RedisMessageListener listener) {
+    public void removeListener(NodeMessageListener listener) {
         listeners.remove(listener);
     }
 
@@ -82,13 +82,6 @@ public class RedisMessageSubscriber extends RedisPubSubAdapter<String, String> {
 
     @Override
     public void message(@NonNull String channel, String message) {
-        if (channel.equals(NodeMessageProtocol.getClusterEventsChannel(clusterId))) {
-            for (RedisMessageListener listener : listeners) {
-                listener.onClusterEvent(message);
-            }
-            return;
-        }
-
         // Expected patterns:
         // aspectow:nodes:control:<category>:<clusterId>:<nodeId>
         // aspectow:nodes:relay:<category>:<clusterId>:<nodeId>:<sessionId>
@@ -108,14 +101,14 @@ public class RedisMessageSubscriber extends RedisPubSubAdapter<String, String> {
         }
 
         if (TYPE_CONTROL.equals(type)) {
-            for (RedisMessageListener listener : listeners) {
+            for (NodeMessageListener listener : listeners) {
                 String listenerCategory = listener.getCategory();
                 if (listenerCategory == null || listenerCategory.equals(category)) {
                     listener.onControlMessage(targetNodeId, message);
                 }
             }
         } else if (TYPE_RELAY.equals(type)) {
-            for (RedisMessageListener listener : listeners) {
+            for (NodeMessageListener listener : listeners) {
                 String listenerCategory = listener.getCategory();
                 if (listenerCategory == null || listenerCategory.equals(category)) {
                     if (sessionId != null) {
@@ -135,11 +128,7 @@ public class RedisMessageSubscriber extends RedisPubSubAdapter<String, String> {
         String pattern = (subscribePattern != null ? subscribePattern :
                 NodeMessageProtocol.getClusterSubscriptionPattern(clusterId, nodeId));
         this.pubSubConnection.sync().psubscribe(pattern);
-
-        String eventsChannel = NodeMessageProtocol.getClusterEventsChannel(clusterId);
-        this.pubSubConnection.sync().subscribe(eventsChannel);
-        logger.info("RedisMessageSubscriber initialized and subscribed to pattern: {} and channel: {}",
-                pattern, eventsChannel);
+        logger.info("NodeMessageSubscriber initialized and subscribed to pattern: {}", pattern);
     }
 
     public void stop() {
@@ -147,6 +136,7 @@ public class RedisMessageSubscriber extends RedisPubSubAdapter<String, String> {
             pubSubConnection.removeListener(this);
             pubSubConnection.sync().punsubscribe();
             pubSubConnection.close();
+            pubSubConnection = null;
         }
     }
 
