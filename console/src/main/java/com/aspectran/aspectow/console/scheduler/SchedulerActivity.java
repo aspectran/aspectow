@@ -92,7 +92,7 @@ public class SchedulerActivity {
                 "nodes", nodes,
                 "node", nodeConsoleHelper.createNodeMap(nodeInfo, true, true),
                 "token", AppMonTokenIssuer.issueToken(30),
-                "jobLockProvider", (CoreServiceHolder.getJobLockProvider() != null)
+                "hasJobLockProvider", (CoreServiceHolder.getJobLockProvider() != null)
         );
     }
 

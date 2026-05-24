@@ -88,8 +88,8 @@
                 </div>
                 <div>
                     <span class="text-muted small">Distributed Lock:</span>
-                    <span th:if="${page.jobLockProvider}" class="badge bg-success-subtle text-success border border-success-subtle">ENABLED</span>
-                    <span th:unless="${page.jobLockProvider}" class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">DISABLED</span>
+                    <span th:if="${page.hasJobLockProvider}" class="badge bg-success-subtle text-success border border-success-subtle">ENABLED</span>
+                    <span th:unless="${page.hasJobLockProvider}" class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">DISABLED</span>
                 </div>
             </div>
         </div>
