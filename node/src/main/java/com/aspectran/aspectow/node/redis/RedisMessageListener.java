@@ -71,4 +71,11 @@ public interface RedisMessageListener {
     default void onRelayMessage(String nodeId, String sessionId, String message) {
     }
 
+    /**
+     * Called when a cluster-wide event message is received.
+     * @param message the event message content
+     */
+    default void onClusterEvent(String message) {
+    }
+
 }

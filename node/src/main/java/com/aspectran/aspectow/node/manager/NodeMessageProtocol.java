@@ -32,6 +32,8 @@ public abstract class NodeMessageProtocol {
 
     public static final String TYPE_RELAY = "relay";
 
+    public static final String TYPE_EVENT = "event";
+
     private static final String KEY_PREFIX = "aspectow:nodes:";
 
     /**
@@ -52,6 +54,17 @@ public abstract class NodeMessageProtocol {
     @NonNull
     public static String getPulsesHashKey(String clusterId) {
         return KEY_PREFIX + clusterId + ":pulse";
+    }
+
+    /**
+     * Returns the Redis Pub/Sub channel for cluster-wide events
+     * (e.g., node joined, node left).
+     * @param clusterId the cluster ID
+     * @return the channel name
+     */
+    @NonNull
+    public static String getClusterEventsChannel(String clusterId) {
+        return KEY_PREFIX + TYPE_EVENT + ":" + clusterId;
     }
 
     /**

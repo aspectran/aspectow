@@ -20,6 +20,7 @@ import com.aspectran.aspectow.node.config.NodeInfo;
 import com.aspectran.aspectow.node.config.NodeInfoHolder;
 import com.aspectran.aspectow.node.config.SecretConfig;
 import com.aspectran.aspectow.node.redis.RedisConnectionPool;
+import com.aspectran.aspectow.node.redis.RedisMessageListener;
 import com.aspectran.aspectow.node.redis.RedisMessagePublisher;
 import com.aspectran.aspectow.node.redis.RedisMessageSubscriber;
 import com.aspectran.utils.PBEncryptionUtils;
@@ -29,6 +30,7 @@ import com.aspectran.utils.security.TimeLimitedPBTokenIssuer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -179,6 +181,73 @@ public class NodeManager {
      */
     public void setRedisMessageSubscriber(RedisMessageSubscriber redisMessageSubscriber) {
         this.redisMessageSubscriber = redisMessageSubscriber;
+        if (redisMessageSubscriber != null) {
+            redisMessageSubscriber.addListener(new RedisMessageListener() {
+                @Override
+                public void onClusterEvent(String message) {
+                    if (message.startsWith("JOINED:")) {
+                        String aponData = message.substring(7);
+                        try {
+                            NodeInfo info = new NodeInfo();
+                            info.readFrom(aponData);
+
+                            // 1. Validate Token
+                            try {
+                                validateToken(info.getToken());
+                            } catch (Exception e) {
+                                logger.warn("Rejected join request from node '{}' due to invalid token", info.getNodeId());
+                                return;
+                            }
+
+                            if (clusterConfig.isGatewayMode()) {
+                                NodeInfo existingInfo = nodeInfoHolder.getNodeInfo(info.getNodeId());
+                                if (existingInfo != null) {
+                                    // 2. Partial update for Gateway Mode: keep static config, update dynamic state
+                                    existingInfo.setHost(info.getHost());
+                                    existingInfo.setPort(info.getPort());
+                                    existingInfo.setStartTime(info.getStartTime());
+                                    existingInfo.setStatus(info.getStatus());
+                                    existingInfo.setHeartbeatInterval(info.getHeartbeatInterval());
+                                    existingInfo.setEndpointConfig(info.getEndpointConfig());
+                                    existingInfo.setToken(info.getToken());
+                                    if (logger.isDebugEnabled()) {
+                                        logger.debug("Updated dynamic state for joined node: {}", info.getNodeId());
+                                    }
+                                } else {
+                                    if (logger.isDebugEnabled()) {
+                                        logger.debug("Ignored join request from undefined node: {}", info.getNodeId());
+                                    }
+                                }
+                            } else {
+                                // 3. Full update for Autoscaling Mode
+                                nodeInfoHolder.putNodeInfo(info);
+                                if (logger.isDebugEnabled()) {
+                                    logger.debug("Updated node info for joined node: {}", info.getNodeId());
+                                }
+                            }
+                        } catch (IOException e) {
+                            logger.warn("Failed to parse JOINED event data", e);
+                        }
+                    } else if (message.startsWith("LEFT:")) {
+                        String leftNodeId = message.substring(5);
+                        if (clusterConfig.isGatewayMode()) {
+                            NodeInfo info = nodeInfoHolder.getNodeInfo(leftNodeId);
+                            if (info != null) {
+                                info.setStatus("offline");
+                                if (logger.isDebugEnabled()) {
+                                    logger.debug("Set node status to 'offline' for left node: {}", leftNodeId);
+                                }
+                            }
+                        } else {
+                            nodeInfoHolder.removeNode(leftNodeId);
+                            if (logger.isDebugEnabled()) {
+                                logger.debug("Removed node info for left node: {}", leftNodeId);
+                            }
+                        }
+                    }
+                }
+            });
+        }
     }
 
     /**

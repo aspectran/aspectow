@@ -82,9 +82,16 @@ public class RedisMessageSubscriber extends RedisPubSubAdapter<String, String> {
 
     @Override
     public void message(@NonNull String channel, String message) {
+        if (channel.equals(NodeMessageProtocol.getClusterEventsChannel(clusterId))) {
+            for (RedisMessageListener listener : listeners) {
+                listener.onClusterEvent(message);
+            }
+            return;
+        }
+
         // Expected patterns:
-        // aspectow:cluster:control:<category>:<clusterId>:<nodeId>
-        // aspectow:cluster:relay:<category>:<clusterId>:<nodeId>:<sessionId>
+        // aspectow:nodes:control:<category>:<clusterId>:<nodeId>
+        // aspectow:nodes:relay:<category>:<clusterId>:<nodeId>:<sessionId>
 
         String[] parts = channel.split(":");
         if (parts.length < 6) {
@@ -128,7 +135,11 @@ public class RedisMessageSubscriber extends RedisPubSubAdapter<String, String> {
         String pattern = (subscribePattern != null ? subscribePattern :
                 NodeMessageProtocol.getClusterSubscriptionPattern(clusterId, nodeId));
         this.pubSubConnection.sync().psubscribe(pattern);
-        logger.info("RedisMessageSubscriber initialized and subscribed to pattern: {}", pattern);
+
+        String eventsChannel = NodeMessageProtocol.getClusterEventsChannel(clusterId);
+        this.pubSubConnection.sync().subscribe(eventsChannel);
+        logger.info("RedisMessageSubscriber initialized and subscribed to pattern: {} and channel: {}",
+                pattern, eventsChannel);
     }
 
     public void stop() {

@@ -49,6 +49,8 @@ public abstract class NodeManagerBuilder {
 
     public static final String MY_NODE_ID_PROPERTY = "aspectow.node.id";
 
+    public static final String MY_NODE_GROUP_PROPERTY = "aspectow.node.group";
+
     private static final String DEFAULT_CLUSTER_ID = "cluster";
 
     private static final String DEFAULT_NODE_ID = "node1";
@@ -80,9 +82,12 @@ public abstract class NodeManagerBuilder {
         NodeInfo nodeInfo;
         NodeInfoHolder nodeInfoHolder;
         if (clusterConfig.isAutoscalingMode()) {
-            nodeId = UUID.randomUUID().toString();
+            String myGroup = resolveMyNodeGroup();
+            String shortId = UUID.randomUUID().toString().split("-")[0];
+            nodeId = (StringUtils.hasText(myGroup) ? myGroup + "-" : "") + shortId;
             nodeInfo = new NodeInfo();
             nodeInfo.setNodeId(nodeId);
+            nodeInfo.setGroup(myGroup);
             nodeInfoHolder = new NodeInfoHolder();
             nodeInfoHolder.putNodeInfo(nodeInfo);
         } else {
@@ -102,6 +107,7 @@ public abstract class NodeManagerBuilder {
                     nodeId = myNodeId;
                     nodeInfo = new NodeInfo();
                     nodeInfo.setNodeId(nodeId);
+                    nodeInfo.setGroup(resolveMyNodeGroup());
                     nodeInfoHolder.putNodeInfo(nodeInfo);
                 }
             } else {
@@ -141,14 +147,46 @@ public abstract class NodeManagerBuilder {
             }
 
             NodeRegistry nodeRegistry = new NodeRegistry(clusterId, connectionPool);
-            NodeReporter nodeReporter = new NodeReporter(clusterConfig, nodeInfo, connectionPool, portProvider);
             RedisMessagePublisher redisMessagePublisher = new RedisMessagePublisher(clusterId, nodeId, connectionPool);
+            NodeReporter nodeReporter = new NodeReporter(clusterConfig, nodeInfo, connectionPool, redisMessagePublisher, nodeRegistry, portProvider);
             RedisMessageSubscriber redisMessageSubscriber = new RedisMessageSubscriber(clusterId, nodeId, connectionPool);
 
             nodeManager.setNodeRegistry(nodeRegistry);
             nodeManager.setNodeReporter(nodeReporter);
             nodeManager.setRedisMessagePublisher(redisMessagePublisher);
             nodeManager.setRedisMessageSubscriber(redisMessageSubscriber);
+
+            if (clusterConfig.isGatewayMode()) {
+                for (NodeInfo info : nodeRegistry.getNodes()) {
+                    if (nodeId.equals(info.getNodeId())) {
+                        continue;
+                    }
+                    NodeInfo existingInfo = nodeManager.getNodeInfoHolder().getNodeInfo(info.getNodeId());
+                    if (existingInfo != null) {
+                        // Partial update: preserve static config from node-config.apon
+                        existingInfo.setHost(info.getHost());
+                        existingInfo.setPort(info.getPort());
+                        existingInfo.setStartTime(info.getStartTime());
+                        existingInfo.setStatus(info.getStatus());
+                        existingInfo.setHeartbeatInterval(info.getHeartbeatInterval());
+                        existingInfo.setEndpointConfig(info.getEndpointConfig());
+                        existingInfo.setToken(info.getToken());
+                    }
+                }
+                // Initialize nodes not found in registry as offline
+                for (NodeInfo info : nodeManager.getNodeInfoList()) {
+                    if (info.getStatus() == null) {
+                        info.setStatus("offline");
+                    }
+                }
+            } else if (clusterConfig.isAutoscalingMode()) {
+                for (NodeInfo info : nodeRegistry.getNodes()) {
+                    if (nodeId.equals(info.getNodeId())) {
+                        continue;
+                    }
+                    nodeManager.getNodeInfoHolder().putNodeInfo(info);
+                }
+            }
 
             RedisScheduledJobLockProvider jobLockProvider = new RedisScheduledJobLockProvider(connectionPool, clusterId);
             SchedulerConfig schedulerConfig = clusterConfig.getSchedulerConfig();
@@ -168,6 +206,10 @@ public abstract class NodeManagerBuilder {
 
     private static String resolveMyNodeId() {
         return SystemUtils.getProperty(MY_NODE_ID_PROPERTY, DEFAULT_NODE_ID);
+    }
+
+    private static String resolveMyNodeGroup() {
+        return SystemUtils.getProperty(MY_NODE_GROUP_PROPERTY);
     }
 
     private static void validateSecretConfig(SecretConfig secretConfig) {

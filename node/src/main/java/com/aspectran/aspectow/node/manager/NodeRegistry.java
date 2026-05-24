@@ -18,6 +18,7 @@ package com.aspectran.aspectow.node.manager;
 import com.aspectran.aspectow.node.config.NodeInfo;
 import com.aspectran.aspectow.node.redis.RedisConnectionPool;
 import io.lettuce.core.api.StatefulRedisConnection;
+import io.lettuce.core.api.sync.RedisCommands;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -154,6 +155,35 @@ public class NodeRegistry {
             logger.error("Failed to check liveness for node {} from Redis registry", nodeId, e);
         }
         return false;
+    }
+
+    /**
+     * Evicts nodes that have not sent a pulse within the specified timeout.
+     * @param timeoutMillis the timeout threshold in milliseconds
+     */
+    public void evictZombieNodes(long timeoutMillis) {
+        String nodesKey = NodeMessageProtocol.getNodesHashKey(clusterId);
+        String pulsesKey = NodeMessageProtocol.getPulsesHashKey(clusterId);
+        try (StatefulRedisConnection<String, String> connection = connectionPool.getConnection()) {
+            RedisCommands<String, String> sync = connection.sync();
+            Map<String, String> pulses = sync.hgetall(pulsesKey);
+            long now = System.currentTimeMillis();
+            for (Map.Entry<String, String> entry : pulses.entrySet()) {
+                String nodeId = entry.getKey();
+                try {
+                    long lastPulse = Long.parseLong(entry.getValue());
+                    if (now - lastPulse > timeoutMillis) {
+                        logger.info("Evicting zombie node '{}' from cluster '{}'", nodeId, clusterId);
+                        sync.hdel(nodesKey, nodeId);
+                        sync.hdel(pulsesKey, nodeId);
+                    }
+                } catch (NumberFormatException e) {
+                    // ignore
+                }
+            }
+        } catch (Exception e) {
+            logger.error("Failed to evict zombie nodes from cluster '{}'", clusterId, e);
+        }
     }
 
 }

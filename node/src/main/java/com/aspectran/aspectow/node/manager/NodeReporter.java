@@ -19,6 +19,7 @@ import com.aspectran.aspectow.node.config.ClusterConfig;
 import com.aspectran.aspectow.node.config.NodeInfo;
 import com.aspectran.aspectow.node.config.SecretConfig;
 import com.aspectran.aspectow.node.redis.RedisConnectionPool;
+import com.aspectran.aspectow.node.redis.RedisMessagePublisher;
 import com.aspectran.utils.PBEncryptionUtils;
 import com.aspectran.utils.ToStringBuilder;
 import com.aspectran.utils.apon.AponWriter;
@@ -51,30 +52,45 @@ public class NodeReporter {
 
     private final RedisConnectionPool connectionPool;
 
+    private final RedisMessagePublisher messagePublisher;
+
+    private final NodeRegistry nodeRegistry;
+
     private final NodePortProvider portProvider;
 
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
     public NodeReporter(ClusterConfig clusterConfig, NodeInfo nodeInfo,
-                        RedisConnectionPool connectionPool, NodePortProvider portProvider) {
+                        RedisConnectionPool connectionPool, RedisMessagePublisher messagePublisher,
+                        NodeRegistry nodeRegistry, NodePortProvider portProvider) {
         this.clusterConfig = clusterConfig;
         this.nodeInfo = nodeInfo;
         this.connectionPool = connectionPool;
+        this.messagePublisher = messagePublisher;
+        this.nodeRegistry = nodeRegistry;
         this.portProvider = portProvider;
     }
 
     public void start() throws Exception {
-        logger.info("Initializing NodeReporter for cluster: {}, node: {}", 
+        logger.info("Initializing NodeReporter for cluster: {}, node: {}",
                 clusterConfig.getId(), nodeInfo.getNodeId());
 
         nodeInfo.setStatus("live");
-        
+
         // 1. Register the node in Redis Hash
         registerNode();
 
-        // 2. Start periodic pulse update
+        // 2. Broadcast join event
+        broadcastJoin();
+
+        // 3. Start periodic pulse update
         long interval = nodeInfo.getHeartbeatInterval(clusterConfig.getHeartbeatInterval(DEFAULT_HEARTBEAT_INTERVAL));
         scheduler.scheduleAtFixedRate(this::sendPulse, 0, interval, TimeUnit.MILLISECONDS);
+
+        // 4. Start periodic zombie node eviction
+        if (clusterConfig.isAutoscalingMode()) {
+            scheduler.scheduleAtFixedRate(this::evictZombieNodes, interval * 10, interval * 10, TimeUnit.MILLISECONDS);
+        }
     }
 
     public void stop() {
@@ -88,6 +104,7 @@ public class NodeReporter {
         }
 
         scheduler.shutdown();
+        broadcastLeave();
         unregisterNode();
     }
 
@@ -101,13 +118,13 @@ public class NodeReporter {
                 nodeInfo.setPort(port);
             }
         }
-        
+
         // Generate and set authentication token
         nodeInfo.setToken(generateToken());
 
         // Convert NodeInfo to APON string for storage
         String aponData = new AponWriter().nullWritable(false).write(nodeInfo).toString();
-        
+
         if (logger.isDebugEnabled()) {
             logger.debug("Registering node '{}' in Redis hash '{}': {}", nodeInfo.getNodeId(), key,
                     ToStringBuilder.toString(nodeInfo));
@@ -139,10 +156,29 @@ public class NodeReporter {
         return TimeLimitedPBTokenIssuer.createToken(payload, 30000L, password, salt);
     }
 
+    private void broadcastJoin() {
+        try {
+            String aponData = new AponWriter().nullWritable(false).write(nodeInfo).toString();
+            String channel = NodeMessageProtocol.getClusterEventsChannel(clusterConfig.getId());
+            messagePublisher.asyncPublish(channel, "JOINED:" + aponData);
+        } catch (Exception e) {
+            logger.error("Failed to broadcast join event for node '{}'", nodeInfo.getNodeId(), e);
+        }
+    }
+
+    private void broadcastLeave() {
+        try {
+            String channel = NodeMessageProtocol.getClusterEventsChannel(clusterConfig.getId());
+            messagePublisher.asyncPublish(channel, "LEFT:" + nodeInfo.getNodeId());
+        } catch (Exception e) {
+            logger.error("Failed to broadcast leave event for node '{}'", nodeInfo.getNodeId(), e);
+        }
+    }
+
     private void sendPulse() {
         String key = NodeMessageProtocol.getPulsesHashKey(clusterConfig.getId());
         long timestamp = System.currentTimeMillis();
-        
+
         if (logger.isTraceEnabled()) {
             logger.trace("Sending pulse for node '{}' to '{}': {}", nodeInfo.getNodeId(), key, timestamp);
         }
@@ -153,6 +189,12 @@ public class NodeReporter {
         } catch (Exception e) {
             logger.error("Failed to send pulse for node '{}' to Redis registry", nodeInfo.getNodeId(), e);
         }
+    }
+
+    private void evictZombieNodes() {
+        long heartbeatInterval = nodeInfo.getHeartbeatInterval(clusterConfig.getHeartbeatInterval(DEFAULT_HEARTBEAT_INTERVAL));
+        long timeout = heartbeatInterval * 3;
+        nodeRegistry.evictZombieNodes(timeout);
     }
 
     private void unregisterNode() {

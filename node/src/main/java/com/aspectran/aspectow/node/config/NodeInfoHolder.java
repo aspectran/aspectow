@@ -70,4 +70,8 @@ public class NodeInfoHolder {
         nodeInfoMap.put(nodeInfo.getNodeId(), nodeInfo);
     }
 
+    public void removeNode(String nodeId) {
+        nodeInfoMap.remove(nodeId);
+    }
+
 }

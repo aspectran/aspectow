@@ -29,7 +29,7 @@
     <div class="row">
         <div class="domain metrics-bar">
             <div class="title">
-                <i class="bi bi-pc-display-horizontal"></i><span class="number"></span>
+                <i class="bi bi-server"></i><span class="number"></span>
             </div>
             <div class="metric">
                 <dl>
@@ -65,7 +65,7 @@
     <div class="row g-0">
         <div class="col-12 col-lg-6 event-box">
             <div class="title-bar">
-                <i class="bi bi-pc-display-horizontal"></i><span class="number"></span>
+                <i class="bi bi-server"></i><span class="number"></span>
                 <h4 class="ellipses"></h4>
             </div>
             <div class="track-box">
