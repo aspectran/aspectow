@@ -211,13 +211,21 @@ public class NodeManager {
                         NodeInfo existingInfo = nodeInfoHolder.getNodeInfo(info.getNodeId());
                         if (existingInfo != null) {
                             // 2. Partial update for Gateway Mode: keep static config, update dynamic state
-                            existingInfo.setHost(info.getHost());
-                            existingInfo.setPort(info.getPort());
-                            existingInfo.setStartTime(info.getStartTime());
-                            existingInfo.setStatus(info.getStatus());
-                            existingInfo.setHeartbeatInterval(info.getHeartbeatInterval());
-                            existingInfo.setEndpointConfig(info.getEndpointConfig());
-                            existingInfo.setToken(info.getToken());
+                            // Create a new NodeInfo instance to ensure atomic update for readers
+                            NodeInfo newInfo = new NodeInfo();
+                            newInfo.setNodeId(existingInfo.getNodeId());
+                            newInfo.setGroup(existingInfo.getGroup());
+                            newInfo.setTitle(existingInfo.getTitle());
+                            
+                            newInfo.setHost(info.getHost());
+                            newInfo.setPort(info.getPort());
+                            newInfo.setStartTime(info.getStartTime());
+                            newInfo.setStatus(info.getStatus());
+                            newInfo.setHeartbeatInterval(info.getHeartbeatInterval());
+                            newInfo.setEndpointConfig(info.getEndpointConfig());
+                            newInfo.setToken(info.getToken());
+                            
+                            nodeInfoHolder.putNodeInfo(newInfo);
                             if (logger.isDebugEnabled()) {
                                 logger.debug("Updated dynamic state for joined node: {}", info.getNodeId());
                             }
@@ -238,9 +246,16 @@ public class NodeManager {
                 @Override
                 public void onLeft(String leftNodeId) {
                     if (clusterConfig.isGatewayMode()) {
-                        NodeInfo info = nodeInfoHolder.getNodeInfo(leftNodeId);
-                        if (info != null) {
-                            info.setStatus("offline");
+                        NodeInfo existingInfo = nodeInfoHolder.getNodeInfo(leftNodeId);
+                        if (existingInfo != null) {
+                            // Clone and update status to 'offline' for atomic update
+                            NodeInfo newInfo = new NodeInfo();
+                            newInfo.setNodeId(existingInfo.getNodeId());
+                            newInfo.setGroup(existingInfo.getGroup());
+                            newInfo.setTitle(existingInfo.getTitle());
+                            newInfo.setStatus("offline");
+                            
+                            nodeInfoHolder.putNodeInfo(newInfo);
                             if (logger.isDebugEnabled()) {
                                 logger.debug("Set node status to 'offline' for left node: {}", leftNodeId);
                             }

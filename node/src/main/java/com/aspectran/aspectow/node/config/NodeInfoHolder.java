@@ -18,19 +18,20 @@ package com.aspectran.aspectow.node.config;
 import org.jspecify.annotations.NonNull;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
  * A holder for managing a collection of {@link NodeInfo} objects.
- * Provides convenient access to node information.
+ * Provides convenient and thread-safe access to node information.
  *
  * <p>Created: 2020. 12. 24.</p>
  */
 public class NodeInfoHolder {
 
-    private final Map<String, NodeInfo> nodeInfoMap = new LinkedHashMap<>();
+    private final Map<String, NodeInfo> nodeInfoMap = Collections.synchronizedMap(new LinkedHashMap<>());
 
     public NodeInfoHolder() {
     }
@@ -50,7 +51,9 @@ public class NodeInfoHolder {
      * @return a list of {@link NodeInfo} objects
      */
     public List<NodeInfo> getNodeInfoList() {
-        return new ArrayList<>(nodeInfoMap.values());
+        synchronized (nodeInfoMap) {
+            return new ArrayList<>(nodeInfoMap.values());
+        }
     }
 
     /**

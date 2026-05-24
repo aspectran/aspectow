@@ -164,13 +164,21 @@ public abstract class NodeManagerBuilder {
                     NodeInfo existingInfo = nodeManager.getNodeInfoHolder().getNodeInfo(info.getNodeId());
                     if (existingInfo != null) {
                         // Partial update: preserve static config from node-config.apon
-                        existingInfo.setHost(info.getHost());
-                        existingInfo.setPort(info.getPort());
-                        existingInfo.setStartTime(info.getStartTime());
-                        existingInfo.setStatus(info.getStatus());
-                        existingInfo.setHeartbeatInterval(info.getHeartbeatInterval());
-                        existingInfo.setEndpointConfig(info.getEndpointConfig());
-                        existingInfo.setToken(info.getToken());
+                        // Create a new NodeInfo instance to ensure atomic update for potential concurrent readers
+                        NodeInfo newInfo = new NodeInfo();
+                        newInfo.setNodeId(existingInfo.getNodeId());
+                        newInfo.setGroup(existingInfo.getGroup());
+                        newInfo.setTitle(existingInfo.getTitle());
+                        
+                        newInfo.setHost(info.getHost());
+                        newInfo.setPort(info.getPort());
+                        newInfo.setStartTime(info.getStartTime());
+                        newInfo.setStatus(info.getStatus());
+                        newInfo.setHeartbeatInterval(info.getHeartbeatInterval());
+                        newInfo.setEndpointConfig(info.getEndpointConfig());
+                        newInfo.setToken(info.getToken());
+                        
+                        nodeManager.getNodeInfoHolder().putNodeInfo(newInfo);
                     }
                 }
                 // Initialize nodes not found in registry as offline
