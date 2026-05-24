@@ -25,6 +25,8 @@ import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
 import io.lettuce.core.support.ConnectionPoolSupport;
 import org.apache.commons.pool2.impl.GenericObjectPool;
 
+import java.util.concurrent.TimeUnit;
+
 /**
  * Redis connection pool based on Lettuce.
  *
@@ -52,6 +54,10 @@ public class RedisConnectionPool implements InitializableBean, DisposableBean {
         return client.connectPubSub();
     }
 
+    public boolean isAvailable() {
+        return (pool != null && !pool.isClosed());
+    }
+
     @Override
     public void initialize() {
         Assert.state(client == null, "RedisConnectionPool is already initialized");
@@ -71,10 +77,20 @@ public class RedisConnectionPool implements InitializableBean, DisposableBean {
     @Override
     public void destroy() {
         if (pool != null) {
-            pool.close();
+            try {
+                pool.close();
+            } catch (Exception e) {
+                // ignore
+            }
+            pool = null;
         }
         if (client != null) {
-            client.shutdown();
+            try {
+                client.shutdownAsync(0, 0, TimeUnit.MILLISECONDS);
+            } catch (Exception e) {
+                // ignore
+            }
+            client = null;
         }
     }
 

@@ -107,8 +107,10 @@ public class NodeMessagePublisher {
      * @throws Exception if an error occurs during publication
      */
     public void syncPublish(String channel, String message) throws Exception {
-        try (StatefulRedisConnection<String, String> connection = connectionPool.getConnection()) {
-            connection.sync().publish(channel, message);
+        if (connectionPool.isAvailable()) {
+            try (StatefulRedisConnection<String, String> connection = connectionPool.getConnection()) {
+                connection.sync().publish(channel, message);
+            }
         }
     }
 
@@ -119,8 +121,10 @@ public class NodeMessagePublisher {
      * @throws Exception if an error occurs during publication
      */
     public void asyncPublish(String channel, String message) throws Exception {
-        try (StatefulRedisConnection<String, String> connection = connectionPool.getConnection()) {
-            connection.async().publish(channel, message);
+        if (connectionPool.isAvailable()) {
+            try (StatefulRedisConnection<String, String> connection = connectionPool.getConnection()) {
+                connection.async().publish(channel, message);
+            }
         }
     }
 

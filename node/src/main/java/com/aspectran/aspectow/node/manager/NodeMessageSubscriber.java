@@ -134,7 +134,6 @@ public class NodeMessageSubscriber extends RedisPubSubAdapter<String, String> {
     public void stop() {
         if (pubSubConnection != null) {
             pubSubConnection.removeListener(this);
-            pubSubConnection.sync().punsubscribe();
             pubSubConnection.close();
             pubSubConnection = null;
         }

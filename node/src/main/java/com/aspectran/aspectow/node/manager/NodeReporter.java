@@ -88,7 +88,7 @@ public class NodeReporter {
             // ignore
         }
 
-        scheduler.shutdown();
+        scheduler.shutdownNow();
         broadcastLeave();
         unregisterNode();
     }
@@ -154,7 +154,7 @@ public class NodeReporter {
     private void broadcastLeave() {
         try {
             String channel = NodeMessageProtocol.getClusterEventsChannel(getClusterConfig().getId());
-            nodeManager.getNodeMessagePublisher().asyncPublish(channel, "LEFT:" + getNodeInfo().getNodeId());
+            nodeManager.getNodeMessagePublisher().syncPublish(channel, "LEFT:" + getNodeInfo().getNodeId());
         } catch (Exception e) {
             logger.error("Failed to broadcast leave event for node '{}'", getNodeInfo().getNodeId(), e);
         }

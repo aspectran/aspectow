@@ -95,7 +95,6 @@ public class ClusterEventSubscriber extends RedisPubSubAdapter<String, String> {
     public void stop() {
         if (pubSubConnection != null) {
             pubSubConnection.removeListener(this);
-            pubSubConnection.sync().unsubscribe();
             pubSubConnection.close();
             pubSubConnection = null;
         }

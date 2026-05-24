@@ -199,6 +199,9 @@ public class NodeManager {
             clusterEventSubscriber.addListener(new ClusterEventListener() {
                 @Override
                 public void onJoined(NodeInfo info) {
+                    if (nodeId.equals(info.getNodeId())) {
+                        return;
+                    }
                     // 1. Validate Token
                     try {
                         validateToken(info.getToken());
@@ -216,7 +219,7 @@ public class NodeManager {
                             newInfo.setNodeId(existingInfo.getNodeId());
                             newInfo.setGroup(existingInfo.getGroup());
                             newInfo.setTitle(existingInfo.getTitle());
-                            
+
                             newInfo.setHost(info.getHost());
                             newInfo.setPort(info.getPort());
                             newInfo.setStartTime(info.getStartTime());
@@ -224,7 +227,7 @@ public class NodeManager {
                             newInfo.setHeartbeatInterval(info.getHeartbeatInterval());
                             newInfo.setEndpointConfig(info.getEndpointConfig());
                             newInfo.setToken(info.getToken());
-                            
+
                             nodeInfoHolder.putNodeInfo(newInfo);
                             if (logger.isDebugEnabled()) {
                                 logger.debug("Updated dynamic state for joined node: {}", info.getNodeId());
@@ -245,6 +248,9 @@ public class NodeManager {
 
                 @Override
                 public void onLeft(String leftNodeId) {
+                    if (nodeId.equals(leftNodeId)) {
+                        return;
+                    }
                     if (clusterConfig.isGatewayMode()) {
                         NodeInfo existingInfo = nodeInfoHolder.getNodeInfo(leftNodeId);
                         if (existingInfo != null) {
@@ -254,7 +260,7 @@ public class NodeManager {
                             newInfo.setGroup(existingInfo.getGroup());
                             newInfo.setTitle(existingInfo.getTitle());
                             newInfo.setStatus("offline");
-                            
+
                             nodeInfoHolder.putNodeInfo(newInfo);
                             if (logger.isDebugEnabled()) {
                                 logger.debug("Set node status to 'offline' for left node: {}", leftNodeId);
@@ -340,18 +346,35 @@ public class NodeManager {
      */
     public void destroy() {
         if (nodeReporter != null) {
-            nodeReporter.stop();
+            try {
+                nodeReporter.stop();
+            } catch (Exception e) {
+                logger.warn("Error stopping NodeReporter during shutdown", e);
+            }
         }
         if (nodeMessageSubscriber != null) {
-            nodeMessageSubscriber.stop();
+            try {
+                nodeMessageSubscriber.stop();
+            } catch (Exception e) {
+                logger.warn("Error stopping NodeMessageSubscriber during shutdown", e);
+            }
         }
         if (clusterEventSubscriber != null) {
-            clusterEventSubscriber.stop();
+            try {
+                clusterEventSubscriber.stop();
+            } catch (Exception e) {
+                logger.warn("Error stopping ClusterEventSubscriber during shutdown", e);
+            }
         }
         if (redisConnectionPool != null) {
             logger.info("Closing Redis connection pool for node: {}", nodeId);
-            redisConnectionPool.destroy();
+            try {
+                redisConnectionPool.destroy();
+            } catch (Exception e) {
+                logger.warn("Error closing Redis connection pool during shutdown", e);
+            }
         }
+        logger.info("NodeManager destroyed successfully for node: {}", nodeId);
     }
 
     /**
