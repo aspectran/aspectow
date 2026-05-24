@@ -1,6 +1,7 @@
 -- Raw event count data (typically 5-minute intervals)
 create table if not exists appmon_event_count (
     node_id varchar(30) not null comment 'Monitoring node identifier',
+    node_group varchar(30) not null comment 'Monitoring node group identifier',
     app_id varchar(30) not null comment 'Application identifier',
     event_id varchar(30) not null comment 'Event identifier',
     datetime datetime not null comment 'Data point timestamp',
@@ -14,9 +15,12 @@ create table if not exists appmon_event_count (
     COLLATE = utf8mb4_unicode_ci
     comment = 'Raw event count data';
 
+create index appmon_event_count_ix_group on appmon_event_count (node_group, app_id, event_id, datetime);
+
 -- Hourly aggregated event count data
 create table if not exists appmon_event_count_hourly (
     node_id varchar(30) not null comment 'Monitoring node identifier',
+    node_group varchar(30) not null comment 'Monitoring node group identifier',
     app_id varchar(30) not null comment 'Application identifier',
     event_id varchar(30) not null comment 'Event identifier',
     datetime datetime not null comment 'Hourly truncated timestamp',
@@ -30,9 +34,12 @@ create table if not exists appmon_event_count_hourly (
     COLLATE = utf8mb4_unicode_ci
     comment = 'Hourly aggregated event count data';
 
+create index appmon_event_count_hourly_ix_group on appmon_event_count_hourly (node_group, app_id, event_id, datetime);
+
 -- Most recent event count state for incremental updates
 create table if not exists appmon_event_count_last (
     node_id varchar(30) not null comment 'Monitoring node identifier',
+    node_group varchar(30) not null comment 'Monitoring node group identifier',
     app_id varchar(30) not null comment 'Application identifier',
     event_id varchar(30) not null comment 'Event identifier',
     datetime datetime not null comment 'Last data point timestamp',
@@ -46,3 +53,5 @@ create table if not exists appmon_event_count_last (
     charset = utf8mb4
     COLLATE = utf8mb4_unicode_ci
     comment = 'Most recent event count state';
+
+create index appmon_event_count_last_ix_group on appmon_event_count_last (node_group, app_id, event_id);

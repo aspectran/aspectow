@@ -113,7 +113,7 @@ class DashboardBuilder {
         const node = this.nodes[nodeIndex];
         if (node.subscribed) return;
         const viewer = this.viewers[nodeIndex];
-        const isGatewayMode = (this.settings.clusterMode === "gateway");
+        const isGatewayMode = (this.settings.clusterMode === "gateway" || this.settings.clusterMode === "autoscaling");
 
         const onSubscribed = (node) => {
             if (node.subscribed && node.subscribeAttempts > 0) return;
@@ -638,7 +638,7 @@ class DashboardBuilder {
         const $tabs = $(".node.tabs");
         const $tab = $tabs.find(".tabs-title").first().hide().clone().addClass("available")
             .attr({ "data-node-index": nodeInfo.index, "data-node-id": nodeInfo.id });
-        $tab.find("a .title").text(" " + nodeInfo.title + " ");
+        $tab.find("a .title").text(" " + (nodeInfo.title || nodeInfo.id) + " ");
         if (this.nodes.length > 1) $tab.find(".number").text(" " + (nodeInfo.index + 1));
         return $tab.show().appendTo($tabs);
     }
@@ -654,8 +654,8 @@ class DashboardBuilder {
     addNodeMetricsBar(nodeInfo) {
         const $metricsBar = $(".node.metrics-bar");
         const $newBar = $metricsBar.first().hide().clone().addClass("available").attr("data-node-index", nodeInfo.index);
+        $newBar.find(".number").text(" " + (nodeInfo.index + 1));
         if (this.nodes.length > 1) {
-            $newBar.find(".number").text(" " + (nodeInfo.index + 1));
             $newBar.removeClass("full-width");
         } else {
             $newBar.addClass("full-width");
@@ -681,7 +681,7 @@ class DashboardBuilder {
         const $box = $(".event-box").first().hide().clone().addClass("available")
             .attr({ "data-node-index": nodeInfo.index, "data-app-id": appInfo.id });
         const $titleBar = $box.find(".title-bar");
-        $titleBar.find("h4").text(nodeInfo.title);
+        $titleBar.find("h4").text(nodeInfo.title || nodeInfo.id);
         if (this.nodes.length > 1) $titleBar.find(".number").text(" " + (nodeInfo.index + 1));
         return $box.insertBefore($(".console-box").first());
     }
@@ -725,7 +725,7 @@ class DashboardBuilder {
         const $console = $(".console-box");
         const $newBox = $console.first().hide().clone().addClass("available col-lg-6")
             .attr({ "data-node-index": nodeInfo.index, "data-app-id": appInfo.id, "data-log-id": logInfo.id });
-        $newBox.find(".status-bar h4").text(nodeInfo.title + " ›› " + logInfo.file);
+        $newBox.find(".status-bar h4").text((nodeInfo.title || nodeInfo.id) + " ›› " + logInfo.file);
         return $newBox.insertAfter($console.last());
     }
 }

@@ -7,7 +7,7 @@
     <cache />
 
     <select id="getLastEventCount" resultType="com.aspectran.aspectow.appmon.engine.persist.counter.EventCountVO">
-        select node_id, app_id, event_id, datetime, total, delta, error
+        select node_id, node_group, app_id, event_id, datetime, total, delta, error
         from appmon_event_count_last
         where node_id = #{nodeId} and app_id = #{appId} and event_id = #{eventId}
     </select>
@@ -15,41 +15,41 @@
     <update id="updateLastEventCount" parameterType="com.aspectran.aspectow.appmon.engine.persist.counter.EventCountVO">
         <choose>
             <when test="_databaseId == 'mysql'">
-                insert into appmon_event_count_last (node_id, app_id, event_id, datetime, total, delta, error)
-                values (#{nodeId}, #{appId}, #{eventId}, #{datetime}, #{total}, #{delta}, #{error})
-                on duplicate key update datetime = #{datetime}, total = #{total}, delta = #{delta}, error = #{error}
+                insert into appmon_event_count_last (node_id, node_group, app_id, event_id, datetime, total, delta, error)
+                values (#{nodeId}, #{nodeGroup}, #{appId}, #{eventId}, #{datetime}, #{total}, #{delta}, #{error})
+                on duplicate key update node_group = #{nodeGroup}, datetime = #{datetime}, total = #{total}, delta = #{delta}, error = #{error}
             </when>
             <when test="_databaseId == 'oracle'">
                 merge into appmon_event_count_last a
                 using (
                     select
-                        #{nodeId} node_id, #{appId} app_id, #{eventId} event_id,
+                        #{nodeId} node_id, #{nodeGroup} node_group, #{appId} app_id, #{eventId} event_id,
                         #{datetime} datetime, #{total} total, #{delta} delta, #{error} error
                     from dual
                 ) b
                 on (a.node_id = b.node_id and a.app_id = b.app_id and a.event_id = b.event_id)
                 when matched then
-                    update set datetime = b.datetime, total = b.total, delta = b.delta, error = b.error
+                    update set node_group = b.node_group, datetime = b.datetime, total = b.total, delta = b.delta, error = b.error
                 when not matched then
                     insert (node_id, app_id, event_id, datetime, total, delta, error)
-                    values (b.node_id, b.app_id, b.event_id, b.datetime, b.total, b.delta, b.error)
+                    values (b.node_id, b.node_group, b.app_id, b.event_id, b.datetime, b.total, b.delta, b.error)
             </when>
             <when test="_databaseId == 'postgresql'">
-                insert into appmon_event_count_last (node_id, app_id, event_id, datetime, total, delta, error)
-                values (#{nodeId}, #{appId}, #{eventId}, #{datetime}, #{total}, #{delta}, #{error})
+                insert into appmon_event_count_last (node_id, node_group, app_id, event_id, datetime, total, delta, error)
+                values (#{nodeId}, #{nodeGroup}, #{appId}, #{eventId}, #{datetime}, #{total}, #{delta}, #{error})
                 on conflict (node_id, app_id, event_id)
-                do update set datetime = excluded.datetime, total = excluded.total, delta = excluded.delta, error = excluded.error
+                do update set node_group = excluded.node_group, datetime = excluded.datetime, total = excluded.total, delta = excluded.delta, error = excluded.error
             </when>
             <otherwise>
                 merge into appmon_event_count_last as a
                 using values (#{nodeId}, #{appId}, #{eventId}, #{datetime}, #{total}, #{delta}, #{error})
-                    as b (node_id, app_id, event_id, datetime, total, delta, error)
+                    as b (node_id, node_group, app_id, event_id, datetime, total, delta, error)
                 on (a.node_id = b.node_id and a.app_id = b.app_id and a.event_id = b.event_id)
                 when matched then
-                    update set datetime = b.datetime, total = b.total, delta = b.delta, error = b.error
+                    update set node_group = b.node_group, datetime = b.datetime, total = b.total, delta = b.delta, error = b.error
                 when not matched then
-                    insert (node_id, app_id, event_id, datetime, total, delta, error)
-                    values (b.node_id, b.app_id, b.event_id, b.datetime, b.total, b.delta, b.error)
+                    insert (node_id, node_group, app_id, event_id, datetime, total, delta, error)
+                    values (b.node_id, b.node_group, b.app_id, b.event_id, b.datetime, b.total, b.delta, b.error)
             </otherwise>
         </choose>
     </update>
@@ -85,13 +85,13 @@
             <otherwise>
                 merge into appmon_event_count as a
                 using values (#{nodeId}, #{appId}, #{eventId}, #{datetime}, #{total}, #{delta}, #{error})
-                    as b (node_id, app_id, event_id, datetime, total, delta, error)
+                    as b (node_id, node_group, app_id, event_id, datetime, total, delta, error)
                 on (a.node_id = b.node_id and a.app_id = b.app_id and a.event_id = b.event_id and a.datetime = b.datetime)
                 when matched then
                     update set total = b.total, delta = b.delta, error = b.error
                 when not matched then
-                    insert (node_id, app_id, event_id, datetime, total, delta, error)
-                    values (b.node_id, b.app_id, b.event_id, b.datetime, b.total, b.delta, b.error)
+                    insert (node_id, node_group, app_id, event_id, datetime, total, delta, error)
+                    values (b.node_id, b.node_group, b.app_id, b.event_id, b.datetime, b.total, b.delta, b.error)
             </otherwise>
         </choose>
     </insert>
@@ -99,41 +99,41 @@
     <insert id="insertEventCountHourly" parameterType="com.aspectran.aspectow.appmon.engine.persist.counter.EventCountVO">
         <choose>
             <when test="_databaseId == 'mysql'">
-                insert into appmon_event_count_hourly (node_id, app_id, event_id, datetime, total, delta, error)
-                values (#{nodeId}, #{appId}, #{eventId}, #{datetime}, #{total}, #{delta}, #{error})
-                on duplicate key update total = #{total}, delta = delta + #{delta}, error = error + #{error}
+                insert into appmon_event_count_hourly (node_id, node_group, app_id, event_id, datetime, total, delta, error)
+                values (#{nodeId}, #{nodeGroup}, #{appId}, #{eventId}, #{datetime}, #{total}, #{delta}, #{error})
+                on duplicate key update node_group = #{nodeGroup}, total = #{total}, delta = delta + #{delta}, error = error + #{error}
             </when>
             <when test="_databaseId == 'oracle'">
                 merge into appmon_event_count_hourly a
                 using (
                     select
-                        #{nodeId} node_id, #{appId} app_id, #{eventId} event_id,
+                        #{nodeId} node_id, #{nodeGroup} node_group, #{appId} app_id, #{eventId} event_id,
                         #{datetime} datetime, #{total} total, #{delta} delta, #{error} error
                     from dual
                 ) b
                 on (a.node_id = b.node_id and a.app_id = b.app_id and a.event_id = b.event_id and a.datetime = b.datetime)
                 when matched then
-                    update set total = b.total, delta = a.delta + b.delta, error = a.error + b.error
+                    update set node_group = b.node_group, total = b.total, delta = a.delta + b.delta, error = a.error + b.error
                 when not matched then
-                    insert (node_id, app_id, event_id, datetime, total, delta, error)
-                    values (b.node_id, b.app_id, b.event_id, b.datetime, b.total, b.delta, b.error)
+                    insert (node_id, node_group, app_id, event_id, datetime, total, delta, error)
+                    values (b.node_id, b.node_group, b.app_id, b.event_id, b.datetime, b.total, b.delta, b.error)
             </when>
             <when test="_databaseId == 'postgresql'">
-                insert into appmon_event_count_hourly (node_id, app_id, event_id, datetime, total, delta, error)
-                values (#{nodeId}, #{appId}, #{eventId}, #{datetime}, #{total}, #{delta}, #{error})
+                insert into appmon_event_count_hourly (node_id, node_group, app_id, event_id, datetime, total, delta, error)
+                values (#{nodeId}, #{nodeGroup}, #{appId}, #{eventId}, #{datetime}, #{total}, #{delta}, #{error})
                 on conflict (node_id, app_id, event_id, datetime)
-                do update set total = excluded.total, delta = appmon_event_count_hourly.delta + excluded.delta, error = appmon_event_count_hourly.error + excluded.error
+                do update set node_group = excluded.node_group, total = excluded.total, delta = appmon_event_count_hourly.delta + excluded.delta, error = appmon_event_count_hourly.error + excluded.error
             </when>
             <otherwise>
                 merge into appmon_event_count_hourly as a
-                using values (#{nodeId}, #{appId}, #{eventId}, #{datetime}, #{total}, #{delta}, #{error})
-                    as b (node_id, app_id, event_id, datetime, total, delta, error)
+                using values (#{nodeId}, #{nodeGroup}, #{appId}, #{eventId}, #{datetime}, #{total}, #{delta}, #{error})
+                    as b (node_id, node_group, app_id, event_id, datetime, total, delta, error)
                 on (a.node_id = b.node_id and a.app_id = b.app_id and a.event_id = b.event_id and a.datetime = b.datetime)
                 when matched then
-                    update set total = b.total, delta = a.delta + b.delta, error = a.error + b.error
+                    update set node_group = b.node_group, total = b.total, delta = a.delta + b.delta, error = a.error + b.error
                 when not matched then
-                    insert (node_id, app_id, event_id, datetime, total, delta, error)
-                    values (b.node_id, b.app_id, b.event_id, b.datetime, b.total, b.delta, b.error)
+                    insert (node_id, node_group, app_id, event_id, datetime, total, delta, error)
+                    values (b.node_id, b.node_group, b.app_id, b.event_id, b.datetime, b.total, b.delta, b.error)
             </otherwise>
         </choose>
     </insert>
@@ -171,6 +171,41 @@
         </choose>
     </select>
 
+    <select id="getGroupChartData" resultType="com.aspectran.aspectow.appmon.engine.persist.counter.EventCountVO">
+        <choose>
+            <when test="_databaseId == 'oracle'">
+                select datetime, delta, error
+                from (
+                    select datetime, sum(delta) as delta, sum(error) as error
+                    from appmon_event_count
+                    where node_group = #{nodeGroup} and app_id = #{appId} and event_id = #{eventId}
+                    <if test="dateOffset != null">
+                        and datetime &lt; #{dateOffset}
+                    </if>
+                    group by datetime
+                    order by 1 desc
+                )
+                where rownum &lt;= 100
+                order by 1
+            </when>
+            <otherwise>
+                select datetime, delta, error
+                from (
+                    select datetime, sum(delta) as delta, sum(error) as error
+                    from appmon_event_count
+                    where node_group = #{nodeGroup} and app_id = #{appId} and event_id = #{eventId}
+                    <if test="dateOffset != null">
+                        and datetime &lt; #{dateOffset}
+                    </if>
+                    group by datetime
+                    order by 1 desc
+                    limit 100
+                ) as x
+                order by 1
+            </otherwise>
+        </choose>
+    </select>
+
     <select id="getChartDataByHour" resultType="com.aspectran.aspectow.appmon.engine.persist.counter.EventCountVO">
         <choose>
             <when test="_databaseId == 'oracle'">
@@ -196,6 +231,41 @@
                     <if test="dateOffset != null">
                         and datetime &lt; #{dateOffset}
                     </if>
+                    order by datetime desc
+                    limit 100
+                ) as x
+                order by 1
+            </otherwise>
+        </choose>
+    </select>
+
+    <select id="getGroupChartDataByHour" resultType="com.aspectran.aspectow.appmon.engine.persist.counter.EventCountVO">
+        <choose>
+            <when test="_databaseId == 'oracle'">
+                select datetime, delta, error
+                from (
+                    select datetime, sum(delta) as delta, sum(error) as error
+                    from appmon_event_count_hourly
+                    where node_group = #{nodeGroup} and app_id = #{appId} and event_id = #{eventId}
+                    <if test="dateOffset != null">
+                        and datetime &lt; #{dateOffset}
+                    </if>
+                    group by datetime
+                    order by datetime desc
+                )
+                where rownum &lt;= 100
+                order by 1
+            </when>
+            <otherwise>
+                select datetime, delta, error
+                from (
+                    select datetime, sum(delta) as delta, sum(error) as error
+                    from appmon_event_count_hourly
+                    where node_group = #{nodeGroup} and app_id = #{appId} and event_id = #{eventId}
+                    <if test="dateOffset != null">
+                        and datetime &lt; #{dateOffset}
+                    </if>
+                    group by datetime
                     order by datetime desc
                     limit 100
                 ) as x
@@ -274,6 +344,91 @@
                         select datetime, delta, error
                         from appmon_event_count_hourly
                         where node_id = #{nodeId} and app_id = #{appId} and event_id = #{eventId}
+                        <if test="dateOffset != null">
+                            and datetime &lt; #{dateOffset}
+                        </if>
+                        order by datetime desc
+                        limit 3000
+                    ) as raw
+                    group by cast(dateadd(second, #{zoneOffset}, datetime) as date)
+                    order by 1 desc
+                    limit 100
+                ) as x
+                order by 1
+            </otherwise>
+        </choose>
+    </select>
+
+    <select id="getGroupChartDataByDay" resultType="com.aspectran.aspectow.appmon.engine.persist.counter.EventCountVO">
+        <choose>
+            <when test="_databaseId == 'oracle'">
+                select datetime, delta, error
+                from (
+                    select min(datetime) as datetime, sum(delta) as delta, sum(error) as error
+                    from (
+                        select datetime, delta, error
+                        from appmon_event_count_hourly
+                        where node_group = #{nodeGroup} and app_id = #{appId} and event_id = #{eventId}
+                        <if test="dateOffset != null">
+                            and datetime &lt; #{dateOffset}
+                        </if>
+                        order by datetime desc
+                    )
+                    where rownum &lt;= 3000
+                    group by trunc(datetime + #{zoneOffset} / 86400.0)
+                    order by 1 desc
+                )
+                where rownum &lt;= 100
+                order by 1
+            </when>
+            <when test="_databaseId == 'mysql'">
+                select datetime, delta, error
+                from (
+                    select min(datetime) as datetime, sum(delta) as delta, sum(error) as error
+                    from (
+                        select datetime, delta, error
+                        from appmon_event_count_hourly
+                        where node_group = #{nodeGroup} and app_id = #{appId} and event_id = #{eventId}
+                        <if test="dateOffset != null">
+                            and datetime &lt; #{dateOffset}
+                        </if>
+                        order by datetime desc
+                        limit 3000
+                    ) as raw
+                    group by date(date_add(datetime, interval #{zoneOffset} second))
+                    order by 1 desc
+                    limit 100
+                ) as x
+                order by 1
+            </when>
+            <when test="_databaseId == 'postgresql'">
+                select datetime, delta, error
+                from (
+                    select min(datetime) as datetime, sum(delta) as delta, sum(error) as error
+                    from (
+                        select datetime, delta, error
+                        from appmon_event_count_hourly
+                        where node_group = #{nodeGroup} and app_id = #{appId} and event_id = #{eventId}
+                        <if test="dateOffset != null">
+                            and datetime &lt; #{dateOffset}
+                        </if>
+                        order by datetime desc
+                        limit 3000
+                    ) as raw
+                    group by date_trunc('day', datetime + (#{zoneOffset} || ' second')::interval)
+                    order by 1 desc
+                    limit 100
+                ) as x
+                order by 1
+            </when>
+            <otherwise>
+                select datetime, delta, error
+                from (
+                    select min(datetime) as datetime, sum(delta) as delta, sum(error) as error
+                    from (
+                        select datetime, delta, error
+                        from appmon_event_count_hourly
+                        where node_group = #{nodeGroup} and app_id = #{appId} and event_id = #{eventId}
                         <if test="dateOffset != null">
                             and datetime &lt; #{dateOffset}
                         </if>
@@ -374,6 +529,91 @@
         </choose>
     </select>
 
+    <select id="getGroupChartDataByMonth" resultType="com.aspectran.aspectow.appmon.engine.persist.counter.EventCountVO">
+        <choose>
+            <when test="_databaseId == 'oracle'">
+                select datetime, delta, error
+                from (
+                    select min(datetime) as datetime, sum(delta) as delta, sum(error) as error
+                    from (
+                        select datetime, delta, error
+                        from appmon_event_count_hourly
+                        where node_group = #{nodeGroup} and app_id = #{appId} and event_id = #{eventId}
+                        <if test="dateOffset != null">
+                            and datetime &lt; #{dateOffset}
+                        </if>
+                        order by datetime desc
+                    )
+                    where rownum &lt;= 80000
+                    group by trunc(datetime + #{zoneOffset} / 86400.0, 'MM')
+                    order by 1 desc
+                )
+                where rownum &lt;= 100
+                order by 1
+            </when>
+            <when test="_databaseId == 'mysql'">
+                select datetime, delta, error
+                from (
+                    select min(datetime) as datetime, sum(delta) as delta, sum(error) as error
+                    from (
+                        select datetime, delta, error
+                        from appmon_event_count_hourly
+                        where node_group = #{nodeGroup} and app_id = #{appId} and event_id = #{eventId}
+                        <if test="dateOffset != null">
+                            and datetime &lt; #{dateOffset}
+                        </if>
+                        order by datetime desc
+                        limit 80000
+                    ) as raw
+                    group by date_format(date_add(datetime, interval #{zoneOffset} second), '%Y%m')
+                    order by 1 desc
+                    limit 100
+                ) as x
+                order by 1
+            </when>
+            <when test="_databaseId == 'postgresql'">
+                select datetime, delta, error
+                from (
+                    select min(datetime) as datetime, sum(delta) as delta, sum(error) as error
+                    from (
+                        select datetime, delta, error
+                        from appmon_event_count_hourly
+                        where node_group = #{nodeGroup} and app_id = #{appId} and event_id = #{eventId}
+                        <if test="dateOffset != null">
+                            and datetime &lt; #{dateOffset}
+                        </if>
+                        order by datetime desc
+                        limit 80000
+                    ) as raw
+                    group by date_trunc('month', datetime + (#{zoneOffset} || ' second')::interval)
+                    order by 1 desc
+                    limit 100
+                ) as x
+                order by 1
+            </when>
+            <otherwise>
+                select datetime, delta, error
+                from (
+                    select min(datetime) as datetime, sum(delta) as delta, sum(error) as error
+                    from (
+                        select datetime, delta, error
+                        from appmon_event_count_hourly
+                        where node_group = #{nodeGroup} and app_id = #{appId} and event_id = #{eventId}
+                        <if test="dateOffset != null">
+                            and datetime &lt; #{dateOffset}
+                        </if>
+                        order by datetime desc
+                        limit 80000
+                    ) as raw
+                    group by formatdatetime(dateadd(second, #{zoneOffset}, datetime), 'yyyyMM')
+                    order by 1 desc
+                    limit 100
+                ) as x
+                order by 1
+            </otherwise>
+        </choose>
+    </select>
+
     <select id="getChartDataByYear" resultType="com.aspectran.aspectow.appmon.engine.persist.counter.EventCountVO">
         <choose>
             <when test="_databaseId == 'oracle'">
@@ -444,6 +684,91 @@
                         select datetime, delta, error
                         from appmon_event_count_hourly
                         where node_id = #{nodeId} and app_id = #{appId} and event_id = #{eventId}
+                        <if test="dateOffset != null">
+                            and datetime &lt; #{dateOffset}
+                        </if>
+                        order by datetime desc
+                        limit 100000
+                    ) as raw
+                    group by formatdatetime(dateadd(second, #{zoneOffset}, datetime), 'yyyy')
+                    order by 1 desc
+                    limit 100
+                ) as x
+                order by 1
+            </otherwise>
+        </choose>
+    </select>
+
+    <select id="getGroupChartDataByYear" resultType="com.aspectran.aspectow.appmon.engine.persist.counter.EventCountVO">
+        <choose>
+            <when test="_databaseId == 'oracle'">
+                select datetime, delta, error
+                from (
+                    select min(datetime) as datetime, sum(delta) as delta, sum(error) as error
+                    from (
+                        select datetime, delta, error
+                        from appmon_event_count_hourly
+                        where node_group = #{nodeGroup} and app_id = #{appId} and event_id = #{eventId}
+                        <if test="dateOffset != null">
+                            and datetime &lt; #{dateOffset}
+                        </if>
+                        order by datetime desc
+                    )
+                    where rownum &lt;= 100000
+                    group by trunc(datetime + #{zoneOffset} / 86400.0, 'YYYY')
+                    order by 1 desc
+                )
+                where rownum &lt;= 100
+                order by 1
+            </when>
+            <when test="_databaseId == 'mysql'">
+                select datetime, delta, error
+                from (
+                    select min(datetime) as datetime, sum(delta) as delta, sum(error) as error
+                    from (
+                        select datetime, delta, error
+                        from appmon_event_count_hourly
+                        where node_group = #{nodeGroup} and app_id = #{appId} and event_id = #{eventId}
+                        <if test="dateOffset != null">
+                            and datetime &lt; #{dateOffset}
+                        </if>
+                        order by datetime desc
+                        limit 100000
+                    ) as raw
+                    group by date_format(date_add(datetime, interval #{zoneOffset} second), '%Y')
+                    order by 1 desc
+                    limit 100
+                ) as x
+                order by 1
+            </when>
+            <when test="_databaseId == 'postgresql'">
+                select datetime, delta, error
+                from (
+                    select min(datetime) as datetime, sum(delta) as delta, sum(error) as error
+                    from (
+                        select datetime, delta, error
+                        from appmon_event_count_hourly
+                        where node_group = #{nodeGroup} and app_id = #{appId} and event_id = #{eventId}
+                        <if test="dateOffset != null">
+                            and datetime &lt; #{dateOffset}
+                        </if>
+                        order by datetime desc
+                        limit 100000
+                    ) as raw
+                    group by date_trunc('year', datetime + (#{zoneOffset} || ' second')::interval)
+                    order by 1 desc
+                    limit 100
+                ) as x
+                order by 1
+            </when>
+            <otherwise>
+                select datetime, delta, error
+                from (
+                    select min(datetime) as datetime, sum(delta) as delta, sum(error) as error
+                    from (
+                        select datetime, delta, error
+                        from appmon_event_count_hourly
+                        where node_group = #{nodeGroup} and app_id = #{appId} and event_id = #{eventId}
                         <if test="dateOffset != null">
                             and datetime &lt; #{dateOffset}
                         </if>

@@ -176,10 +176,9 @@ class WebsocketClient extends BaseClient {
             while (this.pendingMessages.length) {
                 viewer.printMessage(this.pendingMessages.shift());
             }
-            this.sendCommand([
-                "command:established",
-                "nodeToSubscribe:" + (this.nodeToSubscribe || "")
-            ], nodeId);
+            const options = ["command:established"];
+            if (this.nodeToSubscribe) options.push("nodeToSubscribe:" + this.nodeToSubscribe);
+            this.sendCommand(options, nodeId);
         }
         if (!alive) {
             viewer.printErrorMessage("Node " + nodeId + " not alive");

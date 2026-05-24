@@ -152,6 +152,7 @@ public abstract class AppMonManagerBuilder {
         }
         NodeManager nodeManager = context.getBeanRegistry().getBean(NodeManager.class);
         String nodeId = nodeManager.getNodeId();
+        String nodeGroup = nodeManager.getNodeInfoHolder().getNodeInfo(nodeId).getGroup();
         NodeInfoHolder nodeInfoHolder = nodeManager.getNodeInfoHolder();
 
         PollingConfig pollingConfig = appMonConfig.touchPollingConfig();
@@ -163,7 +164,7 @@ public abstract class AppMonManagerBuilder {
                 nodeId, nodeManager.getNodeRegistry(), nodeManager.getNodeMessagePublisher());
 
         AppMonManager appMonManager = new AppMonManager(
-                nodeId, nodeManager.getClusterConfig().getMode(), pollingConfig, counterPersistInterval,
+                nodeId, nodeGroup, nodeManager.getClusterConfig().getMode(), pollingConfig, counterPersistInterval,
                 nodeInfoHolder, appInfoHolder, messageRelayManager);
         appMonManager.setActivityContext(context);
 

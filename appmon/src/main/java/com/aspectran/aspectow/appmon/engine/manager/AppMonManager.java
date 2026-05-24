@@ -42,6 +42,8 @@ public class AppMonManager extends InstantActivitySupport {
 
     private final String nodeId;
 
+    private final String nodeGroup;
+
     private final PollingConfig pollingConfig;
 
     private final int counterPersistInterval;
@@ -58,15 +60,18 @@ public class AppMonManager extends InstantActivitySupport {
 
     /**
      * Instantiates a new AppMonManager.
-     * @param nodeId the name of the current domain
+     * @param nodeId the name of the current node
+     * @param nodeGroup the name of the current node group
      * @param clusterMode the cluster mode
      * @param pollingConfig the polling configuration
      * @param counterPersistInterval the counter persistence interval in minutes
-     * @param nodeInfoHolder the holder for domain information
+     * @param nodeInfoHolder the holder for node information
      * @param appInfoHolder the holder for instance information
+     * @param messageRelayManager the message relay manager
      */
     public AppMonManager(
             String nodeId,
+            String nodeGroup,
             String clusterMode,
             PollingConfig pollingConfig,
             int counterPersistInterval,
@@ -74,6 +79,7 @@ public class AppMonManager extends InstantActivitySupport {
             AppInfoHolder appInfoHolder,
             MessageRelayManager messageRelayManager) {
         this.nodeId = nodeId;
+        this.nodeGroup = nodeGroup;
         this.clusterMode = clusterMode;
         this.pollingConfig = pollingConfig;
         this.counterPersistInterval = counterPersistInterval;
@@ -112,11 +118,19 @@ public class AppMonManager extends InstantActivitySupport {
     }
 
     /**
-     * Gets the name of the current domain.
-     * @return the current domain name
+     * Gets the name of the current node.
+     * @return the current node ID
      */
     public String getNodeId() {
         return nodeId;
+    }
+
+    /**
+     * Gets the name of the current node group.
+     * @return the current node group name
+     */
+    public String getNodeGroup() {
+        return nodeGroup;
     }
 
     /**

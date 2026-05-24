@@ -67,7 +67,9 @@ public class CounterPersistSchedule {
 
     private final AppMonManager appMonManager;
 
-    private final String currentNodeId;
+    private final String nodeId;
+
+    private final String nodeGroup;
 
     private final CounterPersist counterPersist;
 
@@ -76,7 +78,8 @@ public class CounterPersistSchedule {
     @Autowired
     public CounterPersistSchedule(@NonNull AppMonManager appMonManager, EventCountMapper dao) {
         this.appMonManager = appMonManager;
-        this.currentNodeId = appMonManager.getNodeId();
+        this.nodeId = appMonManager.getNodeId();
+        this.nodeGroup = appMonManager.getNodeGroup();
         this.counterPersist = appMonManager.getPersistManager().getCounterPersist();
         this.dao = dao;
     }
@@ -90,7 +93,7 @@ public class CounterPersistSchedule {
         appMonManager.instantActivity(() -> {
             for (EventCounter eventCounter : counterPersist.getEventCounterList()) {
                 EventCountVO vo = dao.getLastEventCount(
-                        currentNodeId, eventCounter.getAppId(), eventCounter.getEventId());
+                        nodeId, eventCounter.getAppId(), eventCounter.getEventId());
                 if (vo != null) {
                     eventCounter.reset(vo.getDatetime(), vo.getTotal(), vo.getDelta(), vo.getError());
                 } else {
@@ -179,7 +182,8 @@ public class CounterPersistSchedule {
     @NonNull
     private EventCountVO createEventCountVO(@NonNull LocalDateTime datetime) {
         EventCountVO eventCountVO = new EventCountVO();
-        eventCountVO.setNodeId(currentNodeId);
+        eventCountVO.setNodeId(nodeId);
+        eventCountVO.setNodeGroup(nodeGroup);
         eventCountVO.setDatetime(datetime);
         return eventCountVO;
     }

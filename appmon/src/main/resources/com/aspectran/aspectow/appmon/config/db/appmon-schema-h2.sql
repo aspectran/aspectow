@@ -1,6 +1,7 @@
 -- Raw event count data (typically 5-minute intervals)
 create table if not exists appmon_event_count (
     node_id varchar(30) not null,
+    node_group varchar(30) not null,
     app_id varchar(30) not null,
     event_id varchar(30) not null,
     datetime timestamp not null,
@@ -10,8 +11,11 @@ create table if not exists appmon_event_count (
     constraint appmon_event_count_pk primary key (node_id, app_id, event_id, datetime)
 );
 
+create index if not exists appmon_event_count_ix_group on appmon_event_count (node_group, app_id, event_id, datetime);
+
 comment on table appmon_event_count is 'Raw event count data';
 comment on column appmon_event_count.node_id is 'Monitoring node identifier';
+comment on column appmon_event_count.node_group is 'Monitoring node group identifier';
 comment on column appmon_event_count.app_id is 'Application identifier';
 comment on column appmon_event_count.event_id is 'Event identifier';
 comment on column appmon_event_count.datetime is 'Data point timestamp';
@@ -22,6 +26,7 @@ comment on column appmon_event_count.error is 'Incremental error count for the i
 -- Hourly aggregated event count data
 create table if not exists appmon_event_count_hourly (
     node_id varchar(30) not null,
+    node_group varchar(30) not null,
     app_id varchar(30) not null,
     event_id varchar(30) not null,
     datetime timestamp not null,
@@ -31,8 +36,11 @@ create table if not exists appmon_event_count_hourly (
     constraint appmon_event_count_hourly_pk primary key (node_id, app_id, event_id, datetime)
 );
 
+create index if not exists appmon_event_count_hourly_ix_group on appmon_event_count_hourly (node_group, app_id, event_id, datetime);
+
 comment on table appmon_event_count_hourly is 'Hourly aggregated event count data';
 comment on column appmon_event_count_hourly.node_id is 'Monitoring node identifier';
+comment on column appmon_event_count_hourly.node_group is 'Monitoring node group identifier';
 comment on column appmon_event_count_hourly.app_id is 'Application identifier';
 comment on column appmon_event_count_hourly.event_id is 'Event identifier';
 comment on column appmon_event_count_hourly.datetime is 'Hourly truncated timestamp';
@@ -43,6 +51,7 @@ comment on column appmon_event_count_hourly.error is 'Total incremental error co
 -- Most recent event count state for incremental updates
 create table if not exists appmon_event_count_last (
     node_id varchar(30) not null,
+    node_group varchar(30) not null,
     app_id varchar(30) not null,
     event_id varchar(30) not null,
     datetime timestamp not null,
@@ -53,8 +62,11 @@ create table if not exists appmon_event_count_last (
     constraint appmon_event_count_last_pk primary key (node_id, app_id, event_id)
 );
 
+create index if not exists appmon_event_count_last_ix_group on appmon_event_count_last (node_group, app_id, event_id);
+
 comment on table appmon_event_count_last is 'Most recent event count state';
 comment on column appmon_event_count_last.node_id is 'Monitoring node identifier';
+comment on column appmon_event_count_last.node_group is 'Monitoring node group identifier';
 comment on column appmon_event_count_last.app_id is 'Application identifier';
 comment on column appmon_event_count_last.event_id is 'Event identifier';
 comment on column appmon_event_count_last.datetime is 'Last data point timestamp';
