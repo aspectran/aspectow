@@ -18,6 +18,7 @@ package com.aspectran.aspectow.node.config;
 import com.aspectran.utils.apon.DefaultParameters;
 import com.aspectran.utils.apon.ParameterKey;
 import com.aspectran.utils.apon.ValueType;
+import org.jspecify.annotations.NonNull;
 
 /**
  * Defines the properties and metadata of a single node within the cluster.
@@ -153,6 +154,31 @@ public class NodeInfo extends DefaultParameters {
 
     public void setToken(String token) {
         putValue(NodeInfo.token, token);
+    }
+
+    /**
+     * Create a copy of the current NodeInfo with updated values from the new dynamic state of the node
+     * @param newInfo the new dynamic state to update for the node
+     * @return the updated NodeInfo instance
+     */
+    public NodeInfo copyWithUpdatedState(@NonNull NodeInfo newInfo) {
+        NodeInfo info = new NodeInfo();
+
+        // keep static config
+        info.setId(getId());
+        info.setGroup(getGroup());
+        info.setTitle(getTitle());
+
+        // update dynamic state
+        info.setHost(newInfo.getHost());
+        info.setPort(newInfo.getPort());
+        info.setStartTime(newInfo.getStartTime());
+        info.setStatus(newInfo.getStatus());
+        info.setPulseInterval(newInfo.getPulseInterval());
+        info.setEndpointConfig(newInfo.getEndpointConfig());
+        info.setToken(newInfo.getToken());
+
+        return info;
     }
 
 }

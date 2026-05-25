@@ -215,19 +215,7 @@ public class NodeManager {
                         if (existingInfo != null) {
                             // 2. Partial update for Gateway Mode: keep static config, update dynamic state
                             // Create a new NodeInfo instance to ensure atomic update for readers
-                            NodeInfo newInfo = new NodeInfo();
-                            newInfo.setId(existingInfo.getId());
-                            newInfo.setGroup(existingInfo.getGroup());
-                            newInfo.setTitle(existingInfo.getTitle());
-
-                            newInfo.setHost(info.getHost());
-                            newInfo.setPort(info.getPort());
-                            newInfo.setStartTime(info.getStartTime());
-                            newInfo.setStatus(info.getStatus());
-                            newInfo.setPulseInterval(info.getPulseInterval());
-                            newInfo.setEndpointConfig(info.getEndpointConfig());
-                            newInfo.setToken(info.getToken());
-
+                            NodeInfo newInfo = existingInfo.copyWithUpdatedState(info);
                             nodeInfoHolder.putNodeInfo(newInfo);
                             if (logger.isDebugEnabled()) {
                                 logger.debug("Updated dynamic state for joined node: {}", info.getId());
@@ -255,10 +243,7 @@ public class NodeManager {
                         NodeInfo existingInfo = nodeInfoHolder.getNodeInfo(leftNodeId);
                         if (existingInfo != null) {
                             // Clone and update status to 'offline' for atomic update
-                            NodeInfo newInfo = new NodeInfo();
-                            newInfo.setId(existingInfo.getId());
-                            newInfo.setGroup(existingInfo.getGroup());
-                            newInfo.setTitle(existingInfo.getTitle());
+                            NodeInfo newInfo = existingInfo.copy();
                             newInfo.setStatus("offline");
 
                             nodeInfoHolder.putNodeInfo(newInfo);
@@ -295,19 +280,7 @@ public class NodeManager {
                 NodeInfo existingInfo = nodeInfoHolder.getNodeInfo(info.getId());
                 if (existingInfo != null) {
                     // Partial update for Gateway Mode: keep static config, update dynamic state
-                    NodeInfo newInfo = new NodeInfo();
-                    newInfo.setId(existingInfo.getId());
-                    newInfo.setGroup(existingInfo.getGroup());
-                    newInfo.setTitle(existingInfo.getTitle());
-
-                    newInfo.setHost(info.getHost());
-                    newInfo.setPort(info.getPort());
-                    newInfo.setStartTime(info.getStartTime());
-                    newInfo.setStatus(info.getStatus());
-                    newInfo.setPulseInterval(info.getPulseInterval());
-                    newInfo.setEndpointConfig(info.getEndpointConfig());
-                    newInfo.setToken(info.getToken());
-
+                    NodeInfo newInfo = existingInfo.copyWithUpdatedState(info);
                     nodeInfoHolder.putNodeInfo(newInfo);
                 }
             }

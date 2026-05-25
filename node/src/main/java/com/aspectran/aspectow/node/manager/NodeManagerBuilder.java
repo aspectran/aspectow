@@ -82,12 +82,12 @@ public abstract class NodeManagerBuilder {
         NodeInfo nodeInfo;
         NodeInfoHolder nodeInfoHolder;
         if (clusterConfig.isAutoscalingMode()) {
-            String myGroup = resolveMyGroupId();
+            String myGroupId = resolveMyGroupId();
             String shortId = UUID.randomUUID().toString().split("-")[0];
-            nodeId = (StringUtils.hasText(myGroup) ? myGroup + "-" : "") + shortId;
+            nodeId = shortId + (StringUtils.hasText(myGroupId) ? "@" + myGroupId : "");
             nodeInfo = new NodeInfo();
             nodeInfo.setId(nodeId);
-            nodeInfo.setGroup(myGroup);
+            nodeInfo.setGroup(myGroupId);
             nodeInfoHolder = new NodeInfoHolder();
             nodeInfoHolder.putNodeInfo(nodeInfo);
         } else {
@@ -167,19 +167,7 @@ public abstract class NodeManagerBuilder {
                     if (existingInfo != null) {
                         // Partial update: preserve static config from node-config.apon
                         // Create a new NodeInfo instance to ensure atomic update for potential concurrent readers
-                        NodeInfo newInfo = new NodeInfo();
-                        newInfo.setId(existingInfo.getId());
-                        newInfo.setGroup(existingInfo.getGroup());
-                        newInfo.setTitle(existingInfo.getTitle());
-
-                        newInfo.setHost(info.getHost());
-                        newInfo.setPort(info.getPort());
-                        newInfo.setStartTime(info.getStartTime());
-                        newInfo.setStatus(info.getStatus());
-                        newInfo.setPulseInterval(info.getPulseInterval());
-                        newInfo.setEndpointConfig(info.getEndpointConfig());
-                        newInfo.setToken(info.getToken());
-
+                        NodeInfo newInfo = existingInfo.copyWithUpdatedState(info);
                         nodeManager.getNodeInfoHolder().putNodeInfo(newInfo);
                     }
                 }
