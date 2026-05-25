@@ -86,7 +86,7 @@ public abstract class NodeManagerBuilder {
             String shortId = UUID.randomUUID().toString().split("-")[0];
             nodeId = (StringUtils.hasText(myGroup) ? myGroup + "-" : "") + shortId;
             nodeInfo = new NodeInfo();
-            nodeInfo.setNodeId(nodeId);
+            nodeInfo.setId(nodeId);
             nodeInfo.setGroup(myGroup);
             nodeInfoHolder = new NodeInfoHolder();
             nodeInfoHolder.putNodeInfo(nodeInfo);
@@ -98,7 +98,7 @@ public abstract class NodeManagerBuilder {
                 List<NodeInfo> nodeInfoList = nodeConfig.getNodeInfoList();
                 if (DEFAULT_NODE_ID.equals(myNodeId) && nodeInfoList != null && nodeInfoList.size() == 1) {
                     nodeInfo = nodeInfoList.getFirst();
-                    nodeId = nodeInfo.getNodeId();
+                    nodeId = nodeInfo.getId();
                 } else {
                     if (clusterConfig.isGatewayMode()) {
                         throw new IllegalStateException("Node information for '" + myNodeId + "' is not defined in " +
@@ -106,7 +106,7 @@ public abstract class NodeManagerBuilder {
                     }
                     nodeId = myNodeId;
                     nodeInfo = new NodeInfo();
-                    nodeInfo.setNodeId(nodeId);
+                    nodeInfo.setId(nodeId);
                     nodeInfo.setGroup(resolveMyGroupId());
                     nodeInfoHolder.putNodeInfo(nodeInfo);
                 }
@@ -160,15 +160,15 @@ public abstract class NodeManagerBuilder {
 
             if (clusterConfig.isGatewayMode()) {
                 for (NodeInfo info : nodeRegistry.getNodes()) {
-                    if (nodeId.equals(info.getNodeId())) {
+                    if (nodeId.equals(info.getId())) {
                         continue;
                     }
-                    NodeInfo existingInfo = nodeManager.getNodeInfoHolder().getNodeInfo(info.getNodeId());
+                    NodeInfo existingInfo = nodeManager.getNodeInfoHolder().getNodeInfo(info.getId());
                     if (existingInfo != null) {
                         // Partial update: preserve static config from node-config.apon
                         // Create a new NodeInfo instance to ensure atomic update for potential concurrent readers
                         NodeInfo newInfo = new NodeInfo();
-                        newInfo.setNodeId(existingInfo.getNodeId());
+                        newInfo.setId(existingInfo.getId());
                         newInfo.setGroup(existingInfo.getGroup());
                         newInfo.setTitle(existingInfo.getTitle());
 
@@ -176,7 +176,7 @@ public abstract class NodeManagerBuilder {
                         newInfo.setPort(info.getPort());
                         newInfo.setStartTime(info.getStartTime());
                         newInfo.setStatus(info.getStatus());
-                        newInfo.setHeartbeatInterval(info.getHeartbeatInterval());
+                        newInfo.setPulseInterval(info.getPulseInterval());
                         newInfo.setEndpointConfig(info.getEndpointConfig());
                         newInfo.setToken(info.getToken());
 
@@ -191,7 +191,7 @@ public abstract class NodeManagerBuilder {
                 }
             } else if (clusterConfig.isAutoscalingMode()) {
                 for (NodeInfo info : nodeRegistry.getNodes()) {
-                    if (nodeId.equals(info.getNodeId())) {
+                    if (nodeId.equals(info.getId())) {
                         continue;
                     }
                     nodeManager.getNodeInfoHolder().putNodeInfo(info);

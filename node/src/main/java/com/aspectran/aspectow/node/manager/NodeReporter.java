@@ -58,7 +58,7 @@ public class NodeReporter {
 
     public void start() throws Exception {
         logger.info("Initializing NodeReporter for cluster: {}, node: {}",
-                getClusterConfig().getId(), getNodeInfo().getNodeId());
+                getClusterConfig().getId(), getNodeInfo().getId());
 
         getNodeInfo().setStatus("live");
 
@@ -69,7 +69,7 @@ public class NodeReporter {
         broadcastJoin();
 
         // 3. Start periodic pulse update
-        long interval = getNodeInfo().getHeartbeatInterval(getClusterConfig().getHeartbeatInterval(DEFAULT_HEARTBEAT_INTERVAL));
+        long interval = getNodeInfo().getPulseInterval(getClusterConfig().getPulseInterval(DEFAULT_HEARTBEAT_INTERVAL));
         scheduler.scheduleAtFixedRate(this::sendPulse, 0, interval, TimeUnit.MILLISECONDS);
 
         // 4. Start periodic maintenance (zombie eviction & full sync compensation)
@@ -79,7 +79,7 @@ public class NodeReporter {
     }
 
     public void stop() {
-        logger.info("Stopping NodeReporter for node: {}", getNodeInfo().getNodeId());
+        logger.info("Stopping NodeReporter for node: {}", getNodeInfo().getId());
 
         getNodeInfo().setStatus("stopping");
         try {
@@ -111,15 +111,15 @@ public class NodeReporter {
         String aponData = new AponWriter().nullWritable(false).write(getNodeInfo()).toString();
 
         if (logger.isDebugEnabled()) {
-            logger.debug("Registering node '{}' in Redis hash '{}': {}", getNodeInfo().getNodeId(), key,
+            logger.debug("Registering node '{}' in Redis hash '{}': {}", getNodeInfo().getId(), key,
                     ToStringBuilder.toString(getNodeInfo()));
         }
 
         try (StatefulRedisConnection<String, String> connection = getConnectionPool().getConnection()) {
             RedisCommands<String, String> sync = connection.sync();
-            sync.hset(key, getNodeInfo().getNodeId(), aponData);
+            sync.hset(key, getNodeInfo().getId(), aponData);
         } catch (Exception e) {
-            logger.error("Failed to register node '{}' in Redis registry", getNodeInfo().getNodeId(), e);
+            logger.error("Failed to register node '{}' in Redis registry", getNodeInfo().getId(), e);
         }
     }
 
@@ -135,7 +135,7 @@ public class NodeReporter {
         String salt = (secretConfig != null ? secretConfig.getSalt() : PBEncryptionUtils.getSalt());
 
         VariableParameters payload = new VariableParameters();
-        payload.putValue("nodeId", getNodeInfo().getNodeId());
+        payload.putValue("nodeId", getNodeInfo().getId());
         payload.putValue("clusterId", getClusterConfig().getId());
 
         return TimeLimitedPBTokenIssuer.createToken(payload, 30000L, password, salt);
@@ -147,16 +147,16 @@ public class NodeReporter {
             String channel = NodeMessageProtocol.getClusterEventsChannel(getClusterConfig().getId());
             nodeManager.getNodeMessagePublisher().asyncPublish(channel, "JOINED:" + aponData);
         } catch (Exception e) {
-            logger.error("Failed to broadcast join event for node '{}'", getNodeInfo().getNodeId(), e);
+            logger.error("Failed to broadcast join event for node '{}'", getNodeInfo().getId(), e);
         }
     }
 
     private void broadcastLeave() {
         try {
             String channel = NodeMessageProtocol.getClusterEventsChannel(getClusterConfig().getId());
-            nodeManager.getNodeMessagePublisher().syncPublish(channel, "LEFT:" + getNodeInfo().getNodeId());
+            nodeManager.getNodeMessagePublisher().syncPublish(channel, "LEFT:" + getNodeInfo().getId());
         } catch (Exception e) {
-            logger.error("Failed to broadcast leave event for node '{}'", getNodeInfo().getNodeId(), e);
+            logger.error("Failed to broadcast leave event for node '{}'", getNodeInfo().getId(), e);
         }
     }
 
@@ -165,20 +165,20 @@ public class NodeReporter {
         long timestamp = System.currentTimeMillis();
 
         if (logger.isTraceEnabled()) {
-            logger.trace("Sending pulse for node '{}' to '{}': {}", getNodeInfo().getNodeId(), key, timestamp);
+            logger.trace("Sending pulse for node '{}' to '{}': {}", getNodeInfo().getId(), key, timestamp);
         }
 
         try (StatefulRedisConnection<String, String> connection = getConnectionPool().getConnection()) {
             RedisCommands<String, String> sync = connection.sync();
-            sync.hset(key, getNodeInfo().getNodeId(), String.valueOf(timestamp));
+            sync.hset(key, getNodeInfo().getId(), String.valueOf(timestamp));
         } catch (Exception e) {
-            logger.error("Failed to send pulse for node '{}' to Redis registry", getNodeInfo().getNodeId(), e);
+            logger.error("Failed to send pulse for node '{}' to Redis registry", getNodeInfo().getId(), e);
         }
     }
 
     private void performMaintenance() {
         // 1. Evict zombie nodes from global registry
-        long heartbeatInterval = getNodeInfo().getHeartbeatInterval(getClusterConfig().getHeartbeatInterval(DEFAULT_HEARTBEAT_INTERVAL));
+        long heartbeatInterval = getNodeInfo().getPulseInterval(getClusterConfig().getPulseInterval(DEFAULT_HEARTBEAT_INTERVAL));
         long timeout = heartbeatInterval * 3;
         nodeManager.getNodeRegistry().evictZombieNodes(timeout);
 
@@ -190,15 +190,15 @@ public class NodeReporter {
         String key = NodeMessageProtocol.getNodesHashKey(getClusterConfig().getId());
 
         if (logger.isDebugEnabled()) {
-            logger.debug("Unregistering node '{}' from Redis hash '{}'", getNodeInfo().getNodeId(), key);
+            logger.debug("Unregistering node '{}' from Redis hash '{}'", getNodeInfo().getId(), key);
         }
 
         try (StatefulRedisConnection<String, String> connection = getConnectionPool().getConnection()) {
             RedisCommands<String, String> sync = connection.sync();
-            sync.hset(key, getNodeInfo().getNodeId(), "");
-            sync.hdel(key, getNodeInfo().getNodeId());
+            sync.hset(key, getNodeInfo().getId(), "");
+            sync.hdel(key, getNodeInfo().getId());
         } catch (Exception e) {
-            logger.error("Failed to unregister node '{}' from Redis registry", getNodeInfo().getNodeId(), e);
+            logger.error("Failed to unregister node '{}' from Redis registry", getNodeInfo().getId(), e);
         }
     }
 

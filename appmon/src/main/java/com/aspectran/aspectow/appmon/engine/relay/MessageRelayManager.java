@@ -146,8 +146,8 @@ public class MessageRelayManager {
                 }
             } else {
                 for (NodeInfo nodeInfo : nodeRegistry.getNodes()) {
-                    if (!isSameNode(nodeInfo.getNodeId())) {
-                        publishRelay(nodeInfo.getNodeId(), message);
+                    if (!isSameNode(nodeInfo.getId())) {
+                        publishRelay(nodeInfo.getId(), message);
                     }
                 }
             }
@@ -294,8 +294,8 @@ public class MessageRelayManager {
                     publishControl(nodeId, commandOptions);
                 } else {
                     for (NodeInfo nodeInfo : nodeRegistry.getNodes()) {
-                        if (!isSameNode(nodeInfo.getNodeId())) {
-                            publishControl(nodeInfo.getNodeId(), commandOptions);
+                        if (!isSameNode(nodeInfo.getId())) {
+                            publishControl(nodeInfo.getId(), commandOptions);
                         }
                     }
                 }
@@ -341,8 +341,8 @@ public class MessageRelayManager {
                     commandOptions.setNodeId(nodeId);
                     commandOptions.setAppId(appId);
                     for (NodeInfo nodeInfo : nodeRegistry.getNodes()) {
-                        if (!isSameNode(nodeInfo.getNodeId())) {
-                            publishControl(nodeInfo.getNodeId(), commandOptions);
+                        if (!isSameNode(nodeInfo.getId())) {
+                            publishControl(nodeInfo.getId(), commandOptions);
                         }
                     }
                 }

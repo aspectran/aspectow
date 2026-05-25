@@ -28,7 +28,7 @@ public class ClusterConfig extends DefaultParameters {
     private static final ParameterKey id;
     private static final ParameterKey mode;
     private static final ParameterKey secret;
-    private static final ParameterKey heartbeatInterval;
+    private static final ParameterKey pulseInterval;
     private static final ParameterKey endpoint;
     private static final ParameterKey scheduler;
 
@@ -38,7 +38,7 @@ public class ClusterConfig extends DefaultParameters {
         id = new ParameterKey("id", ValueType.STRING);
         mode = new ParameterKey("mode", ValueType.STRING);
         secret = new ParameterKey("secret", SecretConfig.class);
-        heartbeatInterval = new ParameterKey("heartbeatInterval", ValueType.LONG);
+        pulseInterval = new ParameterKey("pulseInterval", ValueType.LONG);
         endpoint = new ParameterKey("endpoint", EndpointConfig.class);
         scheduler = new ParameterKey("scheduler", SchedulerConfig.class);
 
@@ -46,7 +46,7 @@ public class ClusterConfig extends DefaultParameters {
                 id,
                 mode,
                 secret,
-                heartbeatInterval,
+                pulseInterval,
                 endpoint,
                 scheduler
         };
@@ -121,28 +121,28 @@ public class ClusterConfig extends DefaultParameters {
     }
 
     /**
-     * Returns the interval between heartbeat signals in milliseconds.
-     * @return the heartbeat interval
+     * Returns the interval between pulse signals in milliseconds.
+     * @return the interval between pulse signals
      */
-    public Long getHeartbeatInterval() {
-        return getLong(heartbeatInterval);
+    public Long getPulseInterval() {
+        return getLong(pulseInterval);
     }
 
     /**
-     * Returns the interval between heartbeat signals with a fallback default value.
+     * Returns the interval between pulse signals with a fallback default value.
      * @param defaultValue the default interval to return if not specified
-     * @return the heartbeat interval
+     * @return the interval between pulse signals
      */
-    public long getHeartbeatInterval(long defaultValue) {
-        return getLong(heartbeatInterval, defaultValue);
+    public long getPulseInterval(long defaultValue) {
+        return getLong(pulseInterval, defaultValue);
     }
 
     /**
-     * Sets the interval between heartbeat signals in milliseconds.
-     * @param heartbeatInterval the heartbeat interval
+     * Sets the interval between pulse signals in milliseconds.
+     * @param pulseInterval the interval between pulse signals
      */
-    public void setHeartbeatInterval(long heartbeatInterval) {
-        putValue(ClusterConfig.heartbeatInterval, heartbeatInterval);
+    public void setPulseInterval(long pulseInterval) {
+        putValue(ClusterConfig.pulseInterval, pulseInterval);
     }
 
     /**

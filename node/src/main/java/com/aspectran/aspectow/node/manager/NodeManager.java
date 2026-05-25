@@ -199,24 +199,24 @@ public class NodeManager {
             clusterEventSubscriber.addListener(new ClusterEventListener() {
                 @Override
                 public void onJoined(NodeInfo info) {
-                    if (nodeId.equals(info.getNodeId())) {
+                    if (nodeId.equals(info.getId())) {
                         return;
                     }
                     // 1. Validate Token
                     try {
                         validateToken(info.getToken());
                     } catch (Exception e) {
-                        logger.warn("Rejected join request from node '{}' due to invalid token", info.getNodeId());
+                        logger.warn("Rejected join request from node '{}' due to invalid token", info.getId());
                         return;
                     }
 
                     if (clusterConfig.isGatewayMode()) {
-                        NodeInfo existingInfo = nodeInfoHolder.getNodeInfo(info.getNodeId());
+                        NodeInfo existingInfo = nodeInfoHolder.getNodeInfo(info.getId());
                         if (existingInfo != null) {
                             // 2. Partial update for Gateway Mode: keep static config, update dynamic state
                             // Create a new NodeInfo instance to ensure atomic update for readers
                             NodeInfo newInfo = new NodeInfo();
-                            newInfo.setNodeId(existingInfo.getNodeId());
+                            newInfo.setId(existingInfo.getId());
                             newInfo.setGroup(existingInfo.getGroup());
                             newInfo.setTitle(existingInfo.getTitle());
 
@@ -224,24 +224,24 @@ public class NodeManager {
                             newInfo.setPort(info.getPort());
                             newInfo.setStartTime(info.getStartTime());
                             newInfo.setStatus(info.getStatus());
-                            newInfo.setHeartbeatInterval(info.getHeartbeatInterval());
+                            newInfo.setPulseInterval(info.getPulseInterval());
                             newInfo.setEndpointConfig(info.getEndpointConfig());
                             newInfo.setToken(info.getToken());
 
                             nodeInfoHolder.putNodeInfo(newInfo);
                             if (logger.isDebugEnabled()) {
-                                logger.debug("Updated dynamic state for joined node: {}", info.getNodeId());
+                                logger.debug("Updated dynamic state for joined node: {}", info.getId());
                             }
                         } else {
                             if (logger.isDebugEnabled()) {
-                                logger.debug("Ignored join request from undefined node: {}", info.getNodeId());
+                                logger.debug("Ignored join request from undefined node: {}", info.getId());
                             }
                         }
                     } else {
                         // 3. Full update for Autoscaling Mode
                         nodeInfoHolder.putNodeInfo(info);
                         if (logger.isDebugEnabled()) {
-                            logger.debug("Updated node info for joined node: {}", info.getNodeId());
+                            logger.debug("Updated node info for joined node: {}", info.getId());
                         }
                     }
                 }
@@ -256,7 +256,7 @@ public class NodeManager {
                         if (existingInfo != null) {
                             // Clone and update status to 'offline' for atomic update
                             NodeInfo newInfo = new NodeInfo();
-                            newInfo.setNodeId(existingInfo.getNodeId());
+                            newInfo.setId(existingInfo.getId());
                             newInfo.setGroup(existingInfo.getGroup());
                             newInfo.setTitle(existingInfo.getTitle());
                             newInfo.setStatus("offline");
@@ -289,14 +289,14 @@ public class NodeManager {
         List<NodeInfo> latestNodes = nodeRegistry.getNodes();
         if (clusterConfig.isGatewayMode()) {
             for (NodeInfo info : latestNodes) {
-                if (nodeId.equals(info.getNodeId())) {
+                if (nodeId.equals(info.getId())) {
                     continue;
                 }
-                NodeInfo existingInfo = nodeInfoHolder.getNodeInfo(info.getNodeId());
+                NodeInfo existingInfo = nodeInfoHolder.getNodeInfo(info.getId());
                 if (existingInfo != null) {
                     // Partial update for Gateway Mode: keep static config, update dynamic state
                     NodeInfo newInfo = new NodeInfo();
-                    newInfo.setNodeId(existingInfo.getNodeId());
+                    newInfo.setId(existingInfo.getId());
                     newInfo.setGroup(existingInfo.getGroup());
                     newInfo.setTitle(existingInfo.getTitle());
 
@@ -304,7 +304,7 @@ public class NodeManager {
                     newInfo.setPort(info.getPort());
                     newInfo.setStartTime(info.getStartTime());
                     newInfo.setStatus(info.getStatus());
-                    newInfo.setHeartbeatInterval(info.getHeartbeatInterval());
+                    newInfo.setPulseInterval(info.getPulseInterval());
                     newInfo.setEndpointConfig(info.getEndpointConfig());
                     newInfo.setToken(info.getToken());
 
@@ -315,7 +315,7 @@ public class NodeManager {
             // In Autoscaling mode, we need to handle additions and removals
             // 1. Update/Add from registry
             for (NodeInfo info : latestNodes) {
-                if (nodeId.equals(info.getNodeId())) {
+                if (nodeId.equals(info.getId())) {
                     continue;
                 }
                 nodeInfoHolder.putNodeInfo(info);
@@ -323,13 +323,13 @@ public class NodeManager {
             // 2. Remove nodes that are no longer in registry
             List<NodeInfo> currentNodes = nodeInfoHolder.getNodeInfoList();
             for (NodeInfo info : currentNodes) {
-                String id = info.getNodeId();
+                String id = info.getId();
                 if (nodeId.equals(id)) {
                     continue;
                 }
                 boolean found = false;
                 for (NodeInfo latest : latestNodes) {
-                    if (id.equals(latest.getNodeId())) {
+                    if (id.equals(latest.getId())) {
                         found = true;
                         break;
                     }

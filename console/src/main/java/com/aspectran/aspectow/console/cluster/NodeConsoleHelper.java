@@ -52,7 +52,7 @@ public class NodeConsoleHelper {
         if (nodeManager.getClusterConfig().isDirectMode() || nodeRegistry == null) {
             List<Map<String, Object>> result = new ArrayList<>(configuredNodes.size());
             for (NodeInfo info : configuredNodes) {
-                boolean alive = info.getNodeId().equals(nodeManager.getNodeId());
+                boolean alive = info.getId().equals(nodeManager.getNodeId());
                 result.add(createNodeMap(info, alive, includeEndpoint));
             }
             return result;
@@ -61,13 +61,13 @@ public class NodeConsoleHelper {
         // Use a map to merge configured nodes and registered nodes
         Map<String, NodeInfo> mergedNodes = new LinkedHashMap<>();
         for (NodeInfo info : configuredNodes) {
-            mergedNodes.put(info.getNodeId(), info);
+            mergedNodes.put(info.getId(), info);
         }
 
         List<NodeInfo> registeredNodes = nodeRegistry.getNodes();
         if (registeredNodes != null) {
             for (NodeInfo info : registeredNodes) {
-                mergedNodes.put(info.getNodeId(), info);
+                mergedNodes.put(info.getId(), info);
             }
         }
 
@@ -77,7 +77,7 @@ public class NodeConsoleHelper {
         long timeout = 15000; // 15 seconds timeout
 
         for (NodeInfo info : mergedNodes.values()) {
-            String nodeId = info.getNodeId();
+            String nodeId = info.getId();
             boolean alive = false;
             String pulseStr = (pulses != null ? pulses.get(nodeId) : null);
             if (pulseStr != null) {
@@ -94,7 +94,7 @@ public class NodeConsoleHelper {
 
     public Map<String, Object> createNodeMap(@NonNull NodeInfo info, boolean alive, boolean includeEndpoint) {
         Map<String, Object> map = new HashMap<>();
-        map.put("id", info.getNodeId());
+        map.put("id", info.getId());
         map.put("group", info.getGroup());
         map.put("title", info.getTitle());
         map.put("host", info.getHost());

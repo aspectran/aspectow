@@ -31,7 +31,7 @@ public class NodeInfo extends DefaultParameters {
     private static final ParameterKey port;
     private static final ParameterKey startTime;
     private static final ParameterKey status;
-    private static final ParameterKey heartbeatInterval;
+    private static final ParameterKey pulseInterval;
     private static final ParameterKey endpoint;
     private static final ParameterKey token;
 
@@ -45,7 +45,7 @@ public class NodeInfo extends DefaultParameters {
         port = new ParameterKey("port", ValueType.INT);
         startTime = new ParameterKey("startTime", ValueType.STRING);
         status = new ParameterKey("status", ValueType.STRING);
-        heartbeatInterval = new ParameterKey("heartbeatInterval", ValueType.LONG);
+        pulseInterval = new ParameterKey("heartbeatInterval", ValueType.LONG);
         endpoint = new ParameterKey("endpoint", EndpointConfig.class);
         token = new ParameterKey("token", ValueType.STRING);
 
@@ -57,7 +57,7 @@ public class NodeInfo extends DefaultParameters {
                 port,
                 startTime,
                 status,
-                heartbeatInterval,
+                pulseInterval,
                 endpoint,
                 token
         };
@@ -67,12 +67,12 @@ public class NodeInfo extends DefaultParameters {
         super(parameterKeys);
     }
 
-    public String getNodeId() {
+    public String getId() {
         return getString(id);
     }
 
-    public void setNodeId(String nodeId) {
-        putValue(id, nodeId);
+    public void setId(String id) {
+        putValue(NodeInfo.id, id);
     }
 
     public String getGroup() {
@@ -123,16 +123,16 @@ public class NodeInfo extends DefaultParameters {
         putValue(NodeInfo.status, status);
     }
 
-    public Long getHeartbeatInterval() {
-        return getLong(heartbeatInterval);
+    public Long getPulseInterval() {
+        return getLong(pulseInterval);
     }
 
-    public long getHeartbeatInterval(long defaultValue) {
-        return getLong(heartbeatInterval, defaultValue);
+    public long getPulseInterval(long defaultValue) {
+        return getLong(pulseInterval, defaultValue);
     }
 
-    public void setHeartbeatInterval(Long heartbeatInterval) {
-        putValue(NodeInfo.heartbeatInterval, heartbeatInterval);
+    public void setPulseInterval(Long pulseInterval) {
+        putValue(NodeInfo.pulseInterval, pulseInterval);
     }
 
     public EndpointConfig getEndpointConfig() {
