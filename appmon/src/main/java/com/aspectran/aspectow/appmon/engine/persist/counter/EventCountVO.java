@@ -33,7 +33,7 @@ public class EventCountVO implements Serializable {
     private String nodeId;
 
     /** The group identifier to which the node belongs */
-    private String nodeGroup;
+    private String groupId;
 
     /** The identifier of the instance where the event occurred */
     private String appId;
@@ -73,16 +73,16 @@ public class EventCountVO implements Serializable {
      * Returns the node group identifier.
      * @return the node group identifier
      */
-    public String getNodeGroup() {
-        return nodeGroup;
+    public String getGroupId() {
+        return groupId;
     }
 
     /**
      * Sets the node group identifier.
-     * @param nodeGroup the node group identifier
+     * @param groupId the node group identifier
      */
-    public void setNodeGroup(String nodeGroup) {
-        this.nodeGroup = nodeGroup;
+    public void setGroupId(String groupId) {
+        this.groupId = groupId;
     }
 
     /**

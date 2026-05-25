@@ -69,7 +69,7 @@ public class CounterPersistSchedule {
 
     private final String nodeId;
 
-    private final String nodeGroup;
+    private final String groupId;
 
     private final CounterPersist counterPersist;
 
@@ -79,7 +79,7 @@ public class CounterPersistSchedule {
     public CounterPersistSchedule(@NonNull AppMonManager appMonManager, EventCountMapper dao) {
         this.appMonManager = appMonManager;
         this.nodeId = appMonManager.getNodeId();
-        this.nodeGroup = appMonManager.getNodeGroup();
+        this.groupId = appMonManager.getGroupId();
         this.counterPersist = appMonManager.getPersistManager().getCounterPersist();
         this.dao = dao;
     }
@@ -183,7 +183,7 @@ public class CounterPersistSchedule {
     private EventCountVO createEventCountVO(@NonNull LocalDateTime datetime) {
         EventCountVO eventCountVO = new EventCountVO();
         eventCountVO.setNodeId(nodeId);
-        eventCountVO.setNodeGroup(nodeGroup);
+        eventCountVO.setGroupId(groupId);
         eventCountVO.setDatetime(datetime);
         return eventCountVO;
     }

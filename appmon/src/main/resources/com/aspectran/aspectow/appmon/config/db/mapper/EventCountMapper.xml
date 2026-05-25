@@ -7,7 +7,7 @@
     <cache />
 
     <select id="getLastEventCount" resultType="com.aspectran.aspectow.appmon.engine.persist.counter.EventCountVO">
-        select node_id, node_group, app_id, event_id, datetime, total, delta, error
+        select node_id, group_id, app_id, event_id, datetime, total, delta, error
         from appmon_event_count_last
         where node_id = #{nodeId} and app_id = #{appId} and event_id = #{eventId}
     </select>
@@ -15,41 +15,41 @@
     <update id="updateLastEventCount" parameterType="com.aspectran.aspectow.appmon.engine.persist.counter.EventCountVO">
         <choose>
             <when test="_databaseId == 'mysql'">
-                insert into appmon_event_count_last (node_id, node_group, app_id, event_id, datetime, total, delta, error)
-                values (#{nodeId}, #{nodeGroup}, #{appId}, #{eventId}, #{datetime}, #{total}, #{delta}, #{error})
-                on duplicate key update node_group = #{nodeGroup}, datetime = #{datetime}, total = #{total}, delta = #{delta}, error = #{error}
+                insert into appmon_event_count_last (node_id, group_id, app_id, event_id, datetime, total, delta, error)
+                values (#{nodeId}, #{groupId}, #{appId}, #{eventId}, #{datetime}, #{total}, #{delta}, #{error})
+                on duplicate key update group_id = #{groupId}, datetime = #{datetime}, total = #{total}, delta = #{delta}, error = #{error}
             </when>
             <when test="_databaseId == 'oracle'">
                 merge into appmon_event_count_last a
                 using (
                     select
-                        #{nodeId} node_id, #{nodeGroup} node_group, #{appId} app_id, #{eventId} event_id,
+                        #{nodeId} node_id, #{groupId} group_id, #{appId} app_id, #{eventId} event_id,
                         #{datetime} datetime, #{total} total, #{delta} delta, #{error} error
                     from dual
                 ) b
                 on (a.node_id = b.node_id and a.app_id = b.app_id and a.event_id = b.event_id)
                 when matched then
-                    update set node_group = b.node_group, datetime = b.datetime, total = b.total, delta = b.delta, error = b.error
+                    update set group_id = b.group_id, datetime = b.datetime, total = b.total, delta = b.delta, error = b.error
                 when not matched then
-                    insert (node_id, node_group, app_id, event_id, datetime, total, delta, error)
-                    values (b.node_id, b.node_group, b.app_id, b.event_id, b.datetime, b.total, b.delta, b.error)
+                    insert (node_id, group_id, app_id, event_id, datetime, total, delta, error)
+                    values (b.node_id, b.group_id, b.app_id, b.event_id, b.datetime, b.total, b.delta, b.error)
             </when>
             <when test="_databaseId == 'postgresql'">
-                insert into appmon_event_count_last (node_id, node_group, app_id, event_id, datetime, total, delta, error)
-                values (#{nodeId}, #{nodeGroup}, #{appId}, #{eventId}, #{datetime}, #{total}, #{delta}, #{error})
+                insert into appmon_event_count_last (node_id, group_id, app_id, event_id, datetime, total, delta, error)
+                values (#{nodeId}, #{groupId}, #{appId}, #{eventId}, #{datetime}, #{total}, #{delta}, #{error})
                 on conflict (node_id, app_id, event_id)
-                do update set node_group = excluded.node_group, datetime = excluded.datetime, total = excluded.total, delta = excluded.delta, error = excluded.error
+                do update set group_id = excluded.group_id, datetime = excluded.datetime, total = excluded.total, delta = excluded.delta, error = excluded.error
             </when>
             <otherwise>
                 merge into appmon_event_count_last as a
-                using values (#{nodeId}, #{nodeGroup}, #{appId}, #{eventId}, #{datetime}, #{total}, #{delta}, #{error})
-                    as b (node_id, node_group, app_id, event_id, datetime, total, delta, error)
+                using values (#{nodeId}, #{groupId}, #{appId}, #{eventId}, #{datetime}, #{total}, #{delta}, #{error})
+                    as b (node_id, group_id, app_id, event_id, datetime, total, delta, error)
                 on (a.node_id = b.node_id and a.app_id = b.app_id and a.event_id = b.event_id)
                 when matched then
-                    update set node_group = b.node_group, datetime = b.datetime, total = b.total, delta = b.delta, error = b.error
+                    update set group_id = b.group_id, datetime = b.datetime, total = b.total, delta = b.delta, error = b.error
                 when not matched then
-                    insert (node_id, node_group, app_id, event_id, datetime, total, delta, error)
-                    values (b.node_id, b.node_group, b.app_id, b.event_id, b.datetime, b.total, b.delta, b.error)
+                    insert (node_id, group_id, app_id, event_id, datetime, total, delta, error)
+                    values (b.node_id, b.group_id, b.app_id, b.event_id, b.datetime, b.total, b.delta, b.error)
             </otherwise>
         </choose>
     </update>
@@ -57,41 +57,41 @@
     <insert id="insertEventCount" parameterType="com.aspectran.aspectow.appmon.engine.persist.counter.EventCountVO">
         <choose>
             <when test="_databaseId == 'mysql'">
-                insert into appmon_event_count (node_id, node_group, app_id, event_id, datetime, total, delta, error)
-                values (#{nodeId}, #{nodeGroup}, #{appId}, #{eventId}, #{datetime}, #{total}, #{delta}, #{error})
-                on duplicate key update node_group = #{nodeGroup}, total = #{total}, delta = #{delta}, error = #{error}
+                insert into appmon_event_count (node_id, group_id, app_id, event_id, datetime, total, delta, error)
+                values (#{nodeId}, #{groupId}, #{appId}, #{eventId}, #{datetime}, #{total}, #{delta}, #{error})
+                on duplicate key update group_id = #{groupId}, total = #{total}, delta = #{delta}, error = #{error}
             </when>
             <when test="_databaseId == 'oracle'">
                 merge into appmon_event_count a
                 using (
                     select
-                        #{nodeId} node_id, #{nodeGroup} node_group, #{appId} app_id, #{eventId} event_id,
+                        #{nodeId} node_id, #{groupId} group_id, #{appId} app_id, #{eventId} event_id,
                         #{datetime} datetime, #{total} total, #{delta} delta, #{error} error
                     from dual
                 ) b
                 on (a.node_id = b.node_id and a.app_id = b.app_id and a.event_id = b.event_id and a.datetime = b.datetime)
                 when matched then
-                    update set node_group = b.node_group, total = b.total, delta = b.delta, error = b.error
+                    update set group_id = b.group_id, total = b.total, delta = b.delta, error = b.error
                 when not matched then
-                    insert (node_id, node_group, app_id, event_id, datetime, total, delta, error)
-                    values (b.node_id, b.node_group, b.app_id, b.event_id, b.datetime, b.total, b.delta, b.error)
+                    insert (node_id, group_id, app_id, event_id, datetime, total, delta, error)
+                    values (b.node_id, b.group_id, b.app_id, b.event_id, b.datetime, b.total, b.delta, b.error)
             </when>
             <when test="_databaseId == 'postgresql'">
-                insert into appmon_event_count (node_id, node_group, app_id, event_id, datetime, total, delta, error)
-                values (#{nodeId}, #{nodeGroup}, #{appId}, #{eventId}, #{datetime}, #{total}, #{delta}, #{error})
+                insert into appmon_event_count (node_id, group_id, app_id, event_id, datetime, total, delta, error)
+                values (#{nodeId}, #{groupId}, #{appId}, #{eventId}, #{datetime}, #{total}, #{delta}, #{error})
                 on conflict (node_id, app_id, event_id, datetime)
-                do update set node_group = excluded.node_group, total = excluded.total, delta = excluded.delta, error = excluded.error
+                do update set group_id = excluded.group_id, total = excluded.total, delta = excluded.delta, error = excluded.error
             </when>
             <otherwise>
                 merge into appmon_event_count as a
-                using values (#{nodeId}, #{nodeGroup}, #{appId}, #{eventId}, #{datetime}, #{total}, #{delta}, #{error})
-                    as b (node_id, node_group, app_id, event_id, datetime, total, delta, error)
+                using values (#{nodeId}, #{groupId}, #{appId}, #{eventId}, #{datetime}, #{total}, #{delta}, #{error})
+                    as b (node_id, group_id, app_id, event_id, datetime, total, delta, error)
                 on (a.node_id = b.node_id and a.app_id = b.app_id and a.event_id = b.event_id and a.datetime = b.datetime)
                 when matched then
-                    update set node_group = b.node_group, total = b.total, delta = b.delta, error = b.error
+                    update set group_id = b.group_id, total = b.total, delta = b.delta, error = b.error
                 when not matched then
-                    insert (node_id, node_group, app_id, event_id, datetime, total, delta, error)
-                    values (b.node_id, b.node_group, b.app_id, b.event_id, b.datetime, b.total, b.delta, b.error)
+                    insert (node_id, group_id, app_id, event_id, datetime, total, delta, error)
+                    values (b.node_id, b.group_id, b.app_id, b.event_id, b.datetime, b.total, b.delta, b.error)
             </otherwise>
         </choose>
     </insert>
@@ -99,41 +99,41 @@
     <insert id="insertEventCountHourly" parameterType="com.aspectran.aspectow.appmon.engine.persist.counter.EventCountVO">
         <choose>
             <when test="_databaseId == 'mysql'">
-                insert into appmon_event_count_hourly (node_id, node_group, app_id, event_id, datetime, total, delta, error)
-                values (#{nodeId}, #{nodeGroup}, #{appId}, #{eventId}, #{datetime}, #{total}, #{delta}, #{error})
-                on duplicate key update node_group = #{nodeGroup}, total = #{total}, delta = delta + #{delta}, error = error + #{error}
+                insert into appmon_event_count_hourly (node_id, group_id, app_id, event_id, datetime, total, delta, error)
+                values (#{nodeId}, #{groupId}, #{appId}, #{eventId}, #{datetime}, #{total}, #{delta}, #{error})
+                on duplicate key update group_id = #{groupId}, total = #{total}, delta = delta + #{delta}, error = error + #{error}
             </when>
             <when test="_databaseId == 'oracle'">
                 merge into appmon_event_count_hourly a
                 using (
                     select
-                        #{nodeId} node_id, #{nodeGroup} node_group, #{appId} app_id, #{eventId} event_id,
+                        #{nodeId} node_id, #{groupId} group_id, #{appId} app_id, #{eventId} event_id,
                         #{datetime} datetime, #{total} total, #{delta} delta, #{error} error
                     from dual
                 ) b
                 on (a.node_id = b.node_id and a.app_id = b.app_id and a.event_id = b.event_id and a.datetime = b.datetime)
                 when matched then
-                    update set node_group = b.node_group, total = b.total, delta = a.delta + b.delta, error = a.error + b.error
+                    update set group_id = b.group_id, total = b.total, delta = a.delta + b.delta, error = a.error + b.error
                 when not matched then
-                    insert (node_id, node_group, app_id, event_id, datetime, total, delta, error)
-                    values (b.node_id, b.node_group, b.app_id, b.event_id, b.datetime, b.total, b.delta, b.error)
+                    insert (node_id, group_id, app_id, event_id, datetime, total, delta, error)
+                    values (b.node_id, b.group_id, b.app_id, b.event_id, b.datetime, b.total, b.delta, b.error)
             </when>
             <when test="_databaseId == 'postgresql'">
-                insert into appmon_event_count_hourly (node_id, node_group, app_id, event_id, datetime, total, delta, error)
-                values (#{nodeId}, #{nodeGroup}, #{appId}, #{eventId}, #{datetime}, #{total}, #{delta}, #{error})
+                insert into appmon_event_count_hourly (node_id, group_id, app_id, event_id, datetime, total, delta, error)
+                values (#{nodeId}, #{groupId}, #{appId}, #{eventId}, #{datetime}, #{total}, #{delta}, #{error})
                 on conflict (node_id, app_id, event_id, datetime)
-                do update set node_group = excluded.node_group, total = excluded.total, delta = appmon_event_count_hourly.delta + excluded.delta, error = appmon_event_count_hourly.error + excluded.error
+                do update set group_id = excluded.group_id, total = excluded.total, delta = appmon_event_count_hourly.delta + excluded.delta, error = appmon_event_count_hourly.error + excluded.error
             </when>
             <otherwise>
                 merge into appmon_event_count_hourly as a
-                using values (#{nodeId}, #{nodeGroup}, #{appId}, #{eventId}, #{datetime}, #{total}, #{delta}, #{error})
-                    as b (node_id, node_group, app_id, event_id, datetime, total, delta, error)
+                using values (#{nodeId}, #{groupId}, #{appId}, #{eventId}, #{datetime}, #{total}, #{delta}, #{error})
+                    as b (node_id, group_id, app_id, event_id, datetime, total, delta, error)
                 on (a.node_id = b.node_id and a.app_id = b.app_id and a.event_id = b.event_id and a.datetime = b.datetime)
                 when matched then
-                    update set node_group = b.node_group, total = b.total, delta = a.delta + b.delta, error = a.error + b.error
+                    update set group_id = b.group_id, total = b.total, delta = a.delta + b.delta, error = a.error + b.error
                 when not matched then
-                    insert (node_id, node_group, app_id, event_id, datetime, total, delta, error)
-                    values (b.node_id, b.node_group, b.app_id, b.event_id, b.datetime, b.total, b.delta, b.error)
+                    insert (node_id, group_id, app_id, event_id, datetime, total, delta, error)
+                    values (b.node_id, b.group_id, b.app_id, b.event_id, b.datetime, b.total, b.delta, b.error)
             </otherwise>
         </choose>
     </insert>
@@ -178,7 +178,7 @@
                 from (
                     select datetime, sum(delta) as delta, sum(error) as error
                     from appmon_event_count
-                    where node_group = #{nodeGroup} and app_id = #{appId} and event_id = #{eventId}
+                    where group_id = #{groupId} and app_id = #{appId} and event_id = #{eventId}
                     <if test="dateOffset != null">
                         and datetime &lt; #{dateOffset}
                     </if>
@@ -193,7 +193,7 @@
                 from (
                     select datetime, sum(delta) as delta, sum(error) as error
                     from appmon_event_count
-                    where node_group = #{nodeGroup} and app_id = #{appId} and event_id = #{eventId}
+                    where group_id = #{groupId} and app_id = #{appId} and event_id = #{eventId}
                     <if test="dateOffset != null">
                         and datetime &lt; #{dateOffset}
                     </if>
@@ -246,7 +246,7 @@
                 from (
                     select datetime, sum(delta) as delta, sum(error) as error
                     from appmon_event_count_hourly
-                    where node_group = #{nodeGroup} and app_id = #{appId} and event_id = #{eventId}
+                    where group_id = #{groupId} and app_id = #{appId} and event_id = #{eventId}
                     <if test="dateOffset != null">
                         and datetime &lt; #{dateOffset}
                     </if>
@@ -261,7 +261,7 @@
                 from (
                     select datetime, sum(delta) as delta, sum(error) as error
                     from appmon_event_count_hourly
-                    where node_group = #{nodeGroup} and app_id = #{appId} and event_id = #{eventId}
+                    where group_id = #{groupId} and app_id = #{appId} and event_id = #{eventId}
                     <if test="dateOffset != null">
                         and datetime &lt; #{dateOffset}
                     </if>
@@ -368,7 +368,7 @@
                     from (
                         select datetime, delta, error
                         from appmon_event_count_hourly
-                        where node_group = #{nodeGroup} and app_id = #{appId} and event_id = #{eventId}
+                        where group_id = #{groupId} and app_id = #{appId} and event_id = #{eventId}
                         <if test="dateOffset != null">
                             and datetime &lt; #{dateOffset}
                         </if>
@@ -388,7 +388,7 @@
                     from (
                         select datetime, delta, error
                         from appmon_event_count_hourly
-                        where node_group = #{nodeGroup} and app_id = #{appId} and event_id = #{eventId}
+                        where group_id = #{groupId} and app_id = #{appId} and event_id = #{eventId}
                         <if test="dateOffset != null">
                             and datetime &lt; #{dateOffset}
                         </if>
@@ -408,7 +408,7 @@
                     from (
                         select datetime, delta, error
                         from appmon_event_count_hourly
-                        where node_group = #{nodeGroup} and app_id = #{appId} and event_id = #{eventId}
+                        where group_id = #{groupId} and app_id = #{appId} and event_id = #{eventId}
                         <if test="dateOffset != null">
                             and datetime &lt; #{dateOffset}
                         </if>
@@ -428,7 +428,7 @@
                     from (
                         select datetime, delta, error
                         from appmon_event_count_hourly
-                        where node_group = #{nodeGroup} and app_id = #{appId} and event_id = #{eventId}
+                        where group_id = #{groupId} and app_id = #{appId} and event_id = #{eventId}
                         <if test="dateOffset != null">
                             and datetime &lt; #{dateOffset}
                         </if>
@@ -538,7 +538,7 @@
                     from (
                         select datetime, delta, error
                         from appmon_event_count_hourly
-                        where node_group = #{nodeGroup} and app_id = #{appId} and event_id = #{eventId}
+                        where group_id = #{groupId} and app_id = #{appId} and event_id = #{eventId}
                         <if test="dateOffset != null">
                             and datetime &lt; #{dateOffset}
                         </if>
@@ -558,7 +558,7 @@
                     from (
                         select datetime, delta, error
                         from appmon_event_count_hourly
-                        where node_group = #{nodeGroup} and app_id = #{appId} and event_id = #{eventId}
+                        where group_id = #{groupId} and app_id = #{appId} and event_id = #{eventId}
                         <if test="dateOffset != null">
                             and datetime &lt; #{dateOffset}
                         </if>
@@ -578,7 +578,7 @@
                     from (
                         select datetime, delta, error
                         from appmon_event_count_hourly
-                        where node_group = #{nodeGroup} and app_id = #{appId} and event_id = #{eventId}
+                        where group_id = #{groupId} and app_id = #{appId} and event_id = #{eventId}
                         <if test="dateOffset != null">
                             and datetime &lt; #{dateOffset}
                         </if>
@@ -598,7 +598,7 @@
                     from (
                         select datetime, delta, error
                         from appmon_event_count_hourly
-                        where node_group = #{nodeGroup} and app_id = #{appId} and event_id = #{eventId}
+                        where group_id = #{groupId} and app_id = #{appId} and event_id = #{eventId}
                         <if test="dateOffset != null">
                             and datetime &lt; #{dateOffset}
                         </if>
@@ -708,7 +708,7 @@
                     from (
                         select datetime, delta, error
                         from appmon_event_count_hourly
-                        where node_group = #{nodeGroup} and app_id = #{appId} and event_id = #{eventId}
+                        where group_id = #{groupId} and app_id = #{appId} and event_id = #{eventId}
                         <if test="dateOffset != null">
                             and datetime &lt; #{dateOffset}
                         </if>
@@ -728,7 +728,7 @@
                     from (
                         select datetime, delta, error
                         from appmon_event_count_hourly
-                        where node_group = #{nodeGroup} and app_id = #{appId} and event_id = #{eventId}
+                        where group_id = #{groupId} and app_id = #{appId} and event_id = #{eventId}
                         <if test="dateOffset != null">
                             and datetime &lt; #{dateOffset}
                         </if>
@@ -748,7 +748,7 @@
                     from (
                         select datetime, delta, error
                         from appmon_event_count_hourly
-                        where node_group = #{nodeGroup} and app_id = #{appId} and event_id = #{eventId}
+                        where group_id = #{groupId} and app_id = #{appId} and event_id = #{eventId}
                         <if test="dateOffset != null">
                             and datetime &lt; #{dateOffset}
                         </if>
@@ -768,7 +768,7 @@
                     from (
                         select datetime, delta, error
                         from appmon_event_count_hourly
-                        where node_group = #{nodeGroup} and app_id = #{appId} and event_id = #{eventId}
+                        where group_id = #{groupId} and app_id = #{appId} and event_id = #{eventId}
                         <if test="dateOffset != null">
                             and datetime &lt; #{dateOffset}
                         </if>

@@ -73,13 +73,13 @@ public interface EventCountMapper {
 
     /**
      * Retrieves raw chart data for the specified group and other criteria.
-     * @param nodeGroup the node group identifier
+     * @param groupId the node group identifier
      * @param appId the app identifier
      * @param eventId the event identifier
      * @param dateOffset the start date/time for fetching data
      * @return a list of event count records aggregated by group
      */
-    List<EventCountVO> getGroupChartData(String nodeGroup, String appId, String eventId, LocalDateTime dateOffset);
+    List<EventCountVO> getGroupChartData(String groupId, String appId, String eventId, LocalDateTime dateOffset);
 
     /**
      * Retrieves chart data aggregated by hour for the specified criteria.
@@ -94,14 +94,14 @@ public interface EventCountMapper {
 
     /**
      * Retrieves chart data aggregated by hour for the specified group and other criteria.
-     * @param nodeGroup the node group identifier
+     * @param groupId the node group identifier
      * @param appId the app identifier
      * @param eventId the event identifier
      * @param zoneOffset the time zone offset in seconds
      * @param dateOffset the start date/time for fetching data
      * @return a list of event count records aggregated by hour and group
      */
-    List<EventCountVO> getGroupChartDataByHour(String nodeGroup, String appId, String eventId, int zoneOffset, LocalDateTime dateOffset);
+    List<EventCountVO> getGroupChartDataByHour(String groupId, String appId, String eventId, int zoneOffset, LocalDateTime dateOffset);
 
     /**
      * Retrieves chart data aggregated by day for the specified criteria.
@@ -116,14 +116,14 @@ public interface EventCountMapper {
 
     /**
      * Retrieves chart data aggregated by day for the specified group and other criteria.
-     * @param nodeGroup the node group identifier
+     * @param groupId the node group identifier
      * @param appId the app identifier
      * @param eventId the event identifier
      * @param zoneOffset the time zone offset in seconds
      * @param dateOffset the start date/time for fetching data
      * @return a list of event count records aggregated by day and group
      */
-    List<EventCountVO> getGroupChartDataByDay(String nodeGroup, String appId, String eventId, int zoneOffset, LocalDateTime dateOffset);
+    List<EventCountVO> getGroupChartDataByDay(String groupId, String appId, String eventId, int zoneOffset, LocalDateTime dateOffset);
 
     /**
      * Retrieves chart data aggregated by month for the specified criteria.
@@ -138,14 +138,14 @@ public interface EventCountMapper {
 
     /**
      * Retrieves chart data aggregated by month for the specified group and other criteria.
-     * @param nodeGroup the node group identifier
+     * @param groupId the node group identifier
      * @param appId the app identifier
      * @param eventId the event identifier
      * @param zoneOffset the time zone offset in seconds
      * @param dateOffset the start date/time for fetching data
      * @return a list of event count records aggregated by month and group
      */
-    List<EventCountVO> getGroupChartDataByMonth(String nodeGroup, String appId, String eventId, int zoneOffset, LocalDateTime dateOffset);
+    List<EventCountVO> getGroupChartDataByMonth(String groupId, String appId, String eventId, int zoneOffset, LocalDateTime dateOffset);
 
     /**
      * Retrieves chart data aggregated by year for the specified criteria.
@@ -160,14 +160,14 @@ public interface EventCountMapper {
 
     /**
      * Retrieves chart data aggregated by year for the specified group and other criteria.
-     * @param nodeGroup the node group identifier
+     * @param groupId the node group identifier
      * @param appId the app identifier
      * @param eventId the event identifier
      * @param zoneOffset the time zone offset in seconds
      * @param dateOffset the start date/time for fetching data
      * @return a list of event count records aggregated by year and group
      */
-    List<EventCountVO> getGroupChartDataByYear(String nodeGroup, String appId, String eventId, int zoneOffset, LocalDateTime dateOffset);
+    List<EventCountVO> getGroupChartDataByYear(String groupId, String appId, String eventId, int zoneOffset, LocalDateTime dateOffset);
 
     /**
      * Data Access Object (DAO) for {@link EventCountMapper}.
@@ -213,8 +213,8 @@ public interface EventCountMapper {
         }
 
         @Override
-        public List<EventCountVO> getGroupChartData(String nodeGroup, String appId, String eventId, LocalDateTime dateOffset) {
-            return mapper().getGroupChartData(nodeGroup, appId, eventId, dateOffset);
+        public List<EventCountVO> getGroupChartData(String groupId, String appId, String eventId, LocalDateTime dateOffset) {
+            return mapper().getGroupChartData(groupId, appId, eventId, dateOffset);
         }
 
         @Override
@@ -223,8 +223,8 @@ public interface EventCountMapper {
         }
 
         @Override
-        public List<EventCountVO> getGroupChartDataByHour(String nodeGroup, String appId, String eventId, int zoneOffset, LocalDateTime dateOffset) {
-            return mapper().getGroupChartDataByHour(nodeGroup, appId, eventId, zoneOffset, dateOffset);
+        public List<EventCountVO> getGroupChartDataByHour(String groupId, String appId, String eventId, int zoneOffset, LocalDateTime dateOffset) {
+            return mapper().getGroupChartDataByHour(groupId, appId, eventId, zoneOffset, dateOffset);
         }
 
         @Override
@@ -233,8 +233,8 @@ public interface EventCountMapper {
         }
 
         @Override
-        public List<EventCountVO> getGroupChartDataByDay(String nodeGroup, String appId, String eventId, int zoneOffset, LocalDateTime dateOffset) {
-            return mapper().getGroupChartDataByDay(nodeGroup, appId, eventId, zoneOffset, dateOffset);
+        public List<EventCountVO> getGroupChartDataByDay(String groupId, String appId, String eventId, int zoneOffset, LocalDateTime dateOffset) {
+            return mapper().getGroupChartDataByDay(groupId, appId, eventId, zoneOffset, dateOffset);
         }
 
         @Override
@@ -243,8 +243,8 @@ public interface EventCountMapper {
         }
 
         @Override
-        public List<EventCountVO> getGroupChartDataByMonth(String nodeGroup, String appId, String eventId, int zoneOffset, LocalDateTime dateOffset) {
-            return mapper().getGroupChartDataByMonth(nodeGroup, appId, eventId, zoneOffset, dateOffset);
+        public List<EventCountVO> getGroupChartDataByMonth(String groupId, String appId, String eventId, int zoneOffset, LocalDateTime dateOffset) {
+            return mapper().getGroupChartDataByMonth(groupId, appId, eventId, zoneOffset, dateOffset);
         }
 
         @Override
@@ -253,8 +253,8 @@ public interface EventCountMapper {
         }
 
         @Override
-        public List<EventCountVO> getGroupChartDataByYear(String nodeGroup, String appId, String eventId, int zoneOffset, LocalDateTime dateOffset) {
-            return mapper().getGroupChartDataByYear(nodeGroup, appId, eventId, zoneOffset, dateOffset);
+        public List<EventCountVO> getGroupChartDataByYear(String groupId, String appId, String eventId, int zoneOffset, LocalDateTime dateOffset) {
+            return mapper().getGroupChartDataByYear(groupId, appId, eventId, zoneOffset, dateOffset);
         }
 
     }

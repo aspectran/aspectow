@@ -1,7 +1,7 @@
 -- Raw event count data (typically 5-minute intervals)
 CREATE TABLE IF NOT EXISTS appmon_event_count (
     node_id varchar(30) NOT NULL,
-    node_group varchar(30) NOT NULL,
+    group_id varchar(30) NOT NULL,
     app_id varchar(30) NOT NULL,
     event_id varchar(30) NOT NULL,
     datetime timestamp NOT NULL,
@@ -11,11 +11,11 @@ CREATE TABLE IF NOT EXISTS appmon_event_count (
     CONSTRAINT appmon_event_count_pk PRIMARY KEY (node_id, app_id, event_id, datetime)
 );
 
-CREATE INDEX IF NOT EXISTS appmon_event_count_ix_group ON appmon_event_count (node_group, app_id, event_id, datetime);
+CREATE INDEX IF NOT EXISTS appmon_event_count_ix_group ON appmon_event_count (group_id, app_id, event_id, datetime);
 
 COMMENT ON TABLE appmon_event_count IS 'Raw event count data';
 COMMENT ON COLUMN appmon_event_count.node_id IS 'Monitoring node identifier';
-COMMENT ON COLUMN appmon_event_count.node_group IS 'Monitoring node group identifier';
+COMMENT ON COLUMN appmon_event_count.group_id IS 'Monitoring node group identifier';
 COMMENT ON COLUMN appmon_event_count.app_id IS 'Application identifier';
 COMMENT ON COLUMN appmon_event_count.event_id IS 'Event identifier';
 COMMENT ON COLUMN appmon_event_count.datetime IS 'Data point timestamp';
@@ -26,7 +26,7 @@ COMMENT ON COLUMN appmon_event_count.error IS 'Incremental error count for the i
 -- Hourly aggregated event count data
 CREATE TABLE IF NOT EXISTS appmon_event_count_hourly (
     node_id varchar(30) NOT NULL,
-    node_group varchar(30) NOT NULL,
+    group_id varchar(30) NOT NULL,
     app_id varchar(30) NOT NULL,
     event_id varchar(30) NOT NULL,
     datetime timestamp NOT NULL,
@@ -36,11 +36,11 @@ CREATE TABLE IF NOT EXISTS appmon_event_count_hourly (
     CONSTRAINT appmon_event_count_hourly_pk PRIMARY KEY (node_id, app_id, event_id, datetime)
 );
 
-CREATE INDEX IF NOT EXISTS appmon_event_count_hourly_ix_group ON appmon_event_count_hourly (node_group, app_id, event_id, datetime);
+CREATE INDEX IF NOT EXISTS appmon_event_count_hourly_ix_group ON appmon_event_count_hourly (group_id, app_id, event_id, datetime);
 
 COMMENT ON TABLE appmon_event_count_hourly IS 'Hourly aggregated event count data';
 COMMENT ON COLUMN appmon_event_count_hourly.node_id IS 'Monitoring node identifier';
-COMMENT ON COLUMN appmon_event_count_hourly.node_group IS 'Monitoring node group identifier';
+COMMENT ON COLUMN appmon_event_count_hourly.group_id IS 'Monitoring node group identifier';
 COMMENT ON COLUMN appmon_event_count_hourly.app_id IS 'Application identifier';
 COMMENT ON COLUMN appmon_event_count_hourly.event_id IS 'Event identifier';
 COMMENT ON COLUMN appmon_event_count_hourly.datetime IS 'Hourly truncated timestamp';
@@ -51,7 +51,7 @@ COMMENT ON COLUMN appmon_event_count_hourly.error IS 'Total incremental error co
 -- Most recent event count state for incremental updates
 CREATE TABLE IF NOT EXISTS appmon_event_count_last (
     node_id varchar(30) NOT NULL,
-    node_group varchar(30) NOT NULL,
+    group_id varchar(30) NOT NULL,
     app_id varchar(30) NOT NULL,
     event_id varchar(30) NOT NULL,
     datetime timestamp NOT NULL,
@@ -62,11 +62,11 @@ CREATE TABLE IF NOT EXISTS appmon_event_count_last (
     CONSTRAINT appmon_event_count_last_pk PRIMARY KEY (node_id, app_id, event_id)
 );
 
-CREATE INDEX IF NOT EXISTS appmon_event_count_last_ix_group ON appmon_event_count_last (node_group, app_id, event_id);
+CREATE INDEX IF NOT EXISTS appmon_event_count_last_ix_group ON appmon_event_count_last (group_id, app_id, event_id);
 
 COMMENT ON TABLE appmon_event_count_last IS 'Most recent event count state';
 COMMENT ON COLUMN appmon_event_count_last.node_id IS 'Monitoring node identifier';
-COMMENT ON COLUMN appmon_event_count_last.node_group IS 'Monitoring node group identifier';
+COMMENT ON COLUMN appmon_event_count_last.group_id IS 'Monitoring node group identifier';
 COMMENT ON COLUMN appmon_event_count_last.app_id IS 'Application identifier';
 COMMENT ON COLUMN appmon_event_count_last.event_id IS 'Event identifier';
 COMMENT ON COLUMN appmon_event_count_last.datetime IS 'Last data point timestamp';

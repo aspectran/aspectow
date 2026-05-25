@@ -47,13 +47,13 @@ public abstract class NodeManagerBuilder {
 
     public static final String MY_NODE_ID_PROPERTY = "aspectow.node.id";
 
-    public static final String MY_NODE_GROUP_PROPERTY = "aspectow.node.group";
+    public static final String MY_GROUP_ID_PROPERTY = "aspectow.node.group";
 
     private static final String DEFAULT_CLUSTER_ID = "cluster1";
 
     private static final String DEFAULT_NODE_ID = "node1";
 
-    private static final String DEFAULT_NODE_GROUP = "group1";
+    private static final String DEFAULT_GROUP_ID = "group1";
 
     @NonNull
     public static NodeManager build(
@@ -82,7 +82,7 @@ public abstract class NodeManagerBuilder {
         NodeInfo nodeInfo;
         NodeInfoHolder nodeInfoHolder;
         if (clusterConfig.isAutoscalingMode()) {
-            String myGroup = resolveMyNodeGroup();
+            String myGroup = resolveMyGroupId();
             String shortId = UUID.randomUUID().toString().split("-")[0];
             nodeId = (StringUtils.hasText(myGroup) ? myGroup + "-" : "") + shortId;
             nodeInfo = new NodeInfo();
@@ -107,7 +107,7 @@ public abstract class NodeManagerBuilder {
                     nodeId = myNodeId;
                     nodeInfo = new NodeInfo();
                     nodeInfo.setNodeId(nodeId);
-                    nodeInfo.setGroup(resolveMyNodeGroup());
+                    nodeInfo.setGroup(resolveMyGroupId());
                     nodeInfoHolder.putNodeInfo(nodeInfo);
                 }
             } else {
@@ -171,7 +171,7 @@ public abstract class NodeManagerBuilder {
                         newInfo.setNodeId(existingInfo.getNodeId());
                         newInfo.setGroup(existingInfo.getGroup());
                         newInfo.setTitle(existingInfo.getTitle());
-                        
+
                         newInfo.setHost(info.getHost());
                         newInfo.setPort(info.getPort());
                         newInfo.setStartTime(info.getStartTime());
@@ -179,7 +179,7 @@ public abstract class NodeManagerBuilder {
                         newInfo.setHeartbeatInterval(info.getHeartbeatInterval());
                         newInfo.setEndpointConfig(info.getEndpointConfig());
                         newInfo.setToken(info.getToken());
-                        
+
                         nodeManager.getNodeInfoHolder().putNodeInfo(newInfo);
                     }
                 }
@@ -218,8 +218,8 @@ public abstract class NodeManagerBuilder {
         return SystemUtils.getProperty(MY_NODE_ID_PROPERTY, DEFAULT_NODE_ID);
     }
 
-    private static String resolveMyNodeGroup() {
-        return SystemUtils.getProperty(MY_NODE_GROUP_PROPERTY, DEFAULT_NODE_GROUP);
+    private static String resolveMyGroupId() {
+        return SystemUtils.getProperty(MY_GROUP_ID_PROPERTY, DEFAULT_GROUP_ID);
     }
 
     private static void validateSecretConfig(SecretConfig secretConfig) {

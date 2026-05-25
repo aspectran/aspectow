@@ -42,7 +42,7 @@ public class AppMonManager extends InstantActivitySupport {
 
     private final String nodeId;
 
-    private final String nodeGroup;
+    private final String groupId;
 
     private final PollingConfig pollingConfig;
 
@@ -61,7 +61,7 @@ public class AppMonManager extends InstantActivitySupport {
     /**
      * Instantiates a new AppMonManager.
      * @param nodeId the name of the current node
-     * @param nodeGroup the name of the current node group
+     * @param groupId the name of the current node group
      * @param clusterMode the cluster mode
      * @param pollingConfig the polling configuration
      * @param counterPersistInterval the counter persistence interval in minutes
@@ -71,7 +71,7 @@ public class AppMonManager extends InstantActivitySupport {
      */
     public AppMonManager(
             String nodeId,
-            String nodeGroup,
+            String groupId,
             String clusterMode,
             PollingConfig pollingConfig,
             int counterPersistInterval,
@@ -79,7 +79,7 @@ public class AppMonManager extends InstantActivitySupport {
             AppInfoHolder appInfoHolder,
             MessageRelayManager messageRelayManager) {
         this.nodeId = nodeId;
-        this.nodeGroup = nodeGroup;
+        this.groupId = groupId;
         this.clusterMode = clusterMode;
         this.pollingConfig = pollingConfig;
         this.counterPersistInterval = counterPersistInterval;
@@ -129,8 +129,8 @@ public class AppMonManager extends InstantActivitySupport {
      * Gets the name of the current node group.
      * @return the current node group name
      */
-    public String getNodeGroup() {
-        return nodeGroup;
+    public String getGroupId() {
+        return groupId;
     }
 
     /**
