@@ -37,6 +37,11 @@ public class ClusterEventSubscriber extends RedisPubSubAdapter<String, String> {
 
     private static final Logger logger = LoggerFactory.getLogger(ClusterEventSubscriber.class);
 
+    public static final String MESSAGE_JOINED = "JOINED:";
+
+    public static final String MESSAGE_LEFT = "LEFT:";
+
+
     private final String clusterId;
 
     private final RedisConnectionPool connectionPool;
@@ -64,7 +69,7 @@ public class ClusterEventSubscriber extends RedisPubSubAdapter<String, String> {
             return;
         }
 
-        if (message.startsWith("JOINED:")) {
+        if (message.startsWith(MESSAGE_JOINED)) {
             String aponData = message.substring(7);
             try {
                 NodeInfo info = new NodeInfo();
@@ -75,7 +80,7 @@ public class ClusterEventSubscriber extends RedisPubSubAdapter<String, String> {
             } catch (IOException e) {
                 logger.warn("Failed to parse JOINED event data", e);
             }
-        } else if (message.startsWith("LEFT:")) {
+        } else if (message.startsWith(MESSAGE_LEFT)) {
             String leftNodeId = message.substring(5);
             for (ClusterEventListener listener : listeners) {
                 listener.onLeft(leftNodeId);

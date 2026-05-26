@@ -25,6 +25,9 @@ class DashboardBuilder {
     constructor(options = {}) {
         this.options = options;
         this.settings = {};
+        this.clusterMode = "direct";
+        this.isGatewayMode = false;
+        this.counterPersistInterval = 5;
         this.nodes = [];
         this.apps = [];
         this.metrics = [];
@@ -50,6 +53,9 @@ class DashboardBuilder {
                     }
 
                     this.settings = { ...data.settings };
+                    this.clusterMode = this.settings.clusterMode || "direct";
+                    this.isGatewayMode = (this.settings.clusterMode === "gateway" || this.settings.clusterMode === "autoscaling");
+                    this.counterPersistInterval = this.settings.counterPersistInterval || 5;
                     this.nodes = [];
                     this.apps = [];
                     this.viewers = [];
@@ -76,7 +82,7 @@ class DashboardBuilder {
                         node.endpoint.path = basePath + node.endpoint.path + "/" + node.id;
                         node.endpoint.token = data.token;
                         this.nodes.push(node);
-                        this.viewers[node.index] = new DashboardViewer(this.settings.counterPersistInterval * 60, this.options);
+                        this.viewers[node.index] = new DashboardViewer(this.counterPersistInterval * 60, this.options);
                         console.log("node", node);
                     });
 
@@ -107,23 +113,18 @@ class DashboardBuilder {
     }
 
     connect(nodeIndex, appsToSubscribe, nodeIdToSubscribe) {
-        console.log("cluster mode:", this.settings.clusterMode);
+        console.log("cluster mode:", this.clusterMode);
         console.log("connecting node index:", nodeIndex);
 
-        const node = this.nodes[nodeIndex];
-        if (node.subscribed) return;
-        const viewer = this.viewers[nodeIndex];
-        const isGatewayMode = (this.settings.clusterMode === "gateway" || this.settings.clusterMode === "autoscaling");
-
-        const onSubscribed = (node) => {
+        const onSubscribed = (node, primary) => {
             if (node.subscribed && node.subscribeAttempts > 0) return;
             this.clearConsole(node.index);
             node.subscribed = true;
             node.subscribeAttempts++;
             console.log(node.id, "subscribe attempts:", node.subscribeAttempts);
             this.changeNodeState(node);
-            if (node.alive) viewer.setEnable(true);
-            if (node.alive && node.active) viewer.setVisible(true);
+            if (node.alive) this.viewers[node.index].setEnable(true);
+            if (node.alive && node.active) this.viewers[node.index].setVisible(true);
             if (node.subscribeAttempts === 1) {
                 this.initView();
             } else {
@@ -132,39 +133,59 @@ class DashboardBuilder {
             if (node.subscribeAttempts === 1 && nodeIndex + 1 < this.nodes.length) {
                 this.connect(nodeIndex + 1, appsToSubscribe);
             }
-        };
-
-        const onPrimary = (node) => {
-            console.log("primary connection node:", node.id);
-            node.primary = true;
+            if (primary) {
+                console.log("primary connection node:", node.id);
+                node.primary = true;
+            }
         };
 
         const onClosed = (node) => {
             node.subscribed = false;
             this.changeNodeState(node);
-            viewer.setEnable(false);
+            this.viewers[node.index].setEnable(false);
         };
 
         const onFailed = (node) => {
             this.changeNodeState(node, true);
             if (node.endpoint.mode !== "websocket" && node.subscribeAttempts < 1) {
                 setTimeout(() => {
-                    const client = new PollingClient(node, viewer, onSubscribed, onPrimary, onClosed, onFailed, isGatewayMode);
-                    if (isGatewayMode) {
+                    const client = new PollingClient(node, viewer, onSubscribed, onClosed, onFailed,  this.isGatewayMode);
+                    if (this.isGatewayMode) {
                         this.sharedClient = client;
-                        client.addClusterViewer(node.id, viewer);
-                        client.addClusterNode(node, onSubscribed, onPrimary);
+                        client.addClusterViewer(node.id, this.viewers[node.index]);
+                        client.addClusterNode(node, onSubscribed);
+                        client.onNodeJoined = onNodeJoined;
+                        client.onNodeLeft = onNodeLeft;
                     }
-                    viewer.setClient(client);
+                    this.viewers[node.index].setClient(client);
                     this.clients[nodeIndex] = client;
                     client.start(appsToSubscribe, nodeIdToSubscribe);
                 }, (node.index - 1) * 1000);
             }
         };
 
-        if (isGatewayMode && this.sharedClient) {
+        const onNodeJoined = (node) => {
+            if (!this.nodes.find(n => n.id === node.id)) {
+                this.showNewNodeNotification(node.id);
+            }
+        };
+
+        const onNodeLeft = (nodeId) => {
+            const node = this.nodes.find(n => n.id === nodeId);
+            if (node) {
+                this.changeNodeState(node);
+                this.viewers[node.index].setEnable(false);
+                this.viewers[node.index].printErrorMessage("Node " + nodeId + " is left");
+            }
+        };
+
+        const node = this.nodes[nodeIndex];
+        if (node.subscribed) return;
+        const viewer = this.viewers[nodeIndex];
+
+        if (this.isGatewayMode && this.sharedClient) {
             this.sharedClient.addClusterViewer(node.id, viewer);
-            this.sharedClient.addClusterNode(node, onSubscribed, onPrimary);
+            this.sharedClient.addClusterNode(node, onSubscribed);
             viewer.setClient(this.sharedClient);
             this.clients[node.index] = this.sharedClient;
 
@@ -175,18 +196,36 @@ class DashboardBuilder {
 
         let client;
         if (node.endpoint.mode === "polling") {
-            client = new PollingClient(node, viewer, onSubscribed, onPrimary, onClosed, onFailed, isGatewayMode);
+            client = new PollingClient(node, viewer, onSubscribed, onClosed, onFailed, this.isGatewayMode);
         } else {
-            client = new WebsocketClient(node, viewer, onSubscribed, onPrimary, onClosed, onFailed, isGatewayMode);
+            client = new WebsocketClient(node, viewer, onSubscribed, onClosed, onFailed, this.isGatewayMode);
         }
-        if (isGatewayMode) {
+        if (this.isGatewayMode) {
             this.sharedClient = client;
             client.addClusterViewer(node.id, viewer);
-            client.addClusterNode(node, onSubscribed, onPrimary);
+            client.addClusterNode(node, onSubscribed);
+            client.onNodeJoined = onNodeJoined;
+            client.onNodeLeft = onNodeLeft;
         }
         viewer.setClient(client);
         this.clients[nodeIndex] = client;
         client.start(appsToSubscribe, nodeIdToSubscribe);
+    }
+
+    showNewNodeNotification(nodeId) {
+        const $notification = $("#new-node-notification");
+        if ($notification.length > 0) {
+            $notification.find(".node-id").text(nodeId);
+            $notification.find(".refresh-btn").off("click").on("click", () => {
+                location.reload();
+            });
+            $notification.fadeIn();
+        } else {
+            const result = confirm("A new node '" + nodeId + "' has joined the cluster. Would you like to refresh the dashboard?");
+            if (result) {
+                location.reload();
+            }
+        }
     }
 
     changeNode(nodeIndex) {
@@ -673,7 +712,7 @@ class DashboardBuilder {
     addControlBar(appInfo) {
         const $bar = $(".control-bar");
         const $newBar = $bar.first().hide().clone().addClass("available").attr("data-app-id", appInfo.id);
-        $newBar.find(".btn.default").text(this.settings.counterPersistInterval + "min.");
+        $newBar.find(".btn.default").text(this.counterPersistInterval + "min.");
         return $newBar.insertAfter($bar.last());
     }
 

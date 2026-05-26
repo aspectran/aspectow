@@ -78,11 +78,16 @@ class WebsocketClient extends BaseClient {
                     return;
                 }
 
-                // Control messages in Gateway Mode
-                if (this.isGatewayMode && message.startsWith(":subscribed:")) {
-                    const alive = (message === ":subscribed:alive");
-                    this.establish(nodeId, false, alive);
-                    return;
+                if (this.isGatewayMode) {
+                    if (message.startsWith(":node:joined:")) {
+                        const nodeInfo = JSON.parse(message.substring(13));
+                        if (this.onNodeJoined) this.onNodeJoined(nodeInfo);
+                        return;
+                    }
+                    if (message === ":node:left") {
+                        if (this.onNodeLeft) this.onNodeLeft(nodeId);
+                        return;
+                    }
                 }
 
                 // Data messages
@@ -166,13 +171,12 @@ class WebsocketClient extends BaseClient {
         if (config) {
             config.node.alive = !!alive;
             if (config.onSubscribed && !config.node.subscribed) {
-                config.onSubscribed(config.node);
+                config.onSubscribed(config.node, primary);
             }
         }
 
         const viewer = this.getViewer(nodeId);
         if (primary) {
-            if (config && config.onPrimary) config.onPrimary(config.node);
             while (this.pendingMessages.length) {
                 viewer.printMessage(this.pendingMessages.shift());
             }

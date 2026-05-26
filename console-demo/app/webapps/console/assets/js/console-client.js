@@ -159,14 +159,25 @@ class ConsoleClient {
             this.socket.onclose = (event) => {
                 this.closeSocket(true);
                 if (this.options.onClose) {
-                    this.options.onClose(event);
+                    setTimeout(() => this.options.onClose(event), 100);
                 }
                 if (!this.manualClose) {
                     if (event.code === 1003) {
+                        console.warn("Websocket connection refused: ", event.code);
                         this.options.viewer.printErrorMessage("Connection rejected: " + (event.reason || "Unauthorized"));
-                        this.switchToPolling();
-                    } else {
-                        this.reconnect();
+                        return;
+                    }
+                    if (event.code === 1011) {
+                        console.log("Websocket connection closed: ", event.code);
+                        this.options.viewer.printErrorMessage("Websocket connection closed due to server error.");
+                        return;
+                    }
+                    if (event.code === 1000 || this.retryCount === 0) {
+                        console.log("Websocket connection closed: ", event.code);
+                        this.options.viewer.printMessage("Websocket connection closed.");
+                    }
+                    if (event.code !== 1000) {
+                        setTimeout(() => this.reconnect(), 1000);
                     }
                 }
             };

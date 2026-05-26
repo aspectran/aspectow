@@ -34,6 +34,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import static com.aspectran.aspectow.node.manager.ClusterEventSubscriber.MESSAGE_JOINED;
+import static com.aspectran.aspectow.node.manager.ClusterEventSubscriber.MESSAGE_LEFT;
+
 /**
  * Responsible for reporting the current node's status to the cluster registry.
  * <p>It periodically updates the pulse to indicate that the node is active
@@ -145,7 +148,7 @@ public class NodeReporter {
         try {
             String aponData = new AponWriter().nullWritable(false).write(getNodeInfo()).toString();
             String channel = NodeMessageProtocol.getClusterEventsChannel(getClusterConfig().getId());
-            nodeManager.getNodeMessagePublisher().asyncPublish(channel, "JOINED:" + aponData);
+            nodeManager.getNodeMessagePublisher().asyncPublish(channel, MESSAGE_JOINED + aponData);
         } catch (Exception e) {
             logger.error("Failed to broadcast join event for node '{}'", getNodeInfo().getId(), e);
         }
@@ -154,7 +157,7 @@ public class NodeReporter {
     private void broadcastLeave() {
         try {
             String channel = NodeMessageProtocol.getClusterEventsChannel(getClusterConfig().getId());
-            nodeManager.getNodeMessagePublisher().syncPublish(channel, "LEFT:" + getNodeInfo().getId());
+            nodeManager.getNodeMessagePublisher().syncPublish(channel, MESSAGE_LEFT + getNodeInfo().getId());
         } catch (Exception e) {
             logger.error("Failed to broadcast leave event for node '{}'", getNodeInfo().getId(), e);
         }

@@ -22,15 +22,16 @@
  * @last-modified 2026-05-22
  */
 class BaseClient {
-    constructor(node, viewer, onSubscribed, onPrimary, onClosed, onFailed, isGatewayMode) {
+    constructor(node, viewer, onSubscribed, onClosed, onFailed, isGatewayMode) {
         this.node = node;
         this.viewer = viewer;
         this.clusterViewers = {};
         this.clusterNodes = {};
         this.onSubscribed = onSubscribed;
-        this.onPrimary = onPrimary;
         this.onClosed = onClosed;
         this.onFailed = onFailed;
+        this.onNodeJoined = null;
+        this.onNodeLeft = null;
         this.isGatewayMode = isGatewayMode;
         this.nodeToSubscribe = null;
         this.appsToSubscribe = null;
@@ -45,8 +46,8 @@ class BaseClient {
         this.clusterViewers[nodeId] = viewer;
     }
 
-    addClusterNode(node, onSubscribed, onPrimary) {
-        this.clusterNodes[node.id] = {node, onSubscribed, onPrimary};
+    addClusterNode(node, onSubscribed) {
+        this.clusterNodes[node.id] = {node, onSubscribed};
     }
 
     getViewer(nodeId) {

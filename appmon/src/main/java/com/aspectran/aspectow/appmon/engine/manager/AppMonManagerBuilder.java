@@ -36,7 +36,9 @@ import com.aspectran.aspectow.appmon.engine.persist.counter.EventCounter;
 import com.aspectran.aspectow.appmon.engine.persist.counter.EventCounterBuilder;
 import com.aspectran.aspectow.appmon.engine.relay.MessageRelayManager;
 import com.aspectran.aspectow.appmon.engine.relay.remote.NodeMessageRelayHandler;
+import com.aspectran.aspectow.node.config.NodeInfo;
 import com.aspectran.aspectow.node.config.NodeInfoHolder;
+import com.aspectran.aspectow.node.manager.ClusterEventListener;
 import com.aspectran.aspectow.node.manager.NodeManager;
 import com.aspectran.core.context.ActivityContext;
 import com.aspectran.utils.Assert;
@@ -172,6 +174,20 @@ public abstract class AppMonManagerBuilder {
         if (nodeManager.getNodeMessageSubscriber() != null) {
             NodeMessageRelayHandler nodeMessageRelayHandler = new NodeMessageRelayHandler(messageRelayManager);
             nodeManager.getNodeMessageSubscriber().addListener(nodeMessageRelayHandler);
+        }
+
+        if (nodeManager.getClusterEventSubscriber() != null) {
+            nodeManager.getClusterEventSubscriber().addListener(new ClusterEventListener() {
+                @Override
+                public void onJoined(NodeInfo info) {
+                    messageRelayManager.nodeJoined(info);
+                }
+
+                @Override
+                public void onLeft(String leftNodeId) {
+                    messageRelayManager.nodeLeft(leftNodeId);
+                }
+            });
         }
 
         return appMonManager;

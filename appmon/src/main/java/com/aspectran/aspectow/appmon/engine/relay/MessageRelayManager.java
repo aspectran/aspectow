@@ -20,6 +20,7 @@ import com.aspectran.aspectow.node.config.NodeInfo;
 import com.aspectran.aspectow.node.manager.NodeRegistry;
 import com.aspectran.aspectow.node.manager.NodeMessagePublisher;
 import com.aspectran.utils.Assert;
+import com.aspectran.utils.json.JsonBuilder;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
@@ -129,6 +130,22 @@ public class MessageRelayManager {
         }
     }
 
+    public void nodeJoined(@NonNull NodeInfo info) {
+        if (!isSameNode(info.getId())) {
+            JsonBuilder jsonBuilder = new JsonBuilder()
+                    .nullWritable(false)
+                    .prettyPrint(false)
+                    .put(info);
+            broadcast(info.getId() + "::node:joined:" + jsonBuilder.toString());
+        }
+    }
+
+    public void nodeLeft(String nodeId) {
+        if (isSameNode(nodeId)) {
+            broadcast(nodeId + "::node:left");
+        }
+    }
+
     /**
      * Publishes a local message to Redis and relays it to all registered relayers.
      * @param message the message to publish
@@ -187,7 +204,12 @@ public class MessageRelayManager {
         Assert.notNull(message, "message must not be null");
         String appId = extractAppId(message);
         boolean isLog = isLogMessage(message);
-        Set<String> sessionIds = subscriptionRegistry.getSessionsSubscribedToApp(appId);
+        Set<String> sessionIds;
+        if (appId != null) {
+            sessionIds = subscriptionRegistry.getSessionsSubscribedToApp(appId);
+        } else {
+            sessionIds = subscriptionRegistry.getAllSessionIds();
+        }
         for (String sid : sessionIds) {
             MessageRelayer relayer = sessionRelayerMap.get(sid);
             if (relayer != null) {

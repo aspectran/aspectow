@@ -167,6 +167,18 @@ class PollingClient extends BaseClient {
                 const message = msg.substring(idx + 1);
 
                 if (this.primary) {
+                    if (this.isGatewayMode) {
+                        if (message === ":node:joined") {
+                            const nodeInfo = JSON.parse(message.substring(13));
+                            if (this.onNodeJoined) this.onNodeJoined(nodeInfo);
+                            return;
+                        }
+                        if (message === ":node:left") {
+                            if (this.onNodeLeft) this.onNodeLeft(nodeId);
+                            return;
+                        }
+                    }
+
                     // Data messages
                     const viewer = this.getViewer(nodeId);
                     if (viewer) {
@@ -191,7 +203,7 @@ class PollingClient extends BaseClient {
         if (config) {
             config.node.alive = !!alive;
             if (config.onSubscribed && !config.node.subscribed) {
-                config.onSubscribed(config.node);
+                config.onSubscribed(config.node, primary);
             }
         }
 
@@ -202,7 +214,6 @@ class PollingClient extends BaseClient {
             viewer.printMessage("Polling every " + this.node.endpoint.pollingInterval + " milliseconds.");
         }
         if (primary) {
-            if (config && config.onPrimary) config.onPrimary(config.node);
             this.sendCommand(["command:established"], nodeId);
         }
     }
