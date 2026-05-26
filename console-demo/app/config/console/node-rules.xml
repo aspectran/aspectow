@@ -8,7 +8,7 @@
             <item name="configLocation">/config/console/node-config-prod.apon</item>
         </properties>
         <properties profile="!prod">
-            <item name="configLocation">/config/console/node-config-test-autoscaling.apon</item>
+            <item name="configLocation">/config/console/node-config-test-gateway.apon</item>
         </properties>
     </bean>
 

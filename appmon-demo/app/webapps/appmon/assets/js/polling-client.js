@@ -220,12 +220,8 @@ class PollingClient extends BaseClient {
 
         const config = this.getNodeConfig(nodeId);
         if (config) {
-            const oldAlive = config.node.alive;
-            const oldPrimary = config.node.primary;
             config.node.alive = !!alive;
-
-            // Trigger callback if status or primary role changed, or if it's the first time
-            if (config.onSubscribed && (!config.node.subscribed || oldAlive !== config.node.alive || oldPrimary !== primary)) {
+            if (config.onSubscribed && !config.node.subscribed) {
                 config.onSubscribed(config.node, primary);
             }
         }

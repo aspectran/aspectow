@@ -147,7 +147,9 @@ class BaseClient {
             const status = "(" + this.retryCount + "/" + this.maxRetries + ", interval=" + retryInterval + ")";
             console.log(this.node.id, "trying to reconnect", status);
             this.viewer.printMessage("Trying to reconnect... " + status);
-            setTimeout(() => this.start(this.appsToSubscribe, this.nodeToSubscribe), retryInterval);
+            setTimeout(() => {
+                this.start(this.appsToSubscribe, this.nodeToSubscribe);
+            }, retryInterval);
         } else {
             console.log(this.node.id, "abort reconnect attempt");
             this.viewer.printMessage("Max connection attempts exceeded.");

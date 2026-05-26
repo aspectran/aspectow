@@ -84,7 +84,7 @@ class DashboardBuilder {
                         node.endpoint.token = data.token;
                         this.nodes.push(node);
                         this.viewers[node.index] = new DashboardViewer(this.counterPersistInterval * 60, this.options);
-                        console.log("node", node);
+                        console.log(index, "node", node);
                     });
 
                     data.apps.forEach(appInfo => {
@@ -114,19 +114,23 @@ class DashboardBuilder {
     }
 
     connect(nodeIndex, appsToSubscribe, nodeIdToSubscribe) {
-        console.log("cluster mode:", this.clusterMode);
+        if (nodeIndex === 0) console.log("cluster mode:", this.clusterMode);
         console.log("connecting node index:", nodeIndex);
 
+        const onRequireRebuild = () => {
+            this.build(this.basePath, this.appsToSubscribe, this.nodeIdToSubscribe);
+        };
+
         const onSubscribed = (node, primary) => {
-            //if (node.subscribed && node.subscribeAttempts > 0) return;
+            if (node.subscribed && node.subscribeAttempts > 0) return;
             if (primary) {
                 console.log("primary connection node:", node.id);
                 node.primary = true;
             }
-            this.clearConsole(node.index);
             node.subscribed = true;
             node.subscribeAttempts++;
             console.log(node.id, "subscribe attempts:", node.subscribeAttempts);
+            this.clearConsole(node.index);
             this.changeNodeState(node);
             if (node.alive) this.viewers[node.index].setEnable(true);
             if (node.alive && node.active) this.viewers[node.index].setVisible(true);
@@ -140,10 +144,6 @@ class DashboardBuilder {
             }
         };
 
-        const onRequireRebuild = () => {
-            this.build(this.basePath, this.appsToSubscribe, this.nodeIdToSubscribe);
-        };
-
         const onClosed = (node) => {
             node.subscribed = false;
             node.alive = false;
@@ -154,33 +154,38 @@ class DashboardBuilder {
 
         const onFailed = (node) => {
             this.changeNodeState(node, true);
-            // alert(node.subscribeAttempts);
-            // if (node.endpoint.mode !== "websocket" && node.subscribeAttempts < 1) {
-            //     setTimeout(() => {
-            //         const client = new PollingClient(node, viewer, onSubscribed, onClosed, onFailed,  this.isGatewayMode);
-            //         if (this.isGatewayMode) {
-            //             this.sharedClient = client;
-            //             client.addClusterViewer(node.id, this.viewers[node.index]);
-            //             client.addClusterNode(node, onSubscribed);
-            //             client.onNodeJoined = onNodeJoined;
-            //             client.onNodeLeft = onNodeLeft;
-            //         }
-            //         this.viewers[node.index].setClient(client);
-            //         this.clients[nodeIndex] = client;
-            //         client.start(appsToSubscribe, nodeIdToSubscribe);
-            //     }, (node.index - 1) * 1000);
-            // }
+            if (node.endpoint.mode === "polling" && node.subscribeAttempts < 1) {
+                setTimeout(() => {
+                    const viewer = this.viewers[node.index];
+                    const client = new PollingClient(node, viewer, onSubscribed, onClosed, onFailed, this.isGatewayMode);
+                    if (this.isGatewayMode) {
+                        this.sharedClient = client;
+                        client.addClusterViewer(node.id, viewer);
+                        client.addClusterNode(node, onSubscribed);
+                        client.onNodeJoined = onNodeJoined;
+                        client.onNodeLeft = onNodeLeft;
+                        client.onRequireRebuild = onRequireRebuild;
+                    }
+                    this.viewers[node.index].setClient(client);
+                    this.clients[node.index] = client;
+                    client.start(appsToSubscribe, nodeIdToSubscribe);
+                }, (node.index - 1) * 1000);
+            }
         };
 
         const onNodeJoined = (node) => {
-            if (!this.nodes.find(n => n.id === node.id)) {
+            //const existingNode = this.nodes.find(n => n.id === node.id);
+            //if (!existingNode) {
                 this.showNewNodeNotification(node.id);
-            }
+            //} else if (this.isGatewayMode && this.sharedClient) {
+            //    this.sharedClient.connect(node.id);
+            //}
         };
 
         const onNodeLeft = (nodeId) => {
             const node = this.nodes.find(n => n.id === nodeId);
             if (node) {
+                node.subscribed = false;
                 node.alive = false;
                 this.changeNodeState(node);
                 this.viewers[node.index].setEnable(false);
@@ -199,7 +204,6 @@ class DashboardBuilder {
             this.sharedClient.addClusterNode(node, onSubscribed);
             viewer.setClient(this.sharedClient);
             this.clients[node.index] = this.sharedClient;
-
             // Trigger explicit connection for this node over the shared connection
             this.sharedClient.connect(node.id);
             return;
@@ -220,7 +224,7 @@ class DashboardBuilder {
             client.onRequireRebuild = onRequireRebuild;
         }
         viewer.setClient(client);
-        this.clients[nodeIndex] = client;
+        this.clients[node.index] = client;
         client.start(appsToSubscribe, nodeIdToSubscribe);
     }
 

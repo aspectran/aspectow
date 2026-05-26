@@ -47,11 +47,13 @@ class WebsocketClient extends BaseClient {
 
         console.log("connecting to websocket:", url.href);
         this.socket = new WebSocket(url.href);
+        let handshakeSuccessful = false;
 
         this.socket.onopen = () => {
-            console.log(this.node.id, "socket connected");
-            this.pendingMessages.push("Socket connection successful");
-            
+            handshakeSuccessful = true;
+            console.log(this.node.id, "websocket connected");
+            this.pendingMessages.push("WebSocket connection successful");
+
             // Connect to the current node
             this.connect(this.node.id);
             this.sendPing();
@@ -112,7 +114,14 @@ class WebsocketClient extends BaseClient {
         };
 
         this.socket.onclose = (event) => {
+            const wasHandshakeSuccessful = handshakeSuccessful;
             this.closeSocket(true);
+
+            if (!wasHandshakeSuccessful) {
+                console.warn("WebSocket handshake failed. Code:", event.code);
+                return;
+            }
+
             this.notifyClosed();
             if (event.code === 1003) {
                 console.warn("Websocket connection refused: ", event.code);
@@ -138,7 +147,12 @@ class WebsocketClient extends BaseClient {
 
         this.socket.onerror = (event) => {
             console.error(this.node.id, "websocket error:", event);
-            this.viewer.printErrorMessage("Could not connect to the WebSocket server.");
+            if (!handshakeSuccessful && this.node.endpoint.mode !== "polling") {
+                this.node.endpoint.mode = "polling";
+                this.viewer.printErrorMessage("WebSocket is not supported. Switching to polling mode.");
+            } else {
+                this.viewer.printErrorMessage("Could not connect to the WebSocket server.");
+            }
             this.notifyFailed();
         };
     }
@@ -173,9 +187,7 @@ class WebsocketClient extends BaseClient {
     establish(nodeId, primary, alive) {
         if (this.reconnecting && (!primary || !alive)) {
             console.log("Reconnect attempt failed, node is not primary or alive");
-            if (this.onRequireRebuild) {
-                this.onRequireRebuild();
-            }
+            if (this.onRequireRebuild) this.onRequireRebuild();
             return;
         }
 
