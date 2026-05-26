@@ -38,6 +38,7 @@ class PollingClient extends BaseClient {
     stop() {
         this.stopped = true;
         this.primary = false;
+        this.primaryNodeId = null;
         if (this.pollingTimer) {
             clearTimeout(this.pollingTimer);
             this.pollingTimer = null;
@@ -193,35 +194,28 @@ class PollingClient extends BaseClient {
     }
 
     establish(nodeId, primary, alive) {
-        if (primary) {
-            this.primary = true;
-            this.primaryNodeId = nodeId;
+        if (this.reconnecting && (!primary || !alive)) {
+            console.log("Reconnect attempt failed, node is not primary or alive");
+            if (this.onRequireRebuild) {
+                this.onRequireRebuild();
+            }
+            return;
+        }
 
+        if (primary) {
             // Passive Swap: If the server routed us to a different node than we expected
             if (this.isGatewayMode && this.node.id !== nodeId) {
-                const config = this.clusterNodes[nodeId];
-                if (config) {
-                    console.log(this.node.id, "swapping roles with", nodeId);
-                    this.clusterNodes[this.node.id] = { node: this.node, onSubscribed: this.onSubscribed };
-                    this.clusterViewers[this.node.id] = this.viewer;
-                    this.node.primary = false;
-
-                    this.node = config.node;
-                    this.viewer = this.clusterViewers[nodeId];
-                    this.onSubscribed = config.onSubscribed;
-
-                    delete this.clusterNodes[nodeId];
-                    delete this.clusterViewers[nodeId];
-                } else {
-                    // Unknown node ID became primary! 
-                    // This happens in Autoscaling mode when the gateway instance restarts with a new ID.
-                    if (this.onRequireRebuild) {
-                        console.log(this.node.id, "unknown node became primary, requesting full rebuild");
-                        this.onRequireRebuild();
-                        return;
-                    }
+                this.stop();
+                // Unknown node ID became primary!
+                // This happens in Autoscaling mode when the gateway instance restarts with a new ID.
+                if (this.onRequireRebuild) {
+                    console.log(this.node.id, "unknown node became primary, requesting full rebuild");
+                    this.onRequireRebuild();
                 }
+                return;
             }
+            this.primary = true;
+            this.primaryNodeId = nodeId;
         }
 
         const config = this.getNodeConfig(nodeId);
