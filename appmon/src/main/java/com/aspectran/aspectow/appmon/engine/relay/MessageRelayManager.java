@@ -136,13 +136,13 @@ public class MessageRelayManager {
                     .nullWritable(false)
                     .prettyPrint(false)
                     .put(info);
-            broadcast(info.getId() + "::node:joined:" + jsonBuilder.toString());
+            relayLocally(info.getId() + "::node:joined:" + jsonBuilder.toString());
         }
     }
 
     public void nodeLeft(String nodeId) {
-        if (isSameNode(nodeId)) {
-            broadcast(nodeId + "::node:left");
+        if (!isSameNode(nodeId)) {
+            relayLocally(nodeId + "::node:left");
         }
     }
 

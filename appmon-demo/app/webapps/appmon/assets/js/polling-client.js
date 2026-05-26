@@ -21,19 +21,11 @@
  * @last-modified 2026-05-22
  */
 class PollingClient extends BaseClient {
-    constructor(node, viewer, onSubscribed, onPrimary, onClosed, onFailed, isGatewayMode = false) {
-        super(node, viewer, onSubscribed, onPrimary, onClosed, onFailed, isGatewayMode);
+    constructor(node, viewer, onSubscribed, onClosed, onFailed, isGatewayMode = false) {
+        super(node, viewer, onSubscribed, onClosed, onFailed, isGatewayMode);
         this.pendingCommands = [];
         this.pollingTimer = null;
         this.stopped = false;
-    }
-
-    addClusterViewer(nodeId, viewer) {
-        this.clusterViewers[nodeId] = viewer;
-    }
-
-    addClusterNode(node, onSubscribed, onPrimary) {
-        this.clusterNodes[node.id] = {node, onSubscribed, onPrimary};
     }
 
     start(appsToSubscribe, nodeToSubscribe) {
@@ -85,12 +77,14 @@ class PollingClient extends BaseClient {
                 } else {
                     console.log(this.node.id, "connection failed");
                     this.viewer.printErrorMessage("Connection failed.");
+                    this.notifyFailed();
                     this.reconnect();
                 }
             },
             error: (xhr, status, error) => {
                 console.log(this.node.id, "connection failed", error);
                 this.viewer.printErrorMessage("Connection failed.");
+                this.notifyFailed();
                 this.reconnect();
             }
         });
@@ -120,7 +114,7 @@ class PollingClient extends BaseClient {
                 } else {
                     console.log(this.node.id, "connection lost");
                     this.viewer.printErrorMessage("Connection lost.");
-                    if (this.onClosed) this.onClosed(this.node);
+                    this.notifyClosed();
                     this.reconnect();
                 }
             },
@@ -128,7 +122,7 @@ class PollingClient extends BaseClient {
                 if (this.stopped) return;
                 console.log(this.node.id, "connection lost", error);
                 this.viewer.printErrorMessage("Connection lost.");
-                if (this.onClosed) this.onClosed(this.node);
+                this.notifyClosed();
                 this.reconnect();
             }
         });
@@ -168,7 +162,12 @@ class PollingClient extends BaseClient {
 
                 if (this.primary) {
                     if (this.isGatewayMode) {
-                        if (message === ":node:joined") {
+                        if (message.startsWith(":subscribed:")) {
+                            const alive = (message === ":subscribed:alive");
+                            this.establish(nodeId, false, alive);
+                            return;
+                        }
+                        if (message.startsWith(":node:joined:")) {
                             const nodeInfo = JSON.parse(message.substring(13));
                             if (this.onNodeJoined) this.onNodeJoined(nodeInfo);
                             return;
@@ -197,27 +196,64 @@ class PollingClient extends BaseClient {
         if (primary) {
             this.primary = true;
             this.primaryNodeId = nodeId;
+
+            // Passive Swap: If the server routed us to a different node than we expected
+            if (this.isGatewayMode && this.node.id !== nodeId) {
+                const config = this.clusterNodes[nodeId];
+                if (config) {
+                    console.log(this.node.id, "swapping roles with", nodeId);
+                    this.clusterNodes[this.node.id] = { node: this.node, onSubscribed: this.onSubscribed };
+                    this.clusterViewers[this.node.id] = this.viewer;
+                    this.node.primary = false;
+
+                    this.node = config.node;
+                    this.viewer = this.clusterViewers[nodeId];
+                    this.onSubscribed = config.onSubscribed;
+
+                    delete this.clusterNodes[nodeId];
+                    delete this.clusterViewers[nodeId];
+                } else {
+                    // Unknown node ID became primary! 
+                    // This happens in Autoscaling mode when the gateway instance restarts with a new ID.
+                    if (this.onRequireRebuild) {
+                        console.log(this.node.id, "unknown node became primary, requesting full rebuild");
+                        this.onRequireRebuild();
+                        return;
+                    }
+                }
+            }
         }
 
         const config = this.getNodeConfig(nodeId);
         if (config) {
+            const oldAlive = config.node.alive;
+            const oldPrimary = config.node.primary;
             config.node.alive = !!alive;
-            if (config.onSubscribed && !config.node.subscribed) {
+
+            // Trigger callback if status or primary role changed, or if it's the first time
+            if (config.onSubscribed && (!config.node.subscribed || oldAlive !== config.node.alive || oldPrimary !== primary)) {
                 config.onSubscribed(config.node, primary);
             }
         }
 
         const viewer = this.getViewer(nodeId);
         if (!alive) {
-            viewer.printMessage("Node '" + nodeId + "' not alive");
+            viewer.printErrorMessage("Node " + nodeId + " not alive");
         } else {
             viewer.printMessage("Polling every " + this.node.endpoint.pollingInterval + " milliseconds.");
         }
         if (primary) {
+            if (this.isGatewayMode && this.reconnecting) {
+                for (let id in this.clusterNodes) {
+                    if (id !== nodeId) {
+                        this.connect(id);
+                    }
+                }
+            }
+            this.reconnecting = false;
             this.sendCommand(["command:established"], nodeId);
         }
     }
-
     sendCommand(options, nodeId) {
         if (options) {
             let arr = options.slice();

@@ -22,8 +22,8 @@
  * @last-modified 2026-05-22
  */
 class WebsocketClient extends BaseClient {
-    constructor(node, viewer, onSubscribed, onPrimary, onClosed, onFailed, isGatewayMode) {
-        super(node, viewer, onSubscribed, onPrimary, onClosed, onFailed, isGatewayMode);
+    constructor(node, viewer, onSubscribed, onClosed, onFailed, isGatewayMode) {
+        super(node, viewer, onSubscribed, onClosed, onFailed, isGatewayMode);
         this.heartbeatInterval = 50000;
         this.heartbeatTimer = null;
         this.socket = null;
@@ -52,7 +52,7 @@ class WebsocketClient extends BaseClient {
             console.log(this.node.id, "socket connected");
             this.pendingMessages.push("Socket connection successful");
             
-            // Connect to the first node
+            // Connect to the current node
             this.connect(this.node.id);
             this.sendPing();
             this.retryCount = 0;
@@ -79,6 +79,11 @@ class WebsocketClient extends BaseClient {
                 }
 
                 if (this.isGatewayMode) {
+                    if (message.startsWith(":subscribed:")) {
+                        const alive = (message === ":subscribed:alive");
+                        this.establish(nodeId, false, alive);
+                        return;
+                    }
                     if (message.startsWith(":node:joined:")) {
                         const nodeInfo = JSON.parse(message.substring(13));
                         if (this.onNodeJoined) this.onNodeJoined(nodeInfo);
@@ -108,10 +113,13 @@ class WebsocketClient extends BaseClient {
 
         this.socket.onclose = (event) => {
             this.closeSocket(true);
-            if (this.onClosed) this.onClosed(this.node);
+            this.notifyClosed();
             if (event.code === 1003) {
                 console.warn("Websocket connection refused: ", event.code);
                 this.viewer.printErrorMessage("Socket connection refused by server.");
+                if (this.onRequireRebuild) {
+                    setTimeout(() => this.onRequireRebuild(), 1000);
+                }
                 return;
             }
             if (event.code === 1011) {
@@ -131,13 +139,14 @@ class WebsocketClient extends BaseClient {
         this.socket.onerror = (event) => {
             console.error(this.node.id, "websocket error:", event);
             this.viewer.printErrorMessage("Could not connect to the WebSocket server.");
-            if (this.onFailed) this.onFailed(this.node);
+            this.notifyFailed();
         };
     }
 
     closeSocket(afterClosing) {
+        this.primary = false;
+        this.primaryNodeId = null;
         if (this.socket) {
-            this.primary = false;
             if (!afterClosing) {
                 this.socket.close();
             }
@@ -162,7 +171,26 @@ class WebsocketClient extends BaseClient {
     }
 
     establish(nodeId, primary, alive) {
+        if (this.reconnecting && (!primary || !alive)) {
+            console.log("Reconnect attempt failed, node is not primary or alive");
+            if (this.onRequireRebuild) {
+                this.onRequireRebuild();
+            }
+            return;
+        }
+
         if (primary) {
+            // Passive Swap: If the server routed us to a different node than we expected
+            if (this.isGatewayMode && this.node.id !== nodeId) {
+                this.stop();
+                // Unknown node ID became primary!
+                // This happens in Autoscaling mode when the gateway instance restarts with a new ID.
+                if (this.onRequireRebuild) {
+                    console.log(this.node.id, "unknown node became primary, requesting full rebuild");
+                    this.onRequireRebuild();
+                }
+                return;
+            }
             this.primary = true;
             this.primaryNodeId = nodeId;
         }
@@ -180,6 +208,14 @@ class WebsocketClient extends BaseClient {
             while (this.pendingMessages.length) {
                 viewer.printMessage(this.pendingMessages.shift());
             }
+            if (this.isGatewayMode && this.reconnecting) {
+                for (let id in this.clusterNodes) {
+                    if (id !== nodeId) {
+                        this.connect(id);
+                    }
+                }
+            }
+            this.reconnecting = false;
             const options = ["command:established"];
             if (this.nodeToSubscribe) options.push("nodeToSubscribe:" + this.nodeToSubscribe);
             this.sendCommand(options, nodeId);

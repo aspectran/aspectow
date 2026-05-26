@@ -39,6 +39,7 @@ class DashboardBuilder {
         this.basePath = basePath;
         this.appsToSubscribe = appsToSubscribe;
         this.nodeIdToSubscribe = nodeIdToSubscribe;
+        this.suspendMonitoring();
         this.clearView();
         $.ajax({
             url: basePath + "/appmon/config/data",
@@ -117,7 +118,11 @@ class DashboardBuilder {
         console.log("connecting node index:", nodeIndex);
 
         const onSubscribed = (node, primary) => {
-            if (node.subscribed && node.subscribeAttempts > 0) return;
+            //if (node.subscribed && node.subscribeAttempts > 0) return;
+            if (primary) {
+                console.log("primary connection node:", node.id);
+                node.primary = true;
+            }
             this.clearConsole(node.index);
             node.subscribed = true;
             node.subscribeAttempts++;
@@ -133,35 +138,38 @@ class DashboardBuilder {
             if (node.subscribeAttempts === 1 && nodeIndex + 1 < this.nodes.length) {
                 this.connect(nodeIndex + 1, appsToSubscribe);
             }
-            if (primary) {
-                console.log("primary connection node:", node.id);
-                node.primary = true;
-            }
+        };
+
+        const onRequireRebuild = () => {
+            this.build(this.basePath, this.appsToSubscribe, this.nodeIdToSubscribe);
         };
 
         const onClosed = (node) => {
             node.subscribed = false;
+            node.alive = false;
+            node.primary = false;
             this.changeNodeState(node);
             this.viewers[node.index].setEnable(false);
         };
 
         const onFailed = (node) => {
             this.changeNodeState(node, true);
-            if (node.endpoint.mode !== "websocket" && node.subscribeAttempts < 1) {
-                setTimeout(() => {
-                    const client = new PollingClient(node, viewer, onSubscribed, onClosed, onFailed,  this.isGatewayMode);
-                    if (this.isGatewayMode) {
-                        this.sharedClient = client;
-                        client.addClusterViewer(node.id, this.viewers[node.index]);
-                        client.addClusterNode(node, onSubscribed);
-                        client.onNodeJoined = onNodeJoined;
-                        client.onNodeLeft = onNodeLeft;
-                    }
-                    this.viewers[node.index].setClient(client);
-                    this.clients[nodeIndex] = client;
-                    client.start(appsToSubscribe, nodeIdToSubscribe);
-                }, (node.index - 1) * 1000);
-            }
+            // alert(node.subscribeAttempts);
+            // if (node.endpoint.mode !== "websocket" && node.subscribeAttempts < 1) {
+            //     setTimeout(() => {
+            //         const client = new PollingClient(node, viewer, onSubscribed, onClosed, onFailed,  this.isGatewayMode);
+            //         if (this.isGatewayMode) {
+            //             this.sharedClient = client;
+            //             client.addClusterViewer(node.id, this.viewers[node.index]);
+            //             client.addClusterNode(node, onSubscribed);
+            //             client.onNodeJoined = onNodeJoined;
+            //             client.onNodeLeft = onNodeLeft;
+            //         }
+            //         this.viewers[node.index].setClient(client);
+            //         this.clients[nodeIndex] = client;
+            //         client.start(appsToSubscribe, nodeIdToSubscribe);
+            //     }, (node.index - 1) * 1000);
+            // }
         };
 
         const onNodeJoined = (node) => {
@@ -173,9 +181,12 @@ class DashboardBuilder {
         const onNodeLeft = (nodeId) => {
             const node = this.nodes.find(n => n.id === nodeId);
             if (node) {
+                node.alive = false;
                 this.changeNodeState(node);
                 this.viewers[node.index].setEnable(false);
-                this.viewers[node.index].printErrorMessage("Node " + nodeId + " is left");
+                if (!node.primary) {
+                    this.viewers[node.index].printErrorMessage("Node " + nodeId + " is left");
+                }
             }
         };
 
@@ -206,6 +217,7 @@ class DashboardBuilder {
             client.addClusterNode(node, onSubscribed);
             client.onNodeJoined = onNodeJoined;
             client.onNodeLeft = onNodeLeft;
+            client.onRequireRebuild = onRequireRebuild;
         }
         viewer.setClient(client);
         this.clients[nodeIndex] = client;
@@ -586,6 +598,7 @@ class DashboardBuilder {
         this.viewers.forEach(viewer => {
             if (viewer) viewer.setEnable(false);
         });
+        this.sharedClient = null;
     }
 
     showPopupModeMessage() {
@@ -604,7 +617,7 @@ class DashboardBuilder {
     clearView() {
         $("#appmon-popup-message").hide();
         $(".node.tabs .tabs-title.available, .app.tabs .tabs-title.available, " +
-          ".node.metrics-bar.available, .app.metrics-bar.available, " +
+          ".node.metrics-bar.available, .app.metrics-bar.available, .control-bar.available, " +
           ".event-box.available, .visual-box.available, .chart-box.available, .console-box.available").remove();
         $(".node.tabs .tabs-title, .app.tabs .tabs-title, .app.metrics-bar, .console-box").show();
     }
