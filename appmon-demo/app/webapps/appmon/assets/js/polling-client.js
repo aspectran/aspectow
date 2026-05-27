@@ -28,10 +28,11 @@ class PollingClient extends BaseClient {
         this.stopped = false;
     }
 
-    start(appsToSubscribe, nodeToSubscribe) {
+    start(appsToSubscribe, nodeToSubscribe, groupIdToSubscribe) {
         this.stopped = false;
         this.nodeToSubscribe = nodeToSubscribe;
         this.appsToSubscribe = appsToSubscribe;
+        this.groupIdToSubscribe = groupIdToSubscribe;
         this.connect(this.node.id);
     }
 
@@ -52,6 +53,7 @@ class PollingClient extends BaseClient {
             dataType: "json",
             data: {
                 nodeId: nodeId,
+                groupId: this.groupIdToSubscribe,
                 timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
                 nodeToSubscribe: this.nodeToSubscribe,
                 appsToSubscribe: this.appsToSubscribe

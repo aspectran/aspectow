@@ -19,6 +19,8 @@ import com.aspectran.aspectow.appmon.engine.config.AppInfo;
 import com.aspectran.aspectow.appmon.engine.config.AppInfoHolder;
 import com.aspectran.aspectow.appmon.engine.config.AppMonConfig;
 import com.aspectran.aspectow.appmon.engine.config.EventInfo;
+import com.aspectran.aspectow.appmon.engine.config.GroupInfo;
+import com.aspectran.aspectow.appmon.engine.config.GroupInfoHolder;
 import com.aspectran.aspectow.appmon.engine.config.LogInfo;
 import com.aspectran.aspectow.appmon.engine.config.MetricInfo;
 import com.aspectran.aspectow.appmon.engine.config.PollingConfig;
@@ -44,6 +46,7 @@ import com.aspectran.core.context.ActivityContext;
 import com.aspectran.utils.Assert;
 import org.jspecify.annotations.NonNull;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.aspectran.aspectow.appmon.engine.schedule.CounterPersistSchedule.DEFAULT_SAMPLE_INTERVAL_IN_MINUTES;
@@ -70,20 +73,20 @@ public abstract class AppMonManagerBuilder {
 
         AppMonManager appMonManager = createAppMonManager(context, appMonConfig);
 
-        for (AppInfo appInfo : appMonConfig.getAppInfoList()) {
+        for (AppInfo appInfo : appMonManager.getAppInfoList()) {
             String appId = appInfo.getAppId();
 
-            List<EventInfo> eventInfoList = appMonConfig.getEventInfoList(appId);
+            List<EventInfo> eventInfoList = appInfo.getEventInfoList();
             if (eventInfoList != null && !eventInfoList.isEmpty()) {
                 buildEventExporters(appMonManager, appId, eventInfoList);
             }
 
-            List<MetricInfo> metricInfoList = appMonConfig.getMetricInfoList(appId);
+            List<MetricInfo> metricInfoList = appInfo.getMetricInfoList();
             if (metricInfoList != null && !metricInfoList.isEmpty()) {
                 buildMetricExporters(appMonManager, appId, metricInfoList);
             }
 
-            List<LogInfo> logInfoList = appMonConfig.getLogInfoList(appId);
+            List<LogInfo> logInfoList = appInfo.getLogInfoList();
             if (logInfoList != null && !logInfoList.isEmpty()) {
                 buildLogExporters(appMonManager, appId, logInfoList);
             }
@@ -161,14 +164,33 @@ public abstract class AppMonManagerBuilder {
         PollingConfig pollingConfig = appMonConfig.touchPollingConfig();
         int counterPersistInterval = appMonConfig.getCounterPersistInterval(DEFAULT_SAMPLE_INTERVAL_IN_MINUTES);
 
-        AppInfoHolder appInfoHolder = new AppInfoHolder(nodeId, appMonConfig.getAppInfoList());
+        List<AppInfo> appInfoList = new ArrayList<>(appMonConfig.getAppInfoList());
+        if (groupId != null) {
+            for (GroupInfo groupInfo : appMonConfig.getGroupInfoList()) {
+                if (groupId.equals(groupInfo.getGroupId())) {
+                    appInfoList.addAll(groupInfo.getAppInfoList());
+                    break;
+                }
+            }
+        }
+        AppInfoHolder appInfoHolder = new AppInfoHolder(nodeId, appInfoList);
+        GroupInfoHolder groupInfoHolder = new GroupInfoHolder(appMonConfig.getGroupInfoList());
+
+        // Aggregate all app definitions defined in the entire configuration
+        List<AppInfo> allAppInfoList = new ArrayList<>(appMonConfig.getAppInfoList());
+        for (GroupInfo groupInfo : appMonConfig.getGroupInfoList()) {
+            for (AppInfo groupAppInfo : groupInfo.getAppInfoList()) {
+                groupAppInfo.setGroupId(groupInfo.getGroupId());
+                allAppInfoList.add(groupAppInfo);
+            }
+        }
 
         MessageRelayManager messageRelayManager = new MessageRelayManager(
-                nodeId, nodeManager.getNodeRegistry(), nodeManager.getNodeMessagePublisher());
+                nodeId, groupId, nodeManager.getNodeRegistry(), nodeManager.getNodeMessagePublisher());
 
         AppMonManager appMonManager = new AppMonManager(
                 nodeId, groupId, clusterMode, pollingConfig, counterPersistInterval,
-                nodeInfoHolder, appInfoHolder, messageRelayManager);
+                nodeInfoHolder, appInfoHolder, allAppInfoList, groupInfoHolder, messageRelayManager);
         appMonManager.setActivityContext(context);
 
         if (nodeManager.getNodeMessageSubscriber() != null) {

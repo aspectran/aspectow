@@ -38,6 +38,7 @@ public class AppMonConfig extends DefaultParameters {
     private static final ParameterKey pollingConfig;
     private static final ParameterKey counterPersistInterval;
     private static final ParameterKey app;
+    private static final ParameterKey group;
 
     private static final ParameterKey[] parameterKeys;
 
@@ -45,11 +46,13 @@ public class AppMonConfig extends DefaultParameters {
         pollingConfig = new ParameterKey("pollingConfig", PollingConfig.class);
         counterPersistInterval = new ParameterKey("counterPersistInterval", ValueType.INT);
         app = new ParameterKey("apps", new String[] {"app"}, AppInfo.class, true, true);
+        group = new ParameterKey("groups", new String[] {"group"}, GroupInfo.class, true, true);
 
         parameterKeys = new ParameterKey[] {
                 pollingConfig,
                 counterPersistInterval,
-                app
+                app,
+                group
         };
     }
 
@@ -115,6 +118,14 @@ public class AppMonConfig extends DefaultParameters {
      */
     public List<AppInfo> getAppInfoList() {
         return getParametersList(app);
+    }
+
+    /**
+     * Gets the list of group information.
+     * @return the list of group information
+     */
+    public List<GroupInfo> getGroupInfoList() {
+        return getParametersList(group);
     }
 
     /**

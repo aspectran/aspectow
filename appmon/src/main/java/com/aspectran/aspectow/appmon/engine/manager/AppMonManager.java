@@ -17,6 +17,8 @@ package com.aspectran.aspectow.appmon.engine.manager;
 
 import com.aspectran.aspectow.appmon.engine.config.AppInfo;
 import com.aspectran.aspectow.appmon.engine.config.AppInfoHolder;
+import com.aspectran.aspectow.appmon.engine.config.GroupInfo;
+import com.aspectran.aspectow.appmon.engine.config.GroupInfoHolder;
 import com.aspectran.aspectow.appmon.engine.config.PollingConfig;
 import com.aspectran.aspectow.appmon.engine.persist.PersistManager;
 import com.aspectran.aspectow.appmon.engine.relay.MessageRelayManager;
@@ -52,6 +54,10 @@ public class AppMonManager extends InstantActivitySupport {
 
     private final AppInfoHolder appInfoHolder;
 
+    private final List<AppInfo> allAppInfoList;
+
+    private final GroupInfoHolder groupInfoHolder;
+
     private final String clusterMode;
 
     private final MessageRelayManager messageRelayManager;
@@ -67,6 +73,8 @@ public class AppMonManager extends InstantActivitySupport {
      * @param counterPersistInterval the counter persistence interval in minutes
      * @param nodeInfoHolder the holder for node information
      * @param appInfoHolder the holder for instance information
+     * @param allAppInfoList the list of all application definitions in the cluster
+     * @param groupInfoHolder the holder for group information
      * @param messageRelayManager the message relay manager
      */
     public AppMonManager(
@@ -77,6 +85,8 @@ public class AppMonManager extends InstantActivitySupport {
             int counterPersistInterval,
             NodeInfoHolder nodeInfoHolder,
             AppInfoHolder appInfoHolder,
+            List<AppInfo> allAppInfoList,
+            GroupInfoHolder groupInfoHolder,
             MessageRelayManager messageRelayManager) {
         this.nodeId = nodeId;
         this.groupId = groupId;
@@ -85,6 +95,8 @@ public class AppMonManager extends InstantActivitySupport {
         this.counterPersistInterval = counterPersistInterval;
         this.nodeInfoHolder = nodeInfoHolder;
         this.appInfoHolder = appInfoHolder;
+        this.allAppInfoList = allAppInfoList;
+        this.groupInfoHolder = groupInfoHolder;
         this.messageRelayManager = messageRelayManager;
         this.persistManager = new PersistManager();
     }
@@ -166,12 +178,28 @@ public class AppMonManager extends InstantActivitySupport {
     }
 
     /**
+     * Gets the list of all application definitions in the cluster.
+     * @return the list of all application definitions
+     */
+    public List<AppInfo> getAllAppInfoList() {
+        return allAppInfoList;
+    }
+
+    /**
      * Gets the list of instance information for the specified instance IDs.
      * @param appIds an array of instance IDs
      * @return a list of matching instance information
      */
     public List<AppInfo> getAppInfoList(String[] appIds) {
         return appInfoHolder.getAppInfoList(appIds);
+    }
+
+    /**
+     * Gets the list of all group information.
+     * @return the list of group information
+     */
+    public List<GroupInfo> getGroupInfoList() {
+        return List.copyOf(groupInfoHolder.getGroupInfos());
     }
 
     /**

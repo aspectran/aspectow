@@ -51,6 +51,7 @@ public class CommandOptions extends DefaultParameters {
 
     private static final ParameterKey command;
     private static final ParameterKey nodeId;
+    private static final ParameterKey groupId;
     private static final ParameterKey appId;
     private static final ParameterKey sessionId;
     private static final ParameterKey nodeToSubscribe;
@@ -67,6 +68,7 @@ public class CommandOptions extends DefaultParameters {
     static {
         command = new ParameterKey("command", ValueType.STRING);
         nodeId = new ParameterKey("nodeId", ValueType.STRING);
+        groupId = new ParameterKey("groupId", ValueType.STRING);
         appId = new ParameterKey("appId", ValueType.STRING);
         sessionId = new ParameterKey("sessionId", ValueType.STRING);
         nodeToSubscribe = new ParameterKey("nodeToSubscribe", ValueType.STRING);
@@ -81,6 +83,7 @@ public class CommandOptions extends DefaultParameters {
         parameterKeys = new ParameterKey[] {
                 command,
                 nodeId,
+                groupId,
                 appId,
                 sessionId,
                 nodeToSubscribe,
@@ -181,6 +184,14 @@ public class CommandOptions extends DefaultParameters {
 
     public void setNodeId(String nodeId) {
         putValue(CommandOptions.nodeId, nodeId);
+    }
+
+    public String getGroupId() {
+        return getString(groupId);
+    }
+
+    public void setGroupId(String groupId) {
+        putValue(CommandOptions.groupId, groupId);
     }
 
     /**

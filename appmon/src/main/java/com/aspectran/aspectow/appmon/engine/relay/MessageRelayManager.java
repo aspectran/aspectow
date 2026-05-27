@@ -58,16 +58,26 @@ public class MessageRelayManager {
 
     private final String nodeId;
 
+    private final String groupId;
+
     private final NodeRegistry nodeRegistry;
 
     private final NodeMessagePublisher messagePublisher;
 
     /**
      * Instantiates a new MessageRelayManager.
+     * @param nodeId the current node ID
+     * @param groupId the current group ID
+     * @param nodeRegistry the node registry
      * @param messagePublisher the Redis message publisher
      */
-    public MessageRelayManager(String nodeId, NodeRegistry nodeRegistry, NodeMessagePublisher messagePublisher) {
+    public MessageRelayManager(
+            String nodeId,
+            String groupId,
+            NodeRegistry nodeRegistry,
+            NodeMessagePublisher messagePublisher) {
         this.nodeId = nodeId;
+        this.groupId = groupId;
         this.nodeRegistry = nodeRegistry;
         this.messagePublisher = messagePublisher;
     }
@@ -82,6 +92,10 @@ public class MessageRelayManager {
 
     public String getNodeId() {
         return nodeId;
+    }
+
+    public String getGroupId() {
+        return groupId;
     }
 
     public boolean isSameNode(String targetNodeId) {
@@ -304,6 +318,7 @@ public class MessageRelayManager {
         CommandOptions commandOptions = new CommandOptions();
         commandOptions.setCommand(COMMAND_SUBSCRIBE);
         commandOptions.setNodeId(this.nodeId);
+        commandOptions.setGroupId(session.getSubscribedGroupId());
         commandOptions.setSessionId(session.getId());
         commandOptions.setTimeZone(session.getTimeZone());
         for (String appId : subscribedApps) {
@@ -330,8 +345,26 @@ public class MessageRelayManager {
     public synchronized void subscribeRemotely(CommandOptions commandOptions) {
         Assert.notNull(commandOptions, "Command options must not be null");
         String nodeId = commandOptions.getNodeId();
+        String reqGroupId = commandOptions.getGroupId();
         String appId = commandOptions.getAppId();
         String sessionId = commandOptions.getSessionId();
+
+        // If groupId is specified, it must match the current node's groupId
+//        if (reqGroupId != null && !reqGroupId.equals(this.groupId)) {
+//            return;
+//        }
+
+        boolean matched = false;
+        for (ExporterManager exporterManager : exporterManagers) {
+            if (exporterManager.getAppId().equals(appId)) {
+                matched = true;
+                break;
+            }
+        }
+        if (!matched) {
+            return;
+        }
+
         if (!subscriptionRegistry.isAppInUse(appId)) {
             startExporters(appId);
         }

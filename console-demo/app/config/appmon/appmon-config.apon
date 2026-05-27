@@ -51,3 +51,70 @@ app: {
         lastLines: 100
     }
 }
+group: {
+    id: group1
+    title: Group 1
+    description: This is a group of applications
+    app: {
+        id: root
+        title: Root
+        event: {
+            id: activity
+            target: root
+            parameters: {
+                +: /**
+                -: /nodes/**/appmon/polling/**  # Ignore polling requests
+            }
+        }
+        event: {
+            id: session
+            target: tow.server/root
+        }
+        log: {
+            id: app
+            file: root.log
+            sampleInterval: 300
+            lastLines: 30
+        }
+        log: {
+            id: access
+            file: root-access.log
+            sampleInterval: 300
+            lastLines: 60
+        }
+    }
+}
+group: {
+    id: group2
+    title: Group 2
+    description: This is a group of applications
+    app: {
+        id: root2
+        title: Root2
+        event: {
+            id: activity
+            target: root
+            parameters: {
+                +: /**
+                -: /nodes/**/appmon/polling/**  # Ignore polling requests
+            }
+        }
+        event: {
+            id: session
+            target: tow.server/root
+        }
+        log: {
+            id: app
+            file: root.log
+            sampleInterval: 300
+            lastLines: 30
+        }
+        log: {
+            id: access
+            file: root-access.log
+            sampleInterval: 300
+            lastLines: 60
+        }
+    }
+}
+

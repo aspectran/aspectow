@@ -17,7 +17,7 @@ node: {
 }
 node: {
     id: node2
-    group: group1
+    group: group2
     title: Node-2
     port: 8092
     endpoint: {
