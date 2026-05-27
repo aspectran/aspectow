@@ -53,6 +53,7 @@ class DashboardBuilder {
                         return;
                     }
 
+                    this.appsToSubscribe = data.appsToSubscribe;
                     this.settings = { ...data.settings };
                     this.clusterMode = this.settings.clusterMode || "direct";
                     this.isGatewayMode = (this.settings.clusterMode === "gateway" || this.settings.clusterMode === "autoscaling");
@@ -96,7 +97,7 @@ class DashboardBuilder {
                     this.buildView();
                     this.bindEvents();
                     if (this.nodes.length) {
-                        this.connect(0, data.appsToSubscribe, this.nodeIdToSubscribe);
+                        this.connect(0);
                     }
                 }
             },
@@ -109,17 +110,19 @@ class DashboardBuilder {
         });
     }
 
+    rebuild() {
+        this.build(this.basePath, this.appsToSubscribe, this.nodeIdToSubscribe);
+    }
+
     random(min, max) {
         return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 
-    connect(nodeIndex, appsToSubscribe, nodeIdToSubscribe) {
-        if (nodeIndex === 0) console.log("cluster mode:", this.clusterMode);
-        console.log("connecting node index:", nodeIndex);
-
-        const onRequireRebuild = () => {
-            this.build(this.basePath, this.appsToSubscribe, this.nodeIdToSubscribe);
-        };
+    connect(nodeIndex) {
+        if (nodeIndex === 0) {
+            console.log("cluster mode:", this.clusterMode);
+            console.log("connecting node:", nodeIndex);
+        }
 
         const onSubscribed = (node, primary) => {
             if (node.subscribed && node.subscribeAttempts > 0) return;
@@ -132,15 +135,16 @@ class DashboardBuilder {
             console.log(node.id, "subscribe attempts:", node.subscribeAttempts);
             this.clearConsole(node.index);
             this.changeNodeState(node);
-            if (node.alive) this.viewers[node.index].setEnable(true);
-            if (node.alive && node.active) this.viewers[node.index].setVisible(true);
             if (node.subscribeAttempts === 1) {
                 this.initView();
             } else {
                 this.clearSessions(node.index);
             }
-            if (node.subscribeAttempts === 1 && nodeIndex + 1 < this.nodes.length) {
-                this.connect(nodeIndex + 1, appsToSubscribe);
+            if (node.alive) this.viewers[node.index].setEnable(true);
+            if (node.alive && node.active) this.viewers[node.index].setVisible(true);
+            if (node.subscribeAttempts === 1 && node.index + 1 < this.nodes.length) {
+                console.log("connecting next node:", node.index + 1);
+                this.connect(node.index + 1);
             }
         };
 
@@ -168,18 +172,13 @@ class DashboardBuilder {
                     }
                     this.viewers[node.index].setClient(client);
                     this.clients[node.index] = client;
-                    client.start(appsToSubscribe, nodeIdToSubscribe);
+                    client.start(this.appsToSubscribe, this.nodeIdToSubscribe);
                 }, (node.index - 1) * 1000);
             }
         };
 
         const onNodeJoined = (node) => {
-            //const existingNode = this.nodes.find(n => n.id === node.id);
-            //if (!existingNode) {
-                this.showNewNodeNotification(node.id);
-            //} else if (this.isGatewayMode && this.sharedClient) {
-            //    this.sharedClient.connect(node.id);
-            //}
+            this.showNewNodeNotification(node.id);
         };
 
         const onNodeLeft = (nodeId) => {
@@ -193,6 +192,10 @@ class DashboardBuilder {
                     this.viewers[node.index].printErrorMessage("Node " + nodeId + " is left");
                 }
             }
+        };
+
+        const onRequireRebuild = () => {
+            this.rebuild();
         };
 
         const node = this.nodes[nodeIndex];
@@ -225,7 +228,7 @@ class DashboardBuilder {
         }
         viewer.setClient(client);
         this.clients[node.index] = client;
-        client.start(appsToSubscribe, nodeIdToSubscribe);
+        client.start(this.appsToSubscribe, this.nodeIdToSubscribe);
     }
 
     showNewNodeNotification(nodeId) {
@@ -233,13 +236,13 @@ class DashboardBuilder {
         if ($notification.length > 0) {
             $notification.find(".node-id").text(nodeId);
             $notification.find(".refresh-btn").off("click").on("click", () => {
-                location.reload();
+                this.rebuild();
             });
             $notification.fadeIn();
         } else {
             const result = confirm("A new node '" + nodeId + "' has joined the cluster. Would you like to refresh the dashboard?");
             if (result) {
-                location.reload();
+                this.rebuild();
             }
         }
     }
