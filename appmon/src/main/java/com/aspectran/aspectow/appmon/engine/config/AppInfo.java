@@ -32,7 +32,7 @@ import java.util.List;
 public class AppInfo extends DefaultParameters {
 
     private static final ParameterKey id;
-    private static final ParameterKey groupId;
+    private static final ParameterKey group;
     private static final ParameterKey title;
     private static final ParameterKey hidden;
     private static final ParameterKey event;
@@ -43,7 +43,7 @@ public class AppInfo extends DefaultParameters {
 
     static {
         id = new ParameterKey("id", ValueType.STRING);
-        groupId = new ParameterKey("groupId", ValueType.STRING);
+        group = new ParameterKey("groups", new String[] {"group"}, ValueType.STRING, true, false);
         title = new ParameterKey("title", ValueType.STRING);
         hidden = new ParameterKey("hidden", ValueType.BOOLEAN);
         event = new ParameterKey("events", new String[] {"event"}, EventInfo.class, true, true);
@@ -52,7 +52,7 @@ public class AppInfo extends DefaultParameters {
 
         parameterKeys = new ParameterKey[] {
                 id,
-                groupId,
+                group,
                 title,
                 hidden,
                 event,
@@ -62,6 +62,8 @@ public class AppInfo extends DefaultParameters {
     }
 
     private String nodeId;
+
+    private String currentGroupId;
 
     /**
      * Instantiates a new AppInfo.
@@ -87,6 +89,22 @@ public class AppInfo extends DefaultParameters {
     }
 
     /**
+     * Returns the group identifier of the current node.
+     * @return the group identifier
+     */
+    public String getGroupId() {
+        return currentGroupId;
+    }
+
+    /**
+     * Sets the group identifier of the current node.
+     * @param groupId the group identifier
+     */
+    public void setGroupId(String groupId) {
+        this.currentGroupId = groupId;
+    }
+
+    /**
      * Returns the unique identifier of the application.
      * @return the app identifier
      */
@@ -103,19 +121,19 @@ public class AppInfo extends DefaultParameters {
     }
 
     /**
-     * Returns the group identifier of the application.
-     * @return the group identifier
+     * Returns the list of group identifiers to which this application belongs.
+     * @return a list of group identifiers
      */
-    public String getGroupId() {
-        return getString(groupId);
+    public String[] getGroups() {
+        return getStringArray(group);
     }
 
     /**
-     * Sets the group identifier of the application.
-     * @param groupId the group identifier
+     * Sets the list of group identifiers to which this application belongs.
+     * @param groups a list of group identifiers
      */
-    public void setGroupId(String groupId) {
-        putValue(AppInfo.groupId, groupId);
+    public void setGroups(String[] groups) {
+        putValue(AppInfo.group, groups);
     }
 
     /**

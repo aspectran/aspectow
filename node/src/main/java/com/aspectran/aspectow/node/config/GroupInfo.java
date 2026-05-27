@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-present The Aspectran Project
+ * Copyright (c) 2026-present The Aspectran Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,25 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.aspectran.aspectow.appmon.engine.config;
+package com.aspectran.aspectow.node.config;
 
 import com.aspectran.utils.apon.DefaultParameters;
 import com.aspectran.utils.apon.ParameterKey;
 import com.aspectran.utils.apon.ValueType;
 
-import java.util.List;
-
 /**
- * Contains configuration for a group of applications.
+ * Contains configuration for a group of nodes.
  *
- * <p>Created: 2025. 05. 27.</p>
+ * <p>Created: 2026. 05. 27.</p>
  */
 public class GroupInfo extends DefaultParameters {
 
     private static final ParameterKey id;
     private static final ParameterKey title;
     private static final ParameterKey description;
-    private static final ParameterKey app;
 
     private static final ParameterKey[] parameterKeys;
 
@@ -39,13 +36,11 @@ public class GroupInfo extends DefaultParameters {
         id = new ParameterKey("id", ValueType.STRING);
         title = new ParameterKey("title", ValueType.STRING);
         description = new ParameterKey("description", ValueType.STRING);
-        app = new ParameterKey("apps", new String[] {"app"}, AppInfo.class, true, true);
 
         parameterKeys = new ParameterKey[] {
                 id,
                 title,
-                description,
-                app
+                description
         };
     }
 
@@ -60,7 +55,7 @@ public class GroupInfo extends DefaultParameters {
      * Returns the unique identifier of the group.
      * @return the group identifier
      */
-    public String getGroupId() {
+    public String getId() {
         return getString(id);
     }
 
@@ -68,7 +63,7 @@ public class GroupInfo extends DefaultParameters {
      * Sets the unique identifier of the group.
      * @param groupId the group identifier
      */
-    public void setGroupId(String groupId) {
+    public void setId(String groupId) {
         putValue(id, groupId);
     }
 
@@ -102,22 +97,6 @@ public class GroupInfo extends DefaultParameters {
      */
     public void setDescription(String description) {
         putValue(GroupInfo.description, description);
-    }
-
-    /**
-     * Returns the list of application configurations defined for this group.
-     * @return a list of {@link AppInfo}
-     */
-    public List<AppInfo> getAppInfoList() {
-        return getParametersList(app);
-    }
-
-    /**
-     * Sets the list of application configurations defined for this group.
-     * @param appInfoList a list of {@link AppInfo}
-     */
-    public void setAppInfoList(List<AppInfo> appInfoList) {
-        putValue(app, appInfoList);
     }
 
 }

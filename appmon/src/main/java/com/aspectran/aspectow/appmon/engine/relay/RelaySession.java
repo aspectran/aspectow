@@ -42,18 +42,6 @@ public interface RelaySession {
     void setSubscribedApps(String[] appIds);
 
     /**
-     * Gets the ID of the group that this session has subscribed to.
-     * @return the group ID
-     */
-    String getSubscribedGroupId();
-
-    /**
-     * Sets the ID of the group that this session has subscribed to.
-     * @param groupId the group ID
-     */
-    void setSubscribedGroupId(String groupId);
-
-    /**
      * Removes the subscribed apps from this session.
      */
     void removeSubscribedApps();

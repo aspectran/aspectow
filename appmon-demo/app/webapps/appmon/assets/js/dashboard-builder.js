@@ -266,30 +266,39 @@ class DashboardBuilder {
         if (availableTabs.length <= 1) return;
 
         const node = this.nodes[nodeIndex];
+        const wasActive = node.active;
 
-        // Automatic group switching when a node is selected
-        if (node.group && this.currentGroupId !== node.group) {
-            this.changeGroup(node.group);
-            node.active = true; // Ensure the target node is active after group change
+        // Reset all nodes in the current group
+        this.nodes.forEach(n => {
+            if (n.group === this.currentGroupId) {
+                n.active = false;
+            }
+        });
+
+        // Toggle or exclusively activate
+        if (!wasActive) {
+            node.active = true;
         }
 
-        const activeTabs = availableTabs.filter(".active");
-        if (activeTabs.length === 0) {
-            this.nodes.forEach(d => { if (d.active) { d.active = false; this.showNode(d); } });
-            node.active = true;
-            this.showNode(node);
-        } else if (activeTabs.length === 1 && node.active) {
-            this.nodes.forEach(d => { if (d.index !== node.index) { d.active = true; this.showNode(d); } });
-        } else if (activeTabs.length === 1 && !node.active) {
-            this.nodes.forEach(d => { if (d.index !== node.index) { d.active = false; this.showNode(d); } });
-            node.active = true;
-            this.showNode(node);
-        } else {
-            node.active = !node.active;
-            this.showNode(node);
-        }
-
+        this.nodes.forEach(n => {
+            if (n.group === this.currentGroupId) {
+                this.showNode(n);
+            }
+        });
         this.updateNodeTabs();
+
+        if (this.isGatewayMode) {
+            const activeApp = this.apps.find(a => a.active);
+            if (activeApp) {
+                const targetNodeId = (node.active ? node.id : null);
+                this.nodes.forEach(n => {
+                    if (n.primary) {
+                        const client = this.clients[n.index];
+                        if (client && client.focus) client.focus(activeApp.id, targetNodeId);
+                    }
+                });
+            }
+        }
     }
 
     showNode(node) {
@@ -311,15 +320,18 @@ class DashboardBuilder {
     }
 
     updateNodeVisibility(node, appId) {
-        const action = (node.active && node.group === this.currentGroupId) ? "show" : "hide";
+        const activeNodesInGroup = this.nodes.filter(n => n.group === this.currentGroupId && n.active);
+        const isVisible = (node.group === this.currentGroupId && (activeNodesInGroup.length === 0 || node.active));
+        const action = isVisible ? "show" : "hide";
+
         const selector = `[data-node-index=${node.index}][data-app-id=${appId}]`;
         const otherSelector = `[data-node-index=${node.index}][data-app-id!=${appId}]`;
 
         $(`.event-box${otherSelector}, .visual-box${otherSelector}, .console-box${otherSelector}`).hide();
         $(`.event-box${selector}, .visual-box${selector}, .console-box${selector}`)[action]();
 
-        this.viewers[node.index].setVisible(node.active && node.group === this.currentGroupId);
-        if (node.active && node.group === this.currentGroupId) {
+        this.viewers[node.index].setVisible(isVisible);
+        if (isVisible) {
             $(`.track-box[data-node-index=${node.index}] .bullet`).remove();
             $(`.console-box${selector}`).each((_, el) => {
                 const $console = $(el).find(".console");
@@ -367,17 +379,16 @@ class DashboardBuilder {
             const $tab = $(".node.tabs .tabs-title[data-node-index=" + node.index + "]");
             if (!groupId || node.group === groupId) {
                 $tab.addClass("available").show();
-                node.active = true;
             } else {
                 $tab.removeClass("available").hide();
-                node.active = false;
             }
+            node.active = false; // Start with no nodes explicitly active
         });
 
         // Filter App Tabs
         this.apps.forEach(app => {
             const $tab = $(".app.tabs .tabs-title[data-app-id=" + app.id + "]");
-            if (!groupId || !app.groupId || app.groupId === groupId) {
+            if (!groupId || !app.groups || app.groups.length === 0 || app.groups.includes(groupId)) {
                 $tab.addClass("available").show();
             } else {
                 $tab.removeClass("available").hide();
@@ -721,7 +732,7 @@ class DashboardBuilder {
             const $appIndicator = $appTab.find(".indicator");
             this.addControlBar(app);
             this.nodes.forEach(node => {
-                if (!app.groupId || app.groupId === node.group) {
+                if (!app.groups || app.groups.length === 0 || app.groups.includes(node.group)) {
                     const viewer = this.viewers[node.index];
                     viewer.putIndicator$("app", "event", app.id, $appIndicator);
                     if (app.events && app.events.length) {

@@ -19,8 +19,6 @@ import com.aspectran.aspectow.appmon.engine.config.AppInfo;
 import com.aspectran.aspectow.appmon.engine.config.AppInfoHolder;
 import com.aspectran.aspectow.appmon.engine.config.AppMonConfig;
 import com.aspectran.aspectow.appmon.engine.config.EventInfo;
-import com.aspectran.aspectow.appmon.engine.config.GroupInfo;
-import com.aspectran.aspectow.appmon.engine.config.GroupInfoHolder;
 import com.aspectran.aspectow.appmon.engine.config.LogInfo;
 import com.aspectran.aspectow.appmon.engine.config.MetricInfo;
 import com.aspectran.aspectow.appmon.engine.config.PollingConfig;
@@ -38,12 +36,15 @@ import com.aspectran.aspectow.appmon.engine.persist.counter.EventCounter;
 import com.aspectran.aspectow.appmon.engine.persist.counter.EventCounterBuilder;
 import com.aspectran.aspectow.appmon.engine.relay.MessageRelayManager;
 import com.aspectran.aspectow.appmon.engine.relay.remote.NodeMessageRelayHandler;
+import com.aspectran.aspectow.node.config.GroupInfo;
+import com.aspectran.aspectow.node.config.GroupInfoHolder;
 import com.aspectran.aspectow.node.config.NodeInfo;
 import com.aspectran.aspectow.node.config.NodeInfoHolder;
 import com.aspectran.aspectow.node.manager.ClusterEventListener;
 import com.aspectran.aspectow.node.manager.NodeManager;
 import com.aspectran.core.context.ActivityContext;
 import com.aspectran.utils.Assert;
+import com.aspectran.utils.StringUtils;
 import org.jspecify.annotations.NonNull;
 
 import java.util.ArrayList;
@@ -164,24 +165,39 @@ public abstract class AppMonManagerBuilder {
         PollingConfig pollingConfig = appMonConfig.touchPollingConfig();
         int counterPersistInterval = appMonConfig.getCounterPersistInterval(DEFAULT_SAMPLE_INTERVAL_IN_MINUTES);
 
-        List<AppInfo> appInfoList = new ArrayList<>(appMonConfig.getAppInfoList());
-        if (groupId != null) {
-            for (GroupInfo groupInfo : appMonConfig.getGroupInfoList()) {
-                if (groupId.equals(groupInfo.getGroupId())) {
-                    appInfoList.addAll(groupInfo.getAppInfoList());
-                    break;
+        List<AppInfo> appInfoList = new ArrayList<>();
+        List<AppInfo> allAppInfoList = appMonConfig.getAppInfoList();
+        for (AppInfo appInfo : allAppInfoList) {
+            String[] groups = appInfo.getGroups();
+            if (groups == null || groups.length == 0) {
+                // System app
+                appInfoList.add(appInfo);
+            } else if (StringUtils.hasText(groupId)) {
+                for (String g : groups) {
+                    if (groupId.equals(g)) {
+                        appInfo.setGroupId(groupId);
+                        appInfoList.add(appInfo);
+                        break;
+                    }
                 }
             }
         }
-        AppInfoHolder appInfoHolder = new AppInfoHolder(nodeId, appInfoList);
-        GroupInfoHolder groupInfoHolder = new GroupInfoHolder(appMonConfig.getGroupInfoList());
 
-        // Aggregate all app definitions defined in the entire configuration
-        List<AppInfo> allAppInfoList = new ArrayList<>(appMonConfig.getAppInfoList());
-        for (GroupInfo groupInfo : appMonConfig.getGroupInfoList()) {
-            for (AppInfo groupAppInfo : groupInfo.getAppInfoList()) {
-                groupAppInfo.setGroupId(groupInfo.getGroupId());
-                allAppInfoList.add(groupAppInfo);
+        AppInfoHolder appInfoHolder = new AppInfoHolder(nodeId, appInfoList);
+
+        // Merge group information from appmon-config and node-config
+        GroupInfoHolder groupInfoHolder = new GroupInfoHolder();
+        for (GroupInfo groupInfo : nodeManager.getGroupInfoHolder().getGroupInfos()) {
+            groupInfoHolder.putGroupInfo(groupInfo);
+        }
+        String[] groupIds = appMonConfig.getGroupIds();
+        if (groupIds != null) {
+            for (String gid : groupIds) {
+                if (groupInfoHolder.getGroupInfo(gid) == null) {
+                    GroupInfo groupInfo = new GroupInfo();
+                    groupInfo.setId(gid);
+                    groupInfoHolder.putGroupInfo(groupInfo);
+                }
             }
         }
 

@@ -318,7 +318,6 @@ public class MessageRelayManager {
         CommandOptions commandOptions = new CommandOptions();
         commandOptions.setCommand(COMMAND_SUBSCRIBE);
         commandOptions.setNodeId(this.nodeId);
-        commandOptions.setGroupId(session.getSubscribedGroupId());
         commandOptions.setSessionId(session.getId());
         commandOptions.setTimeZone(session.getTimeZone());
         for (String appId : subscribedApps) {

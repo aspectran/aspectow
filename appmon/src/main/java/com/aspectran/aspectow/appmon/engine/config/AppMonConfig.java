@@ -15,6 +15,7 @@
  */
 package com.aspectran.aspectow.appmon.engine.config;
 
+import com.aspectran.aspectow.node.config.GroupInfo;
 import com.aspectran.utils.Assert;
 import com.aspectran.utils.apon.DefaultParameters;
 import com.aspectran.utils.apon.ParameterKey;
@@ -46,7 +47,7 @@ public class AppMonConfig extends DefaultParameters {
         pollingConfig = new ParameterKey("pollingConfig", PollingConfig.class);
         counterPersistInterval = new ParameterKey("counterPersistInterval", ValueType.INT);
         app = new ParameterKey("apps", new String[] {"app"}, AppInfo.class, true, true);
-        group = new ParameterKey("groups", new String[] {"group"}, GroupInfo.class, true, true);
+        group = new ParameterKey("groups", new String[] {"group"}, ValueType.STRING, true, false);
 
         parameterKeys = new ParameterKey[] {
                 pollingConfig,
@@ -121,11 +122,11 @@ public class AppMonConfig extends DefaultParameters {
     }
 
     /**
-     * Gets the list of group information.
-     * @return the list of group information
+     * Gets the list of group identifiers.
+     * @return the list of group identifiers
      */
-    public List<GroupInfo> getGroupInfoList() {
-        return getParametersList(group);
+    public String[] getGroupIds() {
+        return getStringArray(group);
     }
 
     /**

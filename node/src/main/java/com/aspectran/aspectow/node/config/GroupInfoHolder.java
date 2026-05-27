@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-present The Aspectran Project
+ * Copyright (c) 2026-present The Aspectran Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.aspectran.aspectow.appmon.engine.config;
+package com.aspectran.aspectow.node.config;
 
 import com.aspectran.utils.Assert;
 
@@ -34,12 +34,18 @@ public class GroupInfoHolder {
 
     /**
      * Instantiates a new GroupInfoHolder.
+     */
+    public GroupInfoHolder() {
+    }
+
+    /**
+     * Instantiates a new GroupInfoHolder.
      * @param groupInfoList the list of group information
      */
     public GroupInfoHolder(List<GroupInfo> groupInfoList) {
         if (groupInfoList != null) {
             for (GroupInfo groupInfo : groupInfoList) {
-                groupInfoMap.put(groupInfo.getGroupId(), groupInfo);
+                groupInfoMap.put(groupInfo.getId(), groupInfo);
             }
         }
     }
@@ -52,6 +58,15 @@ public class GroupInfoHolder {
     public GroupInfo getGroupInfo(String groupId) {
         Assert.hasLength(groupId, "groupId must not be null or empty");
         return groupInfoMap.get(groupId);
+    }
+
+    /**
+     * Adds group information to the holder.
+     * @param groupInfo the group information to add
+     */
+    public void putGroupInfo(GroupInfo groupInfo) {
+        Assert.notNull(groupInfo, "groupInfo must not be null");
+        groupInfoMap.put(groupInfo.getId(), groupInfo);
     }
 
     /**

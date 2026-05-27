@@ -16,6 +16,7 @@
 package com.aspectran.aspectow.node.manager;
 
 import com.aspectran.aspectow.node.config.ClusterConfig;
+import com.aspectran.aspectow.node.config.GroupInfoHolder;
 import com.aspectran.aspectow.node.config.NodeInfo;
 import com.aspectran.aspectow.node.config.NodeInfoHolder;
 import com.aspectran.aspectow.node.config.SecretConfig;
@@ -45,6 +46,8 @@ public class NodeManager {
 
     private final NodeInfoHolder nodeInfoHolder;
 
+    private final GroupInfoHolder groupInfoHolder;
+
     private RedisConnectionPool redisConnectionPool;
 
     private NodeRegistry nodeRegistry;
@@ -62,11 +65,14 @@ public class NodeManager {
      * @param nodeId the unique identifier of the current node
      * @param clusterConfig the cluster-wide configuration
      * @param nodeInfoHolder the holder for node-specific information
+     * @param groupInfoHolder the holder for group-specific information
      */
-    public NodeManager(String nodeId, ClusterConfig clusterConfig, NodeInfoHolder nodeInfoHolder) {
+    public NodeManager(String nodeId, ClusterConfig clusterConfig,
+                       NodeInfoHolder nodeInfoHolder, GroupInfoHolder groupInfoHolder) {
         this.nodeId = nodeId;
         this.clusterConfig = clusterConfig;
         this.nodeInfoHolder = nodeInfoHolder;
+        this.groupInfoHolder = groupInfoHolder;
     }
 
     /**
@@ -91,6 +97,14 @@ public class NodeManager {
      */
     public NodeInfoHolder getNodeInfoHolder() {
         return nodeInfoHolder;
+    }
+
+    /**
+     * Returns the holder for group information.
+     * @return the group info holder
+     */
+    public GroupInfoHolder getGroupInfoHolder() {
+        return groupInfoHolder;
     }
 
     /**

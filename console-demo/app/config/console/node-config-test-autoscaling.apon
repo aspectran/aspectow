@@ -6,3 +6,8 @@ cluster: {
         releasedOnUnlock: false
     }
 }
+group: {
+    id: group1
+    title: Group 1
+    description: This is group 1
+}

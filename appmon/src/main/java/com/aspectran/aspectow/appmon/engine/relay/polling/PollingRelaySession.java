@@ -56,8 +56,6 @@ public class PollingRelaySession implements RelaySession {
 
     private String[] subscribedApps;
 
-    private String subscribedGroupId;
-
     private String timeZone;
 
     private String focusedAppId;
@@ -107,17 +105,6 @@ public class PollingRelaySession implements RelaySession {
     @Override
     public void removeSubscribedApps() {
         this.subscribedApps = null;
-        this.subscribedGroupId = null;
-    }
-
-    @Override
-    public String getSubscribedGroupId() {
-        return subscribedGroupId;
-    }
-
-    @Override
-    public void setSubscribedGroupId(String groupId) {
-        this.subscribedGroupId = groupId;
     }
 
     @Override

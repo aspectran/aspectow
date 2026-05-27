@@ -32,7 +32,7 @@
         </argument>
     </bean>
 
-    <bean id="nodeManager" class="com.aspectran.aspectow.node.manager.NodeManagerFactoryBean" lazyInit="true" lazyDestroy="true">
+    <bean id="nodeManager" class="com.aspectran.aspectow.node.manager.NodeManagerFactoryBean" lazyDestroy="true">
         <properties>
             <item name="redisConnectionPoolConfig">#{redisConnectionPoolConfig}</item>
         </properties>

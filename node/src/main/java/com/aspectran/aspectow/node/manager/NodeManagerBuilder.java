@@ -16,6 +16,8 @@
 package com.aspectran.aspectow.node.manager;
 
 import com.aspectran.aspectow.node.config.ClusterConfig;
+import com.aspectran.aspectow.node.config.GroupInfo;
+import com.aspectran.aspectow.node.config.GroupInfoHolder;
 import com.aspectran.aspectow.node.config.NodeConfig;
 import com.aspectran.aspectow.node.config.NodeInfo;
 import com.aspectran.aspectow.node.config.NodeInfoHolder;
@@ -131,7 +133,8 @@ public abstract class NodeManagerBuilder {
 
         logger.info("Current Node: {} (Host: {})", nodeId, nodeInfo.getHost());
 
-        NodeManager nodeManager = new NodeManager(nodeId, clusterConfig, nodeInfoHolder);
+        GroupInfoHolder groupInfoHolder = new GroupInfoHolder(nodeConfig.getGroupInfoList());
+        NodeManager nodeManager = new NodeManager(nodeId, clusterConfig, nodeInfoHolder, groupInfoHolder);
 
         if (!clusterConfig.isDirectMode()) {
             if (redisConnectionPoolConfig == null) {

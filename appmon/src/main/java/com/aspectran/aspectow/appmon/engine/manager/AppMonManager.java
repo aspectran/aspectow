@@ -17,11 +17,11 @@ package com.aspectran.aspectow.appmon.engine.manager;
 
 import com.aspectran.aspectow.appmon.engine.config.AppInfo;
 import com.aspectran.aspectow.appmon.engine.config.AppInfoHolder;
-import com.aspectran.aspectow.appmon.engine.config.GroupInfo;
-import com.aspectran.aspectow.appmon.engine.config.GroupInfoHolder;
 import com.aspectran.aspectow.appmon.engine.config.PollingConfig;
 import com.aspectran.aspectow.appmon.engine.persist.PersistManager;
 import com.aspectran.aspectow.appmon.engine.relay.MessageRelayManager;
+import com.aspectran.aspectow.node.config.GroupInfo;
+import com.aspectran.aspectow.node.config.GroupInfoHolder;
 import com.aspectran.aspectow.node.config.NodeInfo;
 import com.aspectran.aspectow.node.config.NodeInfoHolder;
 import com.aspectran.core.activity.InstantAction;
@@ -30,6 +30,7 @@ import com.aspectran.core.adapter.ApplicationAdapter;
 import com.aspectran.core.context.ActivityContext;
 import org.jspecify.annotations.NonNull;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -208,8 +209,24 @@ public class AppMonManager extends InstantActivitySupport {
      * @return an array of verified instance IDs
      */
     public String[] getVerifiedAppIds(String[] appIds) {
-        List<AppInfo> infoList = getAppInfoList(appIds);
-        if (!infoList.isEmpty()) {
+        List<AppInfo> allAppInfoList = getAllAppInfoList();
+        List<AppInfo> infoList = new ArrayList<>(allAppInfoList.size());
+        if (appIds != null && appIds.length > 0) {
+            for (String id : appIds) {
+                for (AppInfo info : allAppInfoList) {
+                    if (info.getAppId().equals(id)) {
+                        infoList.add(info);
+                    }
+                }
+            }
+        } else {
+            for (AppInfo info : allAppInfoList) {
+                if (!info.isHidden()) {
+                    infoList.add(info);
+                }
+            }
+        }
+         if (!infoList.isEmpty()) {
             return AppInfoHolder.extractAppIds(infoList);
         } else {
             return new String[0];
