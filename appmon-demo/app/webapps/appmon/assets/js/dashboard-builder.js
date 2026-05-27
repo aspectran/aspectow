@@ -29,6 +29,7 @@ class DashboardBuilder {
         this.isGatewayMode = false;
         this.counterPersistInterval = 5;
         this.groups = [];
+        this.currentGroupId = null;
         this.nodes = [];
         this.apps = [];
         this.metrics = [];
@@ -110,10 +111,7 @@ class DashboardBuilder {
 
                     // Select the initial group
                     if (this.groups.length > 0) {
-                        let groupId = data.myGroupId;
-                        if (!groupId || !this.groups.find(g => g.groupId === groupId)) {
-                            groupId = this.groups[0].groupId;
-                        }
+                        const groupId = data.myGroupId || this.groups[0].id;
                         this.changeGroup(groupId);
                     }
                 }
@@ -224,7 +222,6 @@ class DashboardBuilder {
             this.sharedClient.addClusterNode(node, onSubscribed);
             viewer.setClient(this.sharedClient);
             this.clients[node.index] = this.sharedClient;
-            // Trigger explicit connection for this node over the shared connection
             this.sharedClient.connect(node.id);
             return;
         }
@@ -268,9 +265,15 @@ class DashboardBuilder {
         const availableTabs = $(".node.tabs .tabs-title.available");
         if (availableTabs.length <= 1) return;
 
-        const activeTabs = availableTabs.filter(".active");
         const node = this.nodes[nodeIndex];
 
+        // Automatic group switching when a node is selected
+        if (node.group && this.currentGroupId !== node.group) {
+            this.changeGroup(node.group);
+            node.active = true; // Ensure the target node is active after group change
+        }
+
+        const activeTabs = availableTabs.filter(".active");
         if (activeTabs.length === 0) {
             this.nodes.forEach(d => { if (d.active) { d.active = false; this.showNode(d); } });
             node.active = true;
@@ -299,26 +302,24 @@ class DashboardBuilder {
 
     updateNodeTabs() {
         const availableTabs = $(".node.tabs .tabs-title.available");
-        const activeCount = this.nodes.filter(d => d.active).length;
+        const activeCount = this.nodes.filter(d => d.active && d.group === this.currentGroupId).length;
         availableTabs.removeClass("active");
-        if (availableTabs.length > activeCount) {
-            this.nodes.forEach(d => {
-                if (d.active) $(".node.tabs .tabs-title[data-node-index=" + d.index + "]").addClass("active");
-            });
-        }
-        $(".node.metrics-bar.available").toggleClass("full-width", (this.nodes.length === 1 || this.nodes.length !== activeCount));
+        this.nodes.forEach(d => {
+            if (d.active) $(".node.tabs .tabs-title[data-node-index=" + d.index + "]").addClass("active");
+        });
+        $(".node.metrics-bar.available").toggleClass("full-width", (availableTabs.length === 1 || availableTabs.length !== activeCount));
     }
 
     updateNodeVisibility(node, appId) {
-        const action = node.active ? "show" : "hide";
+        const action = (node.active && node.group === this.currentGroupId) ? "show" : "hide";
         const selector = `[data-node-index=${node.index}][data-app-id=${appId}]`;
         const otherSelector = `[data-node-index=${node.index}][data-app-id!=${appId}]`;
 
         $(`.event-box${otherSelector}, .visual-box${otherSelector}, .console-box${otherSelector}`).hide();
         $(`.event-box${selector}, .visual-box${selector}, .console-box${selector}`)[action]();
 
-        this.viewers[node.index].setVisible(node.active);
-        if (node.active) {
+        this.viewers[node.index].setVisible(node.active && node.group === this.currentGroupId);
+        if (node.active && node.group === this.currentGroupId) {
             $(`.track-box[data-node-index=${node.index}] .bullet`).remove();
             $(`.console-box${selector}`).each((_, el) => {
                 const $console = $(el).find(".console");
@@ -347,9 +348,12 @@ class DashboardBuilder {
     }
 
     changeGroup(groupId) {
+        if (this.currentGroupId === groupId) return;
+        this.currentGroupId = groupId;
+
         this.groups.forEach(group => {
-            const $tabTitle = $(".group.tabs .tabs-title[data-group-id=" + group.groupId + "]");
-            if (group.groupId === groupId) {
+            const $tabTitle = $(".group.tabs .tabs-title[data-group-id=" + group.id + "]");
+            if (group.id === groupId) {
                 group.active = true;
                 $tabTitle.addClass("active");
             } else {
@@ -363,23 +367,16 @@ class DashboardBuilder {
             const $tab = $(".node.tabs .tabs-title[data-node-index=" + node.index + "]");
             if (!groupId || node.group === groupId) {
                 $tab.addClass("available").show();
-                if (!node.active) {
-                    node.active = true;
-                    this.showNode(node);
-                }
+                node.active = true;
             } else {
                 $tab.removeClass("available").hide();
-                if (node.active) {
-                    node.active = false;
-                    this.showNode(node);
-                }
+                node.active = false;
             }
         });
 
         // Filter App Tabs
         this.apps.forEach(app => {
             const $tab = $(".app.tabs .tabs-title[data-app-id=" + app.id + "]");
-            // Show tab if it's a global app (no groupId) OR if it belongs to the selected group
             if (!groupId || !app.groupId || app.groupId === groupId) {
                 $tab.addClass("available").show();
             } else {
@@ -387,15 +384,13 @@ class DashboardBuilder {
             }
         });
 
-        // Select first available app in the current group
+        // Select first available app in the new group context
         const firstAvailableApp = this.apps.find(app => {
             const $tab = $(".app.tabs .tabs-title[data-app-id=" + app.id + "]");
             return $tab.hasClass("available");
         });
-        if (firstAvailableApp) {
-            this.changeApp(firstAvailableApp.id);
-        }
 
+        this.changeApp(firstAvailableApp ? firstAvailableApp.id : null);
         this.updateNodeTabs();
     }
 
@@ -410,7 +405,6 @@ class DashboardBuilder {
                 $tabTitle.addClass("active");
                 exists = true;
 
-                // Inform the backend about the current UI focus to filter logs
                 this.nodes.forEach(node => {
                     if (node.primary) {
                         const client = this.clients[node.index];
@@ -528,8 +522,6 @@ class DashboardBuilder {
                 this.suspendMonitoring();
                 this.showPopupModeMessage();
                 popup.focus();
-            } else {
-                alert("Please allow popups for this site.");
             }
         });
         $(document).off("click", ".session-box .panel.status .knob-bar")
@@ -729,7 +721,6 @@ class DashboardBuilder {
             const $appIndicator = $appTab.find(".indicator");
             this.addControlBar(app);
             this.nodes.forEach(node => {
-                // Only build components if the app is compatible with the node's group
                 if (!app.groupId || app.groupId === node.group) {
                     const viewer = this.viewers[node.index];
                     viewer.putIndicator$("app", "event", app.id, $appIndicator);
@@ -808,11 +799,7 @@ class DashboardBuilder {
         const $metricsBar = $(".node.metrics-bar");
         const $newBar = $metricsBar.first().hide().clone().addClass("available").attr("data-node-index", nodeInfo.index);
         $newBar.find(".number").text(" " + (nodeInfo.index + 1));
-        if (this.nodes.length > 1) {
-            $newBar.removeClass("full-width");
-        } else {
-            $newBar.addClass("full-width");
-        }
+        $newBar.toggleClass("full-width", (this.nodes.length === 1));
         return $newBar.insertAfter($metricsBar.last());
     }
 
