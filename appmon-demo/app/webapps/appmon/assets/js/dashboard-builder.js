@@ -610,7 +610,7 @@ class DashboardBuilder {
 
     showPopupModeMessage() {
         this.clearView();
-        const $container = $(".container-fluid.my-3");
+        const $container = $("#content-area > .container-fluid");
         $container.find(".row, .tabs, .control-bar, .console-box").hide();
         const $messageBox = $("#appmon-popup-message");
         if ($messageBox.length > 0) {
