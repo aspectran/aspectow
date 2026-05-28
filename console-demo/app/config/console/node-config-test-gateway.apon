@@ -34,3 +34,12 @@ node: {
         mode: auto
     }
 }
+node: {
+    id: node3
+    group: group2
+    title: Node-3
+    port: 8083
+    endpoint: {
+        mode: auto
+    }
+}

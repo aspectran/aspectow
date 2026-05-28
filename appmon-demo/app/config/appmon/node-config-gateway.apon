@@ -1,0 +1,5 @@
+# Cluster-wide settings
+cluster: {
+    id: cluster
+    mode: gateway
+}
