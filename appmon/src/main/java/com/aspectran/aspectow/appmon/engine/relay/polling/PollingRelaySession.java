@@ -93,6 +93,15 @@ public class PollingRelaySession implements RelaySession {
     }
 
     @Override
+    public String getTimeZone() {
+        return timeZone;
+    }
+
+    public void setTimeZone(String timeZone) {
+        this.timeZone = timeZone;
+    }
+
+    @Override
     public String[] getSubscribedApps() {
         return subscribedApps;
     }
@@ -105,15 +114,6 @@ public class PollingRelaySession implements RelaySession {
     @Override
     public void removeSubscribedApps() {
         this.subscribedApps = null;
-    }
-
-    @Override
-    public String getTimeZone() {
-        return timeZone;
-    }
-
-    public void setTimeZone(String timeZone) {
-        this.timeZone = timeZone;
     }
 
     @Override

@@ -51,6 +51,15 @@ public class WebsocketRelaySession extends WrappedSession implements RelaySessio
     }
 
     @Override
+    public String getTimeZone() {
+        return (String)getSession().getUserProperties().get(TIME_ZONE_PROPERTY);
+    }
+
+    public void setTimeZone(String timeZone) {
+        getSession().getUserProperties().put(TIME_ZONE_PROPERTY, timeZone);
+    }
+
+    @Override
     public String[] getSubscribedApps() {
         return (String[])getSession().getUserProperties().get(SUBSCRIBED_APPS_PROPERTY);
     }
@@ -64,15 +73,6 @@ public class WebsocketRelaySession extends WrappedSession implements RelaySessio
     @Override
     public void removeSubscribedApps() {
         getSession().getUserProperties().remove(SUBSCRIBED_APPS_PROPERTY);
-    }
-
-    @Override
-    public String getTimeZone() {
-        return (String)getSession().getUserProperties().get(TIME_ZONE_PROPERTY);
-    }
-
-    public void setTimeZone(String timeZone) {
-        getSession().getUserProperties().put(TIME_ZONE_PROPERTY, timeZone);
     }
 
     @Override

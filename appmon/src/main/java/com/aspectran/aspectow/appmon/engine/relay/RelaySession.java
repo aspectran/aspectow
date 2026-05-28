@@ -30,6 +30,12 @@ public interface RelaySession {
     String getId();
 
     /**
+     * Gets the time zone of the client.
+     * @return the time zone ID string
+     */
+    String getTimeZone();
+
+    /**
      * Gets the names of the apps that this session has subscribed to.
      * @return an array of app names
      */
@@ -45,12 +51,6 @@ public interface RelaySession {
      * Removes the subscribed apps from this session.
      */
     void removeSubscribedApps();
-
-    /**
-     * Gets the time zone of the client.
-     * @return the time zone ID string
-     */
-    String getTimeZone();
 
     /**
      * Gets the ID of the app that this session is currently focusing on.
