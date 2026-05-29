@@ -8,6 +8,7 @@ pollingConfig: {
 counterPersistInterval: 5
 app: {
     id: console
+    group: group1
     title: Console
     event: {
         id: activity

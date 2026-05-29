@@ -3,6 +3,11 @@ cluster: {
     id: cluster
     mode: direct  # direct or gateway or autoscaling
 }
+group: {
+    id: group1
+    title: Group 1
+    description: This is group 1
+}
 node: {
     id: node1
     group: group1

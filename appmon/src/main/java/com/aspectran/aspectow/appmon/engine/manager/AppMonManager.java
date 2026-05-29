@@ -53,11 +53,11 @@ public class AppMonManager extends InstantActivitySupport {
 
     private final NodeInfoHolder nodeInfoHolder;
 
+    private final GroupInfoHolder groupInfoHolder;
+
     private final AppInfoHolder appInfoHolder;
 
     private final List<AppInfo> allAppInfoList;
-
-    private final GroupInfoHolder groupInfoHolder;
 
     private final String clusterMode;
 
@@ -73,9 +73,9 @@ public class AppMonManager extends InstantActivitySupport {
      * @param pollingConfig the polling configuration
      * @param counterPersistInterval the counter persistence interval in minutes
      * @param nodeInfoHolder the holder for node information
+     * @param groupInfoHolder the holder for group information
      * @param appInfoHolder the holder for instance information
      * @param allAppInfoList the list of all application definitions in the cluster
-     * @param groupInfoHolder the holder for group information
      * @param messageRelayManager the message relay manager
      */
     public AppMonManager(
@@ -85,9 +85,9 @@ public class AppMonManager extends InstantActivitySupport {
             PollingConfig pollingConfig,
             int counterPersistInterval,
             NodeInfoHolder nodeInfoHolder,
+            GroupInfoHolder groupInfoHolder,
             AppInfoHolder appInfoHolder,
             List<AppInfo> allAppInfoList,
-            GroupInfoHolder groupInfoHolder,
             MessageRelayManager messageRelayManager) {
         this.nodeId = nodeId;
         this.groupId = groupId;
@@ -95,9 +95,9 @@ public class AppMonManager extends InstantActivitySupport {
         this.pollingConfig = pollingConfig;
         this.counterPersistInterval = counterPersistInterval;
         this.nodeInfoHolder = nodeInfoHolder;
+        this.groupInfoHolder = groupInfoHolder;
         this.appInfoHolder = appInfoHolder;
         this.allAppInfoList = allAppInfoList;
-        this.groupInfoHolder = groupInfoHolder;
         this.messageRelayManager = messageRelayManager;
         this.persistManager = new PersistManager();
     }

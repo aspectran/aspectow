@@ -32,6 +32,8 @@ public class GroupInfoHolder {
 
     private final Map<String, GroupInfo> groupInfoMap = new LinkedHashMap<>();
 
+    private boolean explicitDeclared;
+
     /**
      * Instantiates a new GroupInfoHolder.
      */
@@ -47,7 +49,16 @@ public class GroupInfoHolder {
             for (GroupInfo groupInfo : groupInfoList) {
                 groupInfoMap.put(groupInfo.getId(), groupInfo);
             }
+            explicitDeclared = !groupInfoList.isEmpty();
         }
+    }
+
+    public boolean isExplicitDeclared() {
+        return explicitDeclared;
+    }
+
+    public void setExplicitDeclared(boolean explicitDeclared) {
+        this.explicitDeclared = explicitDeclared;
     }
 
     /**
@@ -83,6 +94,10 @@ public class GroupInfoHolder {
      */
     public int getGroupCount() {
         return groupInfoMap.size();
+    }
+
+    public boolean hasGroupInfo() {
+        return !groupInfoMap.isEmpty();
     }
 
 }

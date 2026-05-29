@@ -161,6 +161,7 @@ public abstract class AppMonManagerBuilder {
         String nodeId = nodeManager.getNodeId();
         String groupId = nodeManager.getNodeInfoHolder().getNodeInfo(nodeId).getGroup();
         NodeInfoHolder nodeInfoHolder = nodeManager.getNodeInfoHolder();
+        GroupInfoHolder groupInfoHolder = nodeManager.getGroupInfoHolder();
 
         PollingConfig pollingConfig = appMonConfig.touchPollingConfig();
         int counterPersistInterval = appMonConfig.getCounterPersistInterval(DEFAULT_SAMPLE_INTERVAL_IN_MINUTES);
@@ -185,28 +186,12 @@ public abstract class AppMonManagerBuilder {
 
         AppInfoHolder appInfoHolder = new AppInfoHolder(nodeId, appInfoList);
 
-        // Merge group information from appmon-config and node-config
-        GroupInfoHolder groupInfoHolder = new GroupInfoHolder();
-        for (GroupInfo groupInfo : nodeManager.getGroupInfoHolder().getGroupInfos()) {
-            groupInfoHolder.putGroupInfo(groupInfo);
-        }
-        String[] groupIds = appMonConfig.getGroupIds();
-        if (groupIds != null) {
-            for (String gid : groupIds) {
-                if (groupInfoHolder.getGroupInfo(gid) == null) {
-                    GroupInfo groupInfo = new GroupInfo();
-                    groupInfo.setId(gid);
-                    groupInfoHolder.putGroupInfo(groupInfo);
-                }
-            }
-        }
-
         MessageRelayManager messageRelayManager = new MessageRelayManager(
                 nodeId, groupId, nodeManager.getNodeRegistry(), nodeManager.getNodeMessagePublisher());
 
         AppMonManager appMonManager = new AppMonManager(
                 nodeId, groupId, clusterMode, pollingConfig, counterPersistInterval,
-                nodeInfoHolder, appInfoHolder, allAppInfoList, groupInfoHolder, messageRelayManager);
+                nodeInfoHolder, groupInfoHolder, appInfoHolder, allAppInfoList, messageRelayManager);
         appMonManager.setActivityContext(context);
 
         if (nodeManager.getNodeMessageSubscriber() != null) {

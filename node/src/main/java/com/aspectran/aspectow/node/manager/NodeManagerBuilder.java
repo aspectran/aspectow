@@ -57,6 +57,8 @@ public abstract class NodeManagerBuilder {
 
     private static final String DEFAULT_GROUP_ID = "group1";
 
+    private static final String DEFAULT_GROUP_TITLE = "Group 1";
+
     @NonNull
     public static NodeManager build(
             ActivityContext context, NodeConfig nodeConfig,
@@ -134,6 +136,13 @@ public abstract class NodeManagerBuilder {
         logger.info("Current Node: {} (Host: {})", nodeId, nodeInfo.getHost());
 
         GroupInfoHolder groupInfoHolder = new GroupInfoHolder(nodeConfig.getGroupInfoList());
+        if (!groupInfoHolder.hasGroupInfo()) {
+            GroupInfo groupInfo = new GroupInfo();
+            groupInfo.setId(DEFAULT_GROUP_ID);
+            groupInfo.setTitle(DEFAULT_GROUP_TITLE);
+            groupInfoHolder.putGroupInfo(groupInfo);
+        }
+
         NodeManager nodeManager = new NodeManager(nodeId, clusterConfig, nodeInfoHolder, groupInfoHolder);
 
         if (!clusterConfig.isDirectMode()) {
