@@ -83,8 +83,8 @@ public class NodeMessageSubscriber extends RedisPubSubAdapter<String, String> {
     @Override
     public void message(@NonNull String channel, String message) {
         // Expected patterns:
-        // aspectow:nodes:control:<category>:<clusterId>:<nodeId>
-        // aspectow:nodes:relay:<category>:<clusterId>:<nodeId>:<sessionId>
+        // aspectow:cluster:control:<category>:<clusterId>:<nodeId>
+        // aspectow:cluster:relay:<category>:<clusterId>:<nodeId>:<sessionId>
 
         String[] parts = channel.split(":");
         if (parts.length < 6) {

@@ -28,13 +28,17 @@ public abstract class NodeMessageProtocol {
 
     public static final String CATEGORY_CLUSTER = "cluster";
 
+    public static final String TYPE_NODES = "nodes";
+
+    public static final String TYPE_PULSE = "pulse";
+
     public static final String TYPE_CONTROL = "control";
 
     public static final String TYPE_RELAY = "relay";
 
     public static final String TYPE_EVENT = "event";
 
-    private static final String KEY_PREFIX = "aspectow:nodes:";
+    private static final String KEY_PREFIX = "aspectow:cluster:";
 
     /**
      * Returns the Redis Hash key for storing node metadata for a specific cluster.
@@ -43,7 +47,7 @@ public abstract class NodeMessageProtocol {
      */
     @NonNull
     public static String getNodesHashKey(String clusterId) {
-        return KEY_PREFIX + clusterId;
+        return KEY_PREFIX + TYPE_NODES + ":" + clusterId;
     }
 
     /**
@@ -53,7 +57,7 @@ public abstract class NodeMessageProtocol {
      */
     @NonNull
     public static String getPulsesHashKey(String clusterId) {
-        return KEY_PREFIX + clusterId + ":pulse";
+        return KEY_PREFIX + TYPE_PULSE + ":" + clusterId;
     }
 
     /**
