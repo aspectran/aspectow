@@ -76,7 +76,7 @@ public class NodeReporter {
         scheduler.scheduleAtFixedRate(this::sendPulse, 0, interval, TimeUnit.MILLISECONDS);
 
         // 4. Start periodic maintenance (zombie eviction & full sync compensation)
-        if (getClusterConfig().isAutoscalingMode()) {
+        if (getClusterConfig().isGatewayMode()) {
             scheduler.scheduleAtFixedRate(this::performMaintenance, interval * 10, interval * 10, TimeUnit.MILLISECONDS);
         }
     }

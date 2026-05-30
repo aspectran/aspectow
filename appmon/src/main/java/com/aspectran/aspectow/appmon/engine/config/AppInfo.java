@@ -43,7 +43,7 @@ public class AppInfo extends DefaultParameters {
 
     static {
         id = new ParameterKey("id", ValueType.STRING);
-        group = new ParameterKey("groups", new String[] {"group"}, ValueType.STRING, true, false);
+        group = new ParameterKey("group", ValueType.STRING);
         title = new ParameterKey("title", ValueType.STRING);
         hidden = new ParameterKey("hidden", ValueType.BOOLEAN);
         event = new ParameterKey("events", new String[] {"event"}, EventInfo.class, true, true);
@@ -62,8 +62,6 @@ public class AppInfo extends DefaultParameters {
     }
 
     private String nodeId;
-
-    private String currentGroupId;
 
     /**
      * Instantiates a new AppInfo.
@@ -93,7 +91,7 @@ public class AppInfo extends DefaultParameters {
      * @return the group identifier
      */
     public String getGroupId() {
-        return currentGroupId;
+        return getString(group);
     }
 
     /**
@@ -101,7 +99,7 @@ public class AppInfo extends DefaultParameters {
      * @param groupId the group identifier
      */
     public void setGroupId(String groupId) {
-        this.currentGroupId = groupId;
+        putValue(AppInfo.group, groupId);
     }
 
     /**
@@ -118,22 +116,6 @@ public class AppInfo extends DefaultParameters {
      */
     public void setAppId(String appId) {
         putValue(AppInfo.id, appId);
-    }
-
-    /**
-     * Returns the list of group identifiers to which this application belongs.
-     * @return a list of group identifiers
-     */
-    public String[] getGroups() {
-        return getStringArray(group);
-    }
-
-    /**
-     * Sets the list of group identifiers to which this application belongs.
-     * @param groups a list of group identifiers
-     */
-    public void setGroups(String[] groups) {
-        putValue(AppInfo.group, groups);
     }
 
     /**

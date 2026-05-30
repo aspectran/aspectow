@@ -145,7 +145,7 @@ public class WebsocketMessageRelayer extends SimplifiedEndpoint implements Messa
                 }
                 String appsToSubscribe = commandOptions.getAppsToSubscribe();
                 String[] appIds = StringUtils.splitWithComma(appsToSubscribe);
-                appIds = appMonManager.getVerifiedAppIds(appIds);
+                appIds = appMonManager.getVerifiedAppIds(appIds, appMonManager.getClusterAppInfoList());
                 if (appIds.length > 0) {
                     relaySession.setSubscribedApps(appIds);
                 }

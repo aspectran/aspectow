@@ -84,9 +84,10 @@ public class DashboardActivity {
         );
 
         List<NodeInfo> nodeInfoList = appMonManager.getNodeInfoList();
+        List<AppInfo> appInfoList = appMonManager.getClusterAppInfoList();
 
         String[] appIds = StringUtils.splitWithComma(appsToSubscribe);
-        String[] verifiedAppIds = appMonManager.getVerifiedAppIds(appIds);
+        String[] verifiedAppIds = appMonManager.getVerifiedAppIds(appIds, appInfoList);
 
         Map<String, Object> data = Map.of(
                 "token", AppMonTokenIssuer.issueToken(30),
@@ -96,7 +97,7 @@ public class DashboardActivity {
                 "settings", settings,
                 "nodes", nodeInfoList,
                 "groups", appMonManager.getGroupInfoList(),
-                "apps", appMonManager.getAllAppInfoList()
+                "apps", appInfoList
         );
         return new DefaultRestResponse(data).nullWritable(false).ok();
     }

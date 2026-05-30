@@ -80,6 +80,37 @@ public class NodeRegistry {
     }
 
     /**
+     * Retrieves all registered groups from Redis for the current cluster.
+     * @return a map of group IDs to their metadata (APON strings)
+     */
+    public Map<String, String> getAllGroups() {
+        String key = NodeMessageProtocol.getGroupsHashKey(clusterId);
+        logger.debug("Retrieving all groups from Redis hash: {}", key);
+        try (StatefulRedisConnection<String, String> connection = connectionPool.getConnection()) {
+            return connection.sync().hgetall(key);
+        } catch (Exception e) {
+            logger.error("Failed to retrieve groups from Redis registry", e);
+            return Collections.emptyMap();
+        }
+    }
+
+    /**
+     * Retrieves all registered applications from Redis for a specific group.
+     * @param groupId the group ID
+     * @return a map of application IDs to their metadata (APON strings)
+     */
+    public Map<String, String> getAllApps(String groupId) {
+        String key = NodeMessageProtocol.getAppsHashKey(groupId);
+        logger.debug("Retrieving all apps for group: {} from Redis hash: {}", groupId, key);
+        try (StatefulRedisConnection<String, String> connection = connectionPool.getConnection()) {
+            return connection.sync().hgetall(key);
+        } catch (Exception e) {
+            logger.error("Failed to retrieve apps for group {} from Redis registry", groupId, e);
+            return Collections.emptyMap();
+        }
+    }
+
+    /**
      * Retrieves the last pulse timestamps for all nodes.
      * @return a map of node IDs to their last pulse timestamps
      */
@@ -159,15 +190,18 @@ public class NodeRegistry {
 
     /**
      * Evicts nodes that have not sent a pulse within the specified timeout.
+     * Also cleans up orphaned group and app metadata.
      * @param timeoutMillis the timeout threshold in milliseconds
      */
     public void evictZombieNodes(long timeoutMillis) {
         String nodesKey = NodeMessageProtocol.getNodesHashKey(clusterId);
         String pulsesKey = NodeMessageProtocol.getPulsesHashKey(clusterId);
+        String groupsKey = NodeMessageProtocol.getGroupsHashKey(clusterId);
         try (StatefulRedisConnection<String, String> connection = connectionPool.getConnection()) {
             RedisCommands<String, String> sync = connection.sync();
             Map<String, String> pulses = sync.hgetall(pulsesKey);
             long now = System.currentTimeMillis();
+            boolean evicted = false;
             for (Map.Entry<String, String> entry : pulses.entrySet()) {
                 String nodeId = entry.getKey();
                 try {
@@ -176,13 +210,40 @@ public class NodeRegistry {
                         logger.info("Evicting zombie node '{}' from cluster '{}'", nodeId, clusterId);
                         sync.hdel(nodesKey, nodeId);
                         sync.hdel(pulsesKey, nodeId);
+                        evicted = true;
                     }
                 } catch (NumberFormatException e) {
                     // ignore
                 }
             }
+
+            if (evicted) {
+                // Metadata Garbage Collection: Remove groups and apps that no longer have active nodes
+                Map<String, String> remainingNodes = sync.hgetall(nodesKey);
+                java.util.Set<String> activeGroups = new java.util.HashSet<>();
+                for (String aponData : remainingNodes.values()) {
+                    try {
+                        NodeInfo info = new NodeInfo();
+                        info.readFrom(aponData);
+                        if (info.getGroup() != null) {
+                            activeGroups.add(info.getGroup());
+                        }
+                    } catch (Exception e) {
+                        // ignore
+                    }
+                }
+
+                Map<String, String> registeredGroups = sync.hgetall(groupsKey);
+                for (String gid : registeredGroups.keySet()) {
+                    if (!activeGroups.contains(gid)) {
+                        logger.info("Cleaning up orphaned group metadata: {} (Cluster: {})", gid, clusterId);
+                        sync.hdel(groupsKey, gid);
+                        sync.del(NodeMessageProtocol.getAppsHashKey(gid));
+                    }
+                }
+            }
         } catch (Exception e) {
-            logger.error("Failed to evict zombie nodes from cluster '{}'", clusterId, e);
+            logger.error("Failed to evict zombie nodes and metadata from cluster '{}'", clusterId, e);
         }
     }
 

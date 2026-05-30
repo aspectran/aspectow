@@ -91,11 +91,6 @@ public class AppMonActivity {
         );
     }
 
-    /**
-     * Provides configuration data to a backend agent.
-     * @param appsToSubscribe a comma-separated list of app names to get configuration for
-     * @return a {@link RestResponse} containing the configuration data
-     */
     @RequestToGet("/config/data")
     public RestResponse getConfigData(String appsToSubscribe) {
         Map<String, Object> settings = Map.of(
@@ -104,9 +99,10 @@ public class AppMonActivity {
         );
 
         List<NodeInfo> nodeInfoList = appMonManager.getNodeInfoList();
+        List<AppInfo> appInfoList = appMonManager.getClusterAppInfoList();
 
         String[] appIds = StringUtils.splitWithComma(appsToSubscribe);
-        String[] verifiedAppIds = appMonManager.getVerifiedAppIds(appIds);
+        String[] verifiedAppIds = appMonManager.getVerifiedAppIds(appIds, appInfoList);
 
         Map<String, Object> data = Map.of(
                 "token", AppMonTokenIssuer.issueToken(30),
@@ -116,7 +112,7 @@ public class AppMonActivity {
                 "settings", settings,
                 "nodes", nodeInfoList,
                 "groups", appMonManager.getGroupInfoList(),
-                "apps", appMonManager.getAllAppInfoList()
+                "apps", appInfoList
         );
         return new DefaultRestResponse(data).nullWritable(false).ok();
     }

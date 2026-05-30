@@ -388,7 +388,7 @@ class DashboardBuilder {
         // Filter App Tabs
         this.apps.forEach(app => {
             const $tab = $(".app.tabs .tabs-title[data-app-id=" + app.id + "]");
-            if (!groupId || !app.groups || app.groups.length === 0 || app.groups.includes(groupId)) {
+            if (!groupId || !app.group || app.group === groupId) {
                 $tab.addClass("available").show();
             } else {
                 $tab.removeClass("available").hide();
@@ -732,7 +732,7 @@ class DashboardBuilder {
             const $appIndicator = $appTab.find(".indicator");
             this.addControlBar(app);
             this.nodes.forEach(node => {
-                if (!app.groups || app.groups.length === 0 || app.groups.includes(node.group)) {
+                if (!app.group || app.group === node.group) {
                     const viewer = this.viewers[node.index];
                     viewer.putIndicator$("app", "event", app.id, $appIndicator);
                     if (app.events && app.events.length) {

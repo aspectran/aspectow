@@ -24,6 +24,9 @@ import com.aspectran.aspectow.node.config.GroupInfo;
 import com.aspectran.aspectow.node.config.GroupInfoHolder;
 import com.aspectran.aspectow.node.config.NodeInfo;
 import com.aspectran.aspectow.node.config.NodeInfoHolder;
+import com.aspectran.aspectow.node.manager.NodeManager;
+import com.aspectran.aspectow.node.manager.NodeRegistry;
+import com.aspectran.aspectow.node.redis.RedisConnectionPool;
 import com.aspectran.core.activity.InstantAction;
 import com.aspectran.core.activity.InstantActivitySupport;
 import com.aspectran.core.adapter.ApplicationAdapter;
@@ -32,6 +35,7 @@ import org.jspecify.annotations.NonNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * The main manager for Aspectow AppMon.
@@ -57,13 +61,13 @@ public class AppMonManager extends InstantActivitySupport {
 
     private final AppInfoHolder appInfoHolder;
 
-    private final List<AppInfo> allAppInfoList;
-
     private final String clusterMode;
 
     private final MessageRelayManager messageRelayManager;
 
     private final PersistManager persistManager;
+
+    private RedisConnectionPool redisConnectionPool;
 
     /**
      * Instantiates a new AppMonManager.
@@ -75,7 +79,6 @@ public class AppMonManager extends InstantActivitySupport {
      * @param nodeInfoHolder the holder for node information
      * @param groupInfoHolder the holder for group information
      * @param appInfoHolder the holder for instance information
-     * @param allAppInfoList the list of all application definitions in the cluster
      * @param messageRelayManager the message relay manager
      */
     public AppMonManager(
@@ -87,7 +90,6 @@ public class AppMonManager extends InstantActivitySupport {
             NodeInfoHolder nodeInfoHolder,
             GroupInfoHolder groupInfoHolder,
             AppInfoHolder appInfoHolder,
-            List<AppInfo> allAppInfoList,
             MessageRelayManager messageRelayManager) {
         this.nodeId = nodeId;
         this.groupId = groupId;
@@ -97,7 +99,6 @@ public class AppMonManager extends InstantActivitySupport {
         this.nodeInfoHolder = nodeInfoHolder;
         this.groupInfoHolder = groupInfoHolder;
         this.appInfoHolder = appInfoHolder;
-        this.allAppInfoList = allAppInfoList;
         this.messageRelayManager = messageRelayManager;
         this.persistManager = new PersistManager();
     }
@@ -171,7 +172,7 @@ public class AppMonManager extends InstantActivitySupport {
     }
 
     /**
-     * Gets the list of all instance information.
+     * Gets the list of instance information.
      * @return the list of instance information
      */
     public List<AppInfo> getAppInfoList() {
@@ -179,20 +180,40 @@ public class AppMonManager extends InstantActivitySupport {
     }
 
     /**
-     * Gets the list of all application definitions in the cluster.
-     * @return the list of all application definitions
+     * Gets the IDs of all instances.
+     * @return an array of instance IDs
      */
-    public List<AppInfo> getAllAppInfoList() {
-        return allAppInfoList;
+    public String[] getAppIds() {
+        return AppInfoHolder.extractAppIds(getAppInfoList());
     }
 
     /**
-     * Gets the list of instance information for the specified instance IDs.
-     * @param appIds an array of instance IDs
-     * @return a list of matching instance information
+     * Gets the list of all application definitions in the cluster.
+     * In gateway mode, this retrieves information from the Redis registry.
+     * @return the list of all application definitions
      */
-    public List<AppInfo> getAppInfoList(String[] appIds) {
-        return appInfoHolder.getAppInfoList(appIds);
+    public List<AppInfo> getClusterAppInfoList() {
+        if (isGatewayMode()) {
+            NodeManager nodeManager = getBean(NodeManager.class);
+            NodeRegistry nodeRegistry = nodeManager.getNodeRegistry();
+            List<AppInfo> apps = new ArrayList<>();
+            Map<String, String> allGroups = nodeRegistry.getAllGroups();
+            for (String groupId : allGroups.keySet()) {
+                Map<String, String> allApps = nodeRegistry.getAllApps(groupId);
+                for (String aponData : allApps.values()) {
+                    try {
+                        AppInfo appInfo = new AppInfo();
+                        appInfo.readFrom(aponData);
+                        apps.add(appInfo);
+                    } catch (Exception e) {
+                        // ignore
+                    }
+                }
+            }
+            return apps;
+        } else {
+            return appInfoHolder.getAppInfoList();
+        }
     }
 
     /**
@@ -200,16 +221,36 @@ public class AppMonManager extends InstantActivitySupport {
      * @return the list of group information
      */
     public List<GroupInfo> getGroupInfoList() {
-        return List.copyOf(groupInfoHolder.getGroupInfos());
+        if (isGatewayMode()) {
+            NodeManager nodeManager = getBean(NodeManager.class);
+            NodeRegistry nodeRegistry = nodeManager.getNodeRegistry();
+            List<GroupInfo> groups = new ArrayList<>();
+            Map<String, String> allGroups = nodeRegistry.getAllGroups();
+            for (String aponData : allGroups.values()) {
+                try {
+                    GroupInfo groupInfo = new GroupInfo();
+                    groupInfo.readFrom(aponData);
+                    groups.add(groupInfo);
+                } catch (Exception e) {
+                    // ignore
+                }
+            }
+            return groups;
+        } else {
+            return List.copyOf(groupInfoHolder.getGroupInfos());
+        }
     }
 
     /**
      * Verifies the given instance IDs against the configured instances and returns the valid ones.
      * @param appIds an array of instance IDs to verify
+     * @param allAppInfoList a list of all available application definitions
      * @return an array of verified instance IDs
      */
-    public String[] getVerifiedAppIds(String[] appIds) {
-        List<AppInfo> allAppInfoList = getAllAppInfoList();
+    public String[] getVerifiedAppIds(String[] appIds, List<AppInfo> allAppInfoList) {
+        if (allAppInfoList == null || allAppInfoList.isEmpty()) {
+            return new String[0];
+        }
         List<AppInfo> infoList = new ArrayList<>(allAppInfoList.size());
         if (appIds != null && appIds.length > 0) {
             for (String id : appIds) {
@@ -247,6 +288,22 @@ public class AppMonManager extends InstantActivitySupport {
      */
     public PersistManager getPersistManager() {
         return persistManager;
+    }
+
+    /**
+     * Returns the Redis connection pool.
+     * @return the Redis connection pool
+     */
+    public RedisConnectionPool getRedisConnectionPool() {
+        return redisConnectionPool;
+    }
+
+    /**
+     * Sets the Redis connection pool.
+     * @param redisConnectionPool the Redis connection pool
+     */
+    public void setRedisConnectionPool(RedisConnectionPool redisConnectionPool) {
+        this.redisConnectionPool = redisConnectionPool;
     }
 
     @Override

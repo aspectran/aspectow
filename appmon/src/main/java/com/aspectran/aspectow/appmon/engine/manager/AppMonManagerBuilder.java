@@ -36,18 +36,18 @@ import com.aspectran.aspectow.appmon.engine.persist.counter.EventCounter;
 import com.aspectran.aspectow.appmon.engine.persist.counter.EventCounterBuilder;
 import com.aspectran.aspectow.appmon.engine.relay.MessageRelayManager;
 import com.aspectran.aspectow.appmon.engine.relay.remote.NodeMessageRelayHandler;
-import com.aspectran.aspectow.node.config.GroupInfo;
 import com.aspectran.aspectow.node.config.GroupInfoHolder;
 import com.aspectran.aspectow.node.config.NodeInfo;
 import com.aspectran.aspectow.node.config.NodeInfoHolder;
 import com.aspectran.aspectow.node.manager.ClusterEventListener;
 import com.aspectran.aspectow.node.manager.NodeManager;
+import com.aspectran.aspectow.node.manager.NodeMessageProtocol;
 import com.aspectran.core.context.ActivityContext;
 import com.aspectran.utils.Assert;
-import com.aspectran.utils.StringUtils;
 import org.jspecify.annotations.NonNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import static com.aspectran.aspectow.appmon.engine.schedule.CounterPersistSchedule.DEFAULT_SAMPLE_INTERVAL_IN_MINUTES;
@@ -59,6 +59,8 @@ import static com.aspectran.aspectow.appmon.engine.schedule.CounterPersistSchedu
  * <p>Created: 2024-12-17</p>
  */
 public abstract class AppMonManagerBuilder {
+
+    private static final Logger logger = LoggerFactory.getLogger(AppMonManagerBuilder.class);
 
     /**
      * Builds a fully configured {@link AppMonManager} instance.
@@ -73,6 +75,20 @@ public abstract class AppMonManagerBuilder {
         Assert.notNull(appMonConfig, "appMonConfig must not be null");
 
         AppMonManager appMonManager = createAppMonManager(context, appMonConfig);
+
+        if (appMonManager.isGatewayMode()) {
+            // Register app metadata to Redis
+            String appsKey = NodeMessageProtocol.getAppsHashKey(appMonManager.getGroupId());
+            try (var connection = appMonManager.getRedisConnectionPool().getConnection()) {
+                var sync = connection.sync();
+                for (AppInfo appInfo : appMonManager.getAppInfoList()) {
+                    sync.hset(appsKey, appInfo.getAppId(), appInfo.toString());
+                }
+                logger.info("Registered app info to Redis: {} (Apps: {})", appsKey, appMonManager.getAppIds());
+            } catch (Exception e) {
+                logger.error("Failed to register app info to Redis", e);
+            }
+        }
 
         for (AppInfo appInfo : appMonManager.getAppInfoList()) {
             String appId = appInfo.getAppId();
@@ -159,29 +175,16 @@ public abstract class AppMonManagerBuilder {
         NodeManager nodeManager = context.getBeanRegistry().getBean(NodeManager.class);
         String clusterMode = nodeManager.getClusterConfig().getMode();
         String nodeId = nodeManager.getNodeId();
-        String groupId = nodeManager.getNodeInfoHolder().getNodeInfo(nodeId).getGroup();
+        String groupId = nodeManager.getGroupId();
         NodeInfoHolder nodeInfoHolder = nodeManager.getNodeInfoHolder();
         GroupInfoHolder groupInfoHolder = nodeManager.getGroupInfoHolder();
 
         PollingConfig pollingConfig = appMonConfig.touchPollingConfig();
         int counterPersistInterval = appMonConfig.getCounterPersistInterval(DEFAULT_SAMPLE_INTERVAL_IN_MINUTES);
 
-        List<AppInfo> appInfoList = new ArrayList<>();
-        List<AppInfo> allAppInfoList = appMonConfig.getAppInfoList();
-        for (AppInfo appInfo : allAppInfoList) {
-            String[] groups = appInfo.getGroups();
-            if (groups == null || groups.length == 0) {
-                // System app
-                appInfoList.add(appInfo);
-            } else if (StringUtils.hasText(groupId)) {
-                for (String g : groups) {
-                    if (groupId.equals(g)) {
-                        appInfo.setGroupId(groupId);
-                        appInfoList.add(appInfo);
-                        break;
-                    }
-                }
-            }
+        List<AppInfo> appInfoList = appMonConfig.getAppInfoList();
+        for (AppInfo appInfo : appInfoList) {
+            appInfo.setGroupId(groupId);
         }
 
         AppInfoHolder appInfoHolder = new AppInfoHolder(nodeId, appInfoList);
@@ -191,8 +194,9 @@ public abstract class AppMonManagerBuilder {
 
         AppMonManager appMonManager = new AppMonManager(
                 nodeId, groupId, clusterMode, pollingConfig, counterPersistInterval,
-                nodeInfoHolder, groupInfoHolder, appInfoHolder, allAppInfoList, messageRelayManager);
+                nodeInfoHolder, groupInfoHolder, appInfoHolder, messageRelayManager);
         appMonManager.setActivityContext(context);
+        appMonManager.setRedisConnectionPool(nodeManager.getRedisConnectionPool());
 
         if (nodeManager.getNodeMessageSubscriber() != null) {
             NodeMessageRelayHandler nodeMessageRelayHandler = new NodeMessageRelayHandler(messageRelayManager);

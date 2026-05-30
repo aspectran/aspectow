@@ -73,7 +73,7 @@ public class ClusterConfig extends DefaultParameters {
     }
 
     /**
-     * Returns the communication mode of the cluster (e.g., "gateway", "direct", "autoscaling").
+     * Returns the communication mode of the cluster (e.g., "gateway", "direct").
      * @return the cluster mode
      */
     public String getMode() {
@@ -93,7 +93,7 @@ public class ClusterConfig extends DefaultParameters {
      * @return true if in direct mode, false otherwise
      */
     public boolean isDirectMode() {
-        return (!isGatewayMode() && !isAutoscalingMode());
+        return (!isGatewayMode());
     }
 
     /**
@@ -102,14 +102,6 @@ public class ClusterConfig extends DefaultParameters {
      */
     public boolean isGatewayMode() {
         return "gateway".equals(getString(mode));
-    }
-
-    /**
-     * Returns whether the cluster is in autoscaling communication mode.
-     * @return true if in autoscaling mode, false otherwise
-     */
-    public boolean isAutoscalingMode() {
-        return "autoscaling".equals(getString(mode));
     }
 
     /**

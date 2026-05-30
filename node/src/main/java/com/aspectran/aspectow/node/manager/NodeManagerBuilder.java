@@ -82,40 +82,61 @@ public abstract class NodeManagerBuilder {
         // Forcefully set the base path for cluster endpoint
         clusterConfig.touchEndpointConfig().setPath(NodeMessageProtocol.NODES_BASE_PATH);
 
+        String myNodeId = resolveMyNodeId();
+        String myGroupId = resolveMyGroupId();
+
+        // 1. Resolve Group ID
+        GroupInfoHolder groupInfoHolder = new GroupInfoHolder(nodeConfig.getGroupInfoList());
+        GroupInfo myGroupInfo = null;
+        if (StringUtils.hasText(myGroupId)) {
+            myGroupInfo = groupInfoHolder.getGroupInfo(myGroupId);
+        }
+        if (myGroupInfo == null) {
+            if (groupInfoHolder.hasGroupInfo()) {
+                // If no group specified via env, use the first one from config
+                myGroupInfo = groupInfoHolder.getGroupInfos().iterator().next();
+                myGroupId = myGroupInfo.getId();
+            } else {
+                // Last fallback
+                myGroupId = StringUtils.hasText(myGroupId) ? myGroupId : DEFAULT_GROUP_ID;
+                myGroupInfo = new GroupInfo();
+                myGroupInfo.setId(myGroupId);
+                myGroupInfo.setTitle(DEFAULT_GROUP_TITLE);
+                groupInfoHolder.putGroupInfo(myGroupInfo);
+            }
+        }
+
+        // 2. Resolve Node ID
         String nodeId;
         NodeInfo nodeInfo;
-        NodeInfoHolder nodeInfoHolder;
-        if (clusterConfig.isAutoscalingMode()) {
-            String myGroupId = resolveMyGroupId();
-            String shortId = UUID.randomUUID().toString().split("-")[0];
-            nodeId = shortId + (StringUtils.hasText(myGroupId) ? "@" + myGroupId : "");
+        NodeInfoHolder nodeInfoHolder = new NodeInfoHolder(nodeConfig.getNodeInfoList());
+        if (StringUtils.hasText(myNodeId)) {
+            nodeInfo = nodeInfoHolder.getNodeInfo(myNodeId);
+        } else {
+            nodeInfo = null;
+        }
+
+        if (nodeInfo == null) {
+            if (clusterConfig.isGatewayMode() && !StringUtils.hasText(myNodeId)) {
+                // Gateway mode + No explicit ID -> Always Dynamic
+                String shortId = UUID.randomUUID().toString().split("-")[0];
+                nodeId = shortId + (StringUtils.hasText(myGroupId) ? "@" + myGroupId : "");
+            } else {
+                // Direct mode or Explicit ID (even if not in config)
+                nodeId = StringUtils.hasText(myNodeId) ? myNodeId : DEFAULT_NODE_ID;
+            }
             nodeInfo = new NodeInfo();
             nodeInfo.setId(nodeId);
             nodeInfo.setGroup(myGroupId);
-            nodeInfoHolder = new NodeInfoHolder();
             nodeInfoHolder.putNodeInfo(nodeInfo);
         } else {
-            String myNodeId = resolveMyNodeId();
-            nodeInfoHolder = new NodeInfoHolder(nodeConfig.getNodeInfoList());
-            nodeInfo = nodeInfoHolder.getNodeInfo(myNodeId);
-            if (nodeInfo == null) {
-                List<NodeInfo> nodeInfoList = nodeConfig.getNodeInfoList();
-                if (DEFAULT_NODE_ID.equals(myNodeId) && nodeInfoList != null && nodeInfoList.size() == 1) {
-                    nodeInfo = nodeInfoList.getFirst();
-                    nodeId = nodeInfo.getId();
-                } else {
-                    if (clusterConfig.isGatewayMode()) {
-                        throw new IllegalStateException("Node information for '" + myNodeId + "' is not defined in " +
-                                "the configuration file, which is required in gateway mode.");
-                    }
-                    nodeId = myNodeId;
-                    nodeInfo = new NodeInfo();
-                    nodeInfo.setId(nodeId);
-                    nodeInfo.setGroup(resolveMyGroupId());
-                    nodeInfoHolder.putNodeInfo(nodeInfo);
-                }
-            } else {
-                nodeId = myNodeId;
+            nodeId = nodeInfo.getId();
+        }
+
+        // Ensure all nodes have a group assigned
+        for (NodeInfo info : nodeInfoHolder.getNodeInfoList()) {
+            if (!StringUtils.hasText(info.getGroup())) {
+                info.setGroup(myGroupId);
             }
         }
 
@@ -135,15 +156,7 @@ public abstract class NodeManagerBuilder {
 
         logger.info("Current Node: {} (Host: {})", nodeId, nodeInfo.getHost());
 
-        GroupInfoHolder groupInfoHolder = new GroupInfoHolder(nodeConfig.getGroupInfoList());
-        if (!groupInfoHolder.hasGroupInfo()) {
-            GroupInfo groupInfo = new GroupInfo();
-            groupInfo.setId(DEFAULT_GROUP_ID);
-            groupInfo.setTitle(DEFAULT_GROUP_TITLE);
-            groupInfoHolder.putGroupInfo(groupInfo);
-        }
-
-        NodeManager nodeManager = new NodeManager(nodeId, clusterConfig, nodeInfoHolder, groupInfoHolder);
+        NodeManager nodeManager = new NodeManager(nodeId, myGroupId, clusterConfig, nodeInfoHolder, groupInfoHolder);
 
         if (!clusterConfig.isDirectMode()) {
             if (redisConnectionPoolConfig == null) {
@@ -171,6 +184,15 @@ public abstract class NodeManagerBuilder {
             nodeManager.setClusterEventSubscriber(clusterEventSubscriber);
 
             if (clusterConfig.isGatewayMode()) {
+                // Register group info to Redis
+                String groupsKey = NodeMessageProtocol.getGroupsHashKey(clusterId);
+                try (var connection = connectionPool.getConnection()) {
+                    connection.sync().hset(groupsKey, myGroupInfo.getId(), myGroupInfo.toString());
+                    logger.info("Registered group info to Redis: {} (Group: {})", groupsKey, myGroupInfo.getId());
+                } catch (Exception e) {
+                    logger.error("Failed to register group info to Redis", e);
+                }
+
                 for (NodeInfo info : nodeRegistry.getNodes()) {
                     if (nodeId.equals(info.getId())) {
                         continue;
@@ -181,6 +203,9 @@ public abstract class NodeManagerBuilder {
                         // Create a new NodeInfo instance to ensure atomic update for potential concurrent readers
                         NodeInfo newInfo = existingInfo.copyWithUpdatedState(info);
                         nodeManager.getNodeInfoHolder().putNodeInfo(newInfo);
+                    } else {
+                        // Full update for dynamic join
+                        nodeManager.getNodeInfoHolder().putNodeInfo(info);
                     }
                 }
                 // Initialize nodes not found in registry as offline
@@ -188,13 +213,6 @@ public abstract class NodeManagerBuilder {
                     if (info.getStatus() == null) {
                         info.setStatus("offline");
                     }
-                }
-            } else if (clusterConfig.isAutoscalingMode()) {
-                for (NodeInfo info : nodeRegistry.getNodes()) {
-                    if (nodeId.equals(info.getId())) {
-                        continue;
-                    }
-                    nodeManager.getNodeInfoHolder().putNodeInfo(info);
                 }
             }
 
@@ -215,11 +233,11 @@ public abstract class NodeManagerBuilder {
     }
 
     private static String resolveMyNodeId() {
-        return SystemUtils.getProperty(MY_NODE_ID_PROPERTY, DEFAULT_NODE_ID);
+        return SystemUtils.getProperty(MY_NODE_ID_PROPERTY);
     }
 
     private static String resolveMyGroupId() {
-        return SystemUtils.getProperty(MY_GROUP_ID_PROPERTY, DEFAULT_GROUP_ID);
+        return SystemUtils.getProperty(MY_GROUP_ID_PROPERTY);
     }
 
     private static void validateSecretConfig(SecretConfig secretConfig) {

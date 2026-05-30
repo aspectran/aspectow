@@ -42,6 +42,8 @@ public class NodeManager {
 
     private final String nodeId;
 
+    private final String groupId;
+
     private final ClusterConfig clusterConfig;
 
     private final NodeInfoHolder nodeInfoHolder;
@@ -63,13 +65,15 @@ public class NodeManager {
     /**
      * Instantiates a new NodeManager.
      * @param nodeId the unique identifier of the current node
+     * @param groupId the unique identifier of the group this node belongs to
      * @param clusterConfig the cluster-wide configuration
      * @param nodeInfoHolder the holder for node-specific information
      * @param groupInfoHolder the holder for group-specific information
      */
-    public NodeManager(String nodeId, ClusterConfig clusterConfig,
+    public NodeManager(String nodeId, String groupId, ClusterConfig clusterConfig,
                        NodeInfoHolder nodeInfoHolder, GroupInfoHolder groupInfoHolder) {
         this.nodeId = nodeId;
+        this.groupId = groupId;
         this.clusterConfig = clusterConfig;
         this.nodeInfoHolder = nodeInfoHolder;
         this.groupInfoHolder = groupInfoHolder;
@@ -81,6 +85,14 @@ public class NodeManager {
      */
     public String getNodeId() {
         return nodeId;
+    }
+
+    /**
+     * Returns the unique identifier of the group this node belongs to.
+     * @return the group ID
+     */
+    public String getGroupId() {
+        return groupId;
     }
 
     /**
@@ -235,15 +247,11 @@ public class NodeManager {
                                 logger.debug("Updated dynamic state for joined node: {}", info.getId());
                             }
                         } else {
+                            // 3. Full update for dynamic join
+                            nodeInfoHolder.putNodeInfo(info);
                             if (logger.isDebugEnabled()) {
-                                logger.debug("Ignored join request from undefined node: {}", info.getId());
+                                logger.debug("Added new node info for joined node: {}", info.getId());
                             }
-                        }
-                    } else {
-                        // 3. Full update for Autoscaling Mode
-                        nodeInfoHolder.putNodeInfo(info);
-                        if (logger.isDebugEnabled()) {
-                            logger.debug("Updated node info for joined node: {}", info.getId());
                         }
                     }
                 }
@@ -265,11 +273,6 @@ public class NodeManager {
                                 logger.debug("Set node status to 'offline' for left node: {}", leftNodeId);
                             }
                         }
-                    } else {
-                        nodeInfoHolder.removeNode(leftNodeId);
-                        if (logger.isDebugEnabled()) {
-                            logger.debug("Removed node info for left node: {}", leftNodeId);
-                        }
                     }
                 }
             });
@@ -287,6 +290,7 @@ public class NodeManager {
 
         List<NodeInfo> latestNodes = nodeRegistry.getNodes();
         if (clusterConfig.isGatewayMode()) {
+            // 1. Update/Add from registry
             for (NodeInfo info : latestNodes) {
                 if (nodeId.equals(info.getId())) {
                     continue;
@@ -296,16 +300,10 @@ public class NodeManager {
                     // Partial update for Gateway Mode: keep static config, update dynamic state
                     NodeInfo newInfo = existingInfo.copyWithUpdatedState(info);
                     nodeInfoHolder.putNodeInfo(newInfo);
+                } else {
+                    // Full update for dynamic join
+                    nodeInfoHolder.putNodeInfo(info);
                 }
-            }
-        } else if (clusterConfig.isAutoscalingMode()) {
-            // In Autoscaling mode, we need to handle additions and removals
-            // 1. Update/Add from registry
-            for (NodeInfo info : latestNodes) {
-                if (nodeId.equals(info.getId())) {
-                    continue;
-                }
-                nodeInfoHolder.putNodeInfo(info);
             }
             // 2. Remove nodes that are no longer in registry
             List<NodeInfo> currentNodes = nodeInfoHolder.getNodeInfoList();

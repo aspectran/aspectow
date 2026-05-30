@@ -98,7 +98,7 @@ public class PollingMessageRelayer implements MessageRelayer {
         if (messageRelayManager.isSameNode(nodeId) || StringUtils.hasText(nodeToSubscribe)) {
             String appsToSubscribe = translet.getParameter("appsToSubscribe");
             String[] appIds = StringUtils.splitWithComma(appsToSubscribe);
-            appIds = appMonManager.getVerifiedAppIds(appIds);
+            appIds = appMonManager.getVerifiedAppIds(appIds, appMonManager.getClusterAppInfoList());
 
             PollingRelaySession relaySession = pollingSessionManager.createSession(translet, appIds);
             String timeZone = translet.getParameter("timeZone");
