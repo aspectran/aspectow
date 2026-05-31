@@ -71,7 +71,7 @@ public class DashboardActivity {
     @Action("page")
     public Map<String, String> dashboard(String appsToSubscribe) {
         return Map.of(
-                "headinclude", "appmon/_nodes",
+                "headinclude", "appmon/_groups",
                 "style", "fluid compact",
                 "appsToSubscribe", StringUtils.nullToEmpty(appsToSubscribe)
         );
