@@ -37,10 +37,10 @@ class DashboardBuilder {
         this.clients = [];
     }
 
-    build(basePath, appsToSubscribe, nodeIdToSubscribe) {
+    build(basePath, appsToSubscribe, nodeToSubscribe) {
         this.basePath = basePath;
         this.appsToSubscribe = appsToSubscribe;
-        this.nodeIdToSubscribe = nodeIdToSubscribe;
+        this.nodeToSubscribe = nodeToSubscribe;
         this.currentGroupId = null;
         this.suspendMonitoring();
         this.clearView();
@@ -48,7 +48,9 @@ class DashboardBuilder {
             url: basePath + "/appmon/config/data",
             type: "get",
             dataType: "json",
-            data: appsToSubscribe || null,
+            data: {
+                appsToSubscribe: appsToSubscribe || null
+            },
             success: (data) => {
                 if (data) {
                     if (!data.appsToSubscribe) {
@@ -76,7 +78,7 @@ class DashboardBuilder {
                     }
 
                     data.nodes.forEach(nodeInfo => {
-                        if (this.nodeIdToSubscribe && this.nodeIdToSubscribe !== nodeInfo.id) {
+                        if (this.nodeToSubscribe && this.nodeToSubscribe !== nodeInfo.id) {
                             return;
                         }
                         const node = {
@@ -125,7 +127,7 @@ class DashboardBuilder {
     }
 
     rebuild() {
-        this.build(this.basePath, this.appsToSubscribe, this.nodeIdToSubscribe);
+        this.build(this.basePath, this.appsToSubscribe, this.nodeToSubscribe);
         // location.reload();
     }
 
@@ -187,7 +189,7 @@ class DashboardBuilder {
                     }
                     this.viewers[node.index].setClient(client);
                     this.clients[node.index] = client;
-                    client.start(this.appsToSubscribe, this.nodeIdToSubscribe);
+                    client.start(this.appsToSubscribe, this.nodeToSubscribe);
                 }, (node.index - 1) * 1000);
             }
         };
@@ -242,7 +244,7 @@ class DashboardBuilder {
         }
         viewer.setClient(client);
         this.clients[node.index] = client;
-        client.start(this.appsToSubscribe, this.nodeIdToSubscribe);
+        client.start(this.appsToSubscribe, this.nodeToSubscribe);
     }
 
     showNewNodeNotification(nodeId) {
@@ -455,8 +457,6 @@ class DashboardBuilder {
     }
 
     bindEvents() {
-        //$(".btn.rebuild").off("click").on("click", (e) => { this.rebuild(); });
-
         $(".group.tabs .tabs-title.available a").off("click").on("click", (e) => {
             const groupId = $(e.currentTarget).closest(".tabs-title").data("group-id");
             this.changeGroup(groupId);

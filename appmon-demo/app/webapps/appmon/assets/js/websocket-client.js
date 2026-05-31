@@ -178,9 +178,6 @@ class WebsocketClient extends BaseClient {
         if (this.nodeToSubscribe) {
             options.push("nodeToSubscribe:" + this.nodeToSubscribe);
         }
-        if (this.groupIdToSubscribe) {
-            options.push("groupId:" + this.groupIdToSubscribe);
-        }
         if (this.appsToSubscribe) {
             options.push("appsToSubscribe:" + this.appsToSubscribe);
         }
@@ -233,6 +230,7 @@ class WebsocketClient extends BaseClient {
             this.reconnecting = false;
             const options = ["command:established"];
             if (this.nodeToSubscribe) options.push("nodeToSubscribe:" + this.nodeToSubscribe);
+            if (this.appsToSubscribe) options.push("appsToSubscribe:" + this.appsToSubscribe);
             this.sendCommand(options, nodeId);
         }
         if (!alive) {

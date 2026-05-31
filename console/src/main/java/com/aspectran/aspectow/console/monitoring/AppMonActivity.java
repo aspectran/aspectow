@@ -18,6 +18,7 @@ package com.aspectran.aspectow.console.monitoring;
 import com.aspectran.aspectow.appmon.common.auth.AppMonTokenIssuer;
 import com.aspectran.aspectow.appmon.engine.config.AppInfo;
 import com.aspectran.aspectow.appmon.engine.manager.AppMonManager;
+import com.aspectran.aspectow.node.config.GroupInfo;
 import com.aspectran.aspectow.node.config.NodeInfo;
 import com.aspectran.core.component.bean.annotation.Action;
 import com.aspectran.core.component.bean.annotation.Autowired;
@@ -30,9 +31,13 @@ import com.aspectran.utils.StringUtils;
 import com.aspectran.web.activity.response.DefaultRestResponse;
 import com.aspectran.web.activity.response.RestResponse;
 
-import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Handles requests for the Application Monitor dashboard.
@@ -99,10 +104,29 @@ public class AppMonActivity {
         );
 
         List<NodeInfo> nodeInfoList = appMonManager.getNodeInfoList();
+        List<GroupInfo> groupInfoList = appMonManager.getGroupInfoList();
         List<AppInfo> appInfoList = appMonManager.getClusterAppInfoList();
 
         String[] appIds = StringUtils.splitWithComma(appsToSubscribe);
         String[] verifiedAppIds = appMonManager.getVerifiedAppIds(appIds, appInfoList);
+
+        Set<String> verifiedAppIdSet = new HashSet<>(Arrays.asList(verifiedAppIds));
+        appInfoList = appInfoList.stream()
+                .filter(app -> verifiedAppIdSet.contains(app.getAppId()))
+                .collect(Collectors.toList());
+
+        Set<String> activeGroupIds = appInfoList.stream()
+                .map(AppInfo::getGroupId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        nodeInfoList = nodeInfoList.stream()
+                .filter(node -> activeGroupIds.contains(node.getGroup()))
+                .collect(Collectors.toList());
+
+        groupInfoList = groupInfoList.stream()
+                .filter(group -> activeGroupIds.contains(group.getId()))
+                .collect(Collectors.toList());
 
         Map<String, Object> data = Map.of(
                 "token", AppMonTokenIssuer.issueToken(30),
@@ -111,7 +135,7 @@ public class AppMonActivity {
                 "appsToSubscribe", StringUtils.join(verifiedAppIds, ","),
                 "settings", settings,
                 "nodes", nodeInfoList,
-                "groups", appMonManager.getGroupInfoList(),
+                "groups", groupInfoList,
                 "apps", appInfoList
         );
         return new DefaultRestResponse(data).nullWritable(false).ok();
