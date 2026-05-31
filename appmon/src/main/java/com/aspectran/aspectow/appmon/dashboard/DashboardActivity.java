@@ -96,23 +96,25 @@ public class DashboardActivity {
         String[] appIds = StringUtils.splitWithComma(appsToSubscribe);
         String[] verifiedAppIds = appMonManager.getVerifiedAppIds(appIds, appInfoList);
 
-        Set<String> verifiedAppIdSet = new HashSet<>(Arrays.asList(verifiedAppIds));
-        appInfoList = appInfoList.stream()
-                .filter(app -> verifiedAppIdSet.contains(app.getAppId()))
-                .collect(Collectors.toList());
+        if (StringUtils.hasText(appsToSubscribe)) {
+            Set<String> verifiedAppIdSet = new HashSet<>(Arrays.asList(verifiedAppIds));
+            appInfoList = appInfoList.stream()
+                    .filter(app -> verifiedAppIdSet.contains(app.getAppId()))
+                    .collect(Collectors.toList());
 
-        Set<String> activeGroupIds = appInfoList.stream()
-                .map(AppInfo::getGroupId)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toSet());
+            Set<String> activeGroupIds = appInfoList.stream()
+                    .map(AppInfo::getGroupId)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toSet());
 
-        nodeInfoList = nodeInfoList.stream()
-                .filter(node -> activeGroupIds.contains(node.getGroup()))
-                .collect(Collectors.toList());
+            nodeInfoList = nodeInfoList.stream()
+                    .filter(node -> activeGroupIds.contains(node.getGroup()))
+                    .collect(Collectors.toList());
 
-        groupInfoList = groupInfoList.stream()
-                .filter(group -> activeGroupIds.contains(group.getId()))
-                .collect(Collectors.toList());
+            groupInfoList = groupInfoList.stream()
+                    .filter(group -> activeGroupIds.contains(group.getId()))
+                    .collect(Collectors.toList());
+        }
 
         Map<String, Object> data = Map.of(
                 "token", AppMonTokenIssuer.issueToken(30),

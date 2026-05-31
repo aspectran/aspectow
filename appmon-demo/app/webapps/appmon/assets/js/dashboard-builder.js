@@ -377,24 +377,23 @@ class DashboardBuilder {
         });
 
         // Filter Node Tabs
+        let nodeCount = 0;
         this.nodes.forEach(node => {
             const $tab = $(".node.tabs .tabs-title[data-node-index=" + node.index + "]");
-            if (!groupId || node.group === groupId) {
-                $tab.show();
-            } else {
-                $tab.hide();
-            }
+            if (!groupId || node.group === groupId) $tab.show(); else $tab.hide();
             node.active = false; // Start with no nodes explicitly active
+            if (node.group === groupId) nodeCount++;
         });
+        if (nodeCount === 1) {
+            this.nodes.forEach(node => {
+                if (node.group === groupId) node.active = true;
+            });
+        }
 
         // Filter App Tabs
         this.apps.forEach(app => {
             const $tab = $(".app.tabs .tabs-title[data-app-id=" + app.id + "]");
-            if (!groupId || !app.group || app.group === groupId) {
-                $tab.show();
-            } else {
-                $tab.hide();
-            }
+            if (!groupId || !app.group || app.group === groupId) $tab.show(); else $tab.hide();
         });
 
         // Select first available app in the new group context
@@ -413,14 +412,15 @@ class DashboardBuilder {
             const $tabTitle = $(".app.tabs .tabs-title[data-app-id=" + app.id + "]");
             if (app.id === appId) {
                 app.active = true;
-                this.showNodeApp(appId);
+                setTimeout(() => this.showNodeApp(appId), 0);
                 $tabTitle.addClass("active");
                 exists = true;
-
                 this.nodes.forEach(node => {
                     if (node.primary) {
                         const client = this.clients[node.index];
-                        if (client && client.focus) client.focus(appId, node.id);
+                        if (client && client.focus) {
+                            setTimeout(() => client.focus(appId, node.id), 10);
+                        }
                     }
                 });
             } else {
