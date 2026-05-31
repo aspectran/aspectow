@@ -7,8 +7,7 @@ pollingConfig: {
 }
 counterPersistInterval: 1
 app: {
-    id: root
-    group: group1
+    id: appmon-root
     title: Root
     event: {
         id: activity
@@ -53,7 +52,6 @@ app: {
 }
 app: {
     id: appmon
-    group: group1
     title: AppMon
     event: {
         id: activity
@@ -82,7 +80,6 @@ app: {
 }
 app: {
     id: jpetstore
-    group: group1
     title: JPetStore
     log: {
         id: app
@@ -99,7 +96,6 @@ app: {
 }
 app: {
     id: demo
-    group: group1
     title: Demo
     log: {
         id: app

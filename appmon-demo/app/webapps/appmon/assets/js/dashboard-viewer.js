@@ -470,6 +470,7 @@ class DashboardViewer {
     }
 
     indicate(appId, exporterType, exporterName) {
+        this.blink(this.getIndicator$("group:event:"));
         this.blink(this.getIndicator$("node:event:"));
         if (this.visible) {
             this.blink(this.getIndicator$("app:event:" + appId));

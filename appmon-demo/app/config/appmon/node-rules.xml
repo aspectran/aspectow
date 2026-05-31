@@ -5,7 +5,7 @@
 
     <bean class="com.aspectran.aspectow.node.config.NodeConfigResolver">
         <properties>
-            <item name="configLocation">/config/appmon/node-config.apon</item>
+            <item name="configLocation">/config/appmon/node-config-direct.apon</item>
         </properties>
     </bean>
 

@@ -158,7 +158,7 @@ public abstract class NodeManagerBuilder {
 
         NodeManager nodeManager = new NodeManager(nodeId, myGroupId, clusterConfig, nodeInfoHolder, groupInfoHolder);
 
-        if (!clusterConfig.isDirectMode()) {
+        if (clusterConfig.isGatewayMode()) {
             if (redisConnectionPoolConfig == null) {
                 throw new IllegalStateException("RedisConnectionPoolConfig is required for cluster mode");
             }
@@ -183,20 +183,17 @@ public abstract class NodeManagerBuilder {
             nodeManager.setNodeMessageSubscriber(nodeMessageSubscriber);
             nodeManager.setClusterEventSubscriber(clusterEventSubscriber);
 
-            if (clusterConfig.isGatewayMode()) {
-                // Register group info to Redis
-                String groupsKey = NodeMessageProtocol.getGroupsHashKey(clusterId);
-                try (var connection = connectionPool.getConnection()) {
-                    connection.sync().hset(groupsKey, myGroupInfo.getId(), myGroupInfo.toString());
-                    logger.info("Registered group info to Redis: {} (Group: {})", groupsKey, myGroupInfo.getId());
-                } catch (Exception e) {
-                    logger.error("Failed to register group info to Redis", e);
-                }
+            // Register group info to Redis
+            String groupsKey = NodeMessageProtocol.getGroupsHashKey(clusterId);
+            try (var connection = connectionPool.getConnection()) {
+                connection.sync().hset(groupsKey, myGroupInfo.getId(), myGroupInfo.toString());
+                logger.info("Registered group info to Redis: {} (Group: {})", groupsKey, myGroupInfo.getId());
+            } catch (Exception e) {
+                logger.error("Failed to register group info to Redis", e);
+            }
 
-                for (NodeInfo info : nodeRegistry.getNodes()) {
-                    if (nodeId.equals(info.getId())) {
-                        continue;
-                    }
+            for (NodeInfo info : nodeRegistry.getNodes()) {
+                if (!nodeId.equals(info.getId())) {
                     NodeInfo existingInfo = nodeManager.getNodeInfoHolder().getNodeInfo(info.getId());
                     if (existingInfo != null) {
                         // Partial update: preserve static config from node-config.apon
@@ -208,11 +205,11 @@ public abstract class NodeManagerBuilder {
                         nodeManager.getNodeInfoHolder().putNodeInfo(info);
                     }
                 }
-                // Initialize nodes not found in registry as offline
-                for (NodeInfo info : nodeManager.getNodeInfoList()) {
-                    if (info.getStatus() == null) {
-                        info.setStatus("offline");
-                    }
+            }
+            // Initialize nodes not found in registry as offline
+            for (NodeInfo info : nodeManager.getNodeInfoList()) {
+                if (info.getStatus() == null) {
+                    info.setStatus("offline");
                 }
             }
 

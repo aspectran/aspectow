@@ -7,7 +7,7 @@ cluster: {
     }
 }
 group: {
-    id: group1
-    title: Group 1
-    description: This is group 1
+    id: console-demo
+    title: Console Demo
+    description: This group is for console demo.
 }

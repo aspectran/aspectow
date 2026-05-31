@@ -5,7 +5,7 @@
 
     <bean class="com.aspectran.aspectow.node.config.NodeConfigResolver">
         <properties>
-            <item name="configLocation">/config/appmon/node-config-autoscaling.apon</item>
+            <item name="configLocation">/config/appmon/node-config-gateway.apon</item>
         </properties>
     </bean>
 
