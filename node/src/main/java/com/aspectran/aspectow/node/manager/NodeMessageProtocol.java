@@ -42,6 +42,8 @@ public abstract class NodeMessageProtocol {
 
     public static final String TYPE_APPS = "apps";
 
+    public static final String TYPE_APPS_ORDER = "apps-order";
+
     private static final String KEY_PREFIX = "aspectow:cluster:";
 
     /**
@@ -62,6 +64,16 @@ public abstract class NodeMessageProtocol {
     @NonNull
     public static String getAppsHashKey(String groupId) {
         return KEY_PREFIX + TYPE_APPS + ":" + groupId;
+    }
+
+    /**
+     * Returns the Redis List key for storing the order of application IDs for a specific group.
+     * @param groupId the group ID
+     * @return the Redis key
+     */
+    @NonNull
+    public static String getAppsOrderKey(String groupId) {
+        return KEY_PREFIX + TYPE_APPS_ORDER + ":" + groupId;
     }
 
     /**

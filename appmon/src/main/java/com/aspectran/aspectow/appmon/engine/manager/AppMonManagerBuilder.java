@@ -79,10 +79,13 @@ public abstract class AppMonManagerBuilder {
         if (appMonManager.isGatewayMode()) {
             // Register app metadata to Redis
             String appsKey = NodeMessageProtocol.getAppsHashKey(appMonManager.getGroupId());
+            String appsOrderKey = NodeMessageProtocol.getAppsOrderKey(appMonManager.getGroupId());
             try (var connection = appMonManager.getRedisConnectionPool().getConnection()) {
                 var sync = connection.sync();
+                sync.del(appsOrderKey);
                 for (AppInfo appInfo : appMonManager.getAppInfoList()) {
                     sync.hset(appsKey, appInfo.getAppId(), appInfo.toString());
+                    sync.rpush(appsOrderKey, appInfo.getAppId());
                 }
                 logger.info("Registered app info to Redis: {} (Apps: {})", appsKey, appMonManager.getAppIds());
             } catch (Exception e) {

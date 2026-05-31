@@ -168,16 +168,11 @@ public class NodeReporter {
     }
 
     private void unregisterNode() {
-        String key = NodeMessageProtocol.getNodesHashKey(getClusterConfig().getId());
-
         if (logger.isDebugEnabled()) {
-            logger.debug("Unregistering node '{}' from Redis hash '{}'", getNodeInfo().getId(), key);
+            logger.debug("Unregistering node '{}' from cluster '{}'", getNodeInfo().getId(), getClusterConfig().getId());
         }
-
-        try (StatefulRedisConnection<String, String> connection = getConnectionPool().getConnection()) {
-            RedisCommands<String, String> sync = connection.sync();
-            sync.hset(key, getNodeInfo().getId(), "");
-            sync.hdel(key, getNodeInfo().getId());
+        try {
+            nodeManager.getNodeRegistry().removeNode(getNodeInfo().getId());
         } catch (Exception e) {
             logger.error("Failed to unregister node '{}' from Redis registry", getNodeInfo().getId(), e);
         }

@@ -337,6 +337,13 @@ public class NodeManager {
                 logger.warn("Error stopping NodeReporter during shutdown", e);
             }
         }
+        if (nodeRegistry != null) {
+            try {
+                nodeRegistry.stop();
+            } catch (Exception e) {
+                logger.warn("Error stopping NodeRegistry during shutdown", e);
+            }
+        }
         if (nodeMessageSubscriber != null) {
             try {
                 nodeMessageSubscriber.stop();
