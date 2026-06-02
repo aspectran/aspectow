@@ -39,12 +39,6 @@ public interface SchedulerSession {
     void setNodeId(String nodeId);
 
     /**
-     * Checks if the session is remote (connected to another node in the cluster).
-     * @return {@code true} if the session is remote, {@code false} otherwise
-     */
-    boolean isRemote();
-
-    /**
      * Checks if the session is still valid.
      * @return {@code true} if the session is valid, {@code false} otherwise
      */

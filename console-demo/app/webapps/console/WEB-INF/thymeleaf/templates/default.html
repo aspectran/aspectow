@@ -37,13 +37,13 @@
                     <i class="bi bi-chevron-down small"></i>
                 </a>
                 <div class="collapse" th:classappend="${page.group == 'cluster-menu' ? 'show' : ''}" id="cluster-menu">
-                    <a th:href="@{/nodes/list}" class="nav-link ps-5 py-2 small" th:classappend="${page.style == 'nodes-page' ? 'active' : ''}">
+                    <a th:href="@{/cluster/nodes}" class="nav-link ps-5 py-2 small" th:classappend="${page.style == 'nodes-page' ? 'active' : ''}">
                         Nodes
                     </a>
-                    <a th:href="@{/nodes/commands}" class="nav-link ps-5 py-2 small" th:classappend="${page.style == 'commands-page' ? 'active' : ''}">
+                    <a th:href="@{/cluster/commands}" class="nav-link ps-5 py-2 small" th:classappend="${page.style == 'commands-page' ? 'active' : ''}">
                         Remote Commands
                     </a>
-                    <a th:href="@{/nodes/scheduler}" class="nav-link ps-5 py-2 small" th:classappend="${page.style == 'scheduler-page' ? 'active' : ''}">
+                    <a th:href="@{/cluster/scheduler}" class="nav-link ps-5 py-2 small" th:classappend="${page.style == 'scheduler-page' ? 'active' : ''}">
                         Scheduler Manager
                     </a>
                     <a th:href="@{/appmon/dashboard/}" class="nav-link ps-5 py-2 small" th:classappend="${page.style == 'monitoring-page' ? 'active' : ''}">

@@ -16,7 +16,7 @@
 package com.aspectran.aspectow.console.commands.manager;
 
 import com.aspectran.aspectow.console.commands.bridge.CommandBroker;
-import com.aspectran.aspectow.console.commands.bridge.redis.CommandMessageBridgeHandler;
+import com.aspectran.aspectow.console.commands.bridge.remote.RemoteCommandMessageListener;
 import com.aspectran.aspectow.node.manager.NodeManager;
 import com.aspectran.core.component.bean.ablility.InitializableBean;
 import com.aspectran.core.component.bean.annotation.Bean;
@@ -51,14 +51,14 @@ public class RemoteCommandManager implements InitializableBean {
     @Override
     public void initialize() throws Exception {
         logger.info("Initializing RemoteCommandManager for node: {}", getNodeId());
-        
+
         // Register a listener for command relay messages (commands and results) from Redis
         if (nodeManager.getNodeMessageSubscriber() != null) {
-            CommandMessageBridgeHandler bridgeHandler = new CommandMessageBridgeHandler(this);
+            RemoteCommandMessageListener bridgeHandler = new RemoteCommandMessageListener(this);
             nodeManager.getNodeMessageSubscriber().addListener(bridgeHandler);
         }
     }
-    
+
     public String getNodeId() {
         return nodeManager.getNodeId();
     }

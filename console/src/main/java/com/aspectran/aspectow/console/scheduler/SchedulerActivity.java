@@ -47,7 +47,7 @@ import static com.aspectran.aspectow.node.manager.NodeMessageProtocol.NODES_BASE
  *
  * <p>Created: 2026-04-26</p>
  */
-@Component(NODES_BASE_PATH + "/scheduler")
+@Component("/cluster/scheduler")
 public class SchedulerActivity {
 
     private final NodeManager nodeManager;
@@ -75,7 +75,7 @@ public class SchedulerActivity {
      * @return a map of attributes for rendering the view
      */
     @Request("/")
-    @Dispatch("nodes/scheduler")
+    @Dispatch("cluster/scheduler")
     @Action("page")
     public Map<String, Object> scheduler(String nodeId) {
         String clusterMode = nodeManager.getClusterConfig().getMode();
@@ -100,8 +100,8 @@ public class SchedulerActivity {
      * Lists all registered nodes with their current status.
      * @return a list of node information maps
      */
-    @Request("/list")
-    public RestResponse listNodes() {
+    @Request("/nodes")
+    public RestResponse getNodes() {
         try {
             List<Map<String, Object>> nodes = nodeConsoleHelper.getNodes(true);
             return new SuccessResponse(nodes).ok();

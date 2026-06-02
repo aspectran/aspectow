@@ -42,7 +42,7 @@ import static com.aspectran.aspectow.node.manager.NodeMessageProtocol.NODES_BASE
  *
  * <p>Created: 2026-04-19</p>
  */
-@Component(NODES_BASE_PATH)
+@Component("/cluster")
 public class ClusterActivity {
 
     private final NodeManager nodeManager;
@@ -59,8 +59,8 @@ public class ClusterActivity {
      * Displays the cluster nodes list page.
      * @return a map of attributes for rendering the view
      */
-    @Request("/list")
-    @Dispatch("nodes/list")
+    @Request("/nodes")
+    @Dispatch("cluster/nodes")
     @Action("page")
     public Map<String, Object> listNodes() {
         String clusterMode = nodeManager.getClusterConfig().getMode();

@@ -44,7 +44,7 @@ import static com.aspectran.aspectow.node.manager.NodeMessageProtocol.NODES_BASE
  *
  * <p>Created: 2026-04-16</p>
  */
-@Component(NODES_BASE_PATH + "/commands")
+@Component("/cluster/commands")
 public class RemoteCommandsActivity {
 
     private final NodeManager nodeManager;
@@ -68,9 +68,9 @@ public class RemoteCommandsActivity {
      * @return a map of attributes for rendering the view
      */
     @Request
-    @Dispatch("nodes/commands")
+    @Dispatch("cluster/commands")
     @Action("page")
-    public Map<String, Object> nodeCommands(String nodeId) {
+    public Map<String, Object> commands(String nodeId) {
         String clusterMode = nodeManager.getClusterConfig().getMode();
         List<Map<String, Object>> nodes = nodeConsoleHelper.getNodes(true);
         NodeInfo nodeInfo = (nodeId != null ? nodeManager.getNodeInfoHolder().getNodeInfo(nodeId) : null);
@@ -82,6 +82,7 @@ public class RemoteCommandsActivity {
         model.put("style", "commands-page");
         model.put("group", "cluster-menu");
         model.put("clusterMode", clusterMode);
+        model.put("myNodeId", nodeManager.getNodeId());
         model.put("nodes", nodes);
         if (nodeInfo != null) {
             model.put("node", nodeConsoleHelper.createNodeMap(nodeInfo, true, true));
@@ -94,7 +95,7 @@ public class RemoteCommandsActivity {
      * @return a list of node information maps
      */
     @Request("/list")
-    public RestResponse listCommands() {
+    public RestResponse listNodes() {
         try {
             List<Map<String, Object>> nodes = nodeConsoleHelper.getNodes(true);
             return new SuccessResponse(nodes).ok();

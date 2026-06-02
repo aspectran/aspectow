@@ -17,8 +17,10 @@ package com.aspectran.aspectow.console.scheduler.manager;
 
 import com.aspectran.aspectow.console.scheduler.bridge.SchedulerBroker;
 import com.aspectran.aspectow.console.scheduler.bridge.SchedulerRequestParameters;
-import com.aspectran.aspectow.console.scheduler.bridge.redis.SchedulerMessageBridgeHandler;
+import com.aspectran.aspectow.console.scheduler.bridge.SubscriptionRegistry;
+import com.aspectran.aspectow.console.scheduler.bridge.remote.RemoteSchedulerMessageListener;
 import com.aspectran.aspectow.node.manager.NodeManager;
+import com.aspectran.aspectow.node.manager.NodeMessagePublisher;
 import com.aspectran.core.adapter.ApplicationAdapter;
 import com.aspectran.core.component.bean.ablility.InitializableBean;
 import com.aspectran.core.component.bean.annotation.Autowired;
@@ -42,6 +44,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
+import static com.aspectran.aspectow.console.scheduler.bridge.SchedulerBroker.DELIMITER;
 
 /**
  * SchedulerManager orchestrates scheduler management across the cluster.
@@ -73,7 +77,7 @@ public class SchedulerManager implements ApplicationAdapterAware, InitializableB
     public SchedulerManager(@NonNull NodeManager nodeManager) {
         this.nodeManager = nodeManager;
         this.localSchedulerService = new LocalSchedulerService();
-        this.broker = new SchedulerBroker(nodeManager.getNodeMessagePublisher(), this);
+        this.broker = new SchedulerBroker(this);
     }
 
     @Override
@@ -86,68 +90,21 @@ public class SchedulerManager implements ApplicationAdapterAware, InitializableB
         logger.info("Initializing SchedulerManager for node: {}", getNodeId());
 
         if (nodeManager.getNodeMessageSubscriber() != null) {
-            SchedulerMessageBridgeHandler bridgeHandler = new SchedulerMessageBridgeHandler(this);
+            RemoteSchedulerMessageListener bridgeHandler = new RemoteSchedulerMessageListener(this);
             nodeManager.getNodeMessageSubscriber().addListener(bridgeHandler);
         }
     }
-    
-    public String getNodeId() {
-        return nodeManager.getNodeId();
+
+    public SubscriptionRegistry getSubscriptionRegistry() {
+        return broker.getSubscriptionRegistry();
     }
 
-    public static final char DELIMITER = '\u001F';
+    public NodeMessagePublisher getNodeMessagePublisher() {
+        return nodeManager.getNodeMessagePublisher();
+    }
 
-    public void handleControlMessage(String nodeId, @NonNull String message) {
-        if (message.startsWith(SchedulerBroker.CONTROL_SUBSCRIBE)) {
-            String requesterNodeId = null;
-            String sessionId = null;
-            String[] parts = message.split(":");
-            if (parts.length >= 3) {
-                requesterNodeId = parts[2];
-            }
-            if (parts.length >= 4) {
-                sessionId = parts[3];
-            }
-            if (requesterNodeId == null) {
-                requesterNodeId = nodeId;
-            }
-            logger.info("Received scheduler subscribe request from node: {}, session: {}", requesterNodeId, sessionId);
-            broker.getSubscriptionRegistry().addRemoteSubscription(requesterNodeId);
-            startExporters();
-
-            // Relay initial log lines back to the requester node
-            if (nodeManager.getNodeMessagePublisher() != null) {
-                String sourceNodeId = getNodeId();
-                for (String logMessage : collectLastMessages()) {
-                    try {
-                        String relayMessage = sourceNodeId + DELIMITER + logMessage;
-                        if (sessionId != null) {
-                            nodeManager.getNodeMessagePublisher().publishRelay(
-                                    SchedulerBroker.CATEGORY_SCHEDULER, requesterNodeId, sessionId, relayMessage);
-                        } else {
-                            nodeManager.getNodeMessagePublisher().publishRelay(
-                                    SchedulerBroker.CATEGORY_SCHEDULER, requesterNodeId, relayMessage);
-                        }
-                    } catch (Exception e) {
-                        logger.error("Failed to relay initial log message to node: {}", requesterNodeId, e);
-                    }
-                }
-            }
-        } else if (message.startsWith(SchedulerBroker.CONTROL_RELEASE)) {
-            String requesterNodeId = null;
-            String[] parts = message.split(":");
-            if (parts.length >= 3) {
-                requesterNodeId = parts[2];
-            }
-            if (requesterNodeId == null) {
-                requesterNodeId = nodeId;
-            }
-            logger.info("Received scheduler release request from node: {}", requesterNodeId);
-            broker.getSubscriptionRegistry().removeRemoteSubscription(requesterNodeId);
-            if (!broker.getSubscriptionRegistry().isInUse()) {
-                stopExporters();
-            }
-        }
+    public String getNodeId() {
+        return nodeManager.getNodeId();
     }
 
     public synchronized void startExporters() {

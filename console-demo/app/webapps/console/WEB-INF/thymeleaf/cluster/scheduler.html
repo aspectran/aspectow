@@ -164,7 +164,7 @@
             let currentNodeId = [[${page.node.id}]];
 
             function refreshNodeList() {
-                return fetch(basePath + "/nodes/scheduler/list", {
+                return fetch(basePath + "/cluster/scheduler/nodes", {
                         headers: { 'Accept': 'application/json' }
                     })
                     .then(res => res.json())
@@ -261,13 +261,13 @@
                 const node = {
                     id: nodeId,
                     endpoint: {
-                        path: basePath + "/nodes"
+                        path: basePath + "/nodes/" + nodeId
                     }
                 };
 
                 consoleClient = new ConsoleClient(node, {
                     onBeforeConnect: () => {
-                        return fetch(basePath + "/nodes/token", {
+                        return fetch(basePath + "/cluster/token", {
                                 headers: { 'Accept': 'application/json' }
                             })
                             .then(response => response.json())

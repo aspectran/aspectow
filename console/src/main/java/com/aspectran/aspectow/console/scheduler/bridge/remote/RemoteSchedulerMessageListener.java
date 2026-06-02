@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.aspectran.aspectow.console.scheduler.bridge.redis;
+package com.aspectran.aspectow.console.scheduler.bridge.remote;
 
 import com.aspectran.aspectow.console.scheduler.bridge.SchedulerBroker;
 import com.aspectran.aspectow.console.scheduler.manager.SchedulerManager;
@@ -24,11 +24,11 @@ import org.jspecify.annotations.NonNull;
  * SchedulerMessageBridgeHandler listens to Redis relay messages related to
  * scheduler management and forwards them to the SchedulerManager.
  */
-public class SchedulerMessageBridgeHandler implements NodeMessageListener {
+public class RemoteSchedulerMessageListener implements NodeMessageListener {
 
     private final SchedulerManager schedulerManager;
 
-    public SchedulerMessageBridgeHandler(SchedulerManager schedulerManager) {
+    public RemoteSchedulerMessageListener(SchedulerManager schedulerManager) {
         this.schedulerManager = schedulerManager;
     }
 
@@ -38,16 +38,33 @@ public class SchedulerMessageBridgeHandler implements NodeMessageListener {
     }
 
     @Override
-    public void onControlMessage(String nodeId, String message) {
-        schedulerManager.handleControlMessage(nodeId, message);
+    public void onControlMessage(String nodeId, @NonNull String message) {
+        String requesterNodeId = null;
+        String sessionId = null;
+        String[] parts = message.split(SchedulerBroker.DELIMITER);
+        if (parts.length >= 3) {
+            requesterNodeId = parts[2];
+        }
+        if (parts.length >= 4) {
+            sessionId = parts[3];
+        }
+        if (requesterNodeId == null) {
+            requesterNodeId = nodeId;
+        }
+
+        if (message.startsWith(SchedulerBroker.CONTROL_SUBSCRIBE)) {
+            schedulerManager.getBroker().subscribeRemotely(requesterNodeId, sessionId);
+        } else if (message.startsWith(SchedulerBroker.CONTROL_RELEASE)) {
+            schedulerManager.getBroker().releaseRemotely(requesterNodeId);
+        }
     }
 
     @Override
-    public void onRelayMessage(String nodeId, String message) {
+    public void onRelayMessage(String nodeId, @NonNull String message) {
         if (message.startsWith("command:")) {
             schedulerManager.process(message);
         } else {
-            int idx = message.indexOf(SchedulerManager.DELIMITER);
+            int idx = message.indexOf(SchedulerBroker.DELIMITER);
             if (idx != -1) {
                 String sourceNodeId = message.substring(0, idx);
                 String content = message.substring(idx + 1);
@@ -59,8 +76,8 @@ public class SchedulerMessageBridgeHandler implements NodeMessageListener {
     }
 
     @Override
-    public void onRelayMessage(String nodeId, String sessionId, String message) {
-        int idx = message.indexOf(SchedulerManager.DELIMITER);
+    public void onRelayMessage(String nodeId, String sessionId, @NonNull String message) {
+        int idx = message.indexOf(SchedulerBroker.DELIMITER);
         String sourceNodeId;
         String content;
         if (idx != -1) {

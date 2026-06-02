@@ -172,10 +172,11 @@ arguments: {
         <script th:inline="javascript">
             const basePath = [[@{/}]].replace(/\/$/, '');
             const clusterMode = [[${page.clusterMode}]];
+            const myNodeId = [[${page.myNodeId}]];
             const currentNodeId = [[${page.node?.id}]];
             let nodes = [[${page.nodes}]];
 
-            let client = null;
+            let consoleClient = null;
             let commandHistory = [];
             const templates = {
                 sysinfo: 'command: sysinfo\narguments: {\n    item: { value: mem }\n    item: { value: props }\n}',
@@ -185,7 +186,7 @@ arguments: {
             };
 
             function refreshNodeList() {
-                return fetch(basePath + "/nodes/commands/list", {
+                return fetch(basePath + "/cluster/commands/list", {
                         headers: { 'Accept': 'application/json' }
                     })
                     .then(res => res.json())
@@ -297,7 +298,7 @@ arguments: {
                     `);
                     return false;
                 } else {
-                    if (client && client.established) {
+                    if (consoleClient && consoleClient.established) {
                         $('#connection-indicator').text("CONNECTED").removeClass("bg-danger bg-warning bg-secondary").addClass("bg-success");
                     }
                     return true;
@@ -305,7 +306,7 @@ arguments: {
             }
 
             function resetDeadStatus() {
-                if (client && client.established) {
+                if (consoleClient && consoleClient.established) {
                     $('#connection-indicator').text("CONNECTED").removeClass("bg-danger bg-warning bg-secondary").addClass("bg-success");
                 }
                 $('#result-view').html('<div class="text-muted small">Select a command from history or dispatch a new one to see results.</div>');
@@ -343,7 +344,7 @@ arguments: {
                 commandHistory.unshift(newCmd);
                 updateHistoryUI();
                 
-                if (client) {
+                if (consoleClient) {
                     const message = {
                         header: "execute",
                         command: apon
@@ -352,7 +353,7 @@ arguments: {
                     if (targetType === 'group') message.targetGroup = targetValue;
                     if (targetType === 'all') message.targetAll = true;
 
-                    client.sendMessage(JSON.stringify(message));
+                    consoleClient.sendMessage(JSON.stringify(message));
                 }
             }
 
@@ -429,16 +430,16 @@ arguments: {
                     }
                 });
 
-                const commandsNode = {
-                    id: currentNodeId || 'gateway',
+                const nodeInfo = {
+                    id: currentNodeId || myNodeId,
                     endpoint: {
-                        path: basePath + "/nodes"
+                        path: basePath + "/nodes/" + (currentNodeId || myNodeId)
                     }
                 };
 
-                client = new ConsoleClient(commandsNode, {
+                consoleClient = new ConsoleClient(nodeInfo, {
                     onBeforeConnect: () => {
-                        return fetch(basePath + "/nodes/token", {
+                        return fetch(basePath + "/cluster/token", {
                             headers: { 'Accept': 'application/json' }
                         })
                             .then(response => response.json())
@@ -501,7 +502,7 @@ arguments: {
                     }
                 });
 
-                client.start('commands');
+                consoleClient.start('commands');
             });
         </script>
     </th:block>

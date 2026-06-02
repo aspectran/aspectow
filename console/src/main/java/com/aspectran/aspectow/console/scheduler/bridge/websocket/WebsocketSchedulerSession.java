@@ -46,11 +46,6 @@ public class WebsocketSchedulerSession extends WrappedSession implements Schedul
     }
 
     @Override
-    public boolean isRemote() {
-        return false;
-    }
-
-    @Override
     public boolean isValid() {
         return getSession().isOpen();
     }

@@ -48,7 +48,7 @@ import static com.aspectran.aspectow.node.manager.NodeMessageProtocol.NODES_BASE
  */
 @Component
 @ServerEndpoint(
-        value = NODES_BASE_PATH + "/" + CATEGORY_COMMANDS + "/websocket/{token}",
+        value = NODES_BASE_PATH + "/{nodeId}/" + CATEGORY_COMMANDS + "/websocket/{token}",
         configurator = AspectranConfigurator.class
 )
 public class WebsocketCommandBridge extends SimplifiedEndpoint implements CommandBridge {
@@ -132,7 +132,10 @@ public class WebsocketCommandBridge extends SimplifiedEndpoint implements Comman
                     .setHeader("subscribed")
                     .setNodeId(nodeManager.getNodeId());
             sendText(session, resultParameters.toString());
-            logger.debug("ConsoleClient joined remote command management: session {}, targetNodeId: {}", session.getId(), commandSession.getNodeId());
+            if (logger.isDebugEnabled()) {
+                logger.debug("ConsoleClient joined remote command management: session {}, targetNodeId: {}",
+                        session.getId(), commandSession.getNodeId());
+            }
         }
     }
 

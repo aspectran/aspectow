@@ -127,7 +127,7 @@ class ConsoleClient {
                 this.retryCount = 0;
                 this.pendingMessages.push("Socket connection successful");
 
-                const subscribeMessage = { header: "subscribe" };
+                const subscribeMessage = { header: "subscribe", targetNodeId: this.node.id };
                 this.socket.send(JSON.stringify(subscribeMessage));
                 this.sendPing();
 

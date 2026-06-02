@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.aspectran.aspectow.console.commands.bridge.redis;
+package com.aspectran.aspectow.console.commands.bridge.remote;
 
 import com.aspectran.aspectow.console.commands.bridge.CommandBroker;
 import com.aspectran.aspectow.console.commands.manager.RemoteCommandManager;
@@ -23,11 +23,11 @@ import com.aspectran.aspectow.node.manager.NodeMessageListener;
  * CommandMessageBridgeHandler listens to Redis relay messages and forwards
  * them to the RemoteCommandManager.
  */
-public class CommandMessageBridgeHandler implements NodeMessageListener {
+public class RemoteCommandMessageListener implements NodeMessageListener {
 
     private final RemoteCommandManager remoteCommandManager;
 
-    public CommandMessageBridgeHandler(RemoteCommandManager remoteCommandManager) {
+    public RemoteCommandMessageListener(RemoteCommandManager remoteCommandManager) {
         this.remoteCommandManager = remoteCommandManager;
     }
 
