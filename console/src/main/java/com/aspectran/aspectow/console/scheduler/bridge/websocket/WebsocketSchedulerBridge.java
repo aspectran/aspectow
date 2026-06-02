@@ -101,6 +101,7 @@ public class WebsocketSchedulerBridge extends SimplifiedEndpoint implements Sche
 
         try {
             SchedulerRequestParameters parameters = JsonToParameters.from(message, SchedulerRequestParameters.class);
+            parameters.setSessionId(session.getId());
             String header = parameters.getHeader();
             if ("execute".equals(header)) {
                 execute(session, parameters);

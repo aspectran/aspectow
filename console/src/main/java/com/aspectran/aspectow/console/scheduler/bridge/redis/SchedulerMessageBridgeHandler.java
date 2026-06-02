@@ -43,21 +43,11 @@ public class SchedulerMessageBridgeHandler implements NodeMessageListener {
     }
 
     @Override
-    public void onRelayMessage(String nodeId, @NonNull String message) {
+    public void onRelayMessage(String nodeId, String message) {
         if (message.startsWith("command:")) {
             schedulerManager.process(message);
-        } else if (message.startsWith("log/s:")) {
-            // Target specific session: "log/s:<sessionId>:<loggingGroup>:<line>"
-            int idx = message.indexOf(':', 6);
-            if (idx != -1) {
-                String sessionId = message.substring(6, idx);
-                String content = "scheduler:log:" + message.substring(idx + 1);
-                schedulerManager.getBroker().getSessions().stream()
-                        .filter(session -> session.getId().equals(sessionId))
-                        .forEach(session -> schedulerManager.getBroker().bridge(session, content));
-            }
         } else {
-            int idx = message.indexOf('\0');
+            int idx = message.indexOf(SchedulerManager.DELIMITER);
             if (idx != -1) {
                 String sourceNodeId = message.substring(0, idx);
                 String content = message.substring(idx + 1);
@@ -66,6 +56,24 @@ public class SchedulerMessageBridgeHandler implements NodeMessageListener {
                 schedulerManager.broadcast(message);
             }
         }
+    }
+
+    @Override
+    public void onRelayMessage(String nodeId, String sessionId, String message) {
+        int idx = message.indexOf(SchedulerManager.DELIMITER);
+        String sourceNodeId;
+        String content;
+        if (idx != -1) {
+            sourceNodeId = message.substring(0, idx);
+            content = message.substring(idx + 1);
+        } else {
+            sourceNodeId = nodeId;
+            content = message;
+        }
+
+        schedulerManager.getBroker().getSessions().stream()
+                .filter(session -> session.getId().equals(sessionId))
+                .forEach(session -> schedulerManager.getBroker().bridge(session, sourceNodeId, content));
     }
 
 }

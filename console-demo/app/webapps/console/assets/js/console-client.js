@@ -261,7 +261,7 @@ class ConsoleClient {
                         messages.forEach(msg => {
                             let sourceNodeId = this.node.id;
                             let content = msg;
-                            const idx = msg.indexOf('\0');
+                            const idx = msg.indexOf('\u001F');
                             if (idx !== -1) {
                                 sourceNodeId = msg.substring(0, idx);
                                 content = msg.substring(idx + 1);

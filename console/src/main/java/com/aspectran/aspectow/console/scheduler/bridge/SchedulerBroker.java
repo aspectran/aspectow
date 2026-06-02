@@ -93,7 +93,7 @@ public class SchedulerBroker {
                     bridge(session, message);
                 }
             } else {
-                publishControl(targetNodeId, CONTROL_SUBSCRIBE + ":" + session.getId());
+                publishControl(targetNodeId, CONTROL_SUBSCRIBE + ":" + schedulerManager.getNodeId() + ":" + session.getId());
             }
         }
     }
@@ -106,7 +106,7 @@ public class SchedulerBroker {
                 schedulerManager.stopExporters();
             }
         } else {
-            publishControl(targetNodeId, CONTROL_RELEASE + ":" + session.getId());
+            publishControl(targetNodeId, CONTROL_RELEASE + ":" + schedulerManager.getNodeId() + ":" + session.getId());
         }
     }
 
@@ -143,7 +143,7 @@ public class SchedulerBroker {
             }
         }
         if (messagePublisher != null && !subscriptionRegistry.getRemoteSubscriptions().isEmpty()) {
-            String relayMessage = sourceNodeId + "\0" + data;
+            String relayMessage = sourceNodeId + SchedulerManager.DELIMITER + data;
             for (String remoteNodeId : subscriptionRegistry.getRemoteSubscriptions()) {
                 try {
                     messagePublisher.publishRelay(CATEGORY_SCHEDULER, remoteNodeId, relayMessage);
@@ -180,7 +180,7 @@ public class SchedulerBroker {
         }
         if (messagePublisher != null && session.isRemote()) {
             try {
-                String relayMessage = sourceNodeId + "\0" + data;
+                String relayMessage = sourceNodeId + SchedulerManager.DELIMITER + data;
                 messagePublisher.publishRelay(CATEGORY_SCHEDULER, session.getNodeId(), session.getId(), relayMessage);
             } catch (Exception e) {
                 logger.error("Failed to relay scheduler result to remote session: {}", session.getId(), e);

@@ -27,6 +27,7 @@ public class SchedulerRequestParameters extends DefaultParameters {
     public static final ParameterKey header;
     public static final ParameterKey targetNodeId;
     public static final ParameterKey sourceNodeId;
+    public static final ParameterKey sessionId;
     public static final ParameterKey command;
     public static final ParameterKey serviceName;
     public static final ParameterKey scheduleId;
@@ -40,6 +41,7 @@ public class SchedulerRequestParameters extends DefaultParameters {
         header = new ParameterKey("header", ValueType.STRING);
         targetNodeId = new ParameterKey("targetNodeId", ValueType.STRING);
         sourceNodeId = new ParameterKey("sourceNodeId", ValueType.STRING);
+        sessionId = new ParameterKey("sessionId", ValueType.STRING);
         command = new ParameterKey("command", ValueType.STRING);
         serviceName = new ParameterKey("serviceName", ValueType.STRING);
         scheduleId = new ParameterKey("scheduleId", ValueType.STRING);
@@ -51,6 +53,7 @@ public class SchedulerRequestParameters extends DefaultParameters {
                 header,
                 targetNodeId,
                 sourceNodeId,
+                sessionId,
                 command,
                 serviceName,
                 scheduleId,
@@ -86,6 +89,14 @@ public class SchedulerRequestParameters extends DefaultParameters {
 
     public void setSourceNodeId(String sourceNodeId) {
         putValue(SchedulerRequestParameters.sourceNodeId, sourceNodeId);
+    }
+
+    public String getSessionId() {
+        return getString(sessionId);
+    }
+
+    public void setSessionId(String sessionId) {
+        putValue(SchedulerRequestParameters.sessionId, sessionId);
     }
 
     public String getCommand() {

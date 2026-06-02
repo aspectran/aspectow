@@ -95,10 +95,24 @@ public class SchedulerManager implements ApplicationAdapterAware, InitializableB
         return nodeManager.getNodeId();
     }
 
+    public static final char DELIMITER = '\u001F';
+
     public void handleControlMessage(String nodeId, @NonNull String message) {
         if (message.startsWith(SchedulerBroker.CONTROL_SUBSCRIBE)) {
-            logger.info("Received scheduler subscribe request from node: {}", nodeId);
-            broker.getSubscriptionRegistry().addRemoteSubscription(nodeId);
+            String requesterNodeId = null;
+            String sessionId = null;
+            String[] parts = message.split(":");
+            if (parts.length >= 3) {
+                requesterNodeId = parts[2];
+            }
+            if (parts.length >= 4) {
+                sessionId = parts[3];
+            }
+            if (requesterNodeId == null) {
+                requesterNodeId = nodeId;
+            }
+            logger.info("Received scheduler subscribe request from node: {}, session: {}", requesterNodeId, sessionId);
+            broker.getSubscriptionRegistry().addRemoteSubscription(requesterNodeId);
             startExporters();
 
             // Relay initial log lines back to the requester node
@@ -106,17 +120,30 @@ public class SchedulerManager implements ApplicationAdapterAware, InitializableB
                 String sourceNodeId = getNodeId();
                 for (String logMessage : collectLastMessages()) {
                     try {
-                        String relayMessage = sourceNodeId + "\0" + logMessage;
-                        nodeManager.getNodeMessagePublisher().publishRelay(
-                                SchedulerBroker.CATEGORY_SCHEDULER, nodeId, relayMessage);
+                        String relayMessage = sourceNodeId + DELIMITER + logMessage;
+                        if (sessionId != null) {
+                            nodeManager.getNodeMessagePublisher().publishRelay(
+                                    SchedulerBroker.CATEGORY_SCHEDULER, requesterNodeId, sessionId, relayMessage);
+                        } else {
+                            nodeManager.getNodeMessagePublisher().publishRelay(
+                                    SchedulerBroker.CATEGORY_SCHEDULER, requesterNodeId, relayMessage);
+                        }
                     } catch (Exception e) {
-                        logger.error("Failed to relay initial log message to node: {}", nodeId, e);
+                        logger.error("Failed to relay initial log message to node: {}", requesterNodeId, e);
                     }
                 }
             }
         } else if (message.startsWith(SchedulerBroker.CONTROL_RELEASE)) {
-            logger.info("Received scheduler release request from node: {}", nodeId);
-            broker.getSubscriptionRegistry().removeRemoteSubscription(nodeId);
+            String requesterNodeId = null;
+            String[] parts = message.split(":");
+            if (parts.length >= 3) {
+                requesterNodeId = parts[2];
+            }
+            if (requesterNodeId == null) {
+                requesterNodeId = nodeId;
+            }
+            logger.info("Received scheduler release request from node: {}", requesterNodeId);
+            broker.getSubscriptionRegistry().removeRemoteSubscription(requesterNodeId);
             if (!broker.getSubscriptionRegistry().isInUse()) {
                 stopExporters();
             }
@@ -244,10 +271,16 @@ public class SchedulerManager implements ApplicationAdapterAware, InitializableB
             String response = execute(request);
             if (response != null && nodeManager.getNodeMessagePublisher() != null) {
                 String requesterNodeId = request.getSourceNodeId();
-                String relayMessage = getNodeId() + "\0" + response;
+                String sessionId = request.getSessionId();
+                String relayMessage = getNodeId() + DELIMITER + response;
                 if (requesterNodeId != null) {
-                    nodeManager.getNodeMessagePublisher().publishRelay(
-                            SchedulerBroker.CATEGORY_SCHEDULER, requesterNodeId, relayMessage);
+                    if (sessionId != null) {
+                        nodeManager.getNodeMessagePublisher().publishRelay(
+                                SchedulerBroker.CATEGORY_SCHEDULER, requesterNodeId, sessionId, relayMessage);
+                    } else {
+                        nodeManager.getNodeMessagePublisher().publishRelay(
+                                SchedulerBroker.CATEGORY_SCHEDULER, requesterNodeId, relayMessage);
+                    }
                 } else {
                     nodeManager.getNodeMessagePublisher().publishRelay(
                             SchedulerBroker.CATEGORY_SCHEDULER, relayMessage);
