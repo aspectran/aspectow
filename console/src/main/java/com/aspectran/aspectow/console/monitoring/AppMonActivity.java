@@ -68,13 +68,14 @@ public class AppMonActivity {
     @Request("/dashboard/${appsToSubscribe}")
     @Dispatch("appmon/dashboard")
     @Action("page")
-    public Map<String, String> dashboard(String appsToSubscribe) {
+    public Map<String, Object> dashboard(String appsToSubscribe) {
         return Map.of(
                 "title", "Application Monitoring",
                 "style", "monitoring-page",
                 "group", "cluster-menu",
                 "appsToSubscribe", StringUtils.nullToEmpty(appsToSubscribe),
-                "layout", "default"
+                "layout", "default",
+                "clusterMode", appMonManager.getClusterMode()
         );
     }
 
@@ -87,12 +88,13 @@ public class AppMonActivity {
     @Dispatch("appmon/dashboard")
     @Action("page")
     @Hint(type = "layout", value = "layout: popup")
-    public Map<String, String> dashboardPopup(String appsToSubscribe) {
+    public Map<String, Object> dashboardPopup(String appsToSubscribe) {
         return Map.of(
                 "title", "Application Monitoring",
                 "style", "monitoring-page",
                 "appsToJoin", StringUtils.nullToEmpty(appsToSubscribe),
-                "layout", "popup"
+                "layout", "popup",
+                "clusterMode", appMonManager.getClusterMode()
         );
     }
 

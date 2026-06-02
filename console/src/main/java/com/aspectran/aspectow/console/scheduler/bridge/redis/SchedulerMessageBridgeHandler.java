@@ -57,7 +57,14 @@ public class SchedulerMessageBridgeHandler implements NodeMessageListener {
                         .forEach(session -> schedulerManager.getBroker().bridge(session, content));
             }
         } else {
-            schedulerManager.broadcast(message);
+            int idx = message.indexOf('\0');
+            if (idx != -1) {
+                String sourceNodeId = message.substring(0, idx);
+                String content = message.substring(idx + 1);
+                schedulerManager.broadcast(sourceNodeId, content);
+            } else {
+                schedulerManager.broadcast(message);
+            }
         }
     }
 

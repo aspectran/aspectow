@@ -71,6 +71,11 @@ public class PollingSchedulerSession implements SchedulerSession {
     }
 
     @Override
+    public boolean isRemote() {
+        return false;
+    }
+
+    @Override
     public boolean isValid() {
         return !isExpired();
     }

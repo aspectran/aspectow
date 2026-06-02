@@ -192,22 +192,22 @@ public class WebsocketSchedulerBridge extends SimplifiedEndpoint implements Sche
     }
 
     @Override
-    public void bridge(String data) {
+    public void bridge(String sourceNodeId, String data) {
         if (data != null) {
             SchedulerResponseParameters responseParameters = new SchedulerResponseParameters()
                     .setHeader("result")
-                    .setNodeId(nodeManager.getNodeId())
+                    .setNodeId(sourceNodeId)
                     .setResult(data);
             broadcast(responseParameters.toString());
         }
     }
 
     @Override
-    public void bridge(@NonNull SchedulerSession session, String data) {
+    public void bridge(@NonNull SchedulerSession session, String sourceNodeId, String data) {
         if (session instanceof WebsocketSchedulerSession websocketSchedulerSession) {
             SchedulerResponseParameters responseParameters = new SchedulerResponseParameters()
                     .setHeader("result")
-                    .setNodeId(nodeManager.getNodeId())
+                    .setNodeId(sourceNodeId)
                     .setResult(data);
             sendText(websocketSchedulerSession.getSession(), responseParameters.toString());
         }

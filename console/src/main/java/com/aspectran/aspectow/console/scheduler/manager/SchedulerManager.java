@@ -30,6 +30,7 @@ import com.aspectran.core.service.CoreService;
 import com.aspectran.core.service.CoreServiceHolder;
 import com.aspectran.logging.LoggingDefaults;
 import com.aspectran.utils.StringUtils;
+import com.aspectran.utils.json.JsonBuilder;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
@@ -37,6 +38,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -95,9 +97,25 @@ public class SchedulerManager implements ApplicationAdapterAware, InitializableB
 
     public void handleControlMessage(String nodeId, @NonNull String message) {
         if (message.startsWith(SchedulerBroker.CONTROL_SUBSCRIBE)) {
+            logger.info("Received scheduler subscribe request from node: {}", nodeId);
             broker.getSubscriptionRegistry().addRemoteSubscription(nodeId);
             startExporters();
+
+            // Relay initial log lines back to the requester node
+            if (nodeManager.getNodeMessagePublisher() != null) {
+                String sourceNodeId = getNodeId();
+                for (String logMessage : collectLastMessages()) {
+                    try {
+                        String relayMessage = sourceNodeId + "\0" + logMessage;
+                        nodeManager.getNodeMessagePublisher().publishRelay(
+                                SchedulerBroker.CATEGORY_SCHEDULER, nodeId, relayMessage);
+                    } catch (Exception e) {
+                        logger.error("Failed to relay initial log message to node: {}", nodeId, e);
+                    }
+                }
+            }
         } else if (message.startsWith(SchedulerBroker.CONTROL_RELEASE)) {
+            logger.info("Received scheduler release request from node: {}", nodeId);
             broker.getSubscriptionRegistry().removeRemoteSubscription(nodeId);
             if (!broker.getSubscriptionRegistry().isInUse()) {
                 stopExporters();
@@ -149,6 +167,10 @@ public class SchedulerManager implements ApplicationAdapterAware, InitializableB
             logsDir = applicationAdapter.getRealPath(LoggingDefaults.DEFAULT_LOGS_DIR).toFile();
         }
 
+        if (logger.isDebugEnabled()) {
+            logger.debug("Discovering scheduler log files in: {}", logsDir.getAbsolutePath());
+        }
+
         String logCharset = System.getProperty(LoggingDefaults.LOG_CHARSET_PROPERTY);
 
         for (CoreService service : CoreServiceHolder.getAllServices()) {
@@ -159,10 +181,13 @@ public class SchedulerManager implements ApplicationAdapterAware, InitializableB
                     if (!logExporters.containsKey(loggingGroup)) {
                         File logFile = new File(logsDir, loggingGroup + "-scheduler.log");
                         if (logFile.exists()) {
+                            logger.info("Discovered scheduler log file: {}", logFile.getAbsolutePath());
                             // Currently using default settings; future: apply injected overrides
                             SchedulerLogExporter exporter = new SchedulerLogExporter(
                                     loggingGroup, logFile, broker, logCharset);
                             logExporters.put(loggingGroup, exporter);
+                        } else if (logger.isDebugEnabled()) {
+                            logger.debug("Scheduler log file not found: {}", logFile.getAbsolutePath());
                         }
                     }
                 }
@@ -179,7 +204,7 @@ public class SchedulerManager implements ApplicationAdapterAware, InitializableB
      * @param targetNodeId the ID of the node to receive the request
      * @param request the structured request parameters
      */
-    public void dispatch(String targetNodeId, SchedulerRequestParameters request) {
+    public void dispatch(String targetNodeId, @NonNull SchedulerRequestParameters request) {
         if (getNodeId().equals(targetNodeId)) {
             logger.debug("Executing local scheduler request: {}", request.getCommand());
             String response = execute(request);
@@ -189,9 +214,9 @@ public class SchedulerManager implements ApplicationAdapterAware, InitializableB
         } else {
             if (nodeManager.getNodeMessagePublisher() != null) {
                 try {
-                    // Convert to string only when sending over the network (Redis)
-                    String message = "command:" + request.toString() + ";" + targetNodeId;
-                    nodeManager.getNodeMessagePublisher().publishRelay(SchedulerBroker.CATEGORY_SCHEDULER, message);
+                    request.setSourceNodeId(getNodeId());
+                    String message = "command:" + request;
+                    nodeManager.getNodeMessagePublisher().publishRelay(SchedulerBroker.CATEGORY_SCHEDULER, targetNodeId, message);
                     logger.debug("Scheduler request dispatched to node {}: {}", targetNodeId, request.getCommand());
                 } catch (Exception e) {
                     logger.error("Failed to dispatch scheduler request to node {}", targetNodeId, e);
@@ -211,30 +236,25 @@ public class SchedulerManager implements ApplicationAdapterAware, InitializableB
             return;
         }
 
-        String payload = message.substring(8);
-        int idx = payload.indexOf(';');
-        String requestData;
-        String targetNodeId = null;
+        String requestData = message.substring(8);
+        try {
+            SchedulerRequestParameters request = new SchedulerRequestParameters();
+            request.readFrom(requestData);
 
-        if (idx != -1) {
-            requestData = payload.substring(0, idx);
-            targetNodeId = payload.substring(idx + 1);
-        } else {
-            requestData = payload;
-        }
-
-        if (targetNodeId == null || targetNodeId.equals(getNodeId())) {
-            try {
-                SchedulerRequestParameters request = new SchedulerRequestParameters();
-                request.readFrom(requestData);
-
-                String response = execute(request);
-                if (response != null && nodeManager.getNodeMessagePublisher() != null) {
-                    nodeManager.getNodeMessagePublisher().publishRelay(SchedulerBroker.CATEGORY_SCHEDULER, response);
+            String response = execute(request);
+            if (response != null && nodeManager.getNodeMessagePublisher() != null) {
+                String requesterNodeId = request.getSourceNodeId();
+                String relayMessage = getNodeId() + "\0" + response;
+                if (requesterNodeId != null) {
+                    nodeManager.getNodeMessagePublisher().publishRelay(
+                            SchedulerBroker.CATEGORY_SCHEDULER, requesterNodeId, relayMessage);
+                } else {
+                    nodeManager.getNodeMessagePublisher().publishRelay(
+                            SchedulerBroker.CATEGORY_SCHEDULER, relayMessage);
                 }
-            } catch (Exception e) {
-                logger.error("Failed to process scheduler relay message", e);
             }
+        } catch (Exception e) {
+            logger.error("Failed to process scheduler relay message", e);
         }
     }
 
@@ -267,16 +287,20 @@ public class SchedulerManager implements ApplicationAdapterAware, InitializableB
         String loggingGroup = request.getLoggingGroup();
         int loadedLines = request.getLoadedLines();
         if (loggingGroup != null) {
+            List<String> lines = null;
             SchedulerLogExporter exporter = logExporters.get(loggingGroup);
             if (exporter != null) {
-                List<String> lines = exporter.readPreviousLines(loadedLines);
-                return new com.aspectran.utils.json.JsonBuilder().object()
-                        .put("type", "previousLines")
-                        .put("loggingGroup", loggingGroup)
-                        .put("lines", lines)
-                        .endObject()
-                        .toString();
+                lines = exporter.readPreviousLines(loadedLines);
             }
+            if (lines == null) {
+                lines = Collections.emptyList();
+            }
+            return new JsonBuilder().object()
+                    .put("type", "previousLines")
+                    .put("loggingGroup", loggingGroup)
+                    .put("lines", lines)
+                    .endObject()
+                    .toString();
         }
         return null;
     }
@@ -295,16 +319,21 @@ public class SchedulerManager implements ApplicationAdapterAware, InitializableB
         return null;
     }
 
+    public void broadcast(String response) {
+        broadcast(getNodeId(), response);
+    }
+
     /**
      * Broadcasts a management result to all connected clients on this node.
+     * @param sourceNodeId the ID of the node where the message originated
      * @param response the result payload in JSON format
      */
-    public void broadcast(String response) {
+    public void broadcast(String sourceNodeId, String response) {
         if (logger.isTraceEnabled()) {
-            logger.trace("Broadcasting scheduler result to local clients: {}", response);
+            logger.trace("Broadcasting scheduler result (source: {}) to local clients: {}", sourceNodeId, response);
         }
         if (broker != null) {
-            broker.bridge(response);
+            broker.bridge(sourceNodeId, response);
         }
     }
 

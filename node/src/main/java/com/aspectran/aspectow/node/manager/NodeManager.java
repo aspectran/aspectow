@@ -16,6 +16,7 @@
 package com.aspectran.aspectow.node.manager;
 
 import com.aspectran.aspectow.node.config.ClusterConfig;
+import com.aspectran.aspectow.node.config.GroupInfo;
 import com.aspectran.aspectow.node.config.GroupInfoHolder;
 import com.aspectran.aspectow.node.config.NodeInfo;
 import com.aspectran.aspectow.node.config.NodeInfoHolder;
@@ -28,7 +29,9 @@ import com.aspectran.utils.security.TimeLimitedPBTokenIssuer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * The core orchestrator for the Aspectow Node Manager.
@@ -117,6 +120,30 @@ public class NodeManager {
      */
     public GroupInfoHolder getGroupInfoHolder() {
         return groupInfoHolder;
+    }
+
+    /**
+     * Returns a list of information for all registered groups in the cluster.
+     * In gateway mode, this retrieves information from the Redis registry.
+     * @return the list of all registered groups
+     */
+    public List<GroupInfo> getGroupInfoList() {
+        if (clusterConfig.isGatewayMode() && nodeRegistry != null) {
+            List<GroupInfo> groups = new ArrayList<>();
+            Map<String, String> allGroups = nodeRegistry.getAllGroups();
+            for (String aponData : allGroups.values()) {
+                try {
+                    GroupInfo groupInfo = new GroupInfo();
+                    groupInfo.readFrom(aponData);
+                    groups.add(groupInfo);
+                } catch (Exception e) {
+                    // ignore
+                }
+            }
+            return groups;
+        } else {
+            return List.copyOf(groupInfoHolder.getGroupInfos());
+        }
     }
 
     /**

@@ -84,34 +84,36 @@ public class SchedulerBroker {
 
     public synchronized void subscribe(@NonNull SchedulerSession session) {
         if (session.isValid()) {
-            boolean alreadyInUse = subscriptionRegistry.isInUse();
             subscriptionRegistry.addLocalSubscription(session.getId());
-            if (!alreadyInUse) {
+            String targetNodeId = session.getNodeId();
+            if (schedulerManager.getNodeId().equals(targetNodeId)) {
                 schedulerManager.startExporters();
-            }
-            publishControl(CONTROL_SUBSCRIBE + ":" + session.getId());
-
-            // Send initial log lines to the new session
-            for (String message : schedulerManager.collectLastMessages()) {
-                bridge(session, message);
+                // Send initial log lines to the new session
+                for (String message : schedulerManager.collectLastMessages()) {
+                    bridge(session, message);
+                }
+            } else {
+                publishControl(targetNodeId, CONTROL_SUBSCRIBE + ":" + session.getId());
             }
         }
     }
 
     public synchronized void release(@NonNull SchedulerSession session) {
         subscriptionRegistry.removeLocalSubscription(session.getId());
-        if (!subscriptionRegistry.isInUse()) {
-            schedulerManager.stopExporters();
-        }
-        if (!subscriptionRegistry.isInUseLocally()) {
-            publishControl(CONTROL_RELEASE);
+        String targetNodeId = session.getNodeId();
+        if (schedulerManager.getNodeId().equals(targetNodeId)) {
+            if (!subscriptionRegistry.isInUseLocally()) {
+                schedulerManager.stopExporters();
+            }
+        } else {
+            publishControl(targetNodeId, CONTROL_RELEASE + ":" + session.getId());
         }
     }
 
-    private void publishControl(String message) {
+    private void publishControl(String targetNodeId, String message) {
         if (messagePublisher != null) {
             try {
-                messagePublisher.publishControl(message);
+                messagePublisher.publishControl(CATEGORY_SCHEDULER, targetNodeId, message);
             } catch (Exception e) {
                 logger.error("Failed to publish control message to Redis", e);
             }
@@ -123,12 +125,31 @@ public class SchedulerBroker {
      * @param data the result payload to send
      */
     public void bridge(String data) {
+        bridge(schedulerManager.getNodeId(), data);
+    }
+
+    /**
+     * Bridges a scheduler result to all connected clients.
+     * @param sourceNodeId the ID of the node where the message originated
+     * @param data the result payload to send
+     */
+    public void bridge(String sourceNodeId, String data) {
         for (SchedulerBridge bridge : bridges) {
             try {
-                bridge.bridge(data);
+                bridge.bridge(sourceNodeId, data);
             } catch (Exception e) {
                 logger.warn("Failed to bridge scheduler result via {}: {}",
                         bridge.getClass().getSimpleName(), e.getMessage());
+            }
+        }
+        if (messagePublisher != null && !subscriptionRegistry.getRemoteSubscriptions().isEmpty()) {
+            String relayMessage = sourceNodeId + "\0" + data;
+            for (String remoteNodeId : subscriptionRegistry.getRemoteSubscriptions()) {
+                try {
+                    messagePublisher.publishRelay(CATEGORY_SCHEDULER, remoteNodeId, relayMessage);
+                } catch (Exception e) {
+                    logger.error("Failed to relay scheduler result to remote node: {}", remoteNodeId, e);
+                }
             }
         }
     }
@@ -138,13 +159,31 @@ public class SchedulerBroker {
      * @param session the target session
      * @param data the result payload to send
      */
-    public void bridge(SchedulerSession session, String data) {
+    public void bridge(@NonNull SchedulerSession session, String data) {
+        bridge(session, schedulerManager.getNodeId(), data);
+    }
+
+    /**
+     * Bridges a scheduler result to a specific session.
+     * @param session the target session
+     * @param sourceNodeId the ID of the node where the message originated
+     * @param data the result payload to send
+     */
+    public void bridge(@NonNull SchedulerSession session, String sourceNodeId, String data) {
         for (SchedulerBridge bridge : bridges) {
             try {
-                bridge.bridge(session, data);
+                bridge.bridge(session, sourceNodeId, data);
             } catch (Exception e) {
                 logger.warn("Failed to bridge scheduler result via {}: {}",
                         bridge.getClass().getSimpleName(), e.getMessage());
+            }
+        }
+        if (messagePublisher != null && session.isRemote()) {
+            try {
+                String relayMessage = sourceNodeId + "\0" + data;
+                messagePublisher.publishRelay(CATEGORY_SCHEDULER, session.getNodeId(), session.getId(), relayMessage);
+            } catch (Exception e) {
+                logger.error("Failed to relay scheduler result to remote session: {}", session.getId(), e);
             }
         }
     }

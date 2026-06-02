@@ -40,12 +40,20 @@ public class SubscriptionRegistry {
         localSubscriptions.remove(sessionId);
     }
 
+    public int getLocalSubscriptionCount() {
+        return localSubscriptions.size();
+    }
+
     public void addRemoteSubscription(@NonNull String nodeId) {
         remoteSubscriptions.add(nodeId);
     }
 
     public void removeRemoteSubscription(@NonNull String nodeId) {
         remoteSubscriptions.remove(nodeId);
+    }
+
+    public Set<String> getRemoteSubscriptions() {
+        return remoteSubscriptions;
     }
 
     public boolean isInUse() {

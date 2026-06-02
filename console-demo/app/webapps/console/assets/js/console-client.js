@@ -158,10 +158,10 @@ class ConsoleClient {
 
             this.socket.onclose = (event) => {
                 this.closeSocket(true);
-                if (this.options.onClose) {
-                    setTimeout(() => this.options.onClose(event), 100);
-                }
                 if (!this.manualClose) {
+                    if (this.options.onClose) {
+                        setTimeout(() => this.options.onClose(event), 100);
+                    }
                     if (event.code === 1003) {
                         console.warn("Websocket connection refused: ", event.code);
                         this.options.viewer.printErrorMessage("Connection rejected: " + (event.reason || "Unauthorized"));
@@ -259,12 +259,21 @@ class ConsoleClient {
                     const messages = res.data;
                     if (messages && messages.length > 0) {
                         messages.forEach(msg => {
+                            let sourceNodeId = this.node.id;
+                            let content = msg;
+                            const idx = msg.indexOf('\0');
+                            if (idx !== -1) {
+                                sourceNodeId = msg.substring(0, idx);
+                                content = msg.substring(idx + 1);
+                            }
+
                             try {
-                                const message = JSON.parse(msg);
+                                const message = JSON.parse(content);
+                                message.nodeId = sourceNodeId;
                                 this.handleMessage(message);
                             } catch (e) {
                                 // Raw string result
-                                this.handleMessage({ header: "result", result: msg });
+                                this.handleMessage({ header: "result", nodeId: sourceNodeId, result: content });
                             }
                         });
                     }

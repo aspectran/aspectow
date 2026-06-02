@@ -33,7 +33,7 @@
 <body>
     <th:block layout:fragment="content">
         <div class="row">
-            <div class="container group-bar mb-2">
+            <div class="container group-bar mb-2" th:if="${page.clusterMode == 'gateway'}">
                 <ul class="group tabs nav nav-tabs">
                     <li class="tabs-title nav-item">
                         <a class="nav-link">

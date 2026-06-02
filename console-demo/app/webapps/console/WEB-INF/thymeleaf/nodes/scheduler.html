@@ -182,15 +182,44 @@
             function renderNodeSelector() {
                 const $select = $('#node-selector');
                 $select.empty();
-                nodes.forEach(n => {
-                    const title = n.title ? n.title + ' (' + n.id + ')' : n.id;
-                    const option = new Option(title, n.id);
-                    if (n.status && n.status.toUpperCase() === 'DEAD') {
-                        $(option).addClass('text-danger');
-                        option.text += ' [DEAD]';
+                if (clusterMode === 'gateway') {
+                    const groups = [...new Set(nodes.map(n => n.group).filter(g => g))];
+                    groups.forEach(group => {
+                        const $optgroup = $('<optgroup>').attr('label', group);
+                        nodes.filter(n => n.group === group).forEach(n => {
+                            const title = n.title ? n.title + ' (' + n.id + ')' : n.id;
+                            const option = new Option(title, n.id);
+                            if (n.status && n.status.toUpperCase() === 'DEAD') {
+                                $(option).addClass('text-danger');
+                                option.text += ' [DEAD]';
+                            }
+                            $optgroup.append(option);
+                        });
+                        $select.append($optgroup);
+                    });
+                    const nogroup = nodes.filter(n => !n.group);
+                    if (nogroup.length > 0) {
+                        nogroup.forEach(n => {
+                            const title = n.title ? n.title + ' (' + n.id + ')' : n.id;
+                            const option = new Option(title, n.id);
+                            if (n.status && n.status.toUpperCase() === 'DEAD') {
+                                $(option).addClass('text-danger');
+                                option.text += ' [DEAD]';
+                            }
+                            $select.append(option);
+                        });
                     }
-                    $select.append(option);
-                });
+                } else {
+                    nodes.forEach(n => {
+                        const title = n.title ? n.title + ' (' + n.id + ')' : n.id;
+                        const option = new Option(title, n.id);
+                        if (n.status && n.status.toUpperCase() === 'DEAD') {
+                            $(option).addClass('text-danger');
+                            option.text += ' [DEAD]';
+                        }
+                        $select.append(option);
+                    });
+                }
                 $select.val(currentNodeId);
             }
 

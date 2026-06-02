@@ -83,15 +83,19 @@ public class PollingSchedulerBridge extends AbstractComponent implements Schedul
     }
 
     @Override
-    public void bridge(String data) {
+    public void bridge(String sourceNodeId, String data) {
         if (!sessionManager.getSessions().isEmpty()) {
-            bufferedMessages.push(data);
+            if (data != null && data.startsWith("scheduler:log:")) {
+                bufferedMessages.push(sourceNodeId + "\0" + data);
+            } else {
+                bufferedMessages.push(data);
+            }
         }
     }
 
     @Override
-    public void bridge(@NonNull SchedulerSession session, String data) {
-        bridge(data);
+    public void bridge(@NonNull SchedulerSession session, String sourceNodeId, String data) {
+        bridge(sourceNodeId, data);
     }
 
     public SchedulerBroker getBroker() {
