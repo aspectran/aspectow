@@ -17,6 +17,7 @@ package com.aspectran.aspectow.node.management.commands.remote;
 
 import com.aspectran.aspectow.node.management.commands.RemoteCommandManager;
 import com.aspectran.aspectow.node.management.commands.RemoteCommandParameters;
+import com.aspectran.aspectow.node.management.commands.RemoteCommandResultParameters;
 import com.aspectran.aspectow.node.management.commands.bridge.CommandBroker;
 import com.aspectran.aspectow.node.manager.NodeMessageListener;
 import com.aspectran.utils.apon.AponParseException;
@@ -79,32 +80,26 @@ public class RemoteCommandMessageListener implements NodeMessageListener {
 
     @Override
     public void onRelayMessage(String nodeId, @NonNull String message) {
-        int idx = message.indexOf(CommandBroker.DELIMITER);
-        if (idx != -1) {
-            String sourceNodeId = message.substring(0, idx);
-            String content = message.substring(idx + 1);
-            remoteCommandManager.broadcast(sourceNodeId, content);
-        } else {
-            remoteCommandManager.broadcast(message);
+        try {
+            RemoteCommandResultParameters resultParameters = new RemoteCommandResultParameters();
+            resultParameters.readFrom(message);
+            remoteCommandManager.broadcast(resultParameters);
+        } catch (Exception e) {
+            logger.error("Failed to parse command result parameters: {}", message, e);
         }
     }
 
     @Override
     public void onRelayMessage(String nodeId, String sessionId, @NonNull String message) {
-        int idx = message.indexOf(CommandBroker.DELIMITER);
-        String sourceNodeId;
-        String content;
-        if (idx != -1) {
-            sourceNodeId = message.substring(0, idx);
-            content = message.substring(idx + 1);
-        } else {
-            sourceNodeId = nodeId;
-            content = message;
+        try {
+            RemoteCommandResultParameters resultParameters = new RemoteCommandResultParameters();
+            resultParameters.readFrom(message);
+            remoteCommandManager.getBroker().getSessions().stream()
+                    .filter(session -> session.getId().equals(sessionId))
+                    .forEach(session -> remoteCommandManager.getBroker().bridge(session, resultParameters));
+        } catch (Exception e) {
+            logger.error("Failed to parse command result parameters: {}", message, e);
         }
-
-        remoteCommandManager.getBroker().getSessions().stream()
-                .filter(session -> session.getId().equals(sessionId))
-                .forEach(session -> remoteCommandManager.getBroker().bridge(session, sourceNodeId, content));
     }
 
 }

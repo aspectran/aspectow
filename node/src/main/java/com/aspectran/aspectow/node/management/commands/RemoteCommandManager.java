@@ -15,6 +15,7 @@
  */
 package com.aspectran.aspectow.node.management.commands;
 
+import com.aspectran.aspectow.node.config.NodeInfo;
 import com.aspectran.aspectow.node.management.commands.bridge.CommandBroker;
 import com.aspectran.aspectow.node.management.commands.remote.RemoteCommandMessageListener;
 import com.aspectran.aspectow.node.manager.NodeManager;
@@ -26,8 +27,6 @@ import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static com.aspectran.aspectow.node.management.commands.bridge.CommandBroker.DELIMITER;
 
 /**
  * RemoteCommandManager orchestrates remote daemon command execution across the cluster.
@@ -50,7 +49,7 @@ public class RemoteCommandManager implements InitializableBean {
         this.nodeManager = nodeManager;
         this.messagePublisher = nodeManager.getNodeMessagePublisher();
         this.localCommandService = new LocalCommandService();
-        this.broker = new CommandBroker(getNodeId(), messagePublisher, this);
+        this.broker = new CommandBroker(this);
     }
 
     @Override
@@ -68,20 +67,16 @@ public class RemoteCommandManager implements InitializableBean {
         return messagePublisher;
     }
 
+    public boolean isGatewayMode() {
+        return (messagePublisher != null);
+    }
+
     public String getNodeId() {
         return nodeManager.getNodeId();
     }
 
     public boolean isSameNode(String targetNodeId) {
         return (targetNodeId != null && targetNodeId.equals(getNodeId()));
-    }
-
-    public synchronized void startExporters() {
-        // Future implementation: Start command-related exporters (e.g., log streaming)
-    }
-
-    public synchronized void stopExporters() {
-        // Future implementation: Stop command-related exporters
     }
 
     public CommandBroker getBroker() {
@@ -93,28 +88,54 @@ public class RemoteCommandManager implements InitializableBean {
      * @param request the command request parameters
      */
     public void process(@NonNull RemoteCommandParameters request) {
-        String targetNodeId = request.getTargetNodeId();
-        if (StringUtils.isEmpty(targetNodeId)) {
-            targetNodeId = getNodeId();
-        }
-        if (isSameNode(targetNodeId)) {
-            Thread.ofVirtual().start(() -> {
-                try {
-                    CommandParameters commandParameters = request.getCommand();
-                    if (commandParameters != null) {
-                        logger.debug("Executing local daemon command: {}", commandParameters);
-                        String response = localCommandService.execute(commandParameters.toString());
-                        if (response != null) {
-                            broadcast(response);
-                        }
-                    }
-                } catch (Exception e) {
-                    logger.error("Failed to execute local daemon command", e);
+        if (request.isTargetAll()) {
+            for (NodeInfo nodeInfo : nodeManager.getNodeInfoList()) {
+                dispatchToNode(nodeInfo.getId(), request);
+            }
+        } else if (StringUtils.hasText(request.getTargetGroup())) {
+            String targetGroup = request.getTargetGroup();
+            for (NodeInfo nodeInfo : nodeManager.getNodeInfoList()) {
+                if (targetGroup.equals(nodeInfo.getGroup())) {
+                    dispatchToNode(nodeInfo.getId(), request);
                 }
-            });
+            }
+        } else {
+            String targetNodeId = request.getTargetNodeId();
+            if (StringUtils.isEmpty(targetNodeId)) {
+                targetNodeId = getNodeId();
+            }
+            dispatchToNode(targetNodeId, request);
+        }
+    }
+
+    private void dispatchToNode(String targetNodeId, @NonNull RemoteCommandParameters request) {
+        if (isSameNode(targetNodeId)) {
+            executeLocally(request);
         } else {
             dispatch(targetNodeId, request);
         }
+    }
+
+    private void executeLocally(@NonNull RemoteCommandParameters request) {
+        Thread.ofVirtual().start(() -> {
+            try {
+                CommandParameters commandParameters = request.getCommand();
+                if (commandParameters != null) {
+                    logger.debug("Executing local daemon command: {}", commandParameters);
+                    String response = localCommandService.execute(commandParameters.toString());
+                    if (response != null) {
+                        RemoteCommandResultParameters resultParameters = new RemoteCommandResultParameters()
+                                .setHeader("result")
+                                .setNodeId(getNodeId())
+                                .setRequestId(request.getRequestId())
+                                .setResult(response);
+                        broadcast(resultParameters);
+                    }
+                }
+            } catch (Exception e) {
+                logger.error("Failed to execute local daemon command", e);
+            }
+        });
     }
 
     private void dispatch(String targetNodeId, @NonNull RemoteCommandParameters request) {
@@ -123,7 +144,9 @@ public class RemoteCommandManager implements InitializableBean {
                 request.setSourceNodeId(getNodeId());
                 String message = CommandBroker.CONTROL_REQUEST + request;
                 messagePublisher.publishControl(CommandBroker.CATEGORY_COMMANDS, targetNodeId, message);
-                logger.debug("Daemon command dispatched to node {}: {}", targetNodeId, request.getCommand());
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Daemon command dispatched to node {}: {}", targetNodeId, request.getCommand());
+                }
             } catch (Exception e) {
                 logger.error("Failed to dispatch daemon command to node {}", targetNodeId, e);
             }
@@ -145,7 +168,12 @@ public class RemoteCommandManager implements InitializableBean {
                 if (response != null && messagePublisher != null) {
                     String requesterNodeId = request.getSourceNodeId();
                     String sessionId = request.getSessionId();
-                    String relayMessage = getNodeId() + DELIMITER + response;
+                    RemoteCommandResultParameters resultParameters = new RemoteCommandResultParameters()
+                            .setHeader("result")
+                            .setNodeId(getNodeId())
+                            .setRequestId(request.getRequestId())
+                            .setResult(response);
+                    String relayMessage = resultParameters.toString();
                     if (requesterNodeId != null) {
                         if (sessionId != null) {
                             messagePublisher.publishRelay(
@@ -165,7 +193,7 @@ public class RemoteCommandManager implements InitializableBean {
     }
 
     @Nullable
-    private String execute(RemoteCommandParameters request) {
+    private String execute(@NonNull RemoteCommandParameters request) {
         CommandParameters commandParameters = request.getCommand();
         if (commandParameters != null) {
             return localCommandService.execute(commandParameters.toString());
@@ -175,23 +203,17 @@ public class RemoteCommandManager implements InitializableBean {
 
     /**
      * Broadcasts a command execution result to all connected clients on this node.
-     * @param response the result payload
+     * @param resultParameters the command result parameters
      */
-    public void broadcast(String response) {
-        broadcast(getNodeId(), response);
-    }
-
-    /**
-     * Broadcasts a command execution result to all connected clients on this node.
-     * @param sourceNodeId the ID of the node where the message originated
-     * @param response the result payload
-     */
-    public void broadcast(String sourceNodeId, String response) {
+    public void broadcast(RemoteCommandResultParameters resultParameters) {
         if (logger.isTraceEnabled()) {
-            logger.trace("Broadcasting command result (source: {}) to local clients: {}", sourceNodeId, response);
+            logger.trace("Broadcasting command result (source: {}, request: {}) to local clients: {}",
+                    resultParameters.getString(RemoteCommandResultParameters.nodeId),
+                    resultParameters.getString(RemoteCommandResultParameters.requestId),
+                    resultParameters.getString(RemoteCommandResultParameters.result));
         }
         if (broker != null) {
-            broker.bridge(sourceNodeId, response);
+            broker.bridge(resultParameters);
         }
     }
 

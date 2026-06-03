@@ -26,6 +26,7 @@ import com.aspectran.utils.json.JsonBuilder;
 public class RemoteCommandResultParameters extends DefaultParameters {
 
     public static final ParameterKey header;
+    public static final ParameterKey requestId;
     public static final ParameterKey nodeId;
     public static final ParameterKey result;
     public static final ParameterKey error;
@@ -34,12 +35,14 @@ public class RemoteCommandResultParameters extends DefaultParameters {
 
     static {
         header = new ParameterKey("header", ValueType.STRING);
+        requestId = new ParameterKey("requestId", ValueType.STRING);
         nodeId = new ParameterKey("nodeId", ValueType.STRING);
         result = new ParameterKey("result", ValueType.TEXT);
         error = new ParameterKey("error", ValueType.TEXT);
 
         parameterKeys = new ParameterKey[] {
                 header,
+                requestId,
                 nodeId,
                 result,
                 error
@@ -52,6 +55,11 @@ public class RemoteCommandResultParameters extends DefaultParameters {
 
     public RemoteCommandResultParameters setHeader(String headerValue) {
         putValue(header, headerValue);
+        return this;
+    }
+
+    public RemoteCommandResultParameters setRequestId(String requestIdValue) {
+        putValue(requestId, requestIdValue);
         return this;
     }
 

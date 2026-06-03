@@ -16,6 +16,7 @@
 package com.aspectran.aspectow.node.management.scheduler.bridge;
 
 import com.aspectran.aspectow.node.management.scheduler.SchedulerManager;
+import com.aspectran.aspectow.node.manager.NodeMessagePublisher;
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,12 +45,15 @@ public class SchedulerBroker {
 
     private final SchedulerManager schedulerManager;
 
+    private final NodeMessagePublisher messagePublisher;
+
     private final Set<SchedulerBridge> bridges = new CopyOnWriteArraySet<>();
 
     private final SubscriptionRegistry subscriptionRegistry = new SubscriptionRegistry();
 
-    public SchedulerBroker(SchedulerManager schedulerManager) {
+    public SchedulerBroker(@NonNull SchedulerManager schedulerManager) {
         this.schedulerManager = schedulerManager;
+        this.messagePublisher = schedulerManager.getMessagePublisher();
     }
 
     public void addBridge(SchedulerBridge bridge) {
@@ -70,15 +74,18 @@ public class SchedulerBroker {
 
     public synchronized void subscribe(@NonNull SchedulerSession session) {
         if (session.isValid()) {
+            boolean alreadyInUse = subscriptionRegistry.isInUse();
             subscriptionRegistry.addLocalSubscription(session.getId());
             String targetNodeId = session.getNodeId();
             if (schedulerManager.isSameNode(targetNodeId)) {
-                schedulerManager.startExporters();
+                if (!alreadyInUse) {
+                    schedulerManager.startExporters();
+                }
                 // Send initial log lines to the new session
                 for (String message : schedulerManager.collectLastMessages()) {
                     bridge(session, message);
                 }
-            } else {
+            } else if (schedulerManager.isGatewayMode()) {
                 publishControl(targetNodeId, CONTROL_SUBSCRIBE + schedulerManager.getNodeId() + DELIMITER + session.getId());
             }
         }
@@ -86,20 +93,23 @@ public class SchedulerBroker {
 
     public synchronized void subscribeRemotely(String nodeId, String sessionId) {
         logger.info("Received scheduler subscribe request from node: {}, session: {}", nodeId, sessionId);
+        boolean alreadyInUse = subscriptionRegistry.isInUse();
         subscriptionRegistry.addRemoteSubscription(nodeId);
-        schedulerManager.startExporters();
+        if (!alreadyInUse) {
+            schedulerManager.startExporters();
+        }
 
         // Relay initial log lines back to the requester node
-        if (schedulerManager.isGatewayMode()) {
+        if (messagePublisher != null) {
             String sourceNodeId = schedulerManager.getNodeId();
             for (String logMessage : schedulerManager.collectLastMessages()) {
                 try {
                     String relayMessage = sourceNodeId + DELIMITER + logMessage;
                     if (sessionId != null) {
-                        schedulerManager.getMessagePublisher().publishRelay(
+                        messagePublisher.publishRelay(
                                 CATEGORY_SCHEDULER, nodeId, sessionId, relayMessage);
                     } else {
-                        schedulerManager.getMessagePublisher().publishRelay(
+                        messagePublisher.publishRelay(
                                 CATEGORY_SCHEDULER, nodeId, relayMessage);
                     }
                 } catch (Exception e) {
@@ -116,7 +126,7 @@ public class SchedulerBroker {
             if (!subscriptionRegistry.isInUseLocally()) {
                 schedulerManager.stopExporters();
             }
-        } else {
+        } else if (schedulerManager.isGatewayMode()) {
             publishControl(targetNodeId, CONTROL_RELEASE + schedulerManager.getNodeId() + DELIMITER + session.getId());
         }
     }
@@ -130,9 +140,9 @@ public class SchedulerBroker {
     }
 
     private void publishControl(String targetNodeId, String message) {
-        if (schedulerManager.isGatewayMode()) {
+        if (messagePublisher != null) {
             try {
-                schedulerManager.getMessagePublisher().publishControl(CATEGORY_SCHEDULER, targetNodeId, message);
+                messagePublisher.publishControl(CATEGORY_SCHEDULER, targetNodeId, message);
             } catch (Exception e) {
                 logger.error("Failed to publish control message to Redis", e);
             }

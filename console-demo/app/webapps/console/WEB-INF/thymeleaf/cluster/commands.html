@@ -347,6 +347,7 @@ arguments: {
                 if (consoleClient) {
                     const message = {
                         header: "execute",
+                        requestId: cmdId,
                         command: apon
                     };
                     if (targetType === 'node') message.targetNodeId = targetValue;
@@ -487,15 +488,31 @@ arguments: {
                     onMessage: (message) => {
                         const result = message.result;
                         const error = message.error;
+                        const nodeId = message.nodeId;
+                        const requestId = message.requestId;
 
-                        const target = commandHistory.find(c => c.status === 'queued');
+                        const target = commandHistory.find(c => c.id === requestId) || commandHistory.find(c => c.status === 'queued');
                         if (target) {
+                            let nodeResult = "";
+                            if (nodeId) {
+                                nodeResult += `[Node: ${nodeId}]\n`;
+                            }
                             if (error) {
+                                nodeResult += "[ERROR] " + error;
                                 target.status = 'failed';
-                                target.result = error;
                             } else {
-                                target.status = result && result.includes('[FAILED]') ? 'failed' : 'completed';
-                                target.result = result;
+                                nodeResult += result;
+                                if (result && result.includes('[FAILED]')) {
+                                    target.status = 'failed';
+                                } else if (target.status !== 'failed') {
+                                    target.status = 'completed';
+                                }
+                            }
+
+                            if (target.result) {
+                                target.result += "\n" + nodeResult;
+                            } else {
+                                target.result = nodeResult;
                             }
                             updateHistoryUI();
                         }

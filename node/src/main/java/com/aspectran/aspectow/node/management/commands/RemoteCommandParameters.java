@@ -27,6 +27,7 @@ import com.aspectran.utils.apon.ValueType;
 public class RemoteCommandParameters extends DefaultParameters {
 
     public static final ParameterKey header;
+    public static final ParameterKey requestId;
     public static final ParameterKey targetNodeId;
     public static final ParameterKey sourceNodeId;
     public static final ParameterKey sessionId;
@@ -38,6 +39,7 @@ public class RemoteCommandParameters extends DefaultParameters {
 
     static {
         header = new ParameterKey("header", ValueType.STRING);
+        requestId = new ParameterKey("requestId", ValueType.STRING);
         targetNodeId = new ParameterKey("targetNodeId", ValueType.STRING);
         sourceNodeId = new ParameterKey("sourceNodeId", ValueType.STRING);
         sessionId = new ParameterKey("sessionId", ValueType.STRING);
@@ -47,6 +49,7 @@ public class RemoteCommandParameters extends DefaultParameters {
 
         parameterKeys = new ParameterKey[] {
                 header,
+                requestId,
                 targetNodeId,
                 sourceNodeId,
                 sessionId,
@@ -66,6 +69,14 @@ public class RemoteCommandParameters extends DefaultParameters {
 
     public void setHeader(String header) {
         putValue(RemoteCommandParameters.header, header);
+    }
+
+    public String getRequestId() {
+        return getString(requestId);
+    }
+
+    public void setRequestId(String requestId) {
+        putValue(RemoteCommandParameters.requestId, requestId);
     }
 
     public String getTargetNodeId() {

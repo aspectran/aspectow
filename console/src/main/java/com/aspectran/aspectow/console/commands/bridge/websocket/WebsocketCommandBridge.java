@@ -168,23 +168,15 @@ public class WebsocketCommandBridge extends SimplifiedEndpoint implements Comman
     }
 
     @Override
-    public void bridge(String sourceNodeId, String data) {
-        if (data != null) {
-            RemoteCommandResultParameters resultParameters = new RemoteCommandResultParameters()
-                    .setHeader("result")
-                    .setNodeId(sourceNodeId)
-                    .setResult(data);
+    public void bridge(RemoteCommandResultParameters resultParameters) {
+        if (resultParameters != null) {
             broadcast(resultParameters.toString());
         }
     }
 
     @Override
-    public void bridge(@NonNull CommandSession session, String sourceNodeId, String data) {
-        if (session instanceof WebsocketCommandSession websocketCommandSession) {
-            RemoteCommandResultParameters resultParameters = new RemoteCommandResultParameters()
-                    .setHeader("result")
-                    .setNodeId(sourceNodeId)
-                    .setResult(data);
+    public void bridge(@NonNull CommandSession session, RemoteCommandResultParameters resultParameters) {
+        if (session instanceof WebsocketCommandSession websocketCommandSession && resultParameters != null) {
             sendText(websocketCommandSession.getSession(), resultParameters.toString());
         }
     }

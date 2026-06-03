@@ -16,6 +16,7 @@
 package com.aspectran.aspectow.node.management.commands.bridge;
 
 import com.aspectran.aspectow.node.management.commands.RemoteCommandManager;
+import com.aspectran.aspectow.node.management.commands.RemoteCommandResultParameters;
 import com.aspectran.aspectow.node.manager.NodeMessagePublisher;
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
@@ -43,32 +44,17 @@ public class CommandBroker {
 
     public static final String DELIMITER = ":";
 
-    private final String nodeId;
+    private final RemoteCommandManager commandManager;
 
     private final NodeMessagePublisher messagePublisher;
-
-    private final RemoteCommandManager commandManager;
 
     private final Set<CommandBridge> bridges = new CopyOnWriteArraySet<>();
 
     private final SubscriptionRegistry subscriptionRegistry = new SubscriptionRegistry();
 
-    public CommandBroker(String nodeId, NodeMessagePublisher messagePublisher, RemoteCommandManager commandManager) {
-        this.nodeId = nodeId;
-        this.messagePublisher = messagePublisher;
+    public CommandBroker(@NonNull RemoteCommandManager commandManager) {
         this.commandManager = commandManager;
-    }
-
-    public String nodeId() {
-        return nodeId;
-    }
-
-    public NodeMessagePublisher getMessagePublisher() {
-        return messagePublisher;
-    }
-
-    public SubscriptionRegistry getSubscriptionRegistry() {
-        return subscriptionRegistry;
+        this.messagePublisher = commandManager.getMessagePublisher();
     }
 
     public void addBridge(CommandBridge bridge) {
@@ -89,16 +75,10 @@ public class CommandBroker {
 
     public synchronized void subscribe(@NonNull CommandSession session) {
         if (session.isValid()) {
-            boolean alreadyInUse = subscriptionRegistry.isInUse();
             subscriptionRegistry.addLocalSubscription(session.getId());
-            if (!alreadyInUse) {
-                commandManager.startExporters();
-            }
             String targetNodeId = session.getNodeId();
-            if (nodeId.equals(targetNodeId)) {
-                commandManager.startExporters();
-            } else {
-                publishControl(targetNodeId, CONTROL_SUBSCRIBE + nodeId + DELIMITER + session.getId());
+            if (commandManager.isGatewayMode() && !commandManager.isSameNode(targetNodeId)) {
+                publishControl(targetNodeId, CONTROL_SUBSCRIBE + commandManager.getNodeId() + DELIMITER + session.getId());
             }
         }
     }
@@ -106,30 +86,19 @@ public class CommandBroker {
     public synchronized void subscribeRemotely(String nodeId, String sessionId) {
         logger.info("Received command subscribe request from node: {}, session: {}", nodeId, sessionId);
         subscriptionRegistry.addRemoteSubscription(nodeId);
-        commandManager.startExporters();
     }
 
     public synchronized void release(@NonNull CommandSession session) {
         subscriptionRegistry.removeLocalSubscription(session.getId());
-        if (!subscriptionRegistry.isInUse()) {
-            commandManager.stopExporters();
-        }
         String targetNodeId = session.getNodeId();
-        if (nodeId.equals(targetNodeId)) {
-            if (!subscriptionRegistry.isInUseLocally()) {
-                commandManager.stopExporters();
-            }
-        } else {
-            publishControl(targetNodeId, CONTROL_RELEASE + nodeId + DELIMITER + session.getId());
+        if (commandManager.isGatewayMode() && !commandManager.isSameNode(targetNodeId)) {
+            publishControl(targetNodeId, CONTROL_RELEASE + commandManager.getNodeId() + DELIMITER + session.getId());
         }
     }
 
     public synchronized void releaseRemotely(String nodeId) {
         logger.info("Received command release request from node: {}", nodeId);
         subscriptionRegistry.removeRemoteSubscription(nodeId);
-        if (!subscriptionRegistry.isInUse()) {
-            commandManager.stopExporters();
-        }
     }
 
     private void publishControl(String targetNodeId, String message) {
@@ -144,21 +113,12 @@ public class CommandBroker {
 
     /**
      * Bridges a command result to all connected clients.
-     * @param resultData the result payload to send
+     * @param resultParameters the command result parameters
      */
-    public void bridge(String resultData) {
-        bridge(nodeId, resultData);
-    }
-
-    /**
-     * Bridges a command result to all connected clients.
-     * @param sourceNodeId the ID of the node where the message originated
-     * @param resultData the result payload to send
-     */
-    public void bridge(String sourceNodeId, String resultData) {
+    public void bridge(RemoteCommandResultParameters resultParameters) {
         for (CommandBridge bridge : bridges) {
             try {
-                bridge.bridge(sourceNodeId, resultData);
+                bridge.bridge(resultParameters);
             } catch (Exception e) {
                 logger.warn("Failed to bridge command result via {}: {}",
                         bridge.getClass().getSimpleName(), e.getMessage());
@@ -169,22 +129,12 @@ public class CommandBroker {
     /**
      * Bridges a command result to a specific session.
      * @param session the target session
-     * @param resultData the result payload to send
+     * @param resultParameters the command result parameters
      */
-    public void bridge(@NonNull CommandSession session, String resultData) {
-        bridge(session, nodeId, resultData);
-    }
-
-    /**
-     * Bridges a command result to a specific session.
-     * @param session the target session
-     * @param sourceNodeId the ID of the node where the message originated
-     * @param resultData the result payload to send
-     */
-    public void bridge(@NonNull CommandSession session, String sourceNodeId, String resultData) {
+    public void bridge(@NonNull CommandSession session, RemoteCommandResultParameters resultParameters) {
         for (CommandBridge bridge : bridges) {
             try {
-                bridge.bridge(session, sourceNodeId, resultData);
+                bridge.bridge(session, resultParameters);
             } catch (Exception e) {
                 logger.warn("Failed to bridge command result via {}: {}",
                         bridge.getClass().getSimpleName(), e.getMessage());
