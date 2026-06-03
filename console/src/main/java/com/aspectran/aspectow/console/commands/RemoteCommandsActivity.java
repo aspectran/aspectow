@@ -17,6 +17,7 @@ package com.aspectran.aspectow.console.commands;
 
 import com.aspectran.aspectow.console.cluster.NodeConsoleHelper;
 import com.aspectran.aspectow.node.config.NodeInfo;
+import com.aspectran.aspectow.node.management.commands.RemoteCommandParameters;
 import com.aspectran.aspectow.node.management.commands.RemoteCommandManager;
 import com.aspectran.aspectow.node.manager.NodeManager;
 import com.aspectran.core.activity.Translet;
@@ -109,18 +110,24 @@ public class RemoteCommandsActivity {
     @RequestToPost("/execute")
     public RestResponse executeCommand(@NonNull Translet translet) {
         String targetNodeId = translet.getParameter("nodeId");
+        String targetGroup = translet.getParameter("targetGroup");
+        boolean targetAll = Boolean.parseBoolean(translet.getParameter("targetAll"));
         String command = translet.getParameter("command");
 
         if (StringUtils.isEmpty(command)) {
             return new FailureResponse().setError("required", "Command is required");
         }
-        if (StringUtils.isEmpty(targetNodeId)) {
-            targetNodeId = nodeManager.getNodeId();
-        }
 
         try {
-            remoteCommandManager.dispatch(targetNodeId, command);
-            return new SuccessResponse("Command initiated successfully for node: " + targetNodeId).ok();
+            RemoteCommandParameters parameters = new RemoteCommandParameters();
+            parameters.setHeader("execute");
+            parameters.setCommand(command);
+            parameters.setTargetNodeId(targetNodeId);
+            parameters.putValue(RemoteCommandParameters.targetGroup, targetGroup);
+            parameters.putValue(RemoteCommandParameters.targetAll, targetAll);
+
+            remoteCommandManager.process(parameters);
+            return new SuccessResponse("Command initiated successfully").ok();
         } catch (Exception e) {
             return new FailureResponse().setError("error", e.getMessage());
         }

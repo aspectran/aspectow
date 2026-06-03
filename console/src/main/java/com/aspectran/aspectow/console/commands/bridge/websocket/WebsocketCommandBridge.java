@@ -152,26 +152,14 @@ public class WebsocketCommandBridge extends SimplifiedEndpoint implements Comman
         sendText(session, resultParameters.toString());
     }
 
-    private void execute(Session session, @NonNull RemoteCommandParameters messageParameters) {
-        CommandParameters commandParameters = messageParameters.getCommandParameters();
+    private void execute(Session session, @NonNull RemoteCommandParameters parameters) {
+        CommandParameters commandParameters = parameters.getCommand();
         if (commandParameters != null) {
-            String targetNodeId = messageParameters.getTargetNodeId();
-            if (targetNodeId == null || targetNodeId.isEmpty()) {
-                targetNodeId = nodeManager.getNodeId();
-            }
-
-            final String finalTargetNodeId = targetNodeId;
+            parameters.setSessionId(session.getId());
             try {
-                Thread.ofVirtual().start(() -> {
-                    try {
-                        remoteCommandManager.dispatch(finalTargetNodeId, commandParameters.toString());
-                    } catch (Exception e) {
-                        logger.error("Failed to execute command from session {}", session.getId(), e);
-                        sendText(session, "[ERROR] " + e.getMessage());
-                    }
-                });
+                remoteCommandManager.process(parameters);
                 logger.debug("Command execution initiated from session {}: target={}, command={}",
-                        session.getId(), finalTargetNodeId, commandParameters.getCommandName());
+                        session.getId(), parameters.getTargetNodeId(), commandParameters.getCommandName());
             } catch (Exception e) {
                 logger.error("Failed to initiate command execution from session {}", session.getId(), e);
                 sendText(session, "[ERROR] " + e.getMessage());
@@ -180,22 +168,22 @@ public class WebsocketCommandBridge extends SimplifiedEndpoint implements Comman
     }
 
     @Override
-    public void bridge(String data) {
+    public void bridge(String sourceNodeId, String data) {
         if (data != null) {
             RemoteCommandResultParameters resultParameters = new RemoteCommandResultParameters()
                     .setHeader("result")
-                    .setNodeId(nodeManager.getNodeId())
+                    .setNodeId(sourceNodeId)
                     .setResult(data);
             broadcast(resultParameters.toString());
         }
     }
 
     @Override
-    public void bridge(@NonNull CommandSession session, String data) {
+    public void bridge(@NonNull CommandSession session, String sourceNodeId, String data) {
         if (session instanceof WebsocketCommandSession websocketCommandSession) {
             RemoteCommandResultParameters resultParameters = new RemoteCommandResultParameters()
                     .setHeader("result")
-                    .setNodeId(nodeManager.getNodeId())
+                    .setNodeId(sourceNodeId)
                     .setResult(data);
             sendText(websocketCommandSession.getSession(), resultParameters.toString());
         }

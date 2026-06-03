@@ -31,15 +31,17 @@ public interface CommandBridge {
 
     /**
      * Bridges a message to all connected sessions.
+     * @param sourceNodeId the ID of the node where the message originated
      * @param message the message to bridge
      */
-    void bridge(String message);
+    void bridge(String sourceNodeId, String message);
 
     /**
      * Bridges a message to a specific session.
      * @param session the session to send the message to
+     * @param sourceNodeId the ID of the node where the message originated
      * @param message the message to bridge
      */
-    void bridge(CommandSession session, String message);
+    void bridge(CommandSession session, String sourceNodeId, String message);
 
 }

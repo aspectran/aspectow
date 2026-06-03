@@ -84,15 +84,15 @@ public class PollingCommandBridge extends AbstractComponent implements CommandBr
     }
 
     @Override
-    public void bridge(String data) {
+    public void bridge(String sourceNodeId, String data) {
         if (!sessionManager.getSessions().isEmpty()) {
-            bufferedMessages.push(data);
+            bufferedMessages.push(sourceNodeId + "\0" + data);
         }
     }
 
     @Override
-    public void bridge(@NonNull CommandSession session, String data) {
-        bridge(data);
+    public void bridge(@NonNull CommandSession session, String sourceNodeId, String data) {
+        bridge(sourceNodeId, data);
     }
 
     public CommandBroker getBroker() {

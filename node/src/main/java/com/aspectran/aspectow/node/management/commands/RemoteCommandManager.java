@@ -18,10 +18,16 @@ package com.aspectran.aspectow.node.management.commands;
 import com.aspectran.aspectow.node.management.commands.bridge.CommandBroker;
 import com.aspectran.aspectow.node.management.commands.remote.RemoteCommandMessageListener;
 import com.aspectran.aspectow.node.manager.NodeManager;
+import com.aspectran.aspectow.node.manager.NodeMessagePublisher;
 import com.aspectran.core.component.bean.ablility.InitializableBean;
+import com.aspectran.daemon.command.CommandParameters;
+import com.aspectran.utils.StringUtils;
 import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static com.aspectran.aspectow.node.management.commands.bridge.CommandBroker.DELIMITER;
 
 /**
  * RemoteCommandManager orchestrates remote daemon command execution across the cluster.
@@ -34,14 +40,17 @@ public class RemoteCommandManager implements InitializableBean {
 
     private final NodeManager nodeManager;
 
+    private final NodeMessagePublisher messagePublisher;
+
     private final LocalCommandService localCommandService;
 
     private final CommandBroker broker;
 
     public RemoteCommandManager(@NonNull NodeManager nodeManager) {
         this.nodeManager = nodeManager;
+        this.messagePublisher = nodeManager.getNodeMessagePublisher();
         this.localCommandService = new LocalCommandService();
-        this.broker = new CommandBroker(getNodeId(), nodeManager.getNodeMessagePublisher(), this);
+        this.broker = new CommandBroker(getNodeId(), messagePublisher, this);
     }
 
     @Override
@@ -55,20 +64,16 @@ public class RemoteCommandManager implements InitializableBean {
         }
     }
 
+    public NodeMessagePublisher getMessagePublisher() {
+        return messagePublisher;
+    }
+
     public String getNodeId() {
         return nodeManager.getNodeId();
     }
 
-    public void handleControlMessage(String nodeId, @NonNull String message) {
-        if (message.startsWith(CommandBroker.CONTROL_SUBSCRIBE)) {
-            broker.getSubscriptionRegistry().addRemoteSubscription(nodeId);
-            startExporters();
-        } else if (message.startsWith(CommandBroker.CONTROL_RELEASE)) {
-            broker.getSubscriptionRegistry().removeRemoteSubscription(nodeId);
-            if (!broker.getSubscriptionRegistry().isInUse()) {
-                stopExporters();
-            }
-        }
+    public boolean isSameNode(String targetNodeId) {
+        return (targetNodeId != null && targetNodeId.equals(getNodeId()));
     }
 
     public synchronized void startExporters() {
@@ -85,55 +90,87 @@ public class RemoteCommandManager implements InitializableBean {
 
     /**
      * Dispatches a command request to a specific node or handles it locally.
-     * @param targetNodeId the ID of the node to receive the request
-     * @param commandData the command payload in APON/JSON format
+     * @param request the command request parameters
      */
-    public void dispatch(String targetNodeId, String commandData) {
-        if (getNodeId().equals(targetNodeId)) {
-            // Case 1: Target is local node, execute directly and broadcast result to local clients
-            logger.debug("Executing local daemon command: {}", commandData);
-            String response = localCommandService.execute(commandData);
-            if (response != null) {
-                broadcast(response);
+    public void process(@NonNull RemoteCommandParameters request) {
+        String targetNodeId = request.getTargetNodeId();
+        if (StringUtils.isEmpty(targetNodeId)) {
+            targetNodeId = getNodeId();
+        }
+        if (isSameNode(targetNodeId)) {
+            Thread.ofVirtual().start(() -> {
+                try {
+                    CommandParameters commandParameters = request.getCommand();
+                    if (commandParameters != null) {
+                        logger.debug("Executing local daemon command: {}", commandParameters);
+                        String response = localCommandService.execute(commandParameters.toString());
+                        if (response != null) {
+                            broadcast(response);
+                        }
+                    }
+                } catch (Exception e) {
+                    logger.error("Failed to execute local daemon command", e);
+                }
+            });
+        } else {
+            dispatch(targetNodeId, request);
+        }
+    }
+
+    private void dispatch(String targetNodeId, @NonNull RemoteCommandParameters request) {
+        if (messagePublisher != null) {
+            try {
+                request.setSourceNodeId(getNodeId());
+                String message = CommandBroker.CONTROL_REQUEST + request;
+                messagePublisher.publishControl(CommandBroker.CATEGORY_COMMANDS, targetNodeId, message);
+                logger.debug("Daemon command dispatched to node {}: {}", targetNodeId, request.getCommand());
+            } catch (Exception e) {
+                logger.error("Failed to dispatch daemon command to node {}", targetNodeId, e);
             }
         } else {
-            // Case 2: Target is a remote node, relay via Redis
-            if (nodeManager.getNodeMessagePublisher() != null) {
-                try {
-                    // Command target is embedded in the message format if needed,
-                    // but for commands we currently rely on the publishRelay mechanism
-                    nodeManager.getNodeMessagePublisher().publishRelay(CommandBroker.CATEGORY_COMMANDS, commandData);
-                    logger.debug("Daemon command dispatched to cluster (target={}): {}", targetNodeId, commandData);
-                } catch (Exception e) {
-                    logger.error("Failed to dispatch daemon command to cluster", e);
-                }
-            } else {
-                logger.warn("Cannot dispatch command: Redis publisher not available");
-            }
+            logger.warn("Cannot dispatch command to node {}: Redis publisher not available", targetNodeId);
         }
     }
 
     /**
      * Processes an incoming message received from the cluster relay.
-     * @param message the raw relay message
      */
-    public void process(@NonNull String message) {
-        // Since categorization is handled by the BridgeHandler,
-        // we just need to distinguish between a command and a result.
-        // For RemoteCommandManager, we assume if it's not a known result format, it's a command.
-        // But for consistency with SchedulerManager, we can use a prefix or check the content.
-        if (message.startsWith(CommandBroker.CONTROL_REQUEST)) {
-            String response = localCommandService.execute(message);
-            if (response != null && nodeManager.getNodeMessagePublisher() != null) {
-                try {
-                    nodeManager.getNodeMessagePublisher().publishRelay(CommandBroker.CATEGORY_COMMANDS, response);
-                } catch (Exception e) {
-                    logger.error("Failed to relay daemon command response to cluster", e);
-                }
-            }
-        } else {
-            broadcast(message);
+    public void processRemotely(RemoteCommandParameters request) {
+        if (request == null) {
+            return;
         }
+        Thread.ofVirtual().start(() -> {
+            try {
+                String response = execute(request);
+                if (response != null && messagePublisher != null) {
+                    String requesterNodeId = request.getSourceNodeId();
+                    String sessionId = request.getSessionId();
+                    String relayMessage = getNodeId() + DELIMITER + response;
+                    if (requesterNodeId != null) {
+                        if (sessionId != null) {
+                            messagePublisher.publishRelay(
+                                    CommandBroker.CATEGORY_COMMANDS, requesterNodeId, sessionId, relayMessage);
+                        } else {
+                            messagePublisher.publishRelay(
+                                    CommandBroker.CATEGORY_COMMANDS, requesterNodeId, relayMessage);
+                        }
+                    } else {
+                        messagePublisher.publishRelay(CommandBroker.CATEGORY_COMMANDS, relayMessage);
+                    }
+                }
+            } catch (Exception e) {
+                logger.error("Failed to process daemon command request: {}", request, e);
+            }
+        });
+    }
+
+    @Nullable
+    private String execute(RemoteCommandParameters request) {
+        CommandParameters commandParameters = request.getCommand();
+        if (commandParameters != null) {
+            return localCommandService.execute(commandParameters.toString());
+        }
+        return null;
     }
 
     /**
@@ -141,11 +178,20 @@ public class RemoteCommandManager implements InitializableBean {
      * @param response the result payload
      */
     public void broadcast(String response) {
+        broadcast(getNodeId(), response);
+    }
+
+    /**
+     * Broadcasts a command execution result to all connected clients on this node.
+     * @param sourceNodeId the ID of the node where the message originated
+     * @param response the result payload
+     */
+    public void broadcast(String sourceNodeId, String response) {
         if (logger.isTraceEnabled()) {
-            logger.trace("Broadcasting command result to local clients: {}", response);
+            logger.trace("Broadcasting command result (source: {}) to local clients: {}", sourceNodeId, response);
         }
         if (broker != null) {
-            broker.bridge(response);
+            broker.bridge(sourceNodeId, response);
         }
     }
 

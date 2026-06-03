@@ -28,6 +28,8 @@ public class RemoteCommandParameters extends DefaultParameters {
 
     public static final ParameterKey header;
     public static final ParameterKey targetNodeId;
+    public static final ParameterKey sourceNodeId;
+    public static final ParameterKey sessionId;
     public static final ParameterKey targetGroup;
     public static final ParameterKey targetAll;
     public static final ParameterKey command;
@@ -37,6 +39,8 @@ public class RemoteCommandParameters extends DefaultParameters {
     static {
         header = new ParameterKey("header", ValueType.STRING);
         targetNodeId = new ParameterKey("targetNodeId", ValueType.STRING);
+        sourceNodeId = new ParameterKey("sourceNodeId", ValueType.STRING);
+        sessionId = new ParameterKey("sessionId", ValueType.STRING);
         targetGroup = new ParameterKey("targetGroup", ValueType.STRING);
         targetAll = new ParameterKey("targetAll", ValueType.BOOLEAN);
         command = new ParameterKey("command", CommandParameters.class);
@@ -44,6 +48,8 @@ public class RemoteCommandParameters extends DefaultParameters {
         parameterKeys = new ParameterKey[] {
                 header,
                 targetNodeId,
+                sourceNodeId,
+                sessionId,
                 targetGroup,
                 targetAll,
                 command
@@ -58,8 +64,32 @@ public class RemoteCommandParameters extends DefaultParameters {
         return getString(header);
     }
 
+    public void setHeader(String header) {
+        putValue(RemoteCommandParameters.header, header);
+    }
+
     public String getTargetNodeId() {
         return getString(targetNodeId);
+    }
+
+    public void setTargetNodeId(String targetNodeId) {
+        putValue(RemoteCommandParameters.targetNodeId, targetNodeId);
+    }
+
+    public String getSourceNodeId() {
+        return getString(sourceNodeId);
+    }
+
+    public void setSourceNodeId(String sourceNodeId) {
+        putValue(RemoteCommandParameters.sourceNodeId, sourceNodeId);
+    }
+
+    public String getSessionId() {
+        return getString(sessionId);
+    }
+
+    public void setSessionId(String sessionId) {
+        putValue(RemoteCommandParameters.sessionId, sessionId);
     }
 
     public String getTargetGroup() {
@@ -70,8 +100,16 @@ public class RemoteCommandParameters extends DefaultParameters {
         return getBoolean(targetAll, false);
     }
 
-    public CommandParameters getCommandParameters() {
+    public CommandParameters getCommand() {
         return getParameters(command);
+    }
+
+    public void setCommand(CommandParameters command) {
+        putValue(RemoteCommandParameters.command, command);
+    }
+
+    public void setCommand(String command) {
+        putValue(RemoteCommandParameters.command, command);
     }
 
 }

@@ -41,6 +41,8 @@ public class CommandBroker {
 
     public static final String CONTROL_REQUEST = "request:";
 
+    public static final String DELIMITER = ":";
+
     private final String nodeId;
 
     private final NodeMessagePublisher messagePublisher;
@@ -92,8 +94,19 @@ public class CommandBroker {
             if (!alreadyInUse) {
                 commandManager.startExporters();
             }
-            publishControl(CONTROL_SUBSCRIBE);
+            String targetNodeId = session.getNodeId();
+            if (nodeId.equals(targetNodeId)) {
+                commandManager.startExporters();
+            } else {
+                publishControl(targetNodeId, CONTROL_SUBSCRIBE + nodeId + DELIMITER + session.getId());
+            }
         }
+    }
+
+    public synchronized void subscribeRemotely(String nodeId, String sessionId) {
+        logger.info("Received command subscribe request from node: {}, session: {}", nodeId, sessionId);
+        subscriptionRegistry.addRemoteSubscription(nodeId);
+        commandManager.startExporters();
     }
 
     public synchronized void release(@NonNull CommandSession session) {
@@ -101,15 +114,28 @@ public class CommandBroker {
         if (!subscriptionRegistry.isInUse()) {
             commandManager.stopExporters();
         }
-        if (!subscriptionRegistry.isInUseLocally()) {
-            publishControl(CONTROL_RELEASE);
+        String targetNodeId = session.getNodeId();
+        if (nodeId.equals(targetNodeId)) {
+            if (!subscriptionRegistry.isInUseLocally()) {
+                commandManager.stopExporters();
+            }
+        } else {
+            publishControl(targetNodeId, CONTROL_RELEASE + nodeId + DELIMITER + session.getId());
         }
     }
 
-    private void publishControl(String message) {
+    public synchronized void releaseRemotely(String nodeId) {
+        logger.info("Received command release request from node: {}", nodeId);
+        subscriptionRegistry.removeRemoteSubscription(nodeId);
+        if (!subscriptionRegistry.isInUse()) {
+            commandManager.stopExporters();
+        }
+    }
+
+    private void publishControl(String targetNodeId, String message) {
         if (messagePublisher != null) {
             try {
-                messagePublisher.publishControl(message);
+                messagePublisher.publishControl(CATEGORY_COMMANDS, targetNodeId, message);
             } catch (Exception e) {
                 logger.error("Failed to publish control message to Redis", e);
             }
@@ -121,9 +147,18 @@ public class CommandBroker {
      * @param resultData the result payload to send
      */
     public void bridge(String resultData) {
+        bridge(nodeId, resultData);
+    }
+
+    /**
+     * Bridges a command result to all connected clients.
+     * @param sourceNodeId the ID of the node where the message originated
+     * @param resultData the result payload to send
+     */
+    public void bridge(String sourceNodeId, String resultData) {
         for (CommandBridge bridge : bridges) {
             try {
-                bridge.bridge(resultData);
+                bridge.bridge(sourceNodeId, resultData);
             } catch (Exception e) {
                 logger.warn("Failed to bridge command result via {}: {}",
                         bridge.getClass().getSimpleName(), e.getMessage());
@@ -136,10 +171,20 @@ public class CommandBroker {
      * @param session the target session
      * @param resultData the result payload to send
      */
-    public void bridge(CommandSession session, String resultData) {
+    public void bridge(@NonNull CommandSession session, String resultData) {
+        bridge(session, nodeId, resultData);
+    }
+
+    /**
+     * Bridges a command result to a specific session.
+     * @param session the target session
+     * @param sourceNodeId the ID of the node where the message originated
+     * @param resultData the result payload to send
+     */
+    public void bridge(@NonNull CommandSession session, String sourceNodeId, String resultData) {
         for (CommandBridge bridge : bridges) {
             try {
-                bridge.bridge(session, resultData);
+                bridge.bridge(session, sourceNodeId, resultData);
             } catch (Exception e) {
                 logger.warn("Failed to bridge command result via {}: {}",
                         bridge.getClass().getSimpleName(), e.getMessage());
