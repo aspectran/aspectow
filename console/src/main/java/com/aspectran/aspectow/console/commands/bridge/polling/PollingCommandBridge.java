@@ -15,10 +15,10 @@
  */
 package com.aspectran.aspectow.console.commands.bridge.polling;
 
-import com.aspectran.aspectow.console.commands.bridge.CommandBridge;
-import com.aspectran.aspectow.console.commands.bridge.CommandBroker;
-import com.aspectran.aspectow.console.commands.bridge.CommandSession;
-import com.aspectran.aspectow.console.commands.manager.RemoteCommandManager;
+import com.aspectran.aspectow.node.management.commands.RemoteCommandManager;
+import com.aspectran.aspectow.node.management.commands.bridge.CommandBridge;
+import com.aspectran.aspectow.node.management.commands.bridge.CommandBroker;
+import com.aspectran.aspectow.node.management.commands.bridge.CommandSession;
 import com.aspectran.core.component.AbstractComponent;
 import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Component;
@@ -78,8 +78,9 @@ public class PollingCommandBridge extends AbstractComponent implements CommandBr
         return sessionManager.getSession(sessionId);
     }
 
-    public Collection<PollingCommandSession> getSessions() {
-        return sessionManager.getSessions().values();
+    @Override
+    public void getSessions(@NonNull Collection<CommandSession> sessions) {
+        sessions.addAll(sessionManager.getSessions().values());
     }
 
     @Override

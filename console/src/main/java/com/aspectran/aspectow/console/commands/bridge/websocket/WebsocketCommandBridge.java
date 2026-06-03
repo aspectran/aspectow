@@ -16,11 +16,11 @@
 package com.aspectran.aspectow.console.commands.bridge.websocket;
 
 import com.aspectran.aspectow.appmon.common.auth.AppMonTokenIssuer;
-import com.aspectran.aspectow.console.commands.bridge.CommandBridge;
-import com.aspectran.aspectow.console.commands.bridge.CommandSession;
-import com.aspectran.aspectow.console.commands.bridge.RemoteCommandParameters;
-import com.aspectran.aspectow.console.commands.bridge.RemoteCommandResultParameters;
-import com.aspectran.aspectow.console.commands.manager.RemoteCommandManager;
+import com.aspectran.aspectow.node.management.commands.RemoteCommandManager;
+import com.aspectran.aspectow.node.management.commands.RemoteCommandParameters;
+import com.aspectran.aspectow.node.management.commands.RemoteCommandResultParameters;
+import com.aspectran.aspectow.node.management.commands.bridge.CommandBridge;
+import com.aspectran.aspectow.node.management.commands.bridge.CommandSession;
 import com.aspectran.aspectow.node.manager.NodeManager;
 import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Component;
@@ -37,9 +37,9 @@ import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Set;
+import java.util.Collection;
 
-import static com.aspectran.aspectow.console.commands.bridge.CommandBroker.CATEGORY_COMMANDS;
+import static com.aspectran.aspectow.node.management.commands.bridge.CommandBroker.CATEGORY_COMMANDS;
 import static com.aspectran.aspectow.node.manager.NodeMessageProtocol.NODES_BASE_PATH;
 
 /**
@@ -201,7 +201,8 @@ public class WebsocketCommandBridge extends SimplifiedEndpoint implements Comman
         }
     }
 
-    public void getSessions(Set<CommandSession> sessions) {
+    @Override
+    public void getSessions(Collection<CommandSession> sessions) {
         forEachSession(session -> {
             sessions.add(new WebsocketCommandSession(session));
         });

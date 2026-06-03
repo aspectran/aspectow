@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.aspectran.aspectow.console.commands.bridge;
+package com.aspectran.aspectow.node.management.commands;
 
 import com.aspectran.utils.apon.DefaultParameters;
 import com.aspectran.utils.apon.ParameterKey;

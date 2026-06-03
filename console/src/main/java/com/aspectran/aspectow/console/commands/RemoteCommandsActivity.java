@@ -16,8 +16,8 @@
 package com.aspectran.aspectow.console.commands;
 
 import com.aspectran.aspectow.console.cluster.NodeConsoleHelper;
-import com.aspectran.aspectow.console.commands.manager.RemoteCommandManager;
 import com.aspectran.aspectow.node.config.NodeInfo;
+import com.aspectran.aspectow.node.management.commands.RemoteCommandManager;
 import com.aspectran.aspectow.node.manager.NodeManager;
 import com.aspectran.core.activity.Translet;
 import com.aspectran.core.component.bean.annotation.Action;
@@ -35,8 +35,6 @@ import org.jspecify.annotations.NonNull;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static com.aspectran.aspectow.node.manager.NodeMessageProtocol.NODES_BASE_PATH;
 
 /**
  * RemoteCommandsActivity provides views and REST API endpoints for managing

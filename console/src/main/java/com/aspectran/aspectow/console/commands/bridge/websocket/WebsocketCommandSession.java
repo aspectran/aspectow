@@ -15,7 +15,7 @@
  */
 package com.aspectran.aspectow.console.commands.bridge.websocket;
 
-import com.aspectran.aspectow.console.commands.bridge.CommandSession;
+import com.aspectran.aspectow.node.management.commands.bridge.CommandSession;
 import com.aspectran.web.websocket.jsr356.WrappedSession;
 import jakarta.websocket.Session;
 

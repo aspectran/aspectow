@@ -13,14 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.aspectran.aspectow.console.commands.manager;
+package com.aspectran.aspectow.node.management.commands;
 
-import com.aspectran.aspectow.console.commands.bridge.CommandBroker;
-import com.aspectran.aspectow.console.commands.bridge.remote.RemoteCommandMessageListener;
+import com.aspectran.aspectow.node.management.commands.bridge.CommandBroker;
+import com.aspectran.aspectow.node.management.commands.remote.RemoteCommandMessageListener;
 import com.aspectran.aspectow.node.manager.NodeManager;
 import com.aspectran.core.component.bean.ablility.InitializableBean;
-import com.aspectran.core.component.bean.annotation.Bean;
-import com.aspectran.core.component.bean.annotation.Component;
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,8 +28,6 @@ import org.slf4j.LoggerFactory;
  * It manages local execution, remote dispatching via Redis, and broadcasting
  * results to connected clients.
  */
-@Component
-@Bean(id = "remoteCommandManager")
 public class RemoteCommandManager implements InitializableBean {
 
     private static final Logger logger = LoggerFactory.getLogger(RemoteCommandManager.class);
@@ -64,7 +60,7 @@ public class RemoteCommandManager implements InitializableBean {
     }
 
     public void handleControlMessage(String nodeId, @NonNull String message) {
-        if (message.startsWith(CommandBroker.CONTROL_JOIN)) {
+        if (message.startsWith(CommandBroker.CONTROL_SUBSCRIBE)) {
             broker.getSubscriptionRegistry().addRemoteSubscription(nodeId);
             startExporters();
         } else if (message.startsWith(CommandBroker.CONTROL_RELEASE)) {
@@ -126,7 +122,7 @@ public class RemoteCommandManager implements InitializableBean {
         // we just need to distinguish between a command and a result.
         // For RemoteCommandManager, we assume if it's not a known result format, it's a command.
         // But for consistency with SchedulerManager, we can use a prefix or check the content.
-        if (message.startsWith("command:")) {
+        if (message.startsWith(CommandBroker.CONTROL_REQUEST)) {
             String response = localCommandService.execute(message);
             if (response != null && nodeManager.getNodeMessagePublisher() != null) {
                 try {

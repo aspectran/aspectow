@@ -13,13 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.aspectran.aspectow.console.commands.bridge;
+package com.aspectran.aspectow.node.management.commands.bridge;
+
+import java.util.Collection;
 
 /**
  * Interface for bridging command results to clients.
  * This can be implemented using various communication protocols like WebSocket or polling.
  */
 public interface CommandBridge {
+
+    /**
+     * Collects all active sessions managed by this bridge.
+     * @param sessions the collection to add sessions to
+     */
+    void getSessions(Collection<CommandSession> sessions);
 
     /**
      * Bridges a message to all connected sessions.

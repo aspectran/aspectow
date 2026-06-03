@@ -23,4 +23,6 @@
 
     <bean id="schedulerManager" class="com.aspectran.aspectow.node.management.scheduler.SchedulerManager"/>
 
+    <bean id="remoteCommandManager" class="com.aspectran.aspectow.node.management.commands.RemoteCommandManager"/>
+
 </aspectran>

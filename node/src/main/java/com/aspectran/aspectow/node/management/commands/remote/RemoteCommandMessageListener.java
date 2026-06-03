@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.aspectran.aspectow.console.commands.bridge.remote;
+package com.aspectran.aspectow.node.management.commands.remote;
 
-import com.aspectran.aspectow.console.commands.bridge.CommandBroker;
-import com.aspectran.aspectow.console.commands.manager.RemoteCommandManager;
+import com.aspectran.aspectow.node.management.commands.RemoteCommandManager;
+import com.aspectran.aspectow.node.management.commands.bridge.CommandBroker;
 import com.aspectran.aspectow.node.manager.NodeMessageListener;
 
 /**

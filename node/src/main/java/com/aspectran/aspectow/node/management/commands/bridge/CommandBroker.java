@@ -13,11 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.aspectran.aspectow.console.commands.bridge;
+package com.aspectran.aspectow.node.management.commands.bridge;
 
-import com.aspectran.aspectow.console.commands.bridge.polling.PollingCommandBridge;
-import com.aspectran.aspectow.console.commands.bridge.websocket.WebsocketCommandBridge;
-import com.aspectran.aspectow.console.commands.manager.RemoteCommandManager;
+import com.aspectran.aspectow.node.management.commands.RemoteCommandManager;
 import com.aspectran.aspectow.node.manager.NodeMessagePublisher;
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
@@ -37,9 +35,11 @@ public class CommandBroker {
 
     public static final String CATEGORY_COMMANDS = "commands";
 
-    public static final String CONTROL_JOIN = "commands:join";
+    public static final String CONTROL_SUBSCRIBE = "subscribe:";
 
-    public static final String CONTROL_RELEASE = "commands:release";
+    public static final String CONTROL_RELEASE = "release:";
+
+    public static final String CONTROL_REQUEST = "request:";
 
     private final String nodeId;
 
@@ -80,11 +80,7 @@ public class CommandBroker {
     public Set<CommandSession> getSessions() {
         Set<CommandSession> sessions = new HashSet<>();
         for (CommandBridge bridge : bridges) {
-            if (bridge instanceof WebsocketCommandBridge websocketBridge) {
-                websocketBridge.getSessions(sessions);
-            } else if (bridge instanceof PollingCommandBridge pollingBridge) {
-                sessions.addAll(pollingBridge.getSessions());
-            }
+            bridge.getSessions(sessions);
         }
         return sessions;
     }
@@ -96,7 +92,7 @@ public class CommandBroker {
             if (!alreadyInUse) {
                 commandManager.startExporters();
             }
-            publishControl(CONTROL_JOIN);
+            publishControl(CONTROL_SUBSCRIBE);
         }
     }
 

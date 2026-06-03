@@ -83,10 +83,6 @@ public class PollingSchedulerBridge extends AbstractComponent implements Schedul
         sessions.addAll(sessionManager.getSessions().values());
     }
 
-    public Collection<PollingSchedulerSession> getSessions() {
-        return sessionManager.getSessions().values();
-    }
-
     @Override
     public void bridge(String sourceNodeId, String data) {
         if (!sessionManager.getSessions().isEmpty()) {
