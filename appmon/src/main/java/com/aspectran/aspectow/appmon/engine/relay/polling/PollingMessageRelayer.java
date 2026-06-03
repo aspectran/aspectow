@@ -34,6 +34,8 @@ import com.aspectran.core.context.rule.type.FormatType;
 import com.aspectran.utils.Assert;
 import com.aspectran.utils.StringUtils;
 import org.jspecify.annotations.NonNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.List;
@@ -53,6 +55,8 @@ import static com.aspectran.aspectow.node.manager.NodeMessageProtocol.NODES_BASE
  */
 @Component(NODES_BASE_PATH + "/${thisNodeId}/appmon")
 public class PollingMessageRelayer implements MessageRelayer {
+
+    private static final Logger logger = LoggerFactory.getLogger(PollingMessageRelayer.class);
 
     private final AppMonManager appMonManager;
 
@@ -154,7 +158,13 @@ public class PollingMessageRelayer implements MessageRelayer {
     }
 
     private void handleCommand(PollingRelaySession relaySession, String command) {
-        CommandOptions commandOptions = new CommandOptions(command);
+        CommandOptions commandOptions = new CommandOptions();
+        try {
+            commandOptions.parseCommand(command);
+        } catch (Exception e) {
+            logger.error("Failed to parse command: {}", command, e);
+            return;
+        }
         switch (commandOptions.getCommand()) {
             case COMMAND_ESTABLISHED:
                 established(relaySession, commandOptions);

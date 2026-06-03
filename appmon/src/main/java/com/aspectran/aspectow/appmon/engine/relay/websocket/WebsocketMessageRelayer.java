@@ -98,7 +98,13 @@ public class WebsocketMessageRelayer extends SimplifiedEndpoint implements Messa
         if (StringUtils.isEmpty(message)) {
             return;
         }
-        CommandOptions commandOptions = new CommandOptions(message);
+        CommandOptions commandOptions = new CommandOptions();
+        try {
+            commandOptions.parseCommand(message);
+        } catch (Exception e) {
+            logger.error("Failed to parse message: {}", message, e);
+            return;
+        }
         switch (commandOptions.getCommand()) {
             case COMMAND_PING:
                 pong(session);

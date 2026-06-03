@@ -15,15 +15,11 @@
  */
 package com.aspectran.aspectow.console.commands.manager;
 
-import com.aspectran.core.component.bean.annotation.Component;
-import com.aspectran.core.component.bean.aware.ActivityContextAware;
-import com.aspectran.core.context.ActivityContext;
 import com.aspectran.core.service.CoreService;
 import com.aspectran.core.service.CoreServiceHolder;
 import com.aspectran.daemon.command.CommandResult;
 import com.aspectran.daemon.service.DefaultDaemonService;
 import com.aspectran.daemon.service.DefaultDaemonServiceBuilder;
-import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,19 +27,11 @@ import org.slf4j.LoggerFactory;
  * LocalCommandService handles the actual execution of daemon commands
  * within the local node using DaemonService.
  */
-@Component
-public class LocalCommandService implements ActivityContextAware {
+public class LocalCommandService {
 
     private static final Logger logger = LoggerFactory.getLogger(LocalCommandService.class);
 
-    private ActivityContext activityContext;
-
     private DefaultDaemonService daemonService;
-
-    @Override
-    public void setActivityContext(@NonNull ActivityContext activityContext) {
-        this.activityContext = activityContext;
-    }
 
     private synchronized void setupDaemonService() {
         if (daemonService != null) {
@@ -59,13 +47,9 @@ public class LocalCommandService implements ActivityContextAware {
 
         if (daemonService == null) {
             CoreService baseService = null;
-            if (activityContext != null) {
-                baseService = activityContext.getMasterService().getRootService();
-            } else {
-                for (CoreService service : CoreServiceHolder.getAllServices()) {
-                    baseService = service.getRootService();
-                    break;
-                }
+            for (CoreService service : CoreServiceHolder.getAllServices()) {
+                baseService = service.getRootService();
+                break;
             }
 
             if (baseService != null) {

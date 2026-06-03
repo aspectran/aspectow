@@ -16,15 +16,21 @@
 package com.aspectran.aspectow.console.scheduler.bridge.remote;
 
 import com.aspectran.aspectow.console.scheduler.bridge.SchedulerBroker;
+import com.aspectran.aspectow.console.scheduler.bridge.SchedulerRequestParameters;
 import com.aspectran.aspectow.console.scheduler.manager.SchedulerManager;
 import com.aspectran.aspectow.node.manager.NodeMessageListener;
+import com.aspectran.utils.apon.AponParseException;
 import org.jspecify.annotations.NonNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * SchedulerMessageBridgeHandler listens to Redis relay messages related to
+ * RemoteSchedulerMessageListener listens to Redis relay messages related to
  * scheduler management and forwards them to the SchedulerManager.
  */
 public class RemoteSchedulerMessageListener implements NodeMessageListener {
+
+    private static final Logger logger = LoggerFactory.getLogger(RemoteSchedulerMessageListener.class);
 
     private final SchedulerManager schedulerManager;
 
@@ -39,39 +45,47 @@ public class RemoteSchedulerMessageListener implements NodeMessageListener {
 
     @Override
     public void onControlMessage(String nodeId, @NonNull String message) {
-        String requesterNodeId = null;
-        String sessionId = null;
-        String[] parts = message.split(SchedulerBroker.DELIMITER);
-        if (parts.length >= 3) {
-            requesterNodeId = parts[2];
-        }
-        if (parts.length >= 4) {
-            sessionId = parts[3];
-        }
-        if (requesterNodeId == null) {
-            requesterNodeId = nodeId;
-        }
+        if (message.startsWith(SchedulerBroker.CONTROL_SUBSCRIBE) || message.startsWith(SchedulerBroker.CONTROL_RELEASE)) {
+            String requesterNodeId = null;
+            String sessionId = null;
+            String[] parts = message.split(SchedulerBroker.DELIMITER);
+            if (parts.length >= 3) {
+                requesterNodeId = parts[2];
+            }
+            if (parts.length >= 4) {
+                sessionId = parts[3];
+            }
+            if (requesterNodeId == null) {
+                requesterNodeId = nodeId;
+            }
 
-        if (message.startsWith(SchedulerBroker.CONTROL_SUBSCRIBE)) {
-            schedulerManager.getBroker().subscribeRemotely(requesterNodeId, sessionId);
-        } else if (message.startsWith(SchedulerBroker.CONTROL_RELEASE)) {
-            schedulerManager.getBroker().releaseRemotely(requesterNodeId);
+            if (message.startsWith(SchedulerBroker.CONTROL_SUBSCRIBE)) {
+                schedulerManager.getBroker().subscribeRemotely(requesterNodeId, sessionId);
+            } else if (message.startsWith(SchedulerBroker.CONTROL_RELEASE)) {
+                schedulerManager.getBroker().releaseRemotely(requesterNodeId);
+            }
+        } else if (message.startsWith(SchedulerBroker.CONTROL_REQUEST)) {
+            String requestData = message.substring(SchedulerBroker.CONTROL_REQUEST.length());
+            SchedulerRequestParameters request = new SchedulerRequestParameters();
+            try {
+                request.readFrom(requestData);
+            } catch (AponParseException e) {
+                logger.error("Failed to parse scheduler request parameters: {}", requestData, e);
+            }
+
+            schedulerManager.processRemotely(request);
         }
     }
 
     @Override
     public void onRelayMessage(String nodeId, @NonNull String message) {
-        if (message.startsWith("command:")) {
-            schedulerManager.process(message);
+        int idx = message.indexOf(SchedulerBroker.DELIMITER);
+        if (idx != -1) {
+            String sourceNodeId = message.substring(0, idx);
+            String content = message.substring(idx + 1);
+            schedulerManager.broadcast(sourceNodeId, content);
         } else {
-            int idx = message.indexOf(SchedulerBroker.DELIMITER);
-            if (idx != -1) {
-                String sourceNodeId = message.substring(0, idx);
-                String content = message.substring(idx + 1);
-                schedulerManager.broadcast(sourceNodeId, content);
-            } else {
-                schedulerManager.broadcast(message);
-            }
+            schedulerManager.broadcast(message);
         }
     }
 

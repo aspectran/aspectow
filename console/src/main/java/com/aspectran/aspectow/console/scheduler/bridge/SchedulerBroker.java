@@ -18,7 +18,6 @@ package com.aspectran.aspectow.console.scheduler.bridge;
 import com.aspectran.aspectow.console.scheduler.bridge.polling.PollingSchedulerBridge;
 import com.aspectran.aspectow.console.scheduler.bridge.websocket.WebsocketSchedulerBridge;
 import com.aspectran.aspectow.console.scheduler.manager.SchedulerManager;
-import com.aspectran.aspectow.node.manager.NodeMessagePublisher;
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,9 +36,11 @@ public class SchedulerBroker {
 
     public static final String CATEGORY_SCHEDULER = "scheduler";
 
-    public static final String CONTROL_SUBSCRIBE = "scheduler:subscribe";
+    public static final String CONTROL_SUBSCRIBE = "subscribe:";
 
-    public static final String CONTROL_RELEASE = "scheduler:release";
+    public static final String CONTROL_RELEASE = "release:";
+
+    public static final String CONTROL_REQUEST = "request:";
 
     public static final String DELIMITER = ":";
 
@@ -51,10 +52,6 @@ public class SchedulerBroker {
 
     public SchedulerBroker(SchedulerManager schedulerManager) {
         this.schedulerManager = schedulerManager;
-    }
-
-    public SubscriptionRegistry getSubscriptionRegistry() {
-        return subscriptionRegistry;
     }
 
     public void addBridge(SchedulerBridge bridge) {
@@ -81,14 +78,14 @@ public class SchedulerBroker {
         if (session.isValid()) {
             subscriptionRegistry.addLocalSubscription(session.getId());
             String targetNodeId = session.getNodeId();
-            if (schedulerManager.getNodeId().equals(targetNodeId)) {
+            if (schedulerManager.isSameNode(targetNodeId)) {
                 schedulerManager.startExporters();
                 // Send initial log lines to the new session
                 for (String message : schedulerManager.collectLastMessages()) {
                     bridge(session, message);
                 }
             } else {
-                publishControl(targetNodeId, CONTROL_SUBSCRIBE + DELIMITER + schedulerManager.getNodeId() + DELIMITER + session.getId());
+                publishControl(targetNodeId, CONTROL_SUBSCRIBE + schedulerManager.getNodeId() + DELIMITER + session.getId());
             }
         }
     }
@@ -99,17 +96,17 @@ public class SchedulerBroker {
         schedulerManager.startExporters();
 
         // Relay initial log lines back to the requester node
-        if (schedulerManager.getNodeMessagePublisher() != null) {
+        if (schedulerManager.isGatewayMode()) {
             String sourceNodeId = schedulerManager.getNodeId();
             for (String logMessage : schedulerManager.collectLastMessages()) {
                 try {
                     String relayMessage = sourceNodeId + DELIMITER + logMessage;
                     if (sessionId != null) {
-                        schedulerManager.getNodeMessagePublisher().publishRelay(
-                                SchedulerBroker.CATEGORY_SCHEDULER, nodeId, sessionId, relayMessage);
+                        schedulerManager.getMessagePublisher().publishRelay(
+                                CATEGORY_SCHEDULER, nodeId, sessionId, relayMessage);
                     } else {
-                        schedulerManager.getNodeMessagePublisher().publishRelay(
-                                SchedulerBroker.CATEGORY_SCHEDULER, nodeId, relayMessage);
+                        schedulerManager.getMessagePublisher().publishRelay(
+                                CATEGORY_SCHEDULER, nodeId, relayMessage);
                     }
                 } catch (Exception e) {
                     logger.error("Failed to relay initial log message to node: {}", nodeId, e);
@@ -121,12 +118,12 @@ public class SchedulerBroker {
     public synchronized void release(@NonNull SchedulerSession session) {
         subscriptionRegistry.removeLocalSubscription(session.getId());
         String targetNodeId = session.getNodeId();
-        if (schedulerManager.getNodeId().equals(targetNodeId)) {
+        if (schedulerManager.isSameNode(targetNodeId)) {
             if (!subscriptionRegistry.isInUseLocally()) {
                 schedulerManager.stopExporters();
             }
         } else {
-            publishControl(targetNodeId, CONTROL_RELEASE + DELIMITER + schedulerManager.getNodeId() + DELIMITER + session.getId());
+            publishControl(targetNodeId, CONTROL_RELEASE + schedulerManager.getNodeId() + DELIMITER + session.getId());
         }
     }
 
@@ -139,9 +136,9 @@ public class SchedulerBroker {
     }
 
     private void publishControl(String targetNodeId, String message) {
-        if (schedulerManager.getNodeMessagePublisher() != null) {
+        if (schedulerManager.isGatewayMode()) {
             try {
-                schedulerManager.getNodeMessagePublisher().publishControl(CATEGORY_SCHEDULER, targetNodeId, message);
+                schedulerManager.getMessagePublisher().publishControl(CATEGORY_SCHEDULER, targetNodeId, message);
             } catch (Exception e) {
                 logger.error("Failed to publish control message to Redis", e);
             }
@@ -170,16 +167,16 @@ public class SchedulerBroker {
                         bridge.getClass().getSimpleName(), e.getMessage());
             }
         }
-        if (schedulerManager.getNodeMessagePublisher() != null && !subscriptionRegistry.getRemoteSubscriptions().isEmpty()) {
-            String relayMessage = sourceNodeId + DELIMITER + data;
-            for (String remoteNodeId : subscriptionRegistry.getRemoteSubscriptions()) {
-                try {
-                    schedulerManager.getNodeMessagePublisher().publishRelay(CATEGORY_SCHEDULER, remoteNodeId, relayMessage);
-                } catch (Exception e) {
-                    logger.error("Failed to relay scheduler result to remote node: {}", remoteNodeId, e);
-                }
-            }
-        }
+//        if (schedulerManager.isGatewayMode() && !subscriptionRegistry.getRemoteSubscriptions().isEmpty()) {
+//            String relayMessage = sourceNodeId + DELIMITER + data;
+//            for (String remoteNodeId : subscriptionRegistry.getRemoteSubscriptions()) {
+//                try {
+//                    schedulerManager.getMessagePublisher().publishRelay(CATEGORY_SCHEDULER, remoteNodeId, relayMessage);
+//                } catch (Exception e) {
+//                    logger.error("Failed to relay scheduler result to remote node: {}", remoteNodeId, e);
+//                }
+//            }
+//        }
     }
 
     /**

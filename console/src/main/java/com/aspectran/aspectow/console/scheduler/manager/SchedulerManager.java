@@ -17,7 +17,6 @@ package com.aspectran.aspectow.console.scheduler.manager;
 
 import com.aspectran.aspectow.console.scheduler.bridge.SchedulerBroker;
 import com.aspectran.aspectow.console.scheduler.bridge.SchedulerRequestParameters;
-import com.aspectran.aspectow.console.scheduler.bridge.SubscriptionRegistry;
 import com.aspectran.aspectow.console.scheduler.bridge.remote.RemoteSchedulerMessageListener;
 import com.aspectran.aspectow.node.manager.NodeManager;
 import com.aspectran.aspectow.node.manager.NodeMessagePublisher;
@@ -58,7 +57,7 @@ public class SchedulerManager implements ApplicationAdapterAware, InitializableB
 
     private static final Logger logger = LoggerFactory.getLogger(SchedulerManager.class);
 
-    private static final String OP_LIST = "list";
+    public static final String OP_LIST = "list";
     private static final String OP_ENABLE = "enable";
     private static final String OP_DISABLE = "disable";
     private static final String OP_PREVIOUS = "previousLines";
@@ -66,6 +65,8 @@ public class SchedulerManager implements ApplicationAdapterAware, InitializableB
     private final Map<String, SchedulerLogExporter> logExporters = new ConcurrentHashMap<>();
 
     private final NodeManager nodeManager;
+
+    private final NodeMessagePublisher messagePublisher;
 
     private final LocalSchedulerService localSchedulerService;
 
@@ -76,6 +77,7 @@ public class SchedulerManager implements ApplicationAdapterAware, InitializableB
     @Autowired
     public SchedulerManager(@NonNull NodeManager nodeManager) {
         this.nodeManager = nodeManager;
+        this.messagePublisher = nodeManager.getNodeMessagePublisher();
         this.localSchedulerService = new LocalSchedulerService();
         this.broker = new SchedulerBroker(this);
     }
@@ -95,16 +97,24 @@ public class SchedulerManager implements ApplicationAdapterAware, InitializableB
         }
     }
 
-    public SubscriptionRegistry getSubscriptionRegistry() {
-        return broker.getSubscriptionRegistry();
+    public NodeMessagePublisher getMessagePublisher() {
+        return messagePublisher;
     }
 
-    public NodeMessagePublisher getNodeMessagePublisher() {
-        return nodeManager.getNodeMessagePublisher();
+    public boolean isGatewayMode() {
+        return (messagePublisher != null);
     }
 
     public String getNodeId() {
         return nodeManager.getNodeId();
+    }
+
+    public boolean isSameNode(String targetNodeId) {
+        return (targetNodeId != null && targetNodeId.equals(getNodeId()));
+    }
+
+    public SchedulerBroker getBroker() {
+        return broker;
     }
 
     public synchronized void startExporters() {
@@ -116,20 +126,6 @@ public class SchedulerManager implements ApplicationAdapterAware, InitializableB
                 logger.error("Failed to start scheduler log exporter for context: {}", exporter.getLoggingGroup(), e);
             }
         }
-    }
-
-    /**
-     * Collects the last known log lines from all active exporters.
-     * @return a list of log messages
-     */
-    public List<String> collectLastMessages() {
-        List<String> messages = new ArrayList<>();
-        for (SchedulerLogExporter exporter : logExporters.values()) {
-            if (exporter.isStarted()) {
-                exporter.read(messages);
-            }
-        }
-        return messages;
     }
 
     public synchronized void stopExporters() {
@@ -179,72 +175,82 @@ public class SchedulerManager implements ApplicationAdapterAware, InitializableB
         }
     }
 
-    public SchedulerBroker getBroker() {
-        return broker;
+    /**
+     * Collects the last known log lines from all active exporters.
+     * @return a list of log messages
+     */
+    public List<String> collectLastMessages() {
+        List<String> messages = new ArrayList<>();
+        for (SchedulerLogExporter exporter : logExporters.values()) {
+            if (exporter.isStarted()) {
+                exporter.read(messages);
+            }
+        }
+        return messages;
     }
 
     /**
      * Dispatches a management request to a specific node or handles it locally.
-     * @param targetNodeId the ID of the node to receive the request
      * @param request the structured request parameters
      */
-    public void dispatch(String targetNodeId, @NonNull SchedulerRequestParameters request) {
-        if (getNodeId().equals(targetNodeId)) {
+    public void process(@NonNull SchedulerRequestParameters request) {
+        String targetNodeId = request.getTargetNodeId();
+        if (StringUtils.isEmpty(targetNodeId)) {
+            targetNodeId = getNodeId();
+        }
+        if (isSameNode(targetNodeId)) {
             logger.debug("Executing local scheduler request: {}", request.getCommand());
             String response = execute(request);
             if (response != null) {
                 broadcast(response);
             }
         } else {
-            if (nodeManager.getNodeMessagePublisher() != null) {
-                try {
-                    request.setSourceNodeId(getNodeId());
-                    String message = "command:" + request;
-                    nodeManager.getNodeMessagePublisher().publishRelay(SchedulerBroker.CATEGORY_SCHEDULER, targetNodeId, message);
-                    logger.debug("Scheduler request dispatched to node {}: {}", targetNodeId, request.getCommand());
-                } catch (Exception e) {
-                    logger.error("Failed to dispatch scheduler request to node {}", targetNodeId, e);
-                }
-            } else {
-                logger.warn("Cannot dispatch request to node {}: Redis publisher not available", targetNodeId);
+            dispatch(targetNodeId, request);
+        }
+    }
+
+    private void dispatch(String targetNodeId, @NonNull SchedulerRequestParameters request) {
+        if (messagePublisher != null) {
+            try {
+                request.setSourceNodeId(getNodeId());
+                String message = SchedulerBroker.CONTROL_REQUEST + request;
+                messagePublisher.publishControl(SchedulerBroker.CATEGORY_SCHEDULER, targetNodeId, message);
+                logger.debug("Scheduler request dispatched to node {}: {}", targetNodeId, request.getCommand());
+            } catch (Exception e) {
+                logger.error("Failed to dispatch scheduler request to node {}", targetNodeId, e);
             }
+        } else {
+            logger.warn("Cannot dispatch request to node {}: Redis publisher not available", targetNodeId);
         }
     }
 
     /**
      * Processes an incoming message received from the cluster relay.
-     * @param message the raw relay message
      */
-    public void process(String message) {
-        if (StringUtils.isEmpty(message) || !message.startsWith("command:")) {
+    public void processRemotely(SchedulerRequestParameters request) {
+        if (request == null) {
             return;
         }
-
-        String requestData = message.substring(8);
         try {
-            SchedulerRequestParameters request = new SchedulerRequestParameters();
-            request.readFrom(requestData);
-
             String response = execute(request);
-            if (response != null && nodeManager.getNodeMessagePublisher() != null) {
+            if (response != null && messagePublisher != null) {
                 String requesterNodeId = request.getSourceNodeId();
                 String sessionId = request.getSessionId();
                 String relayMessage = getNodeId() + DELIMITER + response;
                 if (requesterNodeId != null) {
                     if (sessionId != null) {
-                        nodeManager.getNodeMessagePublisher().publishRelay(
+                        messagePublisher.publishRelay(
                                 SchedulerBroker.CATEGORY_SCHEDULER, requesterNodeId, sessionId, relayMessage);
                     } else {
-                        nodeManager.getNodeMessagePublisher().publishRelay(
+                        messagePublisher.publishRelay(
                                 SchedulerBroker.CATEGORY_SCHEDULER, requesterNodeId, relayMessage);
                     }
                 } else {
-                    nodeManager.getNodeMessagePublisher().publishRelay(
-                            SchedulerBroker.CATEGORY_SCHEDULER, relayMessage);
+                    messagePublisher.publishRelay(SchedulerBroker.CATEGORY_SCHEDULER, relayMessage);
                 }
             }
         } catch (Exception e) {
-            logger.error("Failed to process scheduler relay message", e);
+            logger.error("Failed to process scheduler request: {}", request, e);
         }
     }
 
@@ -267,7 +273,7 @@ public class SchedulerManager implements ApplicationAdapterAware, InitializableB
                 return readPreviousLines(request);
             }
         } catch (Exception e) {
-            logger.error("Failed to execute scheduler request", e);
+            logger.error("Failed to execute scheduler request: {}", request, e);
         }
         return null;
     }
@@ -322,9 +328,7 @@ public class SchedulerManager implements ApplicationAdapterAware, InitializableB
         if (logger.isTraceEnabled()) {
             logger.trace("Broadcasting scheduler result (source: {}) to local clients: {}", sourceNodeId, response);
         }
-        if (broker != null) {
-            broker.bridge(sourceNodeId, response);
-        }
+        broker.bridge(sourceNodeId, response);
     }
 
 }

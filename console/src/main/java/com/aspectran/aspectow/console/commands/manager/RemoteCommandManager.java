@@ -42,9 +42,9 @@ public class RemoteCommandManager implements InitializableBean {
 
     private final CommandBroker broker;
 
-    public RemoteCommandManager(@NonNull NodeManager nodeManager, LocalCommandService localCommandService) {
+    public RemoteCommandManager(@NonNull NodeManager nodeManager) {
         this.nodeManager = nodeManager;
-        this.localCommandService = localCommandService;
+        this.localCommandService = new LocalCommandService();
         this.broker = new CommandBroker(getNodeId(), nodeManager.getNodeMessagePublisher(), this);
     }
 

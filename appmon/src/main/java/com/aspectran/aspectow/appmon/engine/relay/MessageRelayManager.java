@@ -17,8 +17,8 @@ package com.aspectran.aspectow.appmon.engine.relay;
 
 import com.aspectran.aspectow.appmon.engine.exporter.ExporterManager;
 import com.aspectran.aspectow.node.config.NodeInfo;
-import com.aspectran.aspectow.node.manager.NodeRegistry;
 import com.aspectran.aspectow.node.manager.NodeMessagePublisher;
+import com.aspectran.aspectow.node.manager.NodeRegistry;
 import com.aspectran.utils.Assert;
 import com.aspectran.utils.json.JsonBuilder;
 import org.jspecify.annotations.NonNull;
@@ -80,10 +80,6 @@ public class MessageRelayManager {
         this.groupId = groupId;
         this.nodeRegistry = nodeRegistry;
         this.messagePublisher = messagePublisher;
-    }
-
-    public SubscriptionRegistry getSubscriptionRegistry() {
-        return subscriptionRegistry;
     }
 
     public NodeRegistry getNodeRegistry() {
@@ -344,14 +340,8 @@ public class MessageRelayManager {
     public synchronized void subscribeRemotely(CommandOptions commandOptions) {
         Assert.notNull(commandOptions, "Command options must not be null");
         String nodeId = commandOptions.getNodeId();
-        String reqGroupId = commandOptions.getGroupId();
         String appId = commandOptions.getAppId();
         String sessionId = commandOptions.getSessionId();
-
-        // If groupId is specified, it must match the current node's groupId
-//        if (reqGroupId != null && !reqGroupId.equals(this.groupId)) {
-//            return;
-//        }
 
         boolean matched = false;
         for (ExporterManager exporterManager : exporterManagers) {
@@ -449,7 +439,7 @@ public class MessageRelayManager {
     }
 
     /**
-     * Gets the last known messages for the apps subscribeed by the session.
+     * Gets the last known messages for the apps subscribed by the session.
      * @param session the client session
      * @return a list of messages
      */

@@ -166,7 +166,7 @@ public class NodeManager {
      * Sets the Redis connection pool.
      * @param redisConnectionPool the Redis connection pool
      */
-    public void setRedisConnectionPool(RedisConnectionPool redisConnectionPool) {
+    protected void setRedisConnectionPool(RedisConnectionPool redisConnectionPool) {
         this.redisConnectionPool = redisConnectionPool;
     }
 
@@ -182,7 +182,7 @@ public class NodeManager {
      * Sets the node registry.
      * @param nodeRegistry the node registry
      */
-    public void setNodeRegistry(NodeRegistry nodeRegistry) {
+    protected void setNodeRegistry(NodeRegistry nodeRegistry) {
         this.nodeRegistry = nodeRegistry;
     }
 
@@ -198,7 +198,7 @@ public class NodeManager {
      * Sets the node reporter.
      * @param nodeReporter the node reporter
      */
-    public void setNodeReporter(NodeReporter nodeReporter) {
+    protected void setNodeReporter(NodeReporter nodeReporter) {
         this.nodeReporter = nodeReporter;
     }
 
@@ -214,7 +214,7 @@ public class NodeManager {
      * Sets the Redis message publisher.
      * @param nodeMessagePublisher the Redis message publisher
      */
-    public void setNodeMessagePublisher(NodeMessagePublisher nodeMessagePublisher) {
+    protected void setNodeMessagePublisher(NodeMessagePublisher nodeMessagePublisher) {
         this.nodeMessagePublisher = nodeMessagePublisher;
     }
 
@@ -230,7 +230,7 @@ public class NodeManager {
      * Sets the Redis message subscriber.
      * @param nodeMessageSubscriber the Redis message subscriber
      */
-    public void setNodeMessageSubscriber(NodeMessageSubscriber nodeMessageSubscriber) {
+    protected void setNodeMessageSubscriber(NodeMessageSubscriber nodeMessageSubscriber) {
         this.nodeMessageSubscriber = nodeMessageSubscriber;
     }
 
@@ -246,7 +246,7 @@ public class NodeManager {
      * Sets the subscriber for cluster-wide events.
      * @param clusterEventSubscriber the cluster event subscriber
      */
-    public void setClusterEventSubscriber(ClusterEventSubscriber clusterEventSubscriber) {
+    protected void setClusterEventSubscriber(ClusterEventSubscriber clusterEventSubscriber) {
         this.clusterEventSubscriber = clusterEventSubscriber;
         if (clusterEventSubscriber != null) {
             clusterEventSubscriber.addListener(new ClusterEventListener() {

@@ -15,7 +15,6 @@
  */
 package com.aspectran.aspectow.console.scheduler.manager;
 
-import com.aspectran.core.component.bean.annotation.Component;
 import com.aspectran.core.component.schedule.ScheduleRuleRegistry;
 import com.aspectran.core.context.rule.ScheduleRule;
 import com.aspectran.core.context.rule.ScheduledJobRule;
@@ -34,7 +33,6 @@ import java.util.Set;
  * LocalSchedulerService provides refined methods to collect and control
  * schedulers within the local node.
  */
-@Component
 public class LocalSchedulerService {
 
     private static final Logger logger = LoggerFactory.getLogger(LocalSchedulerService.class);

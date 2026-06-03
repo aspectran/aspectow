@@ -19,6 +19,8 @@ import com.aspectran.aspectow.appmon.engine.relay.CommandOptions;
 import com.aspectran.aspectow.appmon.engine.relay.MessageRelayManager;
 import com.aspectran.aspectow.node.manager.NodeMessageListener;
 import org.jspecify.annotations.NonNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static com.aspectran.aspectow.appmon.engine.relay.CommandOptions.COMMAND_LOAD_PREVIOUS;
 import static com.aspectran.aspectow.appmon.engine.relay.CommandOptions.COMMAND_REFRESH;
@@ -30,6 +32,8 @@ import static com.aspectran.aspectow.appmon.engine.relay.CommandOptions.COMMAND_
  * and relays them to the local MessageRelayManager.
  */
 public class NodeMessageRelayHandler implements NodeMessageListener {
+
+    private static final Logger logger = LoggerFactory.getLogger(NodeMessageRelayHandler.class);
 
     private final MessageRelayManager messageRelayManager;
 
@@ -62,17 +66,23 @@ public class NodeMessageRelayHandler implements NodeMessageListener {
      * @param message the control message
      */
     private void handleControlMessage(@NonNull String message) {
-        CommandOptions options = new CommandOptions(message);
-        switch (options.getCommand()) {
+        CommandOptions commandOptions = new CommandOptions();
+        try {
+            commandOptions.parseCommand(message);
+        } catch (Exception e) {
+            logger.error("Failed to parse control message: {}", message, e);
+            return;
+        }
+        switch (commandOptions.getCommand()) {
             case COMMAND_SUBSCRIBE:
-                messageRelayManager.subscribeRemotely(options);
+                messageRelayManager.subscribeRemotely(commandOptions);
                 break;
             case COMMAND_UNSUBSCRIBE:
-                messageRelayManager.unsubscribeRemotely(options);
+                messageRelayManager.unsubscribeRemotely(commandOptions);
                 break;
             case COMMAND_REFRESH:
             case COMMAND_LOAD_PREVIOUS:
-                messageRelayManager.refreshDataRemotely(options);
+                messageRelayManager.refreshDataRemotely(commandOptions);
                 break;
         }
     }

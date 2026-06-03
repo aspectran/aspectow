@@ -40,8 +40,6 @@ import org.jspecify.annotations.NonNull;
 import java.util.List;
 import java.util.Map;
 
-import static com.aspectran.aspectow.node.manager.NodeMessageProtocol.NODES_BASE_PATH;
-
 /**
  * SchedulerActivity provides views and API endpoints for scheduler management.
  *
@@ -170,13 +168,11 @@ public class SchedulerActivity {
         if (StringUtils.isEmpty(command)) {
             return new FailureResponse().setError("required", "Command is required");
         }
-        if (StringUtils.isEmpty(targetNodeId)) {
-            targetNodeId = nodeManager.getNodeId();
-        }
 
         try {
             SchedulerRequestParameters parameters = new SchedulerRequestParameters();
             parameters.setCommand(command);
+            parameters.setTargetNodeId(targetNodeId);
             parameters.setServiceName(serviceName);
             parameters.setScheduleId(scheduleId);
             parameters.setJobName(jobName);
@@ -185,7 +181,7 @@ public class SchedulerActivity {
                 parameters.setLoadedLines(Integer.parseInt(loadedLines));
             }
 
-            schedulerManager.dispatch(targetNodeId, parameters);
+            schedulerManager.process(parameters);
             return new SuccessResponse("Scheduler command initiated successfully").ok();
         } catch (Exception e) {
             return new FailureResponse().setError("error", e.getMessage());

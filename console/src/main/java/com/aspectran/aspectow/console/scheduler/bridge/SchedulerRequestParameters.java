@@ -15,6 +15,7 @@
  */
 package com.aspectran.aspectow.console.scheduler.bridge;
 
+import com.aspectran.utils.apon.AponRenderStyle;
 import com.aspectran.utils.apon.DefaultParameters;
 import com.aspectran.utils.apon.ParameterKey;
 import com.aspectran.utils.apon.ValueType;
@@ -65,6 +66,7 @@ public class SchedulerRequestParameters extends DefaultParameters {
 
     public SchedulerRequestParameters() {
         super(parameterKeys);
+        setRenderStyle(AponRenderStyle.COMPACT);
     }
 
     public String getHeader() {
