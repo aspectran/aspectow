@@ -13,12 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.aspectran.aspectow.console.scheduler.bridge;
+package com.aspectran.aspectow.node.management.scheduler.bridge;
+
+import java.util.Collection;
 
 /**
  * Interface for bridging scheduler management data to clients.
  */
 public interface SchedulerBridge {
+
+    /**
+     * Collects all active sessions managed by this bridge.
+     * @param sessions the collection to add sessions to
+     */
+    void getSessions(Collection<SchedulerSession> sessions);
 
     /**
      * Bridges a message to all connected sessions.

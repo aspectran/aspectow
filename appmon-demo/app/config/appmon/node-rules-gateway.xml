@@ -21,4 +21,6 @@
         </properties>
     </bean>
 
+    <bean id="schedulerManager" class="com.aspectran.aspectow.node.management.scheduler.SchedulerManager"/>
+
 </aspectran>

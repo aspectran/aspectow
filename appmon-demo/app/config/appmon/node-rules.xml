@@ -11,4 +11,6 @@
 
     <bean id="nodeManager" class="com.aspectran.aspectow.node.manager.NodeManagerFactoryBean" lazyDestroy="true"/>
 
+    <bean id="schedulerManager" class="com.aspectran.aspectow.node.management.scheduler.SchedulerManager"/>
+
 </aspectran>

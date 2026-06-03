@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.aspectran.aspectow.console.scheduler.manager;
+package com.aspectran.aspectow.node.management.scheduler.log;
 
-import com.aspectran.aspectow.console.scheduler.bridge.SchedulerBroker;
+import com.aspectran.aspectow.node.management.scheduler.bridge.SchedulerBroker;
 import com.aspectran.logging.LoggingDefaults;
 import com.aspectran.utils.lifecycle.AbstractLifeCycle;
 import org.apache.commons.io.input.ReversedLinesFileReader;

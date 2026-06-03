@@ -15,7 +15,7 @@
  */
 package com.aspectran.aspectow.console.scheduler.bridge.polling;
 
-import com.aspectran.aspectow.console.scheduler.bridge.SchedulerSession;
+import com.aspectran.aspectow.node.management.scheduler.bridge.SchedulerSession;
 import com.aspectran.utils.concurrent.AutoLock;
 import com.aspectran.utils.timer.CyclicTimeout;
 

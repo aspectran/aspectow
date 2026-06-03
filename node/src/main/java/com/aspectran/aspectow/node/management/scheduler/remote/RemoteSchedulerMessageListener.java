@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.aspectran.aspectow.console.scheduler.bridge.remote;
+package com.aspectran.aspectow.node.management.scheduler.remote;
 
-import com.aspectran.aspectow.console.scheduler.bridge.SchedulerBroker;
-import com.aspectran.aspectow.console.scheduler.bridge.SchedulerRequestParameters;
-import com.aspectran.aspectow.console.scheduler.manager.SchedulerManager;
+import com.aspectran.aspectow.node.management.scheduler.SchedulerRequestParameters;
+import com.aspectran.aspectow.node.management.scheduler.bridge.SchedulerBroker;
+import com.aspectran.aspectow.node.management.scheduler.SchedulerManager;
 import com.aspectran.aspectow.node.manager.NodeMessageListener;
 import com.aspectran.utils.apon.AponParseException;
 import org.jspecify.annotations.NonNull;

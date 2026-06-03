@@ -13,18 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.aspectran.aspectow.console.scheduler.manager;
+package com.aspectran.aspectow.node.management.scheduler;
 
-import com.aspectran.aspectow.console.scheduler.bridge.SchedulerBroker;
-import com.aspectran.aspectow.console.scheduler.bridge.SchedulerRequestParameters;
-import com.aspectran.aspectow.console.scheduler.bridge.remote.RemoteSchedulerMessageListener;
+import com.aspectran.aspectow.node.management.scheduler.bridge.SchedulerBroker;
+import com.aspectran.aspectow.node.management.scheduler.log.SchedulerLogExporter;
+import com.aspectran.aspectow.node.management.scheduler.remote.RemoteSchedulerMessageListener;
 import com.aspectran.aspectow.node.manager.NodeManager;
 import com.aspectran.aspectow.node.manager.NodeMessagePublisher;
 import com.aspectran.core.adapter.ApplicationAdapter;
 import com.aspectran.core.component.bean.ablility.InitializableBean;
 import com.aspectran.core.component.bean.annotation.Autowired;
-import com.aspectran.core.component.bean.annotation.Bean;
-import com.aspectran.core.component.bean.annotation.Component;
 import com.aspectran.core.component.bean.aware.ApplicationAdapterAware;
 import com.aspectran.core.scheduler.service.SchedulerService;
 import com.aspectran.core.service.CoreService;
@@ -44,15 +42,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static com.aspectran.aspectow.console.scheduler.bridge.SchedulerBroker.DELIMITER;
+import static com.aspectran.aspectow.node.management.scheduler.bridge.SchedulerBroker.DELIMITER;
 
 /**
  * SchedulerManager orchestrates scheduler management across the cluster.
  * It manages local execution, remote dispatching via Redis, and broadcasting
  * results to connected clients.
  */
-@Component
-@Bean(id = "schedulerManager")
 public class SchedulerManager implements ApplicationAdapterAware, InitializableBean {
 
     private static final Logger logger = LoggerFactory.getLogger(SchedulerManager.class);

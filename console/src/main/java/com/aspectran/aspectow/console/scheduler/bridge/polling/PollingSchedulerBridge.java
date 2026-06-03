@@ -15,10 +15,10 @@
  */
 package com.aspectran.aspectow.console.scheduler.bridge.polling;
 
-import com.aspectran.aspectow.console.scheduler.bridge.SchedulerBridge;
-import com.aspectran.aspectow.console.scheduler.bridge.SchedulerBroker;
-import com.aspectran.aspectow.console.scheduler.bridge.SchedulerSession;
-import com.aspectran.aspectow.console.scheduler.manager.SchedulerManager;
+import com.aspectran.aspectow.node.management.scheduler.bridge.SchedulerBridge;
+import com.aspectran.aspectow.node.management.scheduler.bridge.SchedulerBroker;
+import com.aspectran.aspectow.node.management.scheduler.bridge.SchedulerSession;
+import com.aspectran.aspectow.node.management.scheduler.SchedulerManager;
 import com.aspectran.core.component.AbstractComponent;
 import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Component;
@@ -76,6 +76,11 @@ public class PollingSchedulerBridge extends AbstractComponent implements Schedul
 
     public PollingSchedulerSession getSession(String sessionId) {
         return sessionManager.getSession(sessionId);
+    }
+
+    @Override
+    public void getSessions(@NonNull Collection<SchedulerSession> sessions) {
+        sessions.addAll(sessionManager.getSessions().values());
     }
 
     public Collection<PollingSchedulerSession> getSessions() {

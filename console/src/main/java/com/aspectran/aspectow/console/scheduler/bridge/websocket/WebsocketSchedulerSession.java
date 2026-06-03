@@ -15,7 +15,7 @@
  */
 package com.aspectran.aspectow.console.scheduler.bridge.websocket;
 
-import com.aspectran.aspectow.console.scheduler.bridge.SchedulerSession;
+import com.aspectran.aspectow.node.management.scheduler.bridge.SchedulerSession;
 import com.aspectran.web.websocket.jsr356.WrappedSession;
 import jakarta.websocket.Session;
 

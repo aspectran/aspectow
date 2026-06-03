@@ -13,11 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.aspectran.aspectow.console.scheduler.bridge;
+package com.aspectran.aspectow.node.management.scheduler.bridge;
 
-import com.aspectran.aspectow.console.scheduler.bridge.polling.PollingSchedulerBridge;
-import com.aspectran.aspectow.console.scheduler.bridge.websocket.WebsocketSchedulerBridge;
-import com.aspectran.aspectow.console.scheduler.manager.SchedulerManager;
+import com.aspectran.aspectow.node.management.scheduler.SchedulerManager;
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,11 +63,7 @@ public class SchedulerBroker {
     public Set<SchedulerSession> getSessions() {
         Set<SchedulerSession> sessions = new HashSet<>();
         for (SchedulerBridge bridge : bridges) {
-            if (bridge instanceof WebsocketSchedulerBridge websocketBridge) {
-                websocketBridge.getSessions(sessions);
-            } else if (bridge instanceof PollingSchedulerBridge pollingBridge) {
-                sessions.addAll(pollingBridge.getSessions());
-            }
+            bridge.getSessions(sessions);
         }
         return sessions;
     }
@@ -167,16 +161,6 @@ public class SchedulerBroker {
                         bridge.getClass().getSimpleName(), e.getMessage());
             }
         }
-//        if (schedulerManager.isGatewayMode() && !subscriptionRegistry.getRemoteSubscriptions().isEmpty()) {
-//            String relayMessage = sourceNodeId + DELIMITER + data;
-//            for (String remoteNodeId : subscriptionRegistry.getRemoteSubscriptions()) {
-//                try {
-//                    schedulerManager.getMessagePublisher().publishRelay(CATEGORY_SCHEDULER, remoteNodeId, relayMessage);
-//                } catch (Exception e) {
-//                    logger.error("Failed to relay scheduler result to remote node: {}", remoteNodeId, e);
-//                }
-//            }
-//        }
     }
 
     /**

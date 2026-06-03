@@ -16,11 +16,11 @@
 package com.aspectran.aspectow.console.scheduler.bridge.websocket;
 
 import com.aspectran.aspectow.appmon.common.auth.AppMonTokenIssuer;
-import com.aspectran.aspectow.console.scheduler.bridge.SchedulerBridge;
-import com.aspectran.aspectow.console.scheduler.bridge.SchedulerRequestParameters;
-import com.aspectran.aspectow.console.scheduler.bridge.SchedulerResponseParameters;
-import com.aspectran.aspectow.console.scheduler.bridge.SchedulerSession;
-import com.aspectran.aspectow.console.scheduler.manager.SchedulerManager;
+import com.aspectran.aspectow.node.management.scheduler.bridge.SchedulerBridge;
+import com.aspectran.aspectow.node.management.scheduler.bridge.SchedulerSession;
+import com.aspectran.aspectow.node.management.scheduler.SchedulerManager;
+import com.aspectran.aspectow.node.management.scheduler.SchedulerRequestParameters;
+import com.aspectran.aspectow.node.management.scheduler.SchedulerResponseParameters;
 import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Component;
 import com.aspectran.core.component.bean.annotation.Initialize;
@@ -35,9 +35,9 @@ import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Set;
+import java.util.Collection;
 
-import static com.aspectran.aspectow.console.scheduler.bridge.SchedulerBroker.CATEGORY_SCHEDULER;
+import static com.aspectran.aspectow.node.management.scheduler.bridge.SchedulerBroker.CATEGORY_SCHEDULER;
 import static com.aspectran.aspectow.node.manager.NodeMessageProtocol.NODES_BASE_PATH;
 
 /**
@@ -183,7 +183,7 @@ public class WebsocketSchedulerBridge extends SimplifiedEndpoint implements Sche
         }
     }
 
-    public void getSessions(Set<SchedulerSession> sessions) {
+    public void getSessions(Collection<SchedulerSession> sessions) {
         forEachSession(session -> {
             sessions.add(new WebsocketSchedulerSession(session));
         });
