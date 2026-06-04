@@ -16,7 +16,7 @@
 package com.aspectran.aspectow.console.commands.bridge.polling;
 
 import com.aspectran.aspectow.node.management.commands.RemoteCommandManager;
-import com.aspectran.aspectow.node.management.commands.RemoteCommandResultParameters;
+import com.aspectran.aspectow.node.management.commands.RemoteResponseParameters;
 import com.aspectran.aspectow.node.management.commands.bridge.CommandBridge;
 import com.aspectran.aspectow.node.management.commands.bridge.CommandBroker;
 import com.aspectran.aspectow.node.management.commands.bridge.CommandSession;
@@ -85,15 +85,15 @@ public class PollingCommandBridge extends AbstractComponent implements CommandBr
     }
 
     @Override
-    public void bridge(RemoteCommandResultParameters resultParameters) {
-        if (!sessionManager.getSessions().isEmpty() && resultParameters != null) {
-            bufferedMessages.push(resultParameters.toString());
+    public void bridge(RemoteResponseParameters response) {
+        if (!sessionManager.getSessions().isEmpty() && response != null) {
+            bufferedMessages.push(response.toString());
         }
     }
 
     @Override
-    public void bridge(@NonNull CommandSession session, RemoteCommandResultParameters resultParameters) {
-        bridge(resultParameters);
+    public void bridge(@NonNull CommandSession session, RemoteResponseParameters response) {
+        bridge(response);
     }
 
     public CommandBroker getBroker() {

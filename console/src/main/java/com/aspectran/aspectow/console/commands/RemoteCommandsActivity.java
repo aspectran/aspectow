@@ -17,7 +17,7 @@ package com.aspectran.aspectow.console.commands;
 
 import com.aspectran.aspectow.console.cluster.NodeConsoleHelper;
 import com.aspectran.aspectow.node.config.NodeInfo;
-import com.aspectran.aspectow.node.management.commands.RemoteCommandParameters;
+import com.aspectran.aspectow.node.management.commands.RemoteRequestParameters;
 import com.aspectran.aspectow.node.management.commands.RemoteCommandManager;
 import com.aspectran.aspectow.node.manager.NodeManager;
 import com.aspectran.core.activity.Translet;
@@ -119,14 +119,14 @@ public class RemoteCommandsActivity {
         }
 
         try {
-            RemoteCommandParameters parameters = new RemoteCommandParameters();
-            parameters.setHeader("execute");
-            parameters.setCommand(command);
-            parameters.setTargetNodeId(targetNodeId);
-            parameters.putValue(RemoteCommandParameters.targetGroup, targetGroup);
-            parameters.putValue(RemoteCommandParameters.targetAll, targetAll);
+            RemoteRequestParameters request = new RemoteRequestParameters();
+            request.setHeader("execute");
+            request.setCommand(command);
+            request.setTargetNodeId(targetNodeId);
+            request.setTargetGroup(targetGroup);
+            request.setTargetAll(targetAll);
 
-            remoteCommandManager.process(parameters);
+            remoteCommandManager.process(request);
             return new SuccessResponse("Command initiated successfully").ok();
         } catch (Exception e) {
             return new FailureResponse().setError("error", e.getMessage());

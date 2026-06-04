@@ -35,7 +35,7 @@ public class SubscriptionRegistry {
     /** appId -> Set of remote node IDs */
     private final Map<String, Set<String>> remoteSubscriptions = new ConcurrentHashMap<>();
 
-    /** session ID -> Array of subscribeed app IDs */
+    /** session ID -> Array of subscribed app IDs */
     private final Map<String, String[]> sessionToApps = new ConcurrentHashMap<>();
 
     public void addLocalSubscription(String sessionId, String[] subscribedApps) {

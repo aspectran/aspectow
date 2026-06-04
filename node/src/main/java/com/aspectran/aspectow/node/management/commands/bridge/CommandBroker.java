@@ -16,7 +16,7 @@
 package com.aspectran.aspectow.node.management.commands.bridge;
 
 import com.aspectran.aspectow.node.management.commands.RemoteCommandManager;
-import com.aspectran.aspectow.node.management.commands.RemoteCommandResultParameters;
+import com.aspectran.aspectow.node.management.commands.RemoteResponseParameters;
 import com.aspectran.aspectow.node.manager.NodeMessagePublisher;
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
@@ -115,7 +115,7 @@ public class CommandBroker {
      * Bridges a command result to all connected clients.
      * @param resultParameters the command result parameters
      */
-    public void bridge(RemoteCommandResultParameters resultParameters) {
+    public void bridge(RemoteResponseParameters resultParameters) {
         for (CommandBridge bridge : bridges) {
             try {
                 bridge.bridge(resultParameters);
@@ -131,7 +131,7 @@ public class CommandBroker {
      * @param session the target session
      * @param resultParameters the command result parameters
      */
-    public void bridge(@NonNull CommandSession session, RemoteCommandResultParameters resultParameters) {
+    public void bridge(@NonNull CommandSession session, RemoteResponseParameters resultParameters) {
         for (CommandBridge bridge : bridges) {
             try {
                 bridge.bridge(session, resultParameters);

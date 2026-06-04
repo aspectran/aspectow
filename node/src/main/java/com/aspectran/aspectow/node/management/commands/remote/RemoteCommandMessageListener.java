@@ -16,8 +16,8 @@
 package com.aspectran.aspectow.node.management.commands.remote;
 
 import com.aspectran.aspectow.node.management.commands.RemoteCommandManager;
-import com.aspectran.aspectow.node.management.commands.RemoteCommandParameters;
-import com.aspectran.aspectow.node.management.commands.RemoteCommandResultParameters;
+import com.aspectran.aspectow.node.management.commands.RemoteRequestParameters;
+import com.aspectran.aspectow.node.management.commands.RemoteResponseParameters;
 import com.aspectran.aspectow.node.management.commands.bridge.CommandBroker;
 import com.aspectran.aspectow.node.manager.NodeMessageListener;
 import com.aspectran.utils.apon.AponParseException;
@@ -67,21 +67,21 @@ public class RemoteCommandMessageListener implements NodeMessageListener {
             }
         } else if (message.startsWith(CommandBroker.CONTROL_REQUEST)) {
             String requestData = message.substring(CommandBroker.CONTROL_REQUEST.length());
-            RemoteCommandParameters request = new RemoteCommandParameters();
+            RemoteRequestParameters request = new RemoteRequestParameters();
             try {
                 request.readFrom(requestData);
             } catch (AponParseException e) {
                 logger.error("Failed to parse command request parameters: {}", requestData, e);
             }
 
-            remoteCommandManager.processRemotely(request);
+            remoteCommandManager.executeRemotely(request);
         }
     }
 
     @Override
     public void onRelayMessage(String nodeId, @NonNull String message) {
         try {
-            RemoteCommandResultParameters resultParameters = new RemoteCommandResultParameters();
+            RemoteResponseParameters resultParameters = new RemoteResponseParameters();
             resultParameters.readFrom(message);
             remoteCommandManager.broadcast(resultParameters);
         } catch (Exception e) {
@@ -92,7 +92,7 @@ public class RemoteCommandMessageListener implements NodeMessageListener {
     @Override
     public void onRelayMessage(String nodeId, String sessionId, @NonNull String message) {
         try {
-            RemoteCommandResultParameters resultParameters = new RemoteCommandResultParameters();
+            RemoteResponseParameters resultParameters = new RemoteResponseParameters();
             resultParameters.readFrom(message);
             remoteCommandManager.getBroker().getSessions().stream()
                     .filter(session -> session.getId().equals(sessionId))

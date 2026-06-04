@@ -35,8 +35,6 @@ public class WebsocketRelaySession extends WrappedSession implements RelaySessio
 
     private static final String FOCUSED_APP_ID_PROPERTY = "appmon:focusedAppId";
 
-    private static final String FOCUSED_NODE_ID_PROPERTY = "appmon:focusedNodeId";
-
     /**
      * Instantiates a new WebsocketServiceSession.
      * @param session the underlying WebSocket session

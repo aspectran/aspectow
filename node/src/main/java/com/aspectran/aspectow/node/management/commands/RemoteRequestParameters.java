@@ -24,7 +24,7 @@ import com.aspectran.utils.apon.ValueType;
  * Represents a structured message for remote command execution.
  * It encapsulates the command type, routing information, and the command payload.
  */
-public class RemoteCommandParameters extends DefaultParameters {
+public class RemoteRequestParameters extends DefaultParameters {
 
     public static final ParameterKey header;
     public static final ParameterKey requestId;
@@ -59,7 +59,7 @@ public class RemoteCommandParameters extends DefaultParameters {
         };
     }
 
-    public RemoteCommandParameters() {
+    public RemoteRequestParameters() {
         super(parameterKeys);
     }
 
@@ -68,7 +68,7 @@ public class RemoteCommandParameters extends DefaultParameters {
     }
 
     public void setHeader(String header) {
-        putValue(RemoteCommandParameters.header, header);
+        putValue(RemoteRequestParameters.header, header);
     }
 
     public String getRequestId() {
@@ -76,7 +76,7 @@ public class RemoteCommandParameters extends DefaultParameters {
     }
 
     public void setRequestId(String requestId) {
-        putValue(RemoteCommandParameters.requestId, requestId);
+        putValue(RemoteRequestParameters.requestId, requestId);
     }
 
     public String getTargetNodeId() {
@@ -84,7 +84,7 @@ public class RemoteCommandParameters extends DefaultParameters {
     }
 
     public void setTargetNodeId(String targetNodeId) {
-        putValue(RemoteCommandParameters.targetNodeId, targetNodeId);
+        putValue(RemoteRequestParameters.targetNodeId, targetNodeId);
     }
 
     public String getSourceNodeId() {
@@ -92,7 +92,7 @@ public class RemoteCommandParameters extends DefaultParameters {
     }
 
     public void setSourceNodeId(String sourceNodeId) {
-        putValue(RemoteCommandParameters.sourceNodeId, sourceNodeId);
+        putValue(RemoteRequestParameters.sourceNodeId, sourceNodeId);
     }
 
     public String getSessionId() {
@@ -100,15 +100,23 @@ public class RemoteCommandParameters extends DefaultParameters {
     }
 
     public void setSessionId(String sessionId) {
-        putValue(RemoteCommandParameters.sessionId, sessionId);
+        putValue(RemoteRequestParameters.sessionId, sessionId);
     }
 
     public String getTargetGroup() {
         return getString(targetGroup);
     }
 
+    public void setTargetGroup(String targetGroup) {
+        putValue(RemoteRequestParameters.targetGroup, targetGroup);
+    }
+
     public boolean isTargetAll() {
         return getBoolean(targetAll, false);
+    }
+
+    public void setTargetAll(boolean targetAll) {
+        putValue(RemoteRequestParameters.targetAll, targetAll);
     }
 
     public CommandParameters getCommand() {
@@ -116,11 +124,11 @@ public class RemoteCommandParameters extends DefaultParameters {
     }
 
     public void setCommand(CommandParameters command) {
-        putValue(RemoteCommandParameters.command, command);
+        putValue(RemoteRequestParameters.command, command);
     }
 
     public void setCommand(String command) {
-        putValue(RemoteCommandParameters.command, command);
+        putValue(RemoteRequestParameters.command, command);
     }
 
 }

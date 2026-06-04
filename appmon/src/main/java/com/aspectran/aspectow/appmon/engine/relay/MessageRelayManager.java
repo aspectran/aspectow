@@ -50,6 +50,8 @@ public class MessageRelayManager {
 
     public static final String CATEGORY_APPMON = "appmon";
 
+    private static final char DELIMITER = ':';
+
     private final Map<String, MessageRelayer> sessionRelayerMap = new ConcurrentHashMap<>();
 
     private final List<ExporterManager> exporterManagers = new CopyOnWriteArrayList<>();
@@ -267,9 +269,9 @@ public class MessageRelayManager {
 
     @Nullable
     private String extractAppId(@NonNull String message) {
-        int idx1 = message.indexOf(':');
+        int idx1 = message.indexOf(DELIMITER);
         if (idx1 != -1) {
-            int idx2 = message.indexOf(':', idx1 + 1);
+            int idx2 = message.indexOf(DELIMITER, idx1 + 1);
             if (idx2 != -1) {
                 String appId = message.substring(idx1 + 1, idx2);
                 return (!appId.isEmpty() ? appId : null);
@@ -280,11 +282,11 @@ public class MessageRelayManager {
 
     @Nullable
     private String extractType(@NonNull String message) {
-        int idx1 = message.indexOf(':');
+        int idx1 = message.indexOf(DELIMITER);
         if (idx1 != -1) {
-            int idx2 = message.indexOf(':', idx1 + 1);
+            int idx2 = message.indexOf(DELIMITER, idx1 + 1);
             if (idx2 != -1) {
-                int idx3 = message.indexOf(':', idx2 + 1);
+                int idx3 = message.indexOf(DELIMITER, idx2 + 1);
                 if (idx3 != -1) {
                     return message.substring(idx2 + 1, idx3);
                 }

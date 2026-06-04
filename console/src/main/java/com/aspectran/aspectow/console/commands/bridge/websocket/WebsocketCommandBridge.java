@@ -17,8 +17,8 @@ package com.aspectran.aspectow.console.commands.bridge.websocket;
 
 import com.aspectran.aspectow.appmon.common.auth.AppMonTokenIssuer;
 import com.aspectran.aspectow.node.management.commands.RemoteCommandManager;
-import com.aspectran.aspectow.node.management.commands.RemoteCommandParameters;
-import com.aspectran.aspectow.node.management.commands.RemoteCommandResultParameters;
+import com.aspectran.aspectow.node.management.commands.RemoteRequestParameters;
+import com.aspectran.aspectow.node.management.commands.RemoteResponseParameters;
 import com.aspectran.aspectow.node.management.commands.bridge.CommandBridge;
 import com.aspectran.aspectow.node.management.commands.bridge.CommandSession;
 import com.aspectran.aspectow.node.manager.NodeManager;
@@ -101,13 +101,13 @@ public class WebsocketCommandBridge extends SimplifiedEndpoint implements Comman
         }
 
         try {
-            RemoteCommandParameters parameters = JsonToParameters.from(message, RemoteCommandParameters.class);
+            RemoteRequestParameters request = JsonToParameters.from(message, RemoteRequestParameters.class);
 
-            String header = parameters.getHeader();
+            String header = request.getHeader();
             if ("execute".equals(header)) {
-                execute(session, parameters);
+                execute(session, request);
             } else if ("subscribe".equals(header)) {
-                subscribe(session, parameters);
+                subscribe(session, request);
             } else if ("ping".equals(header)) {
                 pong(session);
             }
@@ -124,9 +124,9 @@ public class WebsocketCommandBridge extends SimplifiedEndpoint implements Comman
         logger.debug("Remote command WebSocket session removed: {} (Total: {})", session.getId(), countSessions());
     }
 
-    private void subscribe(Session session, @NonNull RemoteCommandParameters parameters) {
+    private void subscribe(Session session, @NonNull RemoteRequestParameters request) {
         WebsocketCommandSession commandSession = new WebsocketCommandSession(session);
-        String targetNodeId = parameters.getTargetNodeId();
+        String targetNodeId = request.getTargetNodeId();
         if (targetNodeId != null && !targetNodeId.isEmpty()) {
             commandSession.setNodeId(targetNodeId);
         } else {
@@ -135,10 +135,10 @@ public class WebsocketCommandBridge extends SimplifiedEndpoint implements Comman
 
         if (addSession(session)) {
             remoteCommandManager.getBroker().subscribe(commandSession);
-            RemoteCommandResultParameters resultParameters = new RemoteCommandResultParameters()
+            RemoteResponseParameters response = new RemoteResponseParameters()
                     .setHeader("subscribed")
                     .setNodeId(nodeManager.getNodeId());
-            sendText(session, resultParameters.toString());
+            sendText(session, response.toString());
             if (logger.isDebugEnabled()) {
                 logger.debug("ConsoleClient joined remote command management: session {}, targetNodeId: {}",
                         session.getId(), commandSession.getNodeId());
@@ -147,19 +147,19 @@ public class WebsocketCommandBridge extends SimplifiedEndpoint implements Comman
     }
 
     private void pong(Session session) {
-        RemoteCommandResultParameters resultParameters = new RemoteCommandResultParameters()
+        RemoteResponseParameters response = new RemoteResponseParameters()
                 .setHeader("pong");
-        sendText(session, resultParameters.toString());
+        sendText(session, response.toString());
     }
 
-    private void execute(Session session, @NonNull RemoteCommandParameters parameters) {
-        CommandParameters commandParameters = parameters.getCommand();
+    private void execute(Session session, @NonNull RemoteRequestParameters request) {
+        CommandParameters commandParameters = request.getCommand();
         if (commandParameters != null) {
-            parameters.setSessionId(session.getId());
+            request.setSessionId(session.getId());
             try {
-                remoteCommandManager.process(parameters);
+                remoteCommandManager.process(request);
                 logger.debug("Command execution initiated from session {}: target={}, command={}",
-                        session.getId(), parameters.getTargetNodeId(), commandParameters.getCommandName());
+                        session.getId(), request.getTargetNodeId(), commandParameters.getCommandName());
             } catch (Exception e) {
                 logger.error("Failed to initiate command execution from session {}", session.getId(), e);
                 sendText(session, "[ERROR] " + e.getMessage());
@@ -168,16 +168,16 @@ public class WebsocketCommandBridge extends SimplifiedEndpoint implements Comman
     }
 
     @Override
-    public void bridge(RemoteCommandResultParameters resultParameters) {
-        if (resultParameters != null) {
-            broadcast(resultParameters.toString());
+    public void bridge(RemoteResponseParameters response) {
+        if (response != null) {
+            broadcast(response.toString());
         }
     }
 
     @Override
-    public void bridge(@NonNull CommandSession session, RemoteCommandResultParameters resultParameters) {
-        if (session instanceof WebsocketCommandSession websocketCommandSession && resultParameters != null) {
-            sendText(websocketCommandSession.getSession(), resultParameters.toString());
+    public void bridge(@NonNull CommandSession session, RemoteResponseParameters response) {
+        if (session instanceof WebsocketCommandSession websocketCommandSession && response != null) {
+            sendText(websocketCommandSession.getSession(), response.toString());
         }
     }
 

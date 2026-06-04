@@ -15,7 +15,7 @@
  */
 package com.aspectran.aspectow.node.management.commands.bridge;
 
-import com.aspectran.aspectow.node.management.commands.RemoteCommandResultParameters;
+import com.aspectran.aspectow.node.management.commands.RemoteResponseParameters;
 
 import java.util.Collection;
 
@@ -33,15 +33,15 @@ public interface CommandBridge {
 
     /**
      * Bridges a message to all connected sessions.
-     * @param resultParameters the command result parameters
+     * @param response the command result parameters
      */
-    void bridge(RemoteCommandResultParameters resultParameters);
+    void bridge(RemoteResponseParameters response);
 
     /**
      * Bridges a message to a specific session.
      * @param session the session to send the message to
-     * @param resultParameters the command result parameters
+     * @param response the command result parameters
      */
-    void bridge(CommandSession session, RemoteCommandResultParameters resultParameters);
+    void bridge(CommandSession session, RemoteResponseParameters response);
 
 }
