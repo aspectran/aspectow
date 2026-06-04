@@ -1,7 +1,7 @@
 # Cluster-wide settings
 cluster: {
     id: cluster1
-    mode: gateway  # direct or gateway or autoscaling
+    mode: gateway  # direct or gateway
     secret: {
         password: "your-node-management-password"
         # salt: "optional-salt"

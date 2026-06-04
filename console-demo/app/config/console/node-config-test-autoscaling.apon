@@ -1,8 +1,0 @@
-# Cluster-wide settings
-cluster: {
-    id: cluster1
-    mode: autoscaling  # direct or gateway or autoscaling
-    scheduler: {
-        releasedOnUnlock: false
-    }
-}

@@ -96,7 +96,13 @@ public class NodeConsoleHelper {
         Map<String, Object> map = new HashMap<>();
         map.put("id", info.getId());
         map.put("group", info.getGroup());
-        map.put("title", info.getTitle());
+
+        String title = info.getTitle();
+        if (title == null) {
+            title = info.getId();
+        }
+        map.put("title", title);
+
         map.put("host", info.getHost());
         map.put("port", info.getPort());
         if (includeEndpoint) {

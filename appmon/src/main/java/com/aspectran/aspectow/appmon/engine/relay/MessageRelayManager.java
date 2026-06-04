@@ -17,8 +17,8 @@ package com.aspectran.aspectow.appmon.engine.relay;
 
 import com.aspectran.aspectow.appmon.engine.exporter.ExporterManager;
 import com.aspectran.aspectow.node.config.NodeInfo;
-import com.aspectran.aspectow.node.manager.NodeRegistry;
 import com.aspectran.aspectow.node.manager.NodeMessagePublisher;
+import com.aspectran.aspectow.node.manager.NodeRegistry;
 import com.aspectran.utils.Assert;
 import com.aspectran.utils.json.JsonBuilder;
 import org.jspecify.annotations.NonNull;
@@ -58,22 +58,28 @@ public class MessageRelayManager {
 
     private final String nodeId;
 
+    private final String groupId;
+
     private final NodeRegistry nodeRegistry;
 
     private final NodeMessagePublisher messagePublisher;
 
     /**
      * Instantiates a new MessageRelayManager.
+     * @param nodeId the current node ID
+     * @param groupId the current group ID
+     * @param nodeRegistry the node registry
      * @param messagePublisher the Redis message publisher
      */
-    public MessageRelayManager(String nodeId, NodeRegistry nodeRegistry, NodeMessagePublisher messagePublisher) {
+    public MessageRelayManager(
+            String nodeId,
+            String groupId,
+            NodeRegistry nodeRegistry,
+            NodeMessagePublisher messagePublisher) {
         this.nodeId = nodeId;
+        this.groupId = groupId;
         this.nodeRegistry = nodeRegistry;
         this.messagePublisher = messagePublisher;
-    }
-
-    public SubscriptionRegistry getSubscriptionRegistry() {
-        return subscriptionRegistry;
     }
 
     public NodeRegistry getNodeRegistry() {
@@ -82,6 +88,10 @@ public class MessageRelayManager {
 
     public String getNodeId() {
         return nodeId;
+    }
+
+    public String getGroupId() {
+        return groupId;
     }
 
     public boolean isSameNode(String targetNodeId) {
@@ -332,6 +342,18 @@ public class MessageRelayManager {
         String nodeId = commandOptions.getNodeId();
         String appId = commandOptions.getAppId();
         String sessionId = commandOptions.getSessionId();
+
+        boolean matched = false;
+        for (ExporterManager exporterManager : exporterManagers) {
+            if (exporterManager.getAppId().equals(appId)) {
+                matched = true;
+                break;
+            }
+        }
+        if (!matched) {
+            return;
+        }
+
         if (!subscriptionRegistry.isAppInUse(appId)) {
             startExporters(appId);
         }
@@ -417,7 +439,7 @@ public class MessageRelayManager {
     }
 
     /**
-     * Gets the last known messages for the apps subscribeed by the session.
+     * Gets the last known messages for the apps subscribed by the session.
      * @param session the client session
      * @return a list of messages
      */

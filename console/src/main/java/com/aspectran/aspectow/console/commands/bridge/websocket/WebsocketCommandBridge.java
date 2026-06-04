@@ -16,11 +16,11 @@
 package com.aspectran.aspectow.console.commands.bridge.websocket;
 
 import com.aspectran.aspectow.appmon.common.auth.AppMonTokenIssuer;
-import com.aspectran.aspectow.console.commands.bridge.CommandBridge;
-import com.aspectran.aspectow.console.commands.bridge.CommandSession;
-import com.aspectran.aspectow.console.commands.bridge.RemoteCommandParameters;
-import com.aspectran.aspectow.console.commands.bridge.RemoteCommandResultParameters;
-import com.aspectran.aspectow.console.commands.manager.RemoteCommandManager;
+import com.aspectran.aspectow.node.management.commands.RemoteCommandManager;
+import com.aspectran.aspectow.node.management.commands.RemoteCommandParameters;
+import com.aspectran.aspectow.node.management.commands.RemoteCommandResultParameters;
+import com.aspectran.aspectow.node.management.commands.bridge.CommandBridge;
+import com.aspectran.aspectow.node.management.commands.bridge.CommandSession;
 import com.aspectran.aspectow.node.manager.NodeManager;
 import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Component;
@@ -37,9 +37,9 @@ import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Set;
+import java.util.Collection;
 
-import static com.aspectran.aspectow.console.commands.bridge.CommandBroker.CATEGORY_COMMANDS;
+import static com.aspectran.aspectow.node.management.commands.bridge.CommandBroker.CATEGORY_COMMANDS;
 import static com.aspectran.aspectow.node.manager.NodeMessageProtocol.NODES_BASE_PATH;
 
 /**
@@ -48,7 +48,7 @@ import static com.aspectran.aspectow.node.manager.NodeMessageProtocol.NODES_BASE
  */
 @Component
 @ServerEndpoint(
-        value = NODES_BASE_PATH + "/" + CATEGORY_COMMANDS + "/websocket/{token}",
+        value = NODES_BASE_PATH + "/{nodeId}/" + CATEGORY_COMMANDS + "/websocket/{token}",
         configurator = AspectranConfigurator.class
 )
 public class WebsocketCommandBridge extends SimplifiedEndpoint implements CommandBridge {
@@ -117,6 +117,13 @@ public class WebsocketCommandBridge extends SimplifiedEndpoint implements Comman
         }
     }
 
+    @Override
+    protected void onSessionRemoved(@NonNull Session session) {
+        WebsocketCommandSession commandSession = new WebsocketCommandSession(session);
+        remoteCommandManager.getBroker().release(commandSession);
+        logger.debug("Remote command WebSocket session removed: {} (Total: {})", session.getId(), countSessions());
+    }
+
     private void subscribe(Session session, @NonNull RemoteCommandParameters parameters) {
         WebsocketCommandSession commandSession = new WebsocketCommandSession(session);
         String targetNodeId = parameters.getTargetNodeId();
@@ -132,7 +139,10 @@ public class WebsocketCommandBridge extends SimplifiedEndpoint implements Comman
                     .setHeader("subscribed")
                     .setNodeId(nodeManager.getNodeId());
             sendText(session, resultParameters.toString());
-            logger.debug("ConsoleClient joined remote command management: session {}, targetNodeId: {}", session.getId(), commandSession.getNodeId());
+            if (logger.isDebugEnabled()) {
+                logger.debug("ConsoleClient joined remote command management: session {}, targetNodeId: {}",
+                        session.getId(), commandSession.getNodeId());
+            }
         }
     }
 
@@ -142,26 +152,14 @@ public class WebsocketCommandBridge extends SimplifiedEndpoint implements Comman
         sendText(session, resultParameters.toString());
     }
 
-    private void execute(Session session, @NonNull RemoteCommandParameters messageParameters) {
-        CommandParameters commandParameters = messageParameters.getCommandParameters();
+    private void execute(Session session, @NonNull RemoteCommandParameters parameters) {
+        CommandParameters commandParameters = parameters.getCommand();
         if (commandParameters != null) {
-            String targetNodeId = messageParameters.getTargetNodeId();
-            if (targetNodeId == null || targetNodeId.isEmpty()) {
-                targetNodeId = nodeManager.getNodeId();
-            }
-
-            final String finalTargetNodeId = targetNodeId;
+            parameters.setSessionId(session.getId());
             try {
-                Thread.ofVirtual().start(() -> {
-                    try {
-                        remoteCommandManager.dispatch(finalTargetNodeId, commandParameters.toString());
-                    } catch (Exception e) {
-                        logger.error("Failed to execute command from session {}", session.getId(), e);
-                        sendText(session, "[ERROR] " + e.getMessage());
-                    }
-                });
+                remoteCommandManager.process(parameters);
                 logger.debug("Command execution initiated from session {}: target={}, command={}",
-                        session.getId(), finalTargetNodeId, commandParameters.getCommandName());
+                        session.getId(), parameters.getTargetNodeId(), commandParameters.getCommandName());
             } catch (Exception e) {
                 logger.error("Failed to initiate command execution from session {}", session.getId(), e);
                 sendText(session, "[ERROR] " + e.getMessage());
@@ -170,35 +168,21 @@ public class WebsocketCommandBridge extends SimplifiedEndpoint implements Comman
     }
 
     @Override
-    protected void onSessionRemoved(@NonNull Session session) {
-        WebsocketCommandSession commandSession = new WebsocketCommandSession(session);
-        remoteCommandManager.getBroker().release(commandSession);
-        logger.debug("Remote command WebSocket session removed: {} (Total: {})", session.getId(), countSessions());
-    }
-
-    @Override
-    public void bridge(String data) {
-        if (data != null) {
-            RemoteCommandResultParameters resultParameters = new RemoteCommandResultParameters()
-                    .setHeader("result")
-                    .setNodeId(nodeManager.getNodeId())
-                    .setResult(data);
+    public void bridge(RemoteCommandResultParameters resultParameters) {
+        if (resultParameters != null) {
             broadcast(resultParameters.toString());
         }
     }
 
     @Override
-    public void bridge(@NonNull CommandSession session, String data) {
-        if (session instanceof WebsocketCommandSession websocketCommandSession) {
-            RemoteCommandResultParameters resultParameters = new RemoteCommandResultParameters()
-                    .setHeader("result")
-                    .setNodeId(nodeManager.getNodeId())
-                    .setResult(data);
+    public void bridge(@NonNull CommandSession session, RemoteCommandResultParameters resultParameters) {
+        if (session instanceof WebsocketCommandSession websocketCommandSession && resultParameters != null) {
             sendText(websocketCommandSession.getSession(), resultParameters.toString());
         }
     }
 
-    public void getSessions(Set<CommandSession> sessions) {
+    @Override
+    public void getSessions(Collection<CommandSession> sessions) {
         forEachSession(session -> {
             sessions.add(new WebsocketCommandSession(session));
         });

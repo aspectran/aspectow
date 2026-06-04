@@ -31,16 +31,19 @@ import java.util.List;
 public class NodeConfig extends DefaultParameters {
 
     private static final ParameterKey cluster;
+    private static final ParameterKey group;
     private static final ParameterKey node;
 
     private static final ParameterKey[] parameterKeys;
 
     static {
         cluster = new ParameterKey("cluster", ClusterConfig.class);
-        node = new ParameterKey("node", NodeInfo.class, true, true);
+        group = new ParameterKey("groups", new String[] {"group"}, GroupInfo.class, true, true);
+        node = new ParameterKey("nodes", new String[] {"node"}, NodeInfo.class, true, true);
 
         parameterKeys = new ParameterKey[] {
                 cluster,
+                group,
                 node
         };
     }
@@ -81,6 +84,22 @@ public class NodeConfig extends DefaultParameters {
      */
     public void setClusterConfig(ClusterConfig clusterConfig) {
         putValue(cluster, clusterConfig);
+    }
+
+    /**
+     * Returns a list of information for all registered groups.
+     * @return the list of group information
+     */
+    public List<GroupInfo> getGroupInfoList() {
+        return getParametersList(group);
+    }
+
+    /**
+     * Adds group information to the configuration.
+     * @param groupInfo the group information to add
+     */
+    public void putGroupInfo(GroupInfo groupInfo) {
+        putValue(group, groupInfo);
     }
 
     /**

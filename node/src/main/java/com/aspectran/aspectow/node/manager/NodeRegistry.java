@@ -19,14 +19,18 @@ import com.aspectran.aspectow.node.config.NodeInfo;
 import com.aspectran.aspectow.node.redis.RedisConnectionPool;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.sync.RedisCommands;
+import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Provides an API for retrieving information about registered cluster nodes
@@ -75,6 +79,59 @@ public class NodeRegistry {
             return connection.sync().hgetall(key);
         } catch (Exception e) {
             logger.error("Failed to retrieve nodes from Redis registry", e);
+            return Collections.emptyMap();
+        }
+    }
+
+    /**
+     * Retrieves all registered groups from Redis for the current cluster.
+     * @return a map of group IDs to their metadata (APON strings)
+     */
+    public Map<String, String> getAllGroups() {
+        String key = NodeMessageProtocol.getGroupsHashKey(clusterId);
+        logger.debug("Retrieving all groups from Redis hash: {}", key);
+        try (StatefulRedisConnection<String, String> connection = connectionPool.getConnection()) {
+            return connection.sync().hgetall(key);
+        } catch (Exception e) {
+            logger.error("Failed to retrieve groups from Redis registry", e);
+            return Collections.emptyMap();
+        }
+    }
+
+    /**
+     * Retrieves all registered applications from Redis for a specific group.
+     * @param groupId the group ID
+     * @return a map of application IDs to their metadata (APON strings)
+     */
+    public Map<String, String> getAllApps(String groupId) {
+        String key = NodeMessageProtocol.getAppsHashKey(groupId);
+        String orderKey = NodeMessageProtocol.getAppsOrderKey(groupId);
+        logger.debug("Retrieving all apps for group: {} from Redis hash: {}", groupId, key);
+        try (StatefulRedisConnection<String, String> connection = connectionPool.getConnection()) {
+            var sync = connection.sync();
+            List<String> order = sync.lrange(orderKey, 0, -1);
+            Map<String, String> allApps = sync.hgetall(key);
+            if (order != null && !order.isEmpty()) {
+                Map<String, String> orderedApps = new LinkedHashMap<>();
+                for (String appId : order) {
+                    String aponData = allApps.get(appId);
+                    if (aponData != null) {
+                        orderedApps.put(appId, aponData);
+                    }
+                }
+                if (orderedApps.size() < allApps.size()) {
+                    for (Map.Entry<String, String> entry : allApps.entrySet()) {
+                        if (!orderedApps.containsKey(entry.getKey())) {
+                            orderedApps.put(entry.getKey(), entry.getValue());
+                        }
+                    }
+                }
+                return orderedApps;
+            } else {
+                return allApps;
+            }
+        } catch (Exception e) {
+            logger.error("Failed to retrieve apps for group {} from Redis registry", groupId, e);
             return Collections.emptyMap();
         }
     }
@@ -158,7 +215,27 @@ public class NodeRegistry {
     }
 
     /**
+     * Explicitly removes a node and its pulse from the registry.
+     * Also performs metadata garbage collection.
+     * @param nodeId the node ID to remove
+     */
+    public void removeNode(String nodeId) {
+        String nodesKey = NodeMessageProtocol.getNodesHashKey(clusterId);
+        String pulsesKey = NodeMessageProtocol.getPulsesHashKey(clusterId);
+        try (StatefulRedisConnection<String, String> connection = connectionPool.getConnection()) {
+            RedisCommands<String, String> sync = connection.sync();
+            sync.hdel(nodesKey, nodeId);
+            sync.hdel(pulsesKey, nodeId);
+
+            cleanupOrphanedGroups(sync);
+        } catch (Exception e) {
+            logger.error("Failed to remove node '{}' and metadata from cluster '{}'", nodeId, clusterId, e);
+        }
+    }
+
+    /**
      * Evicts nodes that have not sent a pulse within the specified timeout.
+     * Also cleans up orphaned group and app metadata.
      * @param timeoutMillis the timeout threshold in milliseconds
      */
     public void evictZombieNodes(long timeoutMillis) {
@@ -168,6 +245,7 @@ public class NodeRegistry {
             RedisCommands<String, String> sync = connection.sync();
             Map<String, String> pulses = sync.hgetall(pulsesKey);
             long now = System.currentTimeMillis();
+            boolean evicted = false;
             for (Map.Entry<String, String> entry : pulses.entrySet()) {
                 String nodeId = entry.getKey();
                 try {
@@ -176,14 +254,56 @@ public class NodeRegistry {
                         logger.info("Evicting zombie node '{}' from cluster '{}'", nodeId, clusterId);
                         sync.hdel(nodesKey, nodeId);
                         sync.hdel(pulsesKey, nodeId);
+                        evicted = true;
                     }
                 } catch (NumberFormatException e) {
                     // ignore
                 }
             }
+
+            if (evicted) {
+                cleanupOrphanedGroups(sync);
+            }
         } catch (Exception e) {
-            logger.error("Failed to evict zombie nodes from cluster '{}'", clusterId, e);
+            logger.error("Failed to evict zombie nodes and metadata from cluster '{}'", clusterId, e);
         }
+    }
+
+    /**
+     * Removes groups and apps that no longer have active nodes.
+     * @param sync the Redis commands
+     */
+    private void cleanupOrphanedGroups(@NonNull RedisCommands<String, String> sync) {
+        String nodesKey = NodeMessageProtocol.getNodesHashKey(clusterId);
+        String groupsKey = NodeMessageProtocol.getGroupsHashKey(clusterId);
+
+        Map<String, String> remainingNodes = sync.hgetall(nodesKey);
+        Set<String> activeGroups = new HashSet<>();
+        for (String aponData : remainingNodes.values()) {
+            try {
+                NodeInfo info = new NodeInfo();
+                info.readFrom(aponData);
+                if (info.getGroup() != null) {
+                    activeGroups.add(info.getGroup());
+                }
+            } catch (Exception e) {
+                // ignore
+            }
+        }
+
+        Map<String, String> registeredGroups = sync.hgetall(groupsKey);
+        for (String gid : registeredGroups.keySet()) {
+            if (!activeGroups.contains(gid)) {
+                logger.info("Cleaning up orphaned group metadata: {} (Cluster: {})", gid, clusterId);
+                sync.hdel(groupsKey, gid);
+                sync.del(NodeMessageProtocol.getAppsHashKey(gid));
+                sync.del(NodeMessageProtocol.getAppsOrderKey(gid));
+            }
+        }
+    }
+
+    public void stop() {
+        // No-op for now, but can be used for cleanup if needed
     }
 
 }

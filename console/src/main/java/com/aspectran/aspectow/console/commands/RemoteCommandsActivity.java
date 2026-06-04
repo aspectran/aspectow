@@ -16,8 +16,9 @@
 package com.aspectran.aspectow.console.commands;
 
 import com.aspectran.aspectow.console.cluster.NodeConsoleHelper;
-import com.aspectran.aspectow.console.commands.manager.RemoteCommandManager;
 import com.aspectran.aspectow.node.config.NodeInfo;
+import com.aspectran.aspectow.node.management.commands.RemoteCommandParameters;
+import com.aspectran.aspectow.node.management.commands.RemoteCommandManager;
 import com.aspectran.aspectow.node.manager.NodeManager;
 import com.aspectran.core.activity.Translet;
 import com.aspectran.core.component.bean.annotation.Action;
@@ -36,15 +37,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.aspectran.aspectow.node.manager.NodeMessageProtocol.NODES_BASE_PATH;
-
 /**
  * RemoteCommandsActivity provides views and REST API endpoints for managing
  * cluster nodes and executing remote file commands.
  *
  * <p>Created: 2026-04-16</p>
  */
-@Component(NODES_BASE_PATH + "/commands")
+@Component("/cluster/commands")
 public class RemoteCommandsActivity {
 
     private final NodeManager nodeManager;
@@ -68,9 +67,9 @@ public class RemoteCommandsActivity {
      * @return a map of attributes for rendering the view
      */
     @Request
-    @Dispatch("nodes/commands")
+    @Dispatch("cluster/commands")
     @Action("page")
-    public Map<String, Object> nodeCommands(String nodeId) {
+    public Map<String, Object> commands(String nodeId) {
         String clusterMode = nodeManager.getClusterConfig().getMode();
         List<Map<String, Object>> nodes = nodeConsoleHelper.getNodes(true);
         NodeInfo nodeInfo = (nodeId != null ? nodeManager.getNodeInfoHolder().getNodeInfo(nodeId) : null);
@@ -82,6 +81,7 @@ public class RemoteCommandsActivity {
         model.put("style", "commands-page");
         model.put("group", "cluster-menu");
         model.put("clusterMode", clusterMode);
+        model.put("myNodeId", nodeManager.getNodeId());
         model.put("nodes", nodes);
         if (nodeInfo != null) {
             model.put("node", nodeConsoleHelper.createNodeMap(nodeInfo, true, true));
@@ -94,7 +94,7 @@ public class RemoteCommandsActivity {
      * @return a list of node information maps
      */
     @Request("/list")
-    public RestResponse listCommands() {
+    public RestResponse listNodes() {
         try {
             List<Map<String, Object>> nodes = nodeConsoleHelper.getNodes(true);
             return new SuccessResponse(nodes).ok();
@@ -110,18 +110,24 @@ public class RemoteCommandsActivity {
     @RequestToPost("/execute")
     public RestResponse executeCommand(@NonNull Translet translet) {
         String targetNodeId = translet.getParameter("nodeId");
+        String targetGroup = translet.getParameter("targetGroup");
+        boolean targetAll = Boolean.parseBoolean(translet.getParameter("targetAll"));
         String command = translet.getParameter("command");
 
         if (StringUtils.isEmpty(command)) {
             return new FailureResponse().setError("required", "Command is required");
         }
-        if (StringUtils.isEmpty(targetNodeId)) {
-            targetNodeId = nodeManager.getNodeId();
-        }
 
         try {
-            remoteCommandManager.dispatch(targetNodeId, command);
-            return new SuccessResponse("Command initiated successfully for node: " + targetNodeId).ok();
+            RemoteCommandParameters parameters = new RemoteCommandParameters();
+            parameters.setHeader("execute");
+            parameters.setCommand(command);
+            parameters.setTargetNodeId(targetNodeId);
+            parameters.putValue(RemoteCommandParameters.targetGroup, targetGroup);
+            parameters.putValue(RemoteCommandParameters.targetAll, targetAll);
+
+            remoteCommandManager.process(parameters);
+            return new SuccessResponse("Command initiated successfully").ok();
         } catch (Exception e) {
             return new FailureResponse().setError("error", e.getMessage());
         }

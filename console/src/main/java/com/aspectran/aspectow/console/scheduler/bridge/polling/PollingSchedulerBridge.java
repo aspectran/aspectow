@@ -15,10 +15,10 @@
  */
 package com.aspectran.aspectow.console.scheduler.bridge.polling;
 
-import com.aspectran.aspectow.console.scheduler.bridge.SchedulerBridge;
-import com.aspectran.aspectow.console.scheduler.bridge.SchedulerBroker;
-import com.aspectran.aspectow.console.scheduler.bridge.SchedulerSession;
-import com.aspectran.aspectow.console.scheduler.manager.SchedulerManager;
+import com.aspectran.aspectow.node.management.scheduler.bridge.SchedulerBridge;
+import com.aspectran.aspectow.node.management.scheduler.bridge.SchedulerBroker;
+import com.aspectran.aspectow.node.management.scheduler.bridge.SchedulerSession;
+import com.aspectran.aspectow.node.management.scheduler.SchedulerManager;
 import com.aspectran.core.component.AbstractComponent;
 import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Component;
@@ -78,20 +78,25 @@ public class PollingSchedulerBridge extends AbstractComponent implements Schedul
         return sessionManager.getSession(sessionId);
     }
 
-    public Collection<PollingSchedulerSession> getSessions() {
-        return sessionManager.getSessions().values();
+    @Override
+    public void getSessions(@NonNull Collection<SchedulerSession> sessions) {
+        sessions.addAll(sessionManager.getSessions().values());
     }
 
     @Override
-    public void bridge(String data) {
+    public void bridge(String sourceNodeId, String data) {
         if (!sessionManager.getSessions().isEmpty()) {
-            bufferedMessages.push(data);
+            if (data != null && data.startsWith("scheduler:log:")) {
+                bufferedMessages.push(sourceNodeId + "\0" + data);
+            } else {
+                bufferedMessages.push(data);
+            }
         }
     }
 
     @Override
-    public void bridge(@NonNull SchedulerSession session, String data) {
-        bridge(data);
+    public void bridge(@NonNull SchedulerSession session, String sourceNodeId, String data) {
+        bridge(sourceNodeId, data);
     }
 
     public SchedulerBroker getBroker() {

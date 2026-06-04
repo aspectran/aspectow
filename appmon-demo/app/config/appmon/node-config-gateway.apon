@@ -1,0 +1,11 @@
+# Cluster-wide settings
+cluster: {
+    id: cluster1
+    mode: gateway  # direct or gateway
+    pulseInterval: 2000
+}
+group: {
+    id: appmon-demo
+    title: AppMon Demo
+    description: This group is for AppMon Demo
+}

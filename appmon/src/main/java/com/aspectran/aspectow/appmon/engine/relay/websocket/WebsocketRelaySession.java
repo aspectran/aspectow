@@ -35,6 +35,8 @@ public class WebsocketRelaySession extends WrappedSession implements RelaySessio
 
     private static final String FOCUSED_APP_ID_PROPERTY = "appmon:focusedAppId";
 
+    private static final String FOCUSED_NODE_ID_PROPERTY = "appmon:focusedNodeId";
+
     /**
      * Instantiates a new WebsocketServiceSession.
      * @param session the underlying WebSocket session
@@ -46,6 +48,15 @@ public class WebsocketRelaySession extends WrappedSession implements RelaySessio
     @Override
     public String getId() {
         return getSession().getId();
+    }
+
+    @Override
+    public String getTimeZone() {
+        return (String)getSession().getUserProperties().get(TIME_ZONE_PROPERTY);
+    }
+
+    public void setTimeZone(String timeZone) {
+        getSession().getUserProperties().put(TIME_ZONE_PROPERTY, timeZone);
     }
 
     @Override
@@ -62,15 +73,6 @@ public class WebsocketRelaySession extends WrappedSession implements RelaySessio
     @Override
     public void removeSubscribedApps() {
         getSession().getUserProperties().remove(SUBSCRIBED_APPS_PROPERTY);
-    }
-
-    @Override
-    public String getTimeZone() {
-        return (String)getSession().getUserProperties().get(TIME_ZONE_PROPERTY);
-    }
-
-    public void setTimeZone(String timeZone) {
-        getSession().getUserProperties().put(TIME_ZONE_PROPERTY, timeZone);
     }
 
     @Override

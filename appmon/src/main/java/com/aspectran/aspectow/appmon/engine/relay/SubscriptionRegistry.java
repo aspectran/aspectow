@@ -41,6 +41,15 @@ public class SubscriptionRegistry {
     public void addLocalSubscription(String sessionId, String[] subscribedApps) {
         Assert.hasLength(sessionId, "sessionId must not be null or empty");
         Assert.notEmpty(subscribedApps, "subscribedApps must not be null or empty");
+
+        // Clean up previous subscriptions for this session
+        String[] oldApps = sessionToApps.get(sessionId);
+        if (oldApps != null) {
+            for (String oldAppId : oldApps) {
+                removeLocalAppSubscription(oldAppId, sessionId);
+            }
+        }
+
         sessionToApps.put(sessionId, subscribedApps);
         for (String appId : subscribedApps) {
             localSubscriptions.computeIfAbsent(appId, k -> ConcurrentHashMap.newKeySet()).add(sessionId);

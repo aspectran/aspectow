@@ -28,13 +28,53 @@ public abstract class NodeMessageProtocol {
 
     public static final String CATEGORY_CLUSTER = "cluster";
 
+    public static final String TYPE_NODES = "nodes";
+
+    public static final String TYPE_PULSE = "pulse";
+
+    public static final String TYPE_EVENT = "event";
+
     public static final String TYPE_CONTROL = "control";
 
     public static final String TYPE_RELAY = "relay";
 
-    public static final String TYPE_EVENT = "event";
+    public static final String TYPE_GROUPS = "groups";
 
-    private static final String KEY_PREFIX = "aspectow:nodes:";
+    public static final String TYPE_APPS = "apps";
+
+    public static final String TYPE_APPS_ORDER = "apps-order";
+
+    private static final String KEY_PREFIX = "aspectow:cluster:";
+
+    /**
+     * Returns the Redis Hash key for storing group metadata for a specific cluster.
+     * @param clusterId the cluster ID
+     * @return the Redis key
+     */
+    @NonNull
+    public static String getGroupsHashKey(String clusterId) {
+        return KEY_PREFIX + TYPE_GROUPS + ":" + clusterId;
+    }
+
+    /**
+     * Returns the Redis Hash key for storing application metadata for a specific group.
+     * @param groupId the group ID
+     * @return the Redis key
+     */
+    @NonNull
+    public static String getAppsHashKey(String groupId) {
+        return KEY_PREFIX + TYPE_APPS + ":" + groupId;
+    }
+
+    /**
+     * Returns the Redis List key for storing the order of application IDs for a specific group.
+     * @param groupId the group ID
+     * @return the Redis key
+     */
+    @NonNull
+    public static String getAppsOrderKey(String groupId) {
+        return KEY_PREFIX + TYPE_APPS_ORDER + ":" + groupId;
+    }
 
     /**
      * Returns the Redis Hash key for storing node metadata for a specific cluster.
@@ -43,7 +83,7 @@ public abstract class NodeMessageProtocol {
      */
     @NonNull
     public static String getNodesHashKey(String clusterId) {
-        return KEY_PREFIX + clusterId;
+        return KEY_PREFIX + TYPE_NODES + ":" + clusterId;
     }
 
     /**
@@ -53,7 +93,7 @@ public abstract class NodeMessageProtocol {
      */
     @NonNull
     public static String getPulsesHashKey(String clusterId) {
-        return KEY_PREFIX + clusterId + ":pulse";
+        return KEY_PREFIX + TYPE_PULSE + ":" + clusterId;
     }
 
     /**

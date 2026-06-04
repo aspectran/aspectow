@@ -18,7 +18,6 @@ package com.aspectran.aspectow.appmon.engine.relay;
 import com.aspectran.utils.Assert;
 import com.aspectran.utils.StringUtils;
 import com.aspectran.utils.apon.AponFormat;
-import com.aspectran.utils.apon.AponParseException;
 import com.aspectran.utils.apon.AponRenderStyle;
 import com.aspectran.utils.apon.DefaultParameters;
 import com.aspectran.utils.apon.ParameterKey;
@@ -51,6 +50,7 @@ public class CommandOptions extends DefaultParameters {
 
     private static final ParameterKey command;
     private static final ParameterKey nodeId;
+    private static final ParameterKey groupId;
     private static final ParameterKey appId;
     private static final ParameterKey sessionId;
     private static final ParameterKey nodeToSubscribe;
@@ -67,6 +67,7 @@ public class CommandOptions extends DefaultParameters {
     static {
         command = new ParameterKey("command", ValueType.STRING);
         nodeId = new ParameterKey("nodeId", ValueType.STRING);
+        groupId = new ParameterKey("groupId", ValueType.STRING);
         appId = new ParameterKey("appId", ValueType.STRING);
         sessionId = new ParameterKey("sessionId", ValueType.STRING);
         nodeToSubscribe = new ParameterKey("nodeToSubscribe", ValueType.STRING);
@@ -81,6 +82,7 @@ public class CommandOptions extends DefaultParameters {
         parameterKeys = new ParameterKey[] {
                 command,
                 nodeId,
+                groupId,
                 appId,
                 sessionId,
                 nodeToSubscribe,
@@ -102,33 +104,8 @@ public class CommandOptions extends DefaultParameters {
         setRenderStyle(AponRenderStyle.COMPACT);
     }
 
-    /**
-     * Constructs a new CommandOptions from a semicolon-delimited string.
-     * @param text the semicolon-delimited command string
-     */
-    public CommandOptions(String text) {
-        super(parameterKeys);
-        setRenderStyle(AponRenderStyle.COMPACT);
-        try {
-            readFrom(parseAsApon(text));
-        } catch (AponParseException e) {
-            throw new RuntimeException("Failed to parse command: " + text, e);
-        }
-    }
-
-    /**
-     * Constructs a new CommandOptions from an array of command lines.
-     * @param lines the array of command lines
-     * @throws RuntimeException if the command lines cannot be parsed
-     */
-    public CommandOptions(String[] lines) {
-        super(parameterKeys);
-        setRenderStyle(AponRenderStyle.COMPACT);
-        try {
-            readFrom(StringUtils.join(lines, AponFormat.NEW_LINE));
-        } catch (AponParseException e) {
-            throw new RuntimeException("Failed to parse command: " + StringUtils.join(lines, ";"), e);
-        }
+    public void parseCommand(String command) throws Exception {
+        readFrom(parseAsApon(command));
     }
 
     private String parseAsApon(String text) {
@@ -181,6 +158,14 @@ public class CommandOptions extends DefaultParameters {
 
     public void setNodeId(String nodeId) {
         putValue(CommandOptions.nodeId, nodeId);
+    }
+
+    public String getGroupId() {
+        return getString(groupId);
+    }
+
+    public void setGroupId(String groupId) {
+        putValue(CommandOptions.groupId, groupId);
     }
 
     /**

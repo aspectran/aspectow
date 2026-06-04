@@ -12,4 +12,12 @@
         <redirect path="/console/"/>
     </translet>
 
+    <translet name="/test">
+        <response>
+            <transform format="text/plain">
+                <template>Test</template>
+            </transform>
+        </response>
+    </translet>
+
 </aspectran>

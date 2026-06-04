@@ -7,7 +7,7 @@ pollingConfig: {
 }
 counterPersistInterval: 1
 app: {
-    id: root
+    id: appmon-root
     title: Root
     event: {
         id: activity

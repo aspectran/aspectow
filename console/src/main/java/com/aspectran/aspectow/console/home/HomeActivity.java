@@ -16,22 +16,30 @@
 package com.aspectran.aspectow.console.home;
 
 import com.aspectran.aspectow.console.cluster.NodeConsoleHelper;
+import com.aspectran.aspectow.node.config.GroupInfo;
+import com.aspectran.aspectow.node.manager.NodeManager;
 import com.aspectran.core.component.bean.annotation.Action;
 import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Component;
 import com.aspectran.core.component.bean.annotation.Dispatch;
 import com.aspectran.core.component.bean.annotation.Request;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Component("/")
 public class HomeActivity {
 
+    private final NodeManager nodeManager;
+
     private final NodeConsoleHelper nodeConsoleHelper;
 
     @Autowired
-    public HomeActivity(NodeConsoleHelper nodeConsoleHelper) {
+    public HomeActivity(NodeManager nodeManager, NodeConsoleHelper nodeConsoleHelper) {
+        this.nodeManager = nodeManager;
         this.nodeConsoleHelper = nodeConsoleHelper;
     }
 
@@ -39,14 +47,36 @@ public class HomeActivity {
     @Dispatch("home/home")
     @Action("page")
     public Map<String, Object> home() {
+        String clusterMode = nodeManager.getClusterConfig().getMode();
         List<Map<String, Object>> nodes = nodeConsoleHelper.getNodes(false);
-        return Map.of(
-                "title", "Aspectow Console",
-                "headline", "Aspectow Management Console",
-                "include", "home",
-                "style", "dashboard-page",
-                "nodes", nodes
-                );
+
+        Map<String, Object> model = new HashMap<>();
+        model.put("title", "Aspectow Console");
+        model.put("headline", "Aspectow Management Console");
+        model.put("include", "home");
+        model.put("style", "dashboard-page");
+        model.put("clusterMode", clusterMode);
+        model.put("nodes", nodes);
+
+        if (nodeManager.getClusterConfig().isGatewayMode()) {
+            List<GroupInfo> groupInfos = nodeManager.getGroupInfoList();
+            if (groupInfos != null && !groupInfos.isEmpty()) {
+                List<Map<String, Object>> groups = new ArrayList<>();
+                for (GroupInfo groupInfo : groupInfos) {
+                    Map<String, Object> groupMap = new HashMap<>();
+                    groupMap.put("id", groupInfo.getId());
+                    groupMap.put("title", groupInfo.getTitle());
+                    groups.add(groupMap);
+                }
+                model.put("groups", groups);
+
+                Map<String, List<Map<String, Object>>> groupedNodes = nodes.stream()
+                        .filter(n -> n.get("group") != null)
+                        .collect(Collectors.groupingBy(n -> (String) n.get("group")));
+                model.put("groupedNodes", groupedNodes);
+            }
+        }
+        return model;
     }
 
 }

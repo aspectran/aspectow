@@ -4,10 +4,10 @@
 <aspectran>
 
     <bean class="com.aspectran.aspectow.node.config.NodeConfigResolver">
-        <properties profile="prod">
-            <item name="configLocation">/config/console/node-config-prod.apon</item>
+        <properties profile="direct">
+            <item name="configLocation">/config/console/node-config-test-direct.apon</item>
         </properties>
-        <properties profile="!prod">
+        <properties profile="gateway">
             <item name="configLocation">/config/console/node-config-test-gateway.apon</item>
         </properties>
     </bean>
@@ -32,10 +32,14 @@
         </argument>
     </bean>
 
-    <bean id="nodeManager" class="com.aspectran.aspectow.node.manager.NodeManagerFactoryBean" lazyInit="true" lazyDestroy="true">
+    <bean id="nodeManager" class="com.aspectran.aspectow.node.manager.NodeManagerFactoryBean" lazyDestroy="true">
         <properties>
             <item name="redisConnectionPoolConfig">#{redisConnectionPoolConfig}</item>
         </properties>
     </bean>
+
+    <bean id="schedulerManager" class="com.aspectran.aspectow.node.management.scheduler.SchedulerManager"/>
+
+    <bean id="remoteCommandManager" class="com.aspectran.aspectow.node.management.commands.RemoteCommandManager"/>
 
 </aspectran>

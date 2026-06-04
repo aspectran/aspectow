@@ -32,6 +32,7 @@ import java.util.List;
 public class AppInfo extends DefaultParameters {
 
     private static final ParameterKey id;
+    private static final ParameterKey group;
     private static final ParameterKey title;
     private static final ParameterKey hidden;
     private static final ParameterKey event;
@@ -42,6 +43,7 @@ public class AppInfo extends DefaultParameters {
 
     static {
         id = new ParameterKey("id", ValueType.STRING);
+        group = new ParameterKey("group", ValueType.STRING);
         title = new ParameterKey("title", ValueType.STRING);
         hidden = new ParameterKey("hidden", ValueType.BOOLEAN);
         event = new ParameterKey("events", new String[] {"event"}, EventInfo.class, true, true);
@@ -50,6 +52,7 @@ public class AppInfo extends DefaultParameters {
 
         parameterKeys = new ParameterKey[] {
                 id,
+                group,
                 title,
                 hidden,
                 event,
@@ -81,6 +84,22 @@ public class AppInfo extends DefaultParameters {
      */
     public void setNodeId(String nodeId) {
         this.nodeId = nodeId;
+    }
+
+    /**
+     * Returns the group identifier of the current node.
+     * @return the group identifier
+     */
+    public String getGroupId() {
+        return getString(group);
+    }
+
+    /**
+     * Sets the group identifier of the current node.
+     * @param groupId the group identifier
+     */
+    public void setGroupId(String groupId) {
+        putValue(AppInfo.group, groupId);
     }
 
     /**

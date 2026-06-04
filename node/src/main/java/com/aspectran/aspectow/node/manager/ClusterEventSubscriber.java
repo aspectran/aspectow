@@ -41,7 +41,6 @@ public class ClusterEventSubscriber extends RedisPubSubAdapter<String, String> {
 
     public static final String MESSAGE_LEFT = "LEFT:";
 
-
     private final String clusterId;
 
     private final RedisConnectionPool connectionPool;

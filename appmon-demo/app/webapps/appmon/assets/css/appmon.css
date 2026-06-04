@@ -19,28 +19,36 @@
  * @last-modified 2026-05-22
  */
 
+/* For console-integrated */
+.monitoring-page .group.tabs {
+    box-shadow: none;
+    @media screen and (max-width: 576px) {
+        height: auto;
+    }
+}
+.monitoring-page .group.tabs > .tabs-title > a, .monitoring-page .group.tabs > .tabs-title button {
+    border-radius: var(--bs-nav-tabs-border-radius);
+    margin-right: 4px;
+}
+
 .tabs > .tabs-title .indicator {
     padding: 0;
+}
+
+.node-bar {
+    border-bottom: 1px solid #ddd;
+}
+.node.tabs {
+    box-shadow: none;
+    @media screen and (max-width: 576px) {
+        height: auto;
+    }
 }
 .node.tabs .tabs-title .indicator.disconnected {
     color: #ff9900;
 }
 .node.tabs .tabs-title .indicator.error {
     color: #a01f27;
-}
-
-/* For console-integrated */
-.monitoring-page .node-bar {
-    border-bottom: 1px solid #ddd;
-}
-.monitoring-page .node.tabs {
-    box-shadow: none;
-    @media screen and (max-width: 576px) {
-        height: auto;
-    }
-}
-.monitoring-page .node.tabs > .tabs-title > a, .monitoring-page .node.tabs > .tabs-title button {
-    background-color: transparent;
 }
 
 .metrics-bar {

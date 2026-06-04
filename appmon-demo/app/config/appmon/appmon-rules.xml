@@ -17,6 +17,7 @@
         </properties>
     </bean>
 
-    <append file="/config/appmon/node-rules.xml"/>
+    <append file="/config/appmon/node-rules.xml" profile="!gateway"/>
+    <append file="/config/appmon/node-rules-gateway.xml" profile="gateway"/>
 
 </aspectran>

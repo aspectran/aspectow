@@ -71,31 +71,10 @@ public class AppInfoHolder {
      * @return a list of {@link AppInfo}
      */
     public List<AppInfo> getAppInfoList() {
-        return getAppInfoList(null);
-    }
-
-    /**
-     * Gets a filtered list of app information.
-     * If appIds is null or empty, it returns all visible (not hidden) apps.
-     * Otherwise, it returns apps matching the given IDs.
-     * @param appIds an array of app IDs to filter by
-     * @return a list of matching {@link AppInfo}
-     */
-    public List<AppInfo> getAppInfoList(String[] appIds) {
         List<AppInfo> infoList = new ArrayList<>(appInfos.size());
-        if (appIds != null && appIds.length > 0) {
-            for (String id : appIds) {
-                for (AppInfo info : appInfos.values()) {
-                    if (info.getAppId().equals(id)) {
-                        infoList.add(info);
-                    }
-                }
-            }
-        } else {
-            for (AppInfo info : appInfos.values()) {
-                if (!info.isHidden()) {
-                    infoList.add(info);
-                }
+        for (AppInfo info : appInfos.values()) {
+            if (!info.isHidden()) {
+                infoList.add(info);
             }
         }
         return infoList;
@@ -103,11 +82,11 @@ public class AppInfoHolder {
 
     /**
      * Checks if an app with the specified name exists.
-     * @param appName the name of the app
+     * @param appId the name of the app
      * @return {@code true} if the app exists, {@code false} otherwise
      */
-    public boolean containsApp(String appName) {
-        return appInfos.containsKey(appName);
+    public boolean containsApp(String appId) {
+        return appInfos.containsKey(appId);
     }
 
     /**

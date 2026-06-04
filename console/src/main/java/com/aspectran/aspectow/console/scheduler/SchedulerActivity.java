@@ -17,11 +17,11 @@ package com.aspectran.aspectow.console.scheduler;
 
 import com.aspectran.aspectow.appmon.common.auth.AppMonTokenIssuer;
 import com.aspectran.aspectow.console.cluster.NodeConsoleHelper;
-import com.aspectran.aspectow.console.scheduler.bridge.SchedulerRequestParameters;
 import com.aspectran.aspectow.console.scheduler.bridge.polling.PollingSchedulerBridge;
 import com.aspectran.aspectow.console.scheduler.bridge.polling.PollingSchedulerSession;
-import com.aspectran.aspectow.console.scheduler.manager.SchedulerManager;
+import com.aspectran.aspectow.node.management.scheduler.SchedulerManager;
 import com.aspectran.aspectow.node.config.NodeInfo;
+import com.aspectran.aspectow.node.management.scheduler.SchedulerRequestParameters;
 import com.aspectran.aspectow.node.manager.NodeManager;
 import com.aspectran.core.activity.Translet;
 import com.aspectran.core.component.bean.annotation.Action;
@@ -40,14 +40,12 @@ import org.jspecify.annotations.NonNull;
 import java.util.List;
 import java.util.Map;
 
-import static com.aspectran.aspectow.node.manager.NodeMessageProtocol.NODES_BASE_PATH;
-
 /**
  * SchedulerActivity provides views and API endpoints for scheduler management.
  *
  * <p>Created: 2026-04-26</p>
  */
-@Component(NODES_BASE_PATH + "/scheduler")
+@Component("/cluster/scheduler")
 public class SchedulerActivity {
 
     private final NodeManager nodeManager;
@@ -75,7 +73,7 @@ public class SchedulerActivity {
      * @return a map of attributes for rendering the view
      */
     @Request("/")
-    @Dispatch("nodes/scheduler")
+    @Dispatch("cluster/scheduler")
     @Action("page")
     public Map<String, Object> scheduler(String nodeId) {
         String clusterMode = nodeManager.getClusterConfig().getMode();
@@ -100,8 +98,8 @@ public class SchedulerActivity {
      * Lists all registered nodes with their current status.
      * @return a list of node information maps
      */
-    @Request("/list")
-    public RestResponse listNodes() {
+    @Request("/nodes")
+    public RestResponse getNodes() {
         try {
             List<Map<String, Object>> nodes = nodeConsoleHelper.getNodes(true);
             return new SuccessResponse(nodes).ok();
@@ -170,13 +168,11 @@ public class SchedulerActivity {
         if (StringUtils.isEmpty(command)) {
             return new FailureResponse().setError("required", "Command is required");
         }
-        if (StringUtils.isEmpty(targetNodeId)) {
-            targetNodeId = nodeManager.getNodeId();
-        }
 
         try {
             SchedulerRequestParameters parameters = new SchedulerRequestParameters();
             parameters.setCommand(command);
+            parameters.setTargetNodeId(targetNodeId);
             parameters.setServiceName(serviceName);
             parameters.setScheduleId(scheduleId);
             parameters.setJobName(jobName);
@@ -185,7 +181,7 @@ public class SchedulerActivity {
                 parameters.setLoadedLines(Integer.parseInt(loadedLines));
             }
 
-            schedulerManager.dispatch(targetNodeId, parameters);
+            schedulerManager.process(parameters);
             return new SuccessResponse("Scheduler command initiated successfully").ok();
         } catch (Exception e) {
             return new FailureResponse().setError("error", e.getMessage());

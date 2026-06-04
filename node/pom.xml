@@ -39,8 +39,23 @@
         </dependency>
         <dependency>
             <groupId>com.aspectran</groupId>
+            <artifactId>aspectran-logging</artifactId>
+            <version>${aspectran.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.aspectran</groupId>
             <artifactId>aspectran-core</artifactId>
             <version>${aspectran.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.aspectran</groupId>
+            <artifactId>aspectran-daemon</artifactId>
+            <version>${aspectran.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.22.0</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>

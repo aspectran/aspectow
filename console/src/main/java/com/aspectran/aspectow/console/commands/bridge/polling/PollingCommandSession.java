@@ -15,7 +15,7 @@
  */
 package com.aspectran.aspectow.console.commands.bridge.polling;
 
-import com.aspectran.aspectow.console.commands.bridge.CommandSession;
+import com.aspectran.aspectow.node.management.commands.bridge.CommandSession;
 import com.aspectran.utils.concurrent.AutoLock;
 import com.aspectran.utils.timer.CyclicTimeout;
 

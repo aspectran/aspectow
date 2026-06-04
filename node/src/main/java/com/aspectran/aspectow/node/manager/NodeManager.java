@@ -16,6 +16,8 @@
 package com.aspectran.aspectow.node.manager;
 
 import com.aspectran.aspectow.node.config.ClusterConfig;
+import com.aspectran.aspectow.node.config.GroupInfo;
+import com.aspectran.aspectow.node.config.GroupInfoHolder;
 import com.aspectran.aspectow.node.config.NodeInfo;
 import com.aspectran.aspectow.node.config.NodeInfoHolder;
 import com.aspectran.aspectow.node.config.SecretConfig;
@@ -27,7 +29,9 @@ import com.aspectran.utils.security.TimeLimitedPBTokenIssuer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * The core orchestrator for the Aspectow Node Manager.
@@ -41,9 +45,13 @@ public class NodeManager {
 
     private final String nodeId;
 
+    private final String groupId;
+
     private final ClusterConfig clusterConfig;
 
     private final NodeInfoHolder nodeInfoHolder;
+
+    private final GroupInfoHolder groupInfoHolder;
 
     private RedisConnectionPool redisConnectionPool;
 
@@ -60,13 +68,18 @@ public class NodeManager {
     /**
      * Instantiates a new NodeManager.
      * @param nodeId the unique identifier of the current node
+     * @param groupId the unique identifier of the group this node belongs to
      * @param clusterConfig the cluster-wide configuration
      * @param nodeInfoHolder the holder for node-specific information
+     * @param groupInfoHolder the holder for group-specific information
      */
-    public NodeManager(String nodeId, ClusterConfig clusterConfig, NodeInfoHolder nodeInfoHolder) {
+    public NodeManager(String nodeId, String groupId, ClusterConfig clusterConfig,
+                       NodeInfoHolder nodeInfoHolder, GroupInfoHolder groupInfoHolder) {
         this.nodeId = nodeId;
+        this.groupId = groupId;
         this.clusterConfig = clusterConfig;
         this.nodeInfoHolder = nodeInfoHolder;
+        this.groupInfoHolder = groupInfoHolder;
     }
 
     /**
@@ -75,6 +88,14 @@ public class NodeManager {
      */
     public String getNodeId() {
         return nodeId;
+    }
+
+    /**
+     * Returns the unique identifier of the group this node belongs to.
+     * @return the group ID
+     */
+    public String getGroupId() {
+        return groupId;
     }
 
     /**
@@ -91,6 +112,38 @@ public class NodeManager {
      */
     public NodeInfoHolder getNodeInfoHolder() {
         return nodeInfoHolder;
+    }
+
+    /**
+     * Returns the holder for group information.
+     * @return the group info holder
+     */
+    public GroupInfoHolder getGroupInfoHolder() {
+        return groupInfoHolder;
+    }
+
+    /**
+     * Returns a list of information for all registered groups in the cluster.
+     * In gateway mode, this retrieves information from the Redis registry.
+     * @return the list of all registered groups
+     */
+    public List<GroupInfo> getGroupInfoList() {
+        if (clusterConfig.isGatewayMode() && nodeRegistry != null) {
+            List<GroupInfo> groups = new ArrayList<>();
+            Map<String, String> allGroups = nodeRegistry.getAllGroups();
+            for (String aponData : allGroups.values()) {
+                try {
+                    GroupInfo groupInfo = new GroupInfo();
+                    groupInfo.readFrom(aponData);
+                    groups.add(groupInfo);
+                } catch (Exception e) {
+                    // ignore
+                }
+            }
+            return groups;
+        } else {
+            return List.copyOf(groupInfoHolder.getGroupInfos());
+        }
     }
 
     /**
@@ -113,7 +166,7 @@ public class NodeManager {
      * Sets the Redis connection pool.
      * @param redisConnectionPool the Redis connection pool
      */
-    public void setRedisConnectionPool(RedisConnectionPool redisConnectionPool) {
+    protected void setRedisConnectionPool(RedisConnectionPool redisConnectionPool) {
         this.redisConnectionPool = redisConnectionPool;
     }
 
@@ -129,7 +182,7 @@ public class NodeManager {
      * Sets the node registry.
      * @param nodeRegistry the node registry
      */
-    public void setNodeRegistry(NodeRegistry nodeRegistry) {
+    protected void setNodeRegistry(NodeRegistry nodeRegistry) {
         this.nodeRegistry = nodeRegistry;
     }
 
@@ -145,7 +198,7 @@ public class NodeManager {
      * Sets the node reporter.
      * @param nodeReporter the node reporter
      */
-    public void setNodeReporter(NodeReporter nodeReporter) {
+    protected void setNodeReporter(NodeReporter nodeReporter) {
         this.nodeReporter = nodeReporter;
     }
 
@@ -161,7 +214,7 @@ public class NodeManager {
      * Sets the Redis message publisher.
      * @param nodeMessagePublisher the Redis message publisher
      */
-    public void setNodeMessagePublisher(NodeMessagePublisher nodeMessagePublisher) {
+    protected void setNodeMessagePublisher(NodeMessagePublisher nodeMessagePublisher) {
         this.nodeMessagePublisher = nodeMessagePublisher;
     }
 
@@ -177,7 +230,7 @@ public class NodeManager {
      * Sets the Redis message subscriber.
      * @param nodeMessageSubscriber the Redis message subscriber
      */
-    public void setNodeMessageSubscriber(NodeMessageSubscriber nodeMessageSubscriber) {
+    protected void setNodeMessageSubscriber(NodeMessageSubscriber nodeMessageSubscriber) {
         this.nodeMessageSubscriber = nodeMessageSubscriber;
     }
 
@@ -193,7 +246,7 @@ public class NodeManager {
      * Sets the subscriber for cluster-wide events.
      * @param clusterEventSubscriber the cluster event subscriber
      */
-    public void setClusterEventSubscriber(ClusterEventSubscriber clusterEventSubscriber) {
+    protected void setClusterEventSubscriber(ClusterEventSubscriber clusterEventSubscriber) {
         this.clusterEventSubscriber = clusterEventSubscriber;
         if (clusterEventSubscriber != null) {
             clusterEventSubscriber.addListener(new ClusterEventListener() {
@@ -221,15 +274,11 @@ public class NodeManager {
                                 logger.debug("Updated dynamic state for joined node: {}", info.getId());
                             }
                         } else {
+                            // 3. Full update for dynamic join
+                            nodeInfoHolder.putNodeInfo(info);
                             if (logger.isDebugEnabled()) {
-                                logger.debug("Ignored join request from undefined node: {}", info.getId());
+                                logger.debug("Added new node info for joined node: {}", info.getId());
                             }
-                        }
-                    } else {
-                        // 3. Full update for Autoscaling Mode
-                        nodeInfoHolder.putNodeInfo(info);
-                        if (logger.isDebugEnabled()) {
-                            logger.debug("Updated node info for joined node: {}", info.getId());
                         }
                     }
                 }
@@ -251,11 +300,6 @@ public class NodeManager {
                                 logger.debug("Set node status to 'offline' for left node: {}", leftNodeId);
                             }
                         }
-                    } else {
-                        nodeInfoHolder.removeNode(leftNodeId);
-                        if (logger.isDebugEnabled()) {
-                            logger.debug("Removed node info for left node: {}", leftNodeId);
-                        }
                     }
                 }
             });
@@ -273,6 +317,7 @@ public class NodeManager {
 
         List<NodeInfo> latestNodes = nodeRegistry.getNodes();
         if (clusterConfig.isGatewayMode()) {
+            // 1. Update/Add from registry
             for (NodeInfo info : latestNodes) {
                 if (nodeId.equals(info.getId())) {
                     continue;
@@ -282,16 +327,10 @@ public class NodeManager {
                     // Partial update for Gateway Mode: keep static config, update dynamic state
                     NodeInfo newInfo = existingInfo.copyWithUpdatedState(info);
                     nodeInfoHolder.putNodeInfo(newInfo);
+                } else {
+                    // Full update for dynamic join
+                    nodeInfoHolder.putNodeInfo(info);
                 }
-            }
-        } else if (clusterConfig.isAutoscalingMode()) {
-            // In Autoscaling mode, we need to handle additions and removals
-            // 1. Update/Add from registry
-            for (NodeInfo info : latestNodes) {
-                if (nodeId.equals(info.getId())) {
-                    continue;
-                }
-                nodeInfoHolder.putNodeInfo(info);
             }
             // 2. Remove nodes that are no longer in registry
             List<NodeInfo> currentNodes = nodeInfoHolder.getNodeInfoList();
@@ -323,6 +362,13 @@ public class NodeManager {
                 nodeReporter.stop();
             } catch (Exception e) {
                 logger.warn("Error stopping NodeReporter during shutdown", e);
+            }
+        }
+        if (nodeRegistry != null) {
+            try {
+                nodeRegistry.stop();
+            } catch (Exception e) {
+                logger.warn("Error stopping NodeRegistry during shutdown", e);
             }
         }
         if (nodeMessageSubscriber != null) {
