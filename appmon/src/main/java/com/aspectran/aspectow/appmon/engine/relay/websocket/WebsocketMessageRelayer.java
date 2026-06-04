@@ -206,6 +206,12 @@ public class WebsocketMessageRelayer extends SimplifiedEndpoint implements Messa
     }
 
     @Override
+    public RelaySession findRelaySession(String sessionId) {
+        Session session = findSession(sessionId);
+        return (session != null ? new WebsocketRelaySession(session) : null);
+    }
+
+    @Override
     public void relay(String message) {
         broadcast(message);
     }
@@ -215,12 +221,6 @@ public class WebsocketMessageRelayer extends SimplifiedEndpoint implements Messa
         if (relaySession instanceof WebsocketRelaySession wrappedSession) {
             sendText(wrappedSession.getSession(), message);
         }
-    }
-
-    @Override
-    public RelaySession findRelaySession(String sessionId) {
-        Session session = findSession(sessionId);
-        return (session != null ? new WebsocketRelaySession(session) : null);
     }
 
 }

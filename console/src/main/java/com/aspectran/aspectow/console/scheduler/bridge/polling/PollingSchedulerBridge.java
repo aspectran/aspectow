@@ -15,18 +15,14 @@
  */
 package com.aspectran.aspectow.console.scheduler.bridge.polling;
 
+import com.aspectran.aspectow.node.management.scheduler.SchedulerManager;
 import com.aspectran.aspectow.node.management.scheduler.bridge.SchedulerBridge;
 import com.aspectran.aspectow.node.management.scheduler.bridge.SchedulerBroker;
 import com.aspectran.aspectow.node.management.scheduler.bridge.SchedulerSession;
-import com.aspectran.aspectow.node.management.scheduler.SchedulerManager;
 import com.aspectran.core.component.AbstractComponent;
 import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Component;
 import org.jspecify.annotations.NonNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.Collection;
 
 /**
  * PollingSchedulerBridge manages client sessions for HTTP long-polling
@@ -34,8 +30,6 @@ import java.util.Collection;
  */
 @Component
 public class PollingSchedulerBridge extends AbstractComponent implements SchedulerBridge {
-
-    private static final Logger logger = LoggerFactory.getLogger(PollingSchedulerBridge.class);
 
     private final PollingSessionManager sessionManager;
 
@@ -53,20 +47,11 @@ public class PollingSchedulerBridge extends AbstractComponent implements Schedul
     @Override
     protected void doInitialize() throws Exception {
         sessionManager.initialize();
-        if (schedulerManager.getBroker() != null) {
-            schedulerManager.getBroker().addBridge(this);
-            logger.info("PollingSchedulerBridge registered with SchedulerBroker");
-        } else {
-            logger.warn("Failed to register PollingSchedulerBridge: SchedulerBroker is null");
-        }
     }
 
     @Override
     protected void doDestroy() throws Exception {
         sessionManager.destroy();
-        if (schedulerManager.getBroker() != null) {
-            schedulerManager.getBroker().removeBridge(this);
-        }
         bufferedMessages.clear();
     }
 
@@ -79,8 +64,16 @@ public class PollingSchedulerBridge extends AbstractComponent implements Schedul
     }
 
     @Override
-    public void getSessions(@NonNull Collection<SchedulerSession> sessions) {
-        sessions.addAll(sessionManager.getSessions().values());
+    public SchedulerSession findSchedulerSession(String sessionId) {
+        return sessionManager.getSession(sessionId);
+    }
+
+    public void registerSession(String sessionId) {
+        schedulerManager.registerSession(sessionId, this);
+    }
+
+    public void unregisterSession(String sessionId) {
+        schedulerManager.unregisterSession(sessionId);
     }
 
     @Override

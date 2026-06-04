@@ -65,14 +65,6 @@ public class WebsocketCommandBridge extends SimplifiedEndpoint implements Comman
         this.nodeManager = nodeManager;
     }
 
-    @Initialize
-    public void register() {
-        if (remoteCommandManager.getBroker() != null) {
-            remoteCommandManager.getBroker().addBridge(this);
-            logger.info("WebsocketCommandBridge registered with CommandBroker");
-        }
-    }
-
     @Override
     protected boolean checkAuthorized(@NonNull Session session) {
         String token = session.getPathParameters().get("token");
@@ -119,6 +111,7 @@ public class WebsocketCommandBridge extends SimplifiedEndpoint implements Comman
 
     @Override
     protected void onSessionRemoved(@NonNull Session session) {
+        remoteCommandManager.unregisterSession(session.getId());
         WebsocketCommandSession commandSession = new WebsocketCommandSession(session);
         remoteCommandManager.getBroker().release(commandSession);
         logger.debug("Remote command WebSocket session removed: {} (Total: {})", session.getId(), countSessions());
@@ -134,6 +127,7 @@ public class WebsocketCommandBridge extends SimplifiedEndpoint implements Comman
         }
 
         if (addSession(session)) {
+            remoteCommandManager.registerSession(session.getId(), this);
             remoteCommandManager.getBroker().subscribe(commandSession);
             RemoteResponseParameters response = new RemoteResponseParameters()
                     .setHeader("subscribed")
@@ -165,6 +159,12 @@ public class WebsocketCommandBridge extends SimplifiedEndpoint implements Comman
                 sendText(session, "[ERROR] " + e.getMessage());
             }
         }
+    }
+
+    @Override
+    public CommandSession findCommandSession(String sessionId) {
+        Session session = findSession(sessionId);
+        return (session != null ? new WebsocketCommandSession(session) : null);
     }
 
     @Override

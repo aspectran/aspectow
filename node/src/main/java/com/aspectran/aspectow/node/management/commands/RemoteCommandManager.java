@@ -16,6 +16,7 @@
 package com.aspectran.aspectow.node.management.commands;
 
 import com.aspectran.aspectow.node.config.NodeInfo;
+import com.aspectran.aspectow.node.management.commands.bridge.CommandBridge;
 import com.aspectran.aspectow.node.management.commands.bridge.CommandBroker;
 import com.aspectran.aspectow.node.management.commands.bridge.CommandSession;
 import com.aspectran.aspectow.node.management.commands.remote.RemoteCommandMessageListener;
@@ -29,6 +30,9 @@ import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 /**
  * RemoteCommandManager orchestrates remote daemon command execution across the cluster.
  * It manages local execution, remote dispatching via Redis, and broadcasting
@@ -37,6 +41,8 @@ import org.slf4j.LoggerFactory;
 public class RemoteCommandManager implements InitializableBean {
 
     private static final Logger logger = LoggerFactory.getLogger(RemoteCommandManager.class);
+
+    private final Map<String, CommandBridge> sessionBridgeMap = new ConcurrentHashMap<>();
 
     private final NodeManager nodeManager;
 
@@ -82,6 +88,14 @@ public class RemoteCommandManager implements InitializableBean {
 
     public CommandBroker getBroker() {
         return broker;
+    }
+
+    public void registerSession(String sessionId, CommandBridge commandBridge) {
+        sessionBridgeMap.put(sessionId, commandBridge);
+    }
+
+    public void unregisterSession(String sessionId) {
+        sessionBridgeMap.remove(sessionId);
     }
 
     /**
@@ -147,7 +161,10 @@ public class RemoteCommandManager implements InitializableBean {
                                 .setNodeId(getNodeId())
                                 .setRequestId(request.getRequestId())
                                 .setResult(result);
-                        broadcast(response);
+                        String sessionId = request.getSessionId();
+                        if (sessionId != null) {
+                            bridge(sessionId, response);
+                        }
                     }
                 }
             } catch (Exception e) {
@@ -175,16 +192,9 @@ public class RemoteCommandManager implements InitializableBean {
                             .setRequestId(request.getRequestId())
                             .setResult(result);
                     String relayMessage = response.toString();
-                    if (requesterNodeId != null) {
-                        if (sessionId != null) {
-                            messagePublisher.publishRelay(
-                                    CommandBroker.CATEGORY_COMMANDS, requesterNodeId, sessionId, relayMessage);
-                        } else {
-                            messagePublisher.publishRelay(
-                                    CommandBroker.CATEGORY_COMMANDS, requesterNodeId, relayMessage);
-                        }
-                    } else {
-                        messagePublisher.publishRelay(CommandBroker.CATEGORY_COMMANDS, relayMessage);
+                    if (requesterNodeId != null && sessionId != null) {
+                        messagePublisher.publishRelay(
+                                CommandBroker.CATEGORY_COMMANDS, requesterNodeId, sessionId, relayMessage);
                     }
                 }
             } catch (Exception e) {
@@ -202,19 +212,13 @@ public class RemoteCommandManager implements InitializableBean {
         return null;
     }
 
-    /**
-     * Broadcasts a command execution result to all connected clients on this node.
-     * @param response the command result parameters
-     */
-    public void broadcast(RemoteResponseParameters response) {
-        if (broker != null) {
-            broker.bridge(response);
-        }
-    }
-
-    public void broadcast(CommandSession session, RemoteResponseParameters response) {
-        if (broker != null) {
-            broker.bridge(session, response);
+    public void bridge(String sessionId, RemoteResponseParameters response) {
+        CommandBridge bridge = sessionBridgeMap.get(sessionId);
+        if (bridge != null) {
+            CommandSession session = bridge.findCommandSession(sessionId);
+            if (session != null) {
+                bridge.bridge(session, response);
+            }
         }
     }
 

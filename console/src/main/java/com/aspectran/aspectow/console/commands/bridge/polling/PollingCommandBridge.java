@@ -54,20 +54,11 @@ public class PollingCommandBridge extends AbstractComponent implements CommandBr
     @Override
     protected void doInitialize() throws Exception {
         sessionManager.initialize();
-        if (remoteCommandManager.getBroker() != null) {
-            remoteCommandManager.getBroker().addBridge(this);
-            logger.info("PollingCommandBridge registered with CommandBroker");
-        } else {
-            logger.warn("Failed to register PollingCommandBridge: CommandBroker is null");
-        }
     }
 
     @Override
     protected void doDestroy() throws Exception {
         sessionManager.destroy();
-        if (remoteCommandManager.getBroker() != null) {
-            remoteCommandManager.getBroker().removeBridge(this);
-        }
         bufferedMessages.clear();
     }
 
@@ -82,6 +73,19 @@ public class PollingCommandBridge extends AbstractComponent implements CommandBr
     @Override
     public void getSessions(@NonNull Collection<CommandSession> sessions) {
         sessions.addAll(sessionManager.getSessions().values());
+    }
+
+    @Override
+    public CommandSession findCommandSession(String sessionId) {
+        return sessionManager.getSession(sessionId);
+    }
+
+    public void registerSession(String sessionId) {
+        remoteCommandManager.registerSession(sessionId, this);
+    }
+
+    public void unregisterSession(String sessionId) {
+        remoteCommandManager.unregisterSession(sessionId);
     }
 
     @Override

@@ -64,6 +64,10 @@ public class SubscriptionRegistry {
         return !localSubscriptions.isEmpty();
     }
 
+    public Set<String> getAllSessionIds() {
+        return Set.copyOf(localSubscriptions);
+    }
+
     public void clear() {
         localSubscriptions.clear();
         remoteSubscriptions.clear();

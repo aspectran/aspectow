@@ -17,8 +17,6 @@ package com.aspectran.aspectow.node.management.commands.bridge;
 
 import com.aspectran.aspectow.node.management.commands.RemoteResponseParameters;
 
-import java.util.Collection;
-
 /**
  * Interface for bridging command results to clients.
  * This can be implemented using various communication protocols like WebSocket or polling.
@@ -26,10 +24,11 @@ import java.util.Collection;
 public interface CommandBridge {
 
     /**
-     * Collects all active sessions managed by this bridge.
-     * @param sessions the collection to add sessions to
+     * Finds a session with the given session ID.
+     * @param sessionId the session ID to search for
+     * @return the session if found, {@code null} if no session was found
      */
-    void getSessions(Collection<CommandSession> sessions);
+    CommandSession findCommandSession(String sessionId);
 
     /**
      * Bridges a message to all connected sessions.

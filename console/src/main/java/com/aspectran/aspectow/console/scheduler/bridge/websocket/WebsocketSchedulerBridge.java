@@ -60,14 +60,6 @@ public class WebsocketSchedulerBridge extends SimplifiedEndpoint implements Sche
         this.schedulerManager = schedulerManager;
     }
 
-    @Initialize
-    public void register() {
-        if (schedulerManager.getBroker() != null) {
-            schedulerManager.getBroker().addBridge(this);
-            logger.info("WebsocketSchedulerBridge registered with SchedulerBroker");
-        }
-    }
-
     @Override
     protected boolean checkAuthorized(@NonNull Session session) {
         String token = session.getPathParameters().get("token");
@@ -116,6 +108,7 @@ public class WebsocketSchedulerBridge extends SimplifiedEndpoint implements Sche
 
     @Override
     protected void onSessionRemoved(@NonNull Session session) {
+        schedulerManager.unregisterSession(session.getId());
         WebsocketSchedulerSession schedulerSession = new WebsocketSchedulerSession(session);
         schedulerManager.getBroker().release(schedulerSession);
         logger.debug("Scheduler WebSocket session removed: {}", session.getId());
@@ -131,6 +124,7 @@ public class WebsocketSchedulerBridge extends SimplifiedEndpoint implements Sche
         }
 
         if (addSession(session)) {
+            schedulerManager.registerSession(session.getId(), this);
             SchedulerResponseParameters responseParameters = new SchedulerResponseParameters()
                     .setHeader("subscribed")
                     .setNodeId(schedulerManager.getNodeId());
@@ -142,7 +136,12 @@ public class WebsocketSchedulerBridge extends SimplifiedEndpoint implements Sche
 
     private void established(@NonNull Session session) {
         WebsocketSchedulerSession schedulerSession = new WebsocketSchedulerSession(session);
-        schedulerManager.getBroker().subscribe(schedulerSession);
+        if (schedulerManager.getBroker().subscribe(schedulerSession)) {
+            // Send initial log lines to the new session
+            for (String message : schedulerManager.collectLastMessages()) {
+                sendText(session, message);
+            }
+        }
         logger.debug("Scheduler management session established: session {}", session.getId());
     }
 
@@ -159,6 +158,12 @@ public class WebsocketSchedulerBridge extends SimplifiedEndpoint implements Sche
             logger.error("Failed to execute scheduler request from session {}", session.getId(), e);
             sendText(session, "[ERROR] " + e.getMessage());
         }
+    }
+
+    @Override
+    public SchedulerSession findSchedulerSession(String sessionId) {
+        Session session = findSession(sessionId);
+        return (session != null ? new WebsocketSchedulerSession(session) : null);
     }
 
     @Override
@@ -181,12 +186,6 @@ public class WebsocketSchedulerBridge extends SimplifiedEndpoint implements Sche
                     .setResult(data);
             sendText(websocketSchedulerSession.getSession(), responseParameters.toString());
         }
-    }
-
-    public void getSessions(Collection<SchedulerSession> sessions) {
-        forEachSession(session -> {
-            sessions.add(new WebsocketSchedulerSession(session));
-        });
     }
 
 }

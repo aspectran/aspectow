@@ -24,6 +24,13 @@ package com.aspectran.aspectow.appmon.engine.relay;
 public interface MessageRelayer {
 
     /**
+     * Returns the session with the given ID.
+     * @param sessionId the session ID
+     * @return the relay session, or {@code null} if not found
+     */
+    RelaySession findRelaySession(String sessionId);
+
+    /**
      * Relays a message to all connected sessions.
      * @param message the message to relay
      */
@@ -35,12 +42,5 @@ public interface MessageRelayer {
      * @param message the message to relay
      */
     void relay(RelaySession relaySession, String message);
-
-    /**
-     * Returns the session with the given ID.
-     * @param sessionId the session ID
-     * @return the relay session, or {@code null} if not found
-     */
-    RelaySession findRelaySession(String sessionId);
 
 }

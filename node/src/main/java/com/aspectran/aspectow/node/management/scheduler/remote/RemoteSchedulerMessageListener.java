@@ -102,9 +102,7 @@ public class RemoteSchedulerMessageListener implements NodeMessageListener {
             content = message;
         }
 
-        schedulerManager.getBroker().getSessions().stream()
-                .filter(session -> session.getId().equals(sessionId))
-                .forEach(session -> schedulerManager.getBroker().bridge(session, sourceNodeId, content));
+        schedulerManager.bridge(sessionId, sourceNodeId, content);
     }
 
 }

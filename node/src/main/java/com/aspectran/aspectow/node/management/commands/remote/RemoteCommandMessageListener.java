@@ -79,24 +79,11 @@ public class RemoteCommandMessageListener implements NodeMessageListener {
     }
 
     @Override
-    public void onRelayMessage(String nodeId, @NonNull String message) {
-        try {
-            RemoteResponseParameters resultParameters = new RemoteResponseParameters();
-            resultParameters.readFrom(message);
-            remoteCommandManager.broadcast(resultParameters);
-        } catch (Exception e) {
-            logger.error("Failed to parse command result parameters: {}", message, e);
-        }
-    }
-
-    @Override
     public void onRelayMessage(String nodeId, String sessionId, @NonNull String message) {
         try {
-            RemoteResponseParameters resultParameters = new RemoteResponseParameters();
-            resultParameters.readFrom(message);
-            remoteCommandManager.getBroker().getSessions().stream()
-                    .filter(session -> session.getId().equals(sessionId))
-                    .forEach(session -> remoteCommandManager.getBroker().bridge(session, resultParameters));
+            RemoteResponseParameters response = new RemoteResponseParameters();
+            response.readFrom(message);
+            remoteCommandManager.bridge(sessionId, response);
         } catch (Exception e) {
             logger.error("Failed to parse command result parameters: {}", message, e);
         }

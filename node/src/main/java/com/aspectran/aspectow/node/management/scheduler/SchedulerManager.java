@@ -15,7 +15,9 @@
  */
 package com.aspectran.aspectow.node.management.scheduler;
 
+import com.aspectran.aspectow.node.management.scheduler.bridge.SchedulerBridge;
 import com.aspectran.aspectow.node.management.scheduler.bridge.SchedulerBroker;
+import com.aspectran.aspectow.node.management.scheduler.bridge.SchedulerSession;
 import com.aspectran.aspectow.node.management.scheduler.log.SchedulerLogExporter;
 import com.aspectran.aspectow.node.management.scheduler.remote.RemoteSchedulerMessageListener;
 import com.aspectran.aspectow.node.manager.NodeManager;
@@ -54,11 +56,16 @@ public class SchedulerManager implements ApplicationAdapterAware, InitializableB
     private static final Logger logger = LoggerFactory.getLogger(SchedulerManager.class);
 
     public static final String OP_LIST = "list";
+
     private static final String OP_ENABLE = "enable";
+
     private static final String OP_DISABLE = "disable";
+
     private static final String OP_PREVIOUS = "previousLines";
 
     private final Map<String, SchedulerLogExporter> logExporters = new ConcurrentHashMap<>();
+
+    private final Map<String, SchedulerBridge> sessionBridgeMap = new ConcurrentHashMap<>();
 
     private final NodeManager nodeManager;
 
@@ -111,6 +118,14 @@ public class SchedulerManager implements ApplicationAdapterAware, InitializableB
 
     public SchedulerBroker getBroker() {
         return broker;
+    }
+
+    public void registerSession(String sessionId, SchedulerBridge schedulerBridge) {
+        sessionBridgeMap.put(sessionId, schedulerBridge);
+    }
+
+    public void unregisterSession(String sessionId) {
+        sessionBridgeMap.remove(sessionId);
     }
 
     public synchronized void startExporters() {
@@ -198,7 +213,12 @@ public class SchedulerManager implements ApplicationAdapterAware, InitializableB
             logger.debug("Executing local scheduler request: {}", request.getCommand());
             String response = execute(request);
             if (response != null) {
-                broadcast(response);
+                String sessionId = request.getSessionId();
+                if (sessionId != null) {
+                    bridge(sessionId, response);
+                } else {
+                    broadcast(response);
+                }
             }
         } else {
             dispatch(targetNodeId, request);
@@ -325,6 +345,20 @@ public class SchedulerManager implements ApplicationAdapterAware, InitializableB
             logger.trace("Broadcasting scheduler result (source: {}) to local clients: {}", sourceNodeId, response);
         }
         broker.bridge(sourceNodeId, response);
+    }
+
+    public void bridge(String sessionId, String response) {
+        bridge(sessionId, getNodeId(), response);
+    }
+
+    public void bridge(String sessionId, String sourceNodeId, String response) {
+        SchedulerBridge bridge = sessionBridgeMap.get(sessionId);
+        if (bridge != null) {
+            SchedulerSession session = bridge.findSchedulerSession(sessionId);
+            if (session != null) {
+                bridge.bridge(session, sourceNodeId, response);
+            }
+        }
     }
 
 }

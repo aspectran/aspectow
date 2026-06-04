@@ -238,6 +238,11 @@ public class PollingMessageRelayer implements MessageRelayer {
     }
 
     @Override
+    public RelaySession findRelaySession(String sessionId) {
+        return pollingSessionManager.getSession(sessionId);
+    }
+
+    @Override
     public void relay(String message) {
         pollingSessionManager.push(message);
     }
@@ -245,11 +250,6 @@ public class PollingMessageRelayer implements MessageRelayer {
     @Override
     public void relay(RelaySession relaySession, String message) {
         pollingSessionManager.push(relaySession, message);
-    }
-
-    @Override
-    public RelaySession findRelaySession(String sessionId) {
-        return pollingSessionManager.getSession(sessionId);
     }
 
 }

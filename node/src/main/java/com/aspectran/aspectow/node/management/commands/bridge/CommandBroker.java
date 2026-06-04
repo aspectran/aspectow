@@ -16,15 +16,10 @@
 package com.aspectran.aspectow.node.management.commands.bridge;
 
 import com.aspectran.aspectow.node.management.commands.RemoteCommandManager;
-import com.aspectran.aspectow.node.management.commands.RemoteResponseParameters;
 import com.aspectran.aspectow.node.manager.NodeMessagePublisher;
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.HashSet;
-import java.util.Set;
-import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
  * CommandBroker handles the distribution of command results
@@ -48,29 +43,11 @@ public class CommandBroker {
 
     private final NodeMessagePublisher messagePublisher;
 
-    private final Set<CommandBridge> bridges = new CopyOnWriteArraySet<>();
-
     private final SubscriptionRegistry subscriptionRegistry = new SubscriptionRegistry();
 
     public CommandBroker(@NonNull RemoteCommandManager commandManager) {
         this.commandManager = commandManager;
         this.messagePublisher = commandManager.getMessagePublisher();
-    }
-
-    public void addBridge(CommandBridge bridge) {
-        bridges.add(bridge);
-    }
-
-    public void removeBridge(CommandBridge bridge) {
-        bridges.remove(bridge);
-    }
-
-    public Set<CommandSession> getSessions() {
-        Set<CommandSession> sessions = new HashSet<>();
-        for (CommandBridge bridge : bridges) {
-            bridge.getSessions(sessions);
-        }
-        return sessions;
     }
 
     public synchronized void subscribe(@NonNull CommandSession session) {
@@ -107,37 +84,6 @@ public class CommandBroker {
                 messagePublisher.publishControl(CATEGORY_COMMANDS, targetNodeId, message);
             } catch (Exception e) {
                 logger.error("Failed to publish control message to Redis", e);
-            }
-        }
-    }
-
-    /**
-     * Bridges a command result to all connected clients.
-     * @param resultParameters the command result parameters
-     */
-    public void bridge(RemoteResponseParameters resultParameters) {
-        for (CommandBridge bridge : bridges) {
-            try {
-                bridge.bridge(resultParameters);
-            } catch (Exception e) {
-                logger.warn("Failed to bridge command result via {}: {}",
-                        bridge.getClass().getSimpleName(), e.getMessage());
-            }
-        }
-    }
-
-    /**
-     * Bridges a command result to a specific session.
-     * @param session the target session
-     * @param resultParameters the command result parameters
-     */
-    public void bridge(@NonNull CommandSession session, RemoteResponseParameters resultParameters) {
-        for (CommandBridge bridge : bridges) {
-            try {
-                bridge.bridge(session, resultParameters);
-            } catch (Exception e) {
-                logger.warn("Failed to bridge command result via {}: {}",
-                        bridge.getClass().getSimpleName(), e.getMessage());
             }
         }
     }

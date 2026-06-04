@@ -21,9 +21,7 @@ import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
  * SchedulerBroker handles the distribution of scheduler management results
@@ -47,8 +45,6 @@ public class SchedulerBroker {
 
     private final NodeMessagePublisher messagePublisher;
 
-    private final Set<SchedulerBridge> bridges = new CopyOnWriteArraySet<>();
-
     private final SubscriptionRegistry subscriptionRegistry = new SubscriptionRegistry();
 
     public SchedulerBroker(@NonNull SchedulerManager schedulerManager) {
@@ -56,23 +52,7 @@ public class SchedulerBroker {
         this.messagePublisher = schedulerManager.getMessagePublisher();
     }
 
-    public void addBridge(SchedulerBridge bridge) {
-        bridges.add(bridge);
-    }
-
-    public void removeBridge(SchedulerBridge bridge) {
-        bridges.remove(bridge);
-    }
-
-    public Set<SchedulerSession> getSessions() {
-        Set<SchedulerSession> sessions = new HashSet<>();
-        for (SchedulerBridge bridge : bridges) {
-            bridge.getSessions(sessions);
-        }
-        return sessions;
-    }
-
-    public synchronized void subscribe(@NonNull SchedulerSession session) {
+    public synchronized boolean subscribe(@NonNull SchedulerSession session) {
         if (session.isValid()) {
             boolean alreadyInUse = subscriptionRegistry.isInUse();
             subscriptionRegistry.addLocalSubscription(session.getId());
@@ -81,14 +61,12 @@ public class SchedulerBroker {
                 if (!alreadyInUse) {
                     schedulerManager.startExporters();
                 }
-                // Send initial log lines to the new session
-                for (String message : schedulerManager.collectLastMessages()) {
-                    bridge(session, message);
-                }
+                return true;
             } else if (schedulerManager.isGatewayMode()) {
                 publishControl(targetNodeId, CONTROL_SUBSCRIBE + schedulerManager.getNodeId() + DELIMITER + session.getId());
             }
         }
+        return false;
     }
 
     public synchronized void subscribeRemotely(String nodeId, String sessionId) {
@@ -151,52 +129,41 @@ public class SchedulerBroker {
 
     /**
      * Bridges a scheduler result to all connected clients.
-     * @param data the result payload to send
+     * @param message the result payload to send
      */
-    public void bridge(String data) {
-        bridge(schedulerManager.getNodeId(), data);
+    public void bridge(String message) {
+        bridge(schedulerManager.getNodeId(), message);
     }
 
     /**
      * Bridges a scheduler result to all connected clients.
      * @param sourceNodeId the ID of the node where the message originated
-     * @param data the result payload to send
+     * @param message the result payload to send
      */
-    public void bridge(String sourceNodeId, String data) {
-        for (SchedulerBridge bridge : bridges) {
-            try {
-                bridge.bridge(sourceNodeId, data);
-            } catch (Exception e) {
-                logger.warn("Failed to bridge scheduler result via {}: {}",
-                        bridge.getClass().getSimpleName(), e.getMessage());
-            }
+    public void bridge(String sourceNodeId, String message) {
+        Set<String> sessionIds = subscriptionRegistry.getAllSessionIds();
+        for (String sid : sessionIds) {
+            schedulerManager.bridge(sid, sourceNodeId, message);
         }
     }
 
-    /**
-     * Bridges a scheduler result to a specific session.
-     * @param session the target session
-     * @param data the result payload to send
-     */
-    public void bridge(@NonNull SchedulerSession session, String data) {
-        bridge(session, schedulerManager.getNodeId(), data);
-    }
-
-    /**
-     * Bridges a scheduler result to a specific session.
-     * @param session the target session
-     * @param sourceNodeId the ID of the node where the message originated
-     * @param data the result payload to send
-     */
-    public void bridge(@NonNull SchedulerSession session, String sourceNodeId, String data) {
-        for (SchedulerBridge bridge : bridges) {
-            try {
-                bridge.bridge(session, sourceNodeId, data);
-            } catch (Exception e) {
-                logger.warn("Failed to bridge scheduler result via {}: {}",
-                        bridge.getClass().getSimpleName(), e.getMessage());
-            }
-        }
-    }
+//    /**
+//     * Bridges a scheduler result to a specific session.
+//     * @param session the target session
+//     * @param data the result payload to send
+//     */
+//    public void bridge(@NonNull SchedulerSession session, String data) {
+//        bridge(session, schedulerManager.getNodeId(), data);
+//    }
+//
+//    /**
+//     * Bridges a scheduler result to a specific session.
+//     * @param session the target session
+//     * @param sourceNodeId the ID of the node where the message originated
+//     * @param data the result payload to send
+//     */
+//    public void bridge(@NonNull SchedulerSession session, String sourceNodeId, String data) {
+//        schedulerManager.bridge(session.getId(), sourceNodeId, data);
+//    }
 
 }
