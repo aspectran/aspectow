@@ -5,8 +5,16 @@ context: {
         /config/appmon/appmon-rules.xml
     ]
     scan: [
-        com.aspectran.aspectow.appmon
-        com.aspectran.aspectow.console
+        com.aspectran.aspectow.appmon.engine
+        com.aspectran.aspectow.console.auth
+        com.aspectran.aspectow.console.cluster
+        com.aspectran.aspectow.console.commands
+        com.aspectran.aspectow.console.common
+        com.aspectran.aspectow.console.framework
+        com.aspectran.aspectow.console.home
+        com.aspectran.aspectow.console.scheduler
+        com.aspectran.aspectow.console.user
+        com.aspectran.aspectow.console.vault
     ]
     profiles: {
         base: [

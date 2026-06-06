@@ -126,13 +126,17 @@ public class LocalSchedulerService {
         }
 
         JsonBuilder jsonBuilder = new JsonBuilder().object()
+                .put("serviceName", serviceName)
+                .put("type", type)
+                .put("id", id)
+                .put("disabled", disabled)
                 .put("success", changed)
                 .put("message", resultMessage)
                 .endObject();
 
         return new SchedulerResponseParameters()
                 .setHeader("stateUpdated")
-                .setOwner(serviceName)
+                .setOwner(serviceName + ":" + type + ":" + id)
                 .setData(jsonBuilder.toJsonString());
     }
 

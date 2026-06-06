@@ -283,7 +283,7 @@
                             console.error("Received error from scheduler bridge:", error);
                             return;
                         }
-                        handleRelayMessage(response);
+                        handleMessage(response);
                     },
                     onEstablished: () => {
                         $('#connection-indicator').text("CONNECTED").removeClass("bg-secondary bg-danger bg-warning").addClass("bg-success");
@@ -305,22 +305,89 @@
                 consoleClient.start('scheduler');
             }
 
-            function handleRelayMessage(response) {
+            function handleMessage(response) {
                 if (response.header === 'services') {
                     renderSchedulerList(response.data);
                 } else if (response.header === 'log') {
                     appendLogLine(response.owner, response.data);
                 } else if (response.header === 'previousLogs') {
-                    console.log(response.owner, response.data);
                     prependLogLines(response.owner, response.data);
                 } else if (response.header === 'stateUpdated' && response.data) {
-                    if (response.data.success) {
-                        console.log("State updated successfully:", response.data.message);
-                        // Success message toast could be added here
+                    const stateData = response.data;
+                    const serviceId = stateData.serviceName.replace(/[^a-zA-Z0-9]/g, '_');
+                    const safeId = stateData.id.replace(/[^a-zA-Z0-9]/g, '_');
+                    const isEnabled = !stateData.disabled;
+                    if (stateData.success) {
+                        if (stateData.type === 'schedule') {
+                            const $badge = $(`#badge-${serviceId}-${safeId}`);
+                            const $switch = $(`#switch-${serviceId}-${safeId}`);
+                            const $jobsContainer = $(`#jobs-${serviceId}-${safeId}`);
+                            if (isEnabled) {
+                                $badge.text('ACTIVE').removeClass('text-bg-danger').addClass('text-bg-success');
+                                $switch.prop('checked', true);
+                                // Show jobs as active if they are individually enabled
+                                $jobsContainer.find('.list-group-item').each(function() {
+                                    const $jobSwitch = $(this).find('.form-check-input');
+                                    if ($jobSwitch.is(':checked')) {
+                                        $(this).find('.bi-play-circle').removeClass('text-muted').addClass('text-success');
+                                        $(this).find('span').first().removeClass('text-muted');
+                                    }
+                                });
+                            } else {
+                                $badge.text('DISABLED').removeClass('text-bg-success').addClass('text-bg-danger');
+                                $switch.prop('checked', false);
+                                // Mute all jobs because the schedule is off
+                                $jobsContainer.find('.bi-play-circle').removeClass('text-success').addClass('text-muted');
+                                $jobsContainer.find('.list-group-item span').first().addClass('text-muted');
+                            }
+                        } else if (stateData.type === 'job') {
+                            const $switch = $(`#switch-${serviceId}-${safeId}`);
+                            const $icon = $(`#icon-${serviceId}-${safeId}`);
+                            const $text = $(`#text-${serviceId}-${safeId}`);
+                            
+                            const $collapse = $switch.closest('.collapse');
+                            const prefix = `jobs-${serviceId}-`;
+                            const safeScheduleId = $collapse.attr('id').substring(prefix.length);
+                            const isScheduleActive = $(`#badge-${serviceId}-${safeScheduleId}`).hasClass('text-bg-success');
+
+                            if (isEnabled) {
+                                $switch.prop('checked', true);
+                                if (isScheduleActive) {
+                                    $icon.removeClass('text-muted').addClass('text-success');
+                                    $text.removeClass('text-muted');
+                                }
+                            } else {
+                                $switch.prop('checked', false);
+                                $icon.removeClass('text-success').addClass('text-muted');
+                                $text.addClass('text-muted');
+                            }
+                        }
+                        recalculateStats();
                     } else {
-                        alert(response.data.message);
+                        $(`#switch-${serviceId}-${safeId}`).prop('checked', stateData.disabled);
+                        alert(stateData.message);
                     }
                 }
+            }
+
+            function recalculateStats() {
+                let activeSchedules = $('.status-badge.text-bg-success').length;
+                let activeJobs = 0;
+                
+                $('.schedule-row').each(function() {
+                    const $row = $(this);
+                    if ($row.find('.status-badge').hasClass('text-bg-success')) {
+                        const targetId = $row.find('[data-bs-toggle="collapse"]').attr('data-bs-target');
+                        $(targetId).find('.form-check-input').each(function() {
+                            if ($(this).is(':checked')) {
+                                activeJobs++;
+                            }
+                        });
+                    }
+                });
+
+                let isolated = $('.isolated-icon').length;
+                updateStats(activeSchedules, activeJobs, isolated, currentNodeId);
             }
 
             function renderSchedulerList(services) {
@@ -332,7 +399,7 @@
 
                 if (!services || services.length === 0) {
                     $('#scheduler-container').html('<div class="alert alert-info">No active services or schedulers found on this node.</div>');
-                    updateStats(0, 0, 0, 0);
+                    updateStats(0, 0, 0, currentNodeId);
                     return;
                 }
 
@@ -369,9 +436,11 @@
                             if (isScheduleEnabled) totalActiveSchedules++;
                             if (isScheduleIsolated) totalIsolated++;
 
+                            const safeScheduleId = schedule.id.replace(/[^a-zA-Z0-9]/g, '_');
+
                             html += `<tr class="schedule-row">
                                 <td class="text-center">
-                                    <button class="btn btn-link btn-sm p-0 text-decoration-none" type="button" data-bs-toggle="collapse" data-bs-target="#jobs-${serviceId}-${schedule.id}">
+                                    <button class="btn btn-link btn-sm p-0 text-decoration-none" type="button" data-bs-toggle="collapse" data-bs-target="#jobs-${serviceId}-${safeScheduleId}">
                                         <i class="bi bi-chevron-down"></i>
                                     </button>
                                 </td>
@@ -383,20 +452,20 @@
                                     <code class="small px-2 py-1 bg-body-tertiary rounded">${schedule.scheduler?.trigger?.expression?.expression || schedule.scheduler?.trigger?.type || 'N/A'}</code>
                                 </td>
                                 <td class="text-center">
-                                    <span class="badge rounded-pill status-badge ${isScheduleEnabled ? 'text-bg-success' : 'text-bg-danger'}">
+                                    <span id="badge-${serviceId}-${safeScheduleId}" class="badge rounded-pill status-badge ${isScheduleEnabled ? 'text-bg-success' : 'text-bg-danger'}">
                                         ${isScheduleEnabled ? 'ACTIVE' : 'DISABLED'}
                                     </span>
                                 </td>
                                 <td class="text-end">
                                     <div class="form-check form-switch d-inline-block">
-                                        <input class="form-check-input" type="checkbox" role="switch" 
+                                        <input id="switch-${serviceId}-${safeScheduleId}" class="form-check-input" type="checkbox" role="switch" 
                                             ${isScheduleEnabled ? 'checked' : ''} 
                                             ${isScheduleIsolated ? 'disabled' : ''}
                                             onclick="toggleState('${service.serviceName}', 'schedule', '${schedule.id}', this.checked)">
                                     </div>
                                 </td>
                             </tr>
-                            <tr class="collapse" id="jobs-${serviceId}-${schedule.id}">
+                            <tr class="collapse" id="jobs-${serviceId}-${safeScheduleId}">
                                 <td colspan="5" class="p-0">
                                     <div class="p-3">
                                         <div class="job-table p-3">
@@ -407,17 +476,20 @@
                                 (Array.isArray(schedule.job) ? schedule.job : [schedule.job]).forEach(job => {
                                     const isJobEnabled = !job.disabled;
                                     const isJobIsolated = job.isolated;
+                                    const isJobEffectivelyActive = isJobEnabled && isScheduleEnabled;
                                     if (isJobEnabled && isScheduleEnabled) totalActiveJobs++;
                                     if (isJobIsolated) totalIsolated++;
 
+                                    const safeJobId = job.translet.replace(/[^a-zA-Z0-9]/g, '_');
+
                                     html += `<div class="list-group-item d-flex justify-content-between align-items-center bg-transparent border-0 px-0 py-2">
                                         <div class="d-flex align-items-center gap-2">
-                                            <i class="bi bi-play-circle small ${isJobEnabled ? 'text-success' : 'text-muted'}"></i>
-                                            <span class="${isJobEnabled ? '' : 'text-muted'}">${job.translet}</span>
+                                            <i id="icon-${serviceId}-${safeJobId}" class="bi bi-play-circle small ${isJobEffectivelyActive ? 'text-success' : 'text-muted'}"></i>
+                                            <span id="text-${serviceId}-${safeJobId}" class="${isJobEffectivelyActive ? '' : 'text-muted'}">${job.translet}</span>
                                             ${isJobIsolated ? '<i class="bi bi-lock-fill isolated-icon small" title="Isolated"></i>' : ''}
                                         </div>
                                         <div class="form-check form-switch">
-                                            <input class="form-check-input" type="checkbox" role="switch" 
+                                            <input id="switch-${serviceId}-${safeJobId}" class="form-check-input" type="checkbox" role="switch" 
                                                 ${isJobEnabled ? 'checked' : ''} 
                                                 ${(isJobIsolated || isScheduleIsolated) ? 'disabled' : ''}
                                                 onclick="toggleState('${service.serviceName}', 'job', '${job.translet}', this.checked)">
