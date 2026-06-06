@@ -6,6 +6,7 @@ import com.aspectran.core.component.bean.annotation.Job;
 import com.aspectran.core.component.bean.annotation.Request;
 import com.aspectran.core.component.bean.annotation.Schedule;
 import com.aspectran.core.component.bean.annotation.SimpleTrigger;
+import com.aspectran.core.context.rule.type.MisfirePolicy;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -19,8 +20,9 @@ import java.util.concurrent.atomic.AtomicInteger;
         scheduler = "testScheduler",
         simpleTrigger = @SimpleTrigger(
                 startDelaySeconds = 5,      // Start 5 seconds after scheduler starts
-                intervalInMinutes = 1,      // Repeat every 1 minute
-                repeatForever = true        // Repeat indefinitely
+                intervalInSeconds = 5,      // Repeat every 1 minute
+                repeatForever = true,       // Repeat indefinitely
+                misfirePolicy = MisfirePolicy.RESCHEDULE_NEXT_WITH_REMAINING_COUNT
         ),
         jobs = {
                 @Job(translet = "test/schedule/count.job")

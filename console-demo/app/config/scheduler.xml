@@ -13,7 +13,7 @@
             <entry name="org.quartz.threadPool.threadCount">1</entry>
             <entry name="org.quartz.threadPool.threadPriority">5</entry>
             <entry name="org.quartz.threadPool.threadsInheritContextClassLoaderOfInitializingThread">true</entry>
-            <entry name="org.quartz.jobStore.misfireThreshold">60000</entry>
+            <entry name="org.quartz.jobStore.misfireThreshold">5000</entry>
             <entry name="org.quartz.jobStore.class">org.quartz.simpl.RAMJobStore</entry>
         </property>
     </bean>

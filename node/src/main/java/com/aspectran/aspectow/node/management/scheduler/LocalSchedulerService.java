@@ -99,6 +99,11 @@ public class LocalSchedulerService {
                             ScheduleRule scheduleRule = registry.getScheduleRule(id);
                             if (scheduleRule != null && !scheduleRule.isIsolated()) {
                                 scheduleRule.setDisabled(disabled);
+                                if (disabled) {
+                                    schedulerService.pause(id);
+                                } else {
+                                    schedulerService.resume(id);
+                                }
                                 changed = true;
                             }
                         } else if ("job".equals(type)) {
@@ -107,6 +112,12 @@ public class LocalSchedulerService {
                                 for (ScheduledJobRule jobRule : jobRules) {
                                     if (!jobRule.isIsolated()) {
                                         jobRule.setDisabled(disabled);
+                                        String scheduleId = jobRule.getScheduleRule().getId();
+                                        if (disabled) {
+                                            schedulerService.pauseJob(scheduleId, id);
+                                        } else {
+                                            schedulerService.resumeJob(scheduleId, id);
+                                        }
                                         changed = true;
                                     }
                                 }
