@@ -159,16 +159,16 @@ public class WebsocketSchedulerBridge extends SimplifiedEndpoint implements Sche
     }
 
     @Override
-    public void bridge(SchedulerResponseParameters response) {
-        if (response != null) {
-            broadcast(response.toString());
+    public void bridge(String message) {
+        if (message != null) {
+            broadcast(message);
         }
     }
 
     @Override
-    public void bridge(@NonNull SchedulerSession session, SchedulerResponseParameters response) {
+    public void bridge(@NonNull SchedulerSession session, String message) {
         if (session instanceof WebsocketSchedulerSession websocketSchedulerSession) {
-            sendText(websocketSchedulerSession.getSession(), response.toString());
+            sendText(websocketSchedulerSession.getSession(), message);
         }
     }
 

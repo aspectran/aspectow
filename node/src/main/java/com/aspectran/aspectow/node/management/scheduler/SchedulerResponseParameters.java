@@ -55,6 +55,10 @@ public class SchedulerResponseParameters extends DefaultParameters {
         setRenderStyle(AponRenderStyle.COMPACT);
     }
 
+    public String getHeader() {
+        return getString(header);
+    }
+
     public SchedulerResponseParameters setHeader(String header) {
         putValue(SchedulerResponseParameters.header, header);
         return this;

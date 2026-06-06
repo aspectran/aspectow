@@ -78,16 +78,16 @@ public class PollingSchedulerBridge extends AbstractComponent implements Schedul
     }
 
     @Override
-    public void bridge(SchedulerResponseParameters response) {
-        if (response != null && !sessionManager.getSessions().isEmpty()) {
-            bufferedMessages.push(response.toString());
+    public void bridge(String message) {
+        if (message != null && !sessionManager.getSessions().isEmpty()) {
+            bufferedMessages.push(message);
         }
     }
 
     @Override
-    public void bridge(@NonNull SchedulerSession session, SchedulerResponseParameters response) {
-        if (response != null && session instanceof PollingSchedulerSession pollingSchedulerSession) {
-            pollingSchedulerSession.push(response.toString());
+    public void bridge(@NonNull SchedulerSession session, String message) {
+        if (message != null && session instanceof PollingSchedulerSession pollingSchedulerSession) {
+            pollingSchedulerSession.push(message);
         }
     }
 

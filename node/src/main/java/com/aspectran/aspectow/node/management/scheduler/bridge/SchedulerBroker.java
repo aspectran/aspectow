@@ -16,7 +16,6 @@
 package com.aspectran.aspectow.node.management.scheduler.bridge;
 
 import com.aspectran.aspectow.node.management.scheduler.SchedulerManager;
-import com.aspectran.aspectow.node.management.scheduler.SchedulerResponseParameters;
 import com.aspectran.aspectow.node.manager.NodeMessagePublisher;
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
@@ -109,14 +108,31 @@ public class SchedulerBroker {
         }
     }
 
+    private void publishRelay(String targetNodeId, String message) {
+        if (messagePublisher != null) {
+            try {
+                messagePublisher.publishRelay(CATEGORY_SCHEDULER, targetNodeId, message);
+            } catch (Exception e) {
+                logger.error("Failed to publish relay message to node: {}", targetNodeId, e);
+            }
+        }
+    }
+
     /**
      * Bridges a scheduler result to all connected clients.
-     * @param response the result payload to send
+     * @param message the result payload to send
      */
-    public void bridge(SchedulerResponseParameters response) {
+    public void bridge(String message) {
         Set<String> sessionIds = subscriptionRegistry.getAllSessionIds();
         for (String sid : sessionIds) {
-            schedulerManager.bridge(sid, response);
+            schedulerManager.bridge(sid, message);
+        }
+
+        Set<String> remoteNodeIds = subscriptionRegistry.getRemoteSubscriptions();
+        if (!remoteNodeIds.isEmpty()) {
+            for (String nodeId : remoteNodeIds) {
+                publishRelay(nodeId, message);
+            }
         }
     }
 

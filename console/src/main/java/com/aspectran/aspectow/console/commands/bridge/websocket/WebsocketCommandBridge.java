@@ -165,16 +165,16 @@ public class WebsocketCommandBridge extends SimplifiedEndpoint implements Comman
     }
 
     @Override
-    public void bridge(RemoteResponseParameters response) {
-        if (response != null) {
-            broadcast(response.toString());
+    public void bridge(String message) {
+        if (message != null) {
+            broadcast(message);
         }
     }
 
     @Override
-    public void bridge(@NonNull CommandSession session, RemoteResponseParameters response) {
-        if (response != null && session instanceof WebsocketCommandSession websocketCommandSession) {
-            sendText(websocketCommandSession.getSession(), response.toString());
+    public void bridge(@NonNull CommandSession session, String message) {
+        if (message != null && session instanceof WebsocketCommandSession websocketCommandSession) {
+            sendText(websocketCommandSession.getSession(), message);
         }
     }
 

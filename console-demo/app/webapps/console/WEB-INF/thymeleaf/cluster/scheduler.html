@@ -289,7 +289,7 @@
                         $('#connection-indicator').text("CONNECTED").removeClass("bg-secondary bg-danger bg-warning").addClass("bg-success");
                         const message = {
                             header: "execute",
-                            command: "list",
+                            command: "services",
                             targetNodeId: currentNodeId
                         };
                         consoleClient.sendMessage(JSON.stringify(message));
@@ -624,7 +624,7 @@
 
                 const message = {
                     header: "execute",
-                    command: "previousLines",
+                    command: "previousLogs",
                     targetNodeId: currentNodeId,
                     loggingGroup: loggingGroup,
                     loadedLines: loadedCount
@@ -677,7 +677,7 @@
                         if (consoleClient && consoleClient.established && consoleClient.mode === 'websocket') {
                             const message = {
                                 header: "execute",
-                                command: "list",
+                                command: "services",
                                 targetNodeId: currentNodeId
                             };
                             consoleClient.sendMessage(JSON.stringify(message));

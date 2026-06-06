@@ -52,13 +52,13 @@ public class SchedulerManager implements ApplicationAdapterAware, InitializableB
 
     private static final Logger logger = LoggerFactory.getLogger(SchedulerManager.class);
 
-    public static final String OP_LIST = "list";
+    public static final String OP_SERVICES = "services";
 
     private static final String OP_ENABLE = "enable";
 
     private static final String OP_DISABLE = "disable";
 
-    private static final String OP_PREVIOUS = "previousLines";
+    private static final String OP_PREVIOUS_LOGS = "previousLogs";
 
     private final Map<String, SchedulerLogExporter> logExporters = new ConcurrentHashMap<>();
 
@@ -200,7 +200,8 @@ public class SchedulerManager implements ApplicationAdapterAware, InitializableB
             if (response != null) {
                 response.setNodeId(getNodeId());
                 String sessionId = request.getSessionId();
-                if (sessionId != null) {
+                String header = response.getHeader();
+                if (sessionId != null && !"stateUpdated".equals(header)) {
                     bridge(sessionId, response);
                 } else {
                     bridge(response);
@@ -253,6 +254,10 @@ public class SchedulerManager implements ApplicationAdapterAware, InitializableB
                 } else {
                     messagePublisher.publishRelay(SchedulerBroker.CATEGORY_SCHEDULER, message);
                 }
+
+                if ("stateUpdated".equals(response.getString(SchedulerResponseParameters.header))) {
+                    bridge(response);
+                }
             }
         } catch (Exception e) {
             logger.error("Failed to process scheduler request: {}", request, e);
@@ -268,14 +273,14 @@ public class SchedulerManager implements ApplicationAdapterAware, InitializableB
     private SchedulerResponseParameters execute(SchedulerRequestParameters request) {
         try {
             String command = request.getCommand();
-            if (OP_LIST.equals(command)) {
+            if (OP_SERVICES.equals(command)) {
                 return localSchedulerService.getSchedulesAsJson();
             } else if (OP_ENABLE.equals(command)) {
                 return performStateChange(request, false);
             } else if (OP_DISABLE.equals(command)) {
                 return performStateChange(request, true);
-            } else if (OP_PREVIOUS.equals(command)) {
-                return readPreviousLines(request);
+            } else if (OP_PREVIOUS_LOGS.equals(command)) {
+                return readPreviousLogs(request);
             }
         } catch (Exception e) {
             logger.error("Failed to execute scheduler request: {}", request, e);
@@ -284,7 +289,7 @@ public class SchedulerManager implements ApplicationAdapterAware, InitializableB
     }
 
     @Nullable
-    private SchedulerResponseParameters readPreviousLines(@NonNull SchedulerRequestParameters request) {
+    private SchedulerResponseParameters readPreviousLogs(@NonNull SchedulerRequestParameters request) {
         String loggingGroup = request.getLoggingGroup();
         int loadedLines = request.getLoadedLines();
         if (loggingGroup != null) {
@@ -324,15 +329,26 @@ public class SchedulerManager implements ApplicationAdapterAware, InitializableB
      * @param response the result payload in JSON format
      */
     public void bridge(SchedulerResponseParameters response) {
-        broker.bridge(response);
+        if (response != null) {
+            bridge(response.toString());
+        }
+    }
+    public void bridge(String message) {
+        broker.bridge(message);
     }
 
     public void bridge(String sessionId, SchedulerResponseParameters response) {
+        if (response != null) {
+            bridge(sessionId, response.toString());
+        }
+    }
+
+    public void bridge(String sessionId, String message) {
         SchedulerBridge bridge = sessionBridgeMap.get(sessionId);
         if (bridge != null) {
             SchedulerSession session = bridge.findSchedulerSession(sessionId);
             if (session != null) {
-                bridge.bridge(session, response);
+                bridge.bridge(session, message);
             }
         }
     }

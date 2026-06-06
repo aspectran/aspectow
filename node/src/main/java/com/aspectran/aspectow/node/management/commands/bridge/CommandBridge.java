@@ -15,8 +15,6 @@
  */
 package com.aspectran.aspectow.node.management.commands.bridge;
 
-import com.aspectran.aspectow.node.management.commands.RemoteResponseParameters;
-
 /**
  * Interface for bridging command results to clients.
  * This can be implemented using various communication protocols like WebSocket or polling.
@@ -32,15 +30,15 @@ public interface CommandBridge {
 
     /**
      * Bridges a message to all connected sessions.
-     * @param response the command result parameters
+     * @param message the command result parameters
      */
-    void bridge(RemoteResponseParameters response);
+    void bridge(String message);
 
     /**
      * Bridges a message to a specific session.
      * @param session the session to send the message to
-     * @param response the command result parameters
+     * @param message the command result parameters
      */
-    void bridge(CommandSession session, RemoteResponseParameters response);
+    void bridge(CommandSession session, String message);
 
 }

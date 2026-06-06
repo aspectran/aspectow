@@ -21,6 +21,7 @@ import com.aspectran.aspectow.node.management.scheduler.SchedulerResponseParamet
 import com.aspectran.aspectow.node.management.scheduler.bridge.SchedulerBroker;
 import com.aspectran.aspectow.node.manager.NodeMessageListener;
 import com.aspectran.utils.apon.AponParseException;
+import com.aspectran.utils.apon.JsonToParameters;
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -81,8 +82,7 @@ public class RemoteSchedulerMessageListener implements NodeMessageListener {
     @Override
     public void onRelayMessage(String nodeId, @NonNull String message) {
         try {
-            SchedulerResponseParameters response = new SchedulerResponseParameters();
-            response.readFrom(message);
+            SchedulerResponseParameters response = JsonToParameters.from(message, SchedulerResponseParameters.class);
             schedulerManager.bridge(response);
         } catch (Exception e) {
             logger.error("Failed to parse scheduler response: {}", message, e);
@@ -92,8 +92,7 @@ public class RemoteSchedulerMessageListener implements NodeMessageListener {
     @Override
     public void onRelayMessage(String nodeId, String sessionId, @NonNull String message) {
         try {
-            SchedulerResponseParameters response = new SchedulerResponseParameters();
-            response.readFrom(message);
+            SchedulerResponseParameters response = JsonToParameters.from(message, SchedulerResponseParameters.class);
             schedulerManager.bridge(sessionId, response);
         } catch (Exception e) {
             logger.error("Failed to parse scheduler response: {}", message, e);

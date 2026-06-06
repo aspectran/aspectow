@@ -78,16 +78,16 @@ public class PollingCommandBridge extends AbstractComponent implements CommandBr
     }
 
     @Override
-    public void bridge(RemoteResponseParameters response) {
-        if (response != null && !sessionManager.getSessions().isEmpty()) {
-            bufferedMessages.push(response.toString());
+    public void bridge(String message) {
+        if (message != null && !sessionManager.getSessions().isEmpty()) {
+            bufferedMessages.push(message);
         }
     }
 
     @Override
-    public void bridge(@NonNull CommandSession session, RemoteResponseParameters response) {
-        if (response != null && session instanceof PollingCommandSession pollingCommandSession) {
-            pollingCommandSession.push(response.toString());
+    public void bridge(@NonNull CommandSession session, String message) {
+        if (message != null && session instanceof PollingCommandSession pollingCommandSession) {
+            pollingCommandSession.push(message);
         }
     }
 

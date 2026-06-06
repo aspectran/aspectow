@@ -255,7 +255,7 @@ public class SchedulerLogExporter extends AbstractLifeCycle {
                 .setHeader("log")
                 .setOwner(loggingGroup)
                 .setData(message);
-        broker.bridge(response);
+        broker.bridge(response.toString());
     }
 
     @Override

@@ -17,7 +17,6 @@ package com.aspectran.aspectow.node.management.commands.remote;
 
 import com.aspectran.aspectow.node.management.commands.RemoteCommandManager;
 import com.aspectran.aspectow.node.management.commands.RemoteRequestParameters;
-import com.aspectran.aspectow.node.management.commands.RemoteResponseParameters;
 import com.aspectran.aspectow.node.management.commands.bridge.CommandBroker;
 import com.aspectran.aspectow.node.manager.NodeMessageListener;
 import com.aspectran.utils.apon.AponParseException;
@@ -81,9 +80,7 @@ public class RemoteCommandMessageListener implements NodeMessageListener {
     @Override
     public void onRelayMessage(String nodeId, String sessionId, @NonNull String message) {
         try {
-            RemoteResponseParameters response = new RemoteResponseParameters();
-            response.readFrom(message);
-            remoteCommandManager.bridge(sessionId, response);
+            remoteCommandManager.bridge(sessionId, message);
         } catch (Exception e) {
             logger.error("Failed to parse remote command response: {}", message, e);
         }

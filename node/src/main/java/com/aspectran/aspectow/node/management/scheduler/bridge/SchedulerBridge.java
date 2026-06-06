@@ -15,8 +15,6 @@
  */
 package com.aspectran.aspectow.node.management.scheduler.bridge;
 
-import com.aspectran.aspectow.node.management.scheduler.SchedulerResponseParameters;
-
 /**
  * Interface for bridging scheduler management data to clients.
  */
@@ -32,12 +30,12 @@ public interface SchedulerBridge {
     /**
      * Bridges a message to all connected sessions.
      */
-    void bridge(SchedulerResponseParameters response);
+    void bridge(String message);
 
     /**
      * Bridges a message to a specific session.
      * @param session the session to send the message to
      */
-    void bridge(SchedulerSession session, SchedulerResponseParameters response);
+    void bridge(SchedulerSession session, String message);
 
 }

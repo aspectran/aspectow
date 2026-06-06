@@ -162,7 +162,7 @@ public class RemoteCommandManager implements InitializableBean {
                                 .setNodeId(getNodeId())
                                 .setRequestId(request.getRequestId())
                                 .setResult(result);
-                        bridge(request.getSessionId(), response);
+                        bridge(request.getSessionId(), response.toString());
                     }
                 }
             } catch (Exception e) {
@@ -210,13 +210,13 @@ public class RemoteCommandManager implements InitializableBean {
         return null;
     }
 
-    public void bridge(String sessionId, RemoteResponseParameters response) {
+    public void bridge(String sessionId, String message) {
         Assert.notNull(sessionId, "sessionId must not be null");
         CommandBridge bridge = sessionBridgeMap.get(sessionId);
         if (bridge != null) {
             CommandSession session = bridge.findCommandSession(sessionId);
             if (session != null) {
-                bridge.bridge(session, response);
+                bridge.bridge(session, message);
             }
         }
     }
