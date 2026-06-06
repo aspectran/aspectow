@@ -15,6 +15,7 @@
  */
 package com.aspectran.aspectow.node.management.scheduler;
 
+import com.aspectran.utils.apon.AponRenderStyle;
 import com.aspectran.utils.apon.DefaultParameters;
 import com.aspectran.utils.apon.ParameterKey;
 import com.aspectran.utils.apon.ValueType;
@@ -27,7 +28,8 @@ public class SchedulerResponseParameters extends DefaultParameters {
 
     public static final ParameterKey header;
     public static final ParameterKey nodeId;
-    public static final ParameterKey result;
+    public static final ParameterKey owner;
+    public static final ParameterKey data;
     public static final ParameterKey error;
 
     private static final ParameterKey[] parameterKeys;
@@ -35,38 +37,46 @@ public class SchedulerResponseParameters extends DefaultParameters {
     static {
         header = new ParameterKey("header", ValueType.STRING);
         nodeId = new ParameterKey("nodeId", ValueType.STRING);
-        result = new ParameterKey("result", ValueType.TEXT);
+        owner = new ParameterKey("owner", ValueType.STRING);
+        data = new ParameterKey("data", ValueType.OBJECT);
         error = new ParameterKey("error", ValueType.TEXT);
 
         parameterKeys = new ParameterKey[] {
                 header,
                 nodeId,
-                result,
+                owner,
+                data,
                 error
         };
     }
 
     public SchedulerResponseParameters() {
         super(parameterKeys);
+        setRenderStyle(AponRenderStyle.COMPACT);
     }
 
-    public SchedulerResponseParameters setHeader(String headerValue) {
-        putValue(header, headerValue);
+    public SchedulerResponseParameters setHeader(String header) {
+        putValue(SchedulerResponseParameters.header, header);
         return this;
     }
 
-    public SchedulerResponseParameters setNodeId(String nodeIdValue) {
-        putValue(nodeId, nodeIdValue);
+    public SchedulerResponseParameters setNodeId(String nodeId) {
+        putValue(SchedulerResponseParameters.nodeId, nodeId);
         return this;
     }
 
-    public SchedulerResponseParameters setResult(String resultValue) {
-        putValue(result, resultValue);
+    public SchedulerResponseParameters setOwner(String group) {
+        putValue(SchedulerResponseParameters.owner, group);
         return this;
     }
 
-    public SchedulerResponseParameters setError(String errorValue) {
-        putValue(error, errorValue);
+    public SchedulerResponseParameters setData(Object data) {
+        putValue(SchedulerResponseParameters.data, data);
+        return this;
+    }
+
+    public SchedulerResponseParameters setError(String error) {
+        putValue(SchedulerResponseParameters.error, error);
         return this;
     }
 

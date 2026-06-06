@@ -24,7 +24,6 @@ import com.aspectran.aspectow.node.management.commands.bridge.CommandSession;
 import com.aspectran.aspectow.node.manager.NodeManager;
 import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Component;
-import com.aspectran.core.component.bean.annotation.Initialize;
 import com.aspectran.daemon.command.CommandParameters;
 import com.aspectran.utils.StringUtils;
 import com.aspectran.utils.apon.JsonToParameters;
@@ -36,8 +35,6 @@ import jakarta.websocket.server.ServerEndpoint;
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Collection;
 
 import static com.aspectran.aspectow.node.management.commands.bridge.CommandBroker.CATEGORY_COMMANDS;
 import static com.aspectran.aspectow.node.manager.NodeMessageProtocol.NODES_BASE_PATH;
@@ -176,16 +173,9 @@ public class WebsocketCommandBridge extends SimplifiedEndpoint implements Comman
 
     @Override
     public void bridge(@NonNull CommandSession session, RemoteResponseParameters response) {
-        if (session instanceof WebsocketCommandSession websocketCommandSession && response != null) {
+        if (response != null && session instanceof WebsocketCommandSession websocketCommandSession) {
             sendText(websocketCommandSession.getSession(), response.toString());
         }
-    }
-
-    @Override
-    public void getSessions(Collection<CommandSession> sessions) {
-        forEachSession(session -> {
-            sessions.add(new WebsocketCommandSession(session));
-        });
     }
 
 }

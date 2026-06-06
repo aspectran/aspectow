@@ -17,6 +17,7 @@ package com.aspectran.aspectow.node.management.scheduler.remote;
 
 import com.aspectran.aspectow.node.management.scheduler.SchedulerManager;
 import com.aspectran.aspectow.node.management.scheduler.SchedulerRequestParameters;
+import com.aspectran.aspectow.node.management.scheduler.SchedulerResponseParameters;
 import com.aspectran.aspectow.node.management.scheduler.bridge.SchedulerBroker;
 import com.aspectran.aspectow.node.manager.NodeMessageListener;
 import com.aspectran.utils.apon.AponParseException;
@@ -79,30 +80,24 @@ public class RemoteSchedulerMessageListener implements NodeMessageListener {
 
     @Override
     public void onRelayMessage(String nodeId, @NonNull String message) {
-        int idx = message.indexOf(SchedulerBroker.DELIMITER);
-        if (idx != -1) {
-            String sourceNodeId = message.substring(0, idx);
-            String content = message.substring(idx + 1);
-            schedulerManager.broadcast(sourceNodeId, content);
-        } else {
-            schedulerManager.broadcast(message);
+        try {
+            SchedulerResponseParameters response = new SchedulerResponseParameters();
+            response.readFrom(message);
+            schedulerManager.bridge(response);
+        } catch (Exception e) {
+            logger.error("Failed to parse scheduler response: {}", message, e);
         }
     }
 
     @Override
     public void onRelayMessage(String nodeId, String sessionId, @NonNull String message) {
-        int idx = message.indexOf(SchedulerBroker.DELIMITER);
-        String sourceNodeId;
-        String content;
-        if (idx != -1) {
-            sourceNodeId = message.substring(0, idx);
-            content = message.substring(idx + 1);
-        } else {
-            sourceNodeId = nodeId;
-            content = message;
+        try {
+            SchedulerResponseParameters response = new SchedulerResponseParameters();
+            response.readFrom(message);
+            schedulerManager.bridge(sessionId, response);
+        } catch (Exception e) {
+            logger.error("Failed to parse scheduler response: {}", message, e);
         }
-
-        schedulerManager.bridge(sessionId, sourceNodeId, content);
     }
 
 }

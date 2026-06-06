@@ -71,7 +71,7 @@ public class RemoteCommandMessageListener implements NodeMessageListener {
             try {
                 request.readFrom(requestData);
             } catch (AponParseException e) {
-                logger.error("Failed to parse command request parameters: {}", requestData, e);
+                logger.error("Failed to parse remote command request parameters: {}", requestData, e);
             }
 
             remoteCommandManager.executeRemotely(request);
@@ -85,7 +85,7 @@ public class RemoteCommandMessageListener implements NodeMessageListener {
             response.readFrom(message);
             remoteCommandManager.bridge(sessionId, response);
         } catch (Exception e) {
-            logger.error("Failed to parse command result parameters: {}", message, e);
+            logger.error("Failed to parse remote command response: {}", message, e);
         }
     }
 

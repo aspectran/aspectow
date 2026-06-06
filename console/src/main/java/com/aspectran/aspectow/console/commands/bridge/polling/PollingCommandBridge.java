@@ -24,10 +24,6 @@ import com.aspectran.core.component.AbstractComponent;
 import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Component;
 import org.jspecify.annotations.NonNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.Collection;
 
 /**
  * PollingCommandBridge manages client sessions for HTTP long-polling
@@ -35,8 +31,6 @@ import java.util.Collection;
  */
 @Component
 public class PollingCommandBridge extends AbstractComponent implements CommandBridge {
-
-    private static final Logger logger = LoggerFactory.getLogger(PollingCommandBridge.class);
 
     private final PollingSessionManager sessionManager;
 
@@ -70,16 +64,6 @@ public class PollingCommandBridge extends AbstractComponent implements CommandBr
         return sessionManager.getSession(sessionId);
     }
 
-    @Override
-    public void getSessions(@NonNull Collection<CommandSession> sessions) {
-        sessions.addAll(sessionManager.getSessions().values());
-    }
-
-    @Override
-    public CommandSession findCommandSession(String sessionId) {
-        return sessionManager.getSession(sessionId);
-    }
-
     public void registerSession(String sessionId) {
         remoteCommandManager.registerSession(sessionId, this);
     }
@@ -89,15 +73,22 @@ public class PollingCommandBridge extends AbstractComponent implements CommandBr
     }
 
     @Override
+    public CommandSession findCommandSession(String sessionId) {
+        return sessionManager.getSession(sessionId);
+    }
+
+    @Override
     public void bridge(RemoteResponseParameters response) {
-        if (!sessionManager.getSessions().isEmpty() && response != null) {
+        if (response != null && !sessionManager.getSessions().isEmpty()) {
             bufferedMessages.push(response.toString());
         }
     }
 
     @Override
     public void bridge(@NonNull CommandSession session, RemoteResponseParameters response) {
-        bridge(response);
+        if (response != null && session instanceof PollingCommandSession pollingCommandSession) {
+            pollingCommandSession.push(response.toString());
+        }
     }
 
     public CommandBroker getBroker() {

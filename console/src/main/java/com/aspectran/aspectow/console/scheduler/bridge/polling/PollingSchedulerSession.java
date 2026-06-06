@@ -19,6 +19,8 @@ import com.aspectran.aspectow.node.management.scheduler.bridge.SchedulerSession;
 import com.aspectran.utils.concurrent.AutoLock;
 import com.aspectran.utils.timer.CyclicTimeout;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -39,6 +41,8 @@ public class PollingSchedulerSession implements SchedulerSession {
     private final PollingSessionManager sessionManager;
 
     private final SessionExpiryTimer expiryTimer;
+
+    private final List<String> messageQueue = new ArrayList<>();
 
     private String nodeId;
 
@@ -81,6 +85,33 @@ public class PollingSchedulerSession implements SchedulerSession {
 
     public void setSessionTimeout(int sessionTimeout) {
         this.sessionTimeout = Math.max(sessionTimeout, MIN_SESSION_TIMEOUT);
+    }
+
+    /**
+     * Pushes a message to the session's individual queue.
+     * @param message the message to push
+     */
+    public void push(String message) {
+        try (AutoLock ignored = autoLock.lock()) {
+            if (isValid()) {
+                messageQueue.add(message);
+            }
+        }
+    }
+
+    /**
+     * Pops all messages from the session's individual queue.
+     * @return a list of messages, or {@code null} if the queue is empty
+     */
+    public List<String> popMessages() {
+        try (AutoLock ignored = autoLock.lock()) {
+            if (messageQueue.isEmpty()) {
+                return null;
+            }
+            List<String> messages = new ArrayList<>(messageQueue);
+            messageQueue.clear();
+            return messages;
+        }
     }
 
     public void access(boolean first) {

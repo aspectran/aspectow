@@ -24,6 +24,7 @@ import com.aspectran.aspectow.node.manager.NodeManager;
 import com.aspectran.aspectow.node.manager.NodeMessagePublisher;
 import com.aspectran.core.component.bean.ablility.InitializableBean;
 import com.aspectran.daemon.command.CommandParameters;
+import com.aspectran.utils.Assert;
 import com.aspectran.utils.StringUtils;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
@@ -161,10 +162,7 @@ public class RemoteCommandManager implements InitializableBean {
                                 .setNodeId(getNodeId())
                                 .setRequestId(request.getRequestId())
                                 .setResult(result);
-                        String sessionId = request.getSessionId();
-                        if (sessionId != null) {
-                            bridge(sessionId, response);
-                        }
+                        bridge(request.getSessionId(), response);
                     }
                 }
             } catch (Exception e) {
@@ -213,6 +211,7 @@ public class RemoteCommandManager implements InitializableBean {
     }
 
     public void bridge(String sessionId, RemoteResponseParameters response) {
+        Assert.notNull(sessionId, "sessionId must not be null");
         CommandBridge bridge = sessionBridgeMap.get(sessionId);
         if (bridge != null) {
             CommandSession session = bridge.findCommandSession(sessionId);

@@ -277,40 +277,13 @@
                                 return null;
                             });
                     },
-                    onMessage: (message) => {
-                        const error = message.error;
+                    onMessage: (response) => {
+                        const error = response.error;
                         if (error) {
                             console.error("Received error from scheduler bridge:", error);
                             return;
                         }
-
-                        // Handle header-based messages (e.g., subscribed, pong)
-                        if (message.header && message.header !== 'result') {
-                            handleRelayMessage(message);
-                            return;
-                        }
-
-                        const result = message.result;
-                        if (result) {
-                            if (typeof result === 'string') {
-                                if (result.startsWith('scheduler:log:')) {
-                                    handleRelayMessage(result);
-                                } else if (result.startsWith('scheduler:log/p:')) {
-                                    handleRelayMessage(result);
-                                } else {
-                                    // It's a JSON string of a command result (like service list)
-                                    try {
-                                        const event = JSON.parse(result);
-                                        handleRelayMessage(event);
-                                    } catch (e) {
-                                        console.error("Failed to parse scheduler result string:", e, result);
-                                    }
-                                }
-                            } else {
-                                // result is already an object
-                                handleRelayMessage(result);
-                            }
-                        }
+                        handleRelayMessage(response);
                     },
                     onEstablished: () => {
                         $('#connection-indicator').text("CONNECTED").removeClass("bg-secondary bg-danger bg-warning").addClass("bg-success");
@@ -332,26 +305,20 @@
                 consoleClient.start('scheduler');
             }
 
-            function handleRelayMessage(data) {
-                if (typeof data === 'string') {
-                    if (data.startsWith('scheduler:log:')) {
-                        appendLogLine(data);
-                        return;
-                    } else if (data.startsWith('scheduler:log/p:')) {
-                        // Compatibility with old individual log/p messages if any
-                        prependLogLines({ loggingGroup: data.split(':')[2], lines: [data.substring(data.indexOf(':', 16) + 1)] });
-                        return;
-                    }
-                }
-                if (data.type === 'list') {
-                    renderSchedulerList(data.services);
-                } else if (data.type === 'previousLines') {
-                    prependLogLines(data);
-                } else if (data.type === 'result') {
-                    if (data.success) {
+            function handleRelayMessage(response) {
+                if (response.header === 'services') {
+                    renderSchedulerList(response.data);
+                } else if (response.header === 'log') {
+                    appendLogLine(response.owner, response.data);
+                } else if (response.header === 'previousLogs') {
+                    console.log(response.owner, response.data);
+                    prependLogLines(response.owner, response.data);
+                } else if (response.header === 'stateUpdated' && response.data) {
+                    if (response.data.success) {
+                        console.log("State updated successfully:", response.data.message);
                         // Success message toast could be added here
                     } else {
-                        alert(data.message);
+                        alert(response.data.message);
                     }
                 }
             }
@@ -505,14 +472,7 @@
                 });
             }
 
-            function appendLogLine(rawMessage) {
-                // Format: scheduler:log:{loggingGroup}:{line}
-                const parts = rawMessage.split(':');
-                if (parts.length < 4) return;
-
-                const loggingGroup = parts[2];
-                const content = rawMessage.substring(rawMessage.indexOf(':', 14) + 1);
-
+            function appendLogLine(loggingGroup, logLine) {
                 const $container = $(`#log-viewer-${loggingGroup}`);
                 if ($container.length === 0) return;
 
@@ -523,7 +483,7 @@
                     $container.empty();
                 }
 
-                const $line = $('<p class="log-line"></p>').text(content);
+                const $line = $('<p class="log-line"></p>').text(logLine);
                 $container.append($line);
 
                 if ($container.children('.log-line').length > 2000) {
@@ -535,14 +495,11 @@
                 }
             }
 
-            function prependLogLines(data) {
-                const loggingGroup = data.loggingGroup;
-                const lines = data.lines;
-                
+            function prependLogLines(loggingGroup, logLines) {
                 const $container = $(`#log-viewer-${loggingGroup}`);
                 if ($container.length === 0) return;
 
-                if (!lines || lines.length === 0) {
+                if (!logLines || logLines.length === 0) {
                     $container.data('no-more-logs', true);
                     $container.find('.loading-logs').remove();
                     $container.data('loading', false);
@@ -557,7 +514,7 @@
                 
                 // Add all lines at once
                 const $fragment = $(document.createDocumentFragment());
-                lines.forEach(line => {
+                logLines.forEach(line => {
                     $fragment.append($('<p class="log-line"></p>').text(line));
                 });
                 

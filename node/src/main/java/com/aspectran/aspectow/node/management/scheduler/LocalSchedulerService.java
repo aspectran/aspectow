@@ -41,10 +41,8 @@ public class LocalSchedulerService {
      * Collects all schedule information from active CoreServices and returns as JSON.
      * @return the JSON string containing all services and their schedules
      */
-    public String getSchedulesAsJson() {
-        JsonBuilder jsonBuilder = new JsonBuilder().object();
-        jsonBuilder.put("type", "list");
-        jsonBuilder.array("services");
+    public SchedulerResponseParameters getSchedulesAsJson() {
+        JsonBuilder jsonBuilder = new JsonBuilder().array();
 
         int serviceCount = 0;
         for (CoreService service : CoreServiceHolder.getAllServices()) {
@@ -71,12 +69,14 @@ public class LocalSchedulerService {
         }
 
         jsonBuilder.endArray();
-        jsonBuilder.endObject();
 
         if (logger.isDebugEnabled()) {
             logger.debug("Collected scheduler list from {} active services", serviceCount);
         }
-        return jsonBuilder.toString();
+
+        return new SchedulerResponseParameters()
+                .setHeader("services")
+                .setData(jsonBuilder.toJsonString());
     }
 
     /**
@@ -87,7 +87,7 @@ public class LocalSchedulerService {
      * @param disabled true to disable, false to enable
      * @return the result message as JSON
      */
-    public String updateState(String serviceName, String type, String id, boolean disabled) {
+    public SchedulerResponseParameters updateState(String serviceName, String type, String id, boolean disabled) {
         boolean changed = false;
         for (CoreService service : CoreServiceHolder.getAllServices()) {
             if (service.getServiceLifeCycle().isActive()) {
@@ -125,12 +125,15 @@ public class LocalSchedulerService {
             resultMessage = "Failed to change state for " + type + " '" + id + "' in service '" + serviceName + "' (Not found or isolated)";
         }
 
-        return new JsonBuilder().object()
-                .put("type", "result")
+        JsonBuilder jsonBuilder = new JsonBuilder().object()
                 .put("success", changed)
                 .put("message", resultMessage)
-                .endObject()
-                .toString();
+                .endObject();
+
+        return new SchedulerResponseParameters()
+                .setHeader("stateUpdated")
+                .setOwner(serviceName)
+                .setData(jsonBuilder.toJsonString());
     }
 
 }

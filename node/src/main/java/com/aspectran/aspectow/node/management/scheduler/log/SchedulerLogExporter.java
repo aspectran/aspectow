@@ -15,6 +15,7 @@
  */
 package com.aspectran.aspectow.node.management.scheduler.log;
 
+import com.aspectran.aspectow.node.management.scheduler.SchedulerResponseParameters;
 import com.aspectran.aspectow.node.management.scheduler.bridge.SchedulerBroker;
 import com.aspectran.logging.LoggingDefaults;
 import com.aspectran.utils.lifecycle.AbstractLifeCycle;
@@ -49,10 +50,6 @@ public class SchedulerLogExporter extends AbstractLifeCycle {
 
     private final SchedulerBroker broker;
 
-    private final String prefix;
-
-    private final String plogPrefix;
-
     private final Charset charset;
 
     private final long sampleInterval;
@@ -75,8 +72,6 @@ public class SchedulerLogExporter extends AbstractLifeCycle {
         this.loggingGroup = loggingGroup;
         this.logFile = logFile;
         this.broker = broker;
-        this.prefix = "scheduler:log:" + loggingGroup + ":";
-        this.plogPrefix = "scheduler:log/p:" + loggingGroup + ":";
         this.charset = (charsetName != null ? Charset.forName(charsetName) : DEFAULT_CHARSET);
         this.sampleInterval = sampleInterval;
         this.lastLines = lastLines;
@@ -86,12 +81,8 @@ public class SchedulerLogExporter extends AbstractLifeCycle {
         return loggingGroup;
     }
 
-    public File getLogFile() {
-        return logFile;
-    }
-
     /**
-     * Reads the last N lines from the log file and adds them to the messages list.
+     * Reads the last N lines from the log file and adds them to the message list.
      * @param messages the list to add log lines to
      */
     public void read(@NonNull List<String> messages) {
@@ -252,15 +243,19 @@ public class SchedulerLogExporter extends AbstractLifeCycle {
                 if (line == null) {
                     break;
                 }
-                list.add(prefix + line);
+                list.add(line);
             }
             Collections.reverse(list);
         }
         return list;
     }
 
-    public void broadcast(String message) {
-        broker.bridge(prefix + message);
+    protected void broadcast(String message) {
+        SchedulerResponseParameters response = new SchedulerResponseParameters()
+                .setHeader("log")
+                .setOwner(loggingGroup)
+                .setData(message);
+        broker.bridge(response);
     }
 
     @Override

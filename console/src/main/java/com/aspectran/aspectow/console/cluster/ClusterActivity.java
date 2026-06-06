@@ -17,7 +17,6 @@ package com.aspectran.aspectow.console.cluster;
 
 import com.aspectran.aspectow.appmon.common.auth.AppMonTokenIssuer;
 import com.aspectran.aspectow.node.config.GroupInfo;
-import com.aspectran.aspectow.node.config.GroupInfoHolder;
 import com.aspectran.aspectow.node.config.NodeInfo;
 import com.aspectran.aspectow.node.manager.NodeManager;
 import com.aspectran.core.component.bean.annotation.Action;
@@ -29,13 +28,10 @@ import com.aspectran.web.activity.response.RestResponse;
 import com.aspectran.web.support.rest.response.SuccessResponse;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
-import static com.aspectran.aspectow.node.manager.NodeMessageProtocol.NODES_BASE_PATH;
 
 /**
  * ClusterActivity provides views and data for monitoring and managing cluster nodes.

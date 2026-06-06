@@ -38,13 +38,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
-import static com.aspectran.aspectow.node.management.scheduler.bridge.SchedulerBroker.DELIMITER;
 
 /**
  * SchedulerManager orchestrates scheduler management across the cluster.
@@ -187,20 +184,6 @@ public class SchedulerManager implements ApplicationAdapterAware, InitializableB
     }
 
     /**
-     * Collects the last known log lines from all active exporters.
-     * @return a list of log messages
-     */
-    public List<String> collectLastMessages() {
-        List<String> messages = new ArrayList<>();
-        for (SchedulerLogExporter exporter : logExporters.values()) {
-            if (exporter.isStarted()) {
-                exporter.read(messages);
-            }
-        }
-        return messages;
-    }
-
-    /**
      * Dispatches a management request to a specific node or handles it locally.
      * @param request the structured request parameters
      */
@@ -210,14 +193,17 @@ public class SchedulerManager implements ApplicationAdapterAware, InitializableB
             targetNodeId = getNodeId();
         }
         if (isSameNode(targetNodeId)) {
-            logger.debug("Executing local scheduler request: {}", request.getCommand());
-            String response = execute(request);
+            if (logger.isDebugEnabled()) {
+                logger.debug("Executing local scheduler request: {}", request.getCommand());
+            }
+            SchedulerResponseParameters response = execute(request);
             if (response != null) {
+                response.setNodeId(getNodeId());
                 String sessionId = request.getSessionId();
                 if (sessionId != null) {
                     bridge(sessionId, response);
                 } else {
-                    broadcast(response);
+                    bridge(response);
                 }
             }
         } else {
@@ -231,7 +217,9 @@ public class SchedulerManager implements ApplicationAdapterAware, InitializableB
                 request.setSourceNodeId(getNodeId());
                 String message = SchedulerBroker.CONTROL_REQUEST + request;
                 messagePublisher.publishControl(SchedulerBroker.CATEGORY_SCHEDULER, targetNodeId, message);
-                logger.debug("Scheduler request dispatched to node {}: {}", targetNodeId, request.getCommand());
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Scheduler request dispatched to node {}: {}", targetNodeId, request.getCommand());
+                }
             } catch (Exception e) {
                 logger.error("Failed to dispatch scheduler request to node {}", targetNodeId, e);
             }
@@ -248,21 +236,22 @@ public class SchedulerManager implements ApplicationAdapterAware, InitializableB
             return;
         }
         try {
-            String response = execute(request);
+            SchedulerResponseParameters response = execute(request);
             if (response != null && messagePublisher != null) {
+                response.setNodeId(getNodeId());
                 String requesterNodeId = request.getSourceNodeId();
                 String sessionId = request.getSessionId();
-                String relayMessage = getNodeId() + DELIMITER + response;
+                String message = response.toString();
                 if (requesterNodeId != null) {
                     if (sessionId != null) {
                         messagePublisher.publishRelay(
-                                SchedulerBroker.CATEGORY_SCHEDULER, requesterNodeId, sessionId, relayMessage);
+                                SchedulerBroker.CATEGORY_SCHEDULER, requesterNodeId, sessionId, message);
                     } else {
                         messagePublisher.publishRelay(
-                                SchedulerBroker.CATEGORY_SCHEDULER, requesterNodeId, relayMessage);
+                                SchedulerBroker.CATEGORY_SCHEDULER, requesterNodeId, message);
                     }
                 } else {
-                    messagePublisher.publishRelay(SchedulerBroker.CATEGORY_SCHEDULER, relayMessage);
+                    messagePublisher.publishRelay(SchedulerBroker.CATEGORY_SCHEDULER, message);
                 }
             }
         } catch (Exception e) {
@@ -276,7 +265,7 @@ public class SchedulerManager implements ApplicationAdapterAware, InitializableB
      * @return the execution result as JSON string, or null if unhandled
      */
     @Nullable
-    private String execute(SchedulerRequestParameters request) {
+    private SchedulerResponseParameters execute(SchedulerRequestParameters request) {
         try {
             String command = request.getCommand();
             if (OP_LIST.equals(command)) {
@@ -295,7 +284,7 @@ public class SchedulerManager implements ApplicationAdapterAware, InitializableB
     }
 
     @Nullable
-    private String readPreviousLines(@NonNull SchedulerRequestParameters request) {
+    private SchedulerResponseParameters readPreviousLines(@NonNull SchedulerRequestParameters request) {
         String loggingGroup = request.getLoggingGroup();
         int loadedLines = request.getLoadedLines();
         if (loggingGroup != null) {
@@ -307,18 +296,17 @@ public class SchedulerManager implements ApplicationAdapterAware, InitializableB
             if (lines == null) {
                 lines = Collections.emptyList();
             }
-            return new JsonBuilder().object()
-                    .put("type", "previousLines")
-                    .put("loggingGroup", loggingGroup)
-                    .put("lines", lines)
-                    .endObject()
-                    .toString();
+            JsonBuilder jsonBuilder = new JsonBuilder().put(lines);
+            return new SchedulerResponseParameters()
+                    .setHeader("previousLogs")
+                    .setOwner(loggingGroup)
+                    .setData(jsonBuilder.toJsonString());
         }
         return null;
     }
 
     @Nullable
-    private String performStateChange(@NonNull SchedulerRequestParameters request, boolean disabled) {
+    private SchedulerResponseParameters performStateChange(@NonNull SchedulerRequestParameters request, boolean disabled) {
         String serviceName = request.getServiceName();
         String scheduleId = request.getScheduleId();
         String jobName = request.getJobName();
@@ -331,32 +319,20 @@ public class SchedulerManager implements ApplicationAdapterAware, InitializableB
         return null;
     }
 
-    public void broadcast(String response) {
-        broadcast(getNodeId(), response);
-    }
-
     /**
      * Broadcasts a management result to all connected clients on this node.
-     * @param sourceNodeId the ID of the node where the message originated
      * @param response the result payload in JSON format
      */
-    public void broadcast(String sourceNodeId, String response) {
-        if (logger.isTraceEnabled()) {
-            logger.trace("Broadcasting scheduler result (source: {}) to local clients: {}", sourceNodeId, response);
-        }
-        broker.bridge(sourceNodeId, response);
+    public void bridge(SchedulerResponseParameters response) {
+        broker.bridge(response);
     }
 
-    public void bridge(String sessionId, String response) {
-        bridge(sessionId, getNodeId(), response);
-    }
-
-    public void bridge(String sessionId, String sourceNodeId, String response) {
+    public void bridge(String sessionId, SchedulerResponseParameters response) {
         SchedulerBridge bridge = sessionBridgeMap.get(sessionId);
         if (bridge != null) {
             SchedulerSession session = bridge.findSchedulerSession(sessionId);
             if (session != null) {
-                bridge.bridge(session, sourceNodeId, response);
+                bridge.bridge(session, response);
             }
         }
     }

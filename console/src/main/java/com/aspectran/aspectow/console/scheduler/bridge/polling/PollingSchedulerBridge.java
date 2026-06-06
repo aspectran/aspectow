@@ -16,6 +16,7 @@
 package com.aspectran.aspectow.console.scheduler.bridge.polling;
 
 import com.aspectran.aspectow.node.management.scheduler.SchedulerManager;
+import com.aspectran.aspectow.node.management.scheduler.SchedulerResponseParameters;
 import com.aspectran.aspectow.node.management.scheduler.bridge.SchedulerBridge;
 import com.aspectran.aspectow.node.management.scheduler.bridge.SchedulerBroker;
 import com.aspectran.aspectow.node.management.scheduler.bridge.SchedulerSession;
@@ -77,19 +78,17 @@ public class PollingSchedulerBridge extends AbstractComponent implements Schedul
     }
 
     @Override
-    public void bridge(String sourceNodeId, String data) {
-        if (!sessionManager.getSessions().isEmpty()) {
-            if (data != null && data.startsWith("scheduler:log:")) {
-                bufferedMessages.push(sourceNodeId + "\0" + data);
-            } else {
-                bufferedMessages.push(data);
-            }
+    public void bridge(SchedulerResponseParameters response) {
+        if (response != null && !sessionManager.getSessions().isEmpty()) {
+            bufferedMessages.push(response.toString());
         }
     }
 
     @Override
-    public void bridge(@NonNull SchedulerSession session, String sourceNodeId, String data) {
-        bridge(sourceNodeId, data);
+    public void bridge(@NonNull SchedulerSession session, SchedulerResponseParameters response) {
+        if (response != null && session instanceof PollingSchedulerSession pollingSchedulerSession) {
+            pollingSchedulerSession.push(response.toString());
+        }
     }
 
     public SchedulerBroker getBroker() {

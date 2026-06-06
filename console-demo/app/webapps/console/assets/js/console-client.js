@@ -19,7 +19,7 @@
  * automatically falling back to HTTP long-polling if WebSockets are unavailable.
  *
  * @version 4.0
- * @last-modified 2026-05-22
+ * @last-modified 2026-06-06
  */
 class ConsoleClient {
 
@@ -139,16 +139,16 @@ class ConsoleClient {
             this.socket.onmessage = (event) => {
                 if (typeof event.data === "string") {
                     try {
-                        const message = JSON.parse(event.data);
-                        const header = message.header;
+                        const response = JSON.parse(event.data);
+                        const header = response.header;
 
                         if (header === 'subscribed') {
                             console.log(this.node.id, "subscribed", this.activityPath);
-                            this.establish(message);
+                            this.establish(response);
                         } else if (header === 'pong') {
                             this.sendPing();
-                        } else if (header === 'result' || header === 'error') {
-                            this.handleMessage(message);
+                        } else {
+                            this.handleMessage(response);
                         }
                     } catch (e) {
                         console.error("Failed to parse incoming WebSocket message:", event.data, e);

@@ -17,8 +17,8 @@ package com.aspectran.aspectow.console.cluster;
 
 import com.aspectran.aspectow.appmon.common.auth.AppMonTokenIssuer;
 import com.aspectran.aspectow.node.manager.NodeManager;
-import com.aspectran.aspectow.node.manager.NodeMessageProtocol;
 import com.aspectran.aspectow.node.manager.NodeMessageListener;
+import com.aspectran.aspectow.node.manager.NodeMessageProtocol;
 import com.aspectran.aspectow.node.manager.NodeMessageSubscriber;
 import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Component;

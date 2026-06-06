@@ -16,6 +16,7 @@
 package com.aspectran.aspectow.node.management.scheduler.bridge;
 
 import com.aspectran.aspectow.node.management.scheduler.SchedulerManager;
+import com.aspectran.aspectow.node.management.scheduler.SchedulerResponseParameters;
 import com.aspectran.aspectow.node.manager.NodeMessagePublisher;
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
@@ -76,25 +77,6 @@ public class SchedulerBroker {
         if (!alreadyInUse) {
             schedulerManager.startExporters();
         }
-
-        // Relay initial log lines back to the requester node
-        if (messagePublisher != null) {
-            String sourceNodeId = schedulerManager.getNodeId();
-            for (String logMessage : schedulerManager.collectLastMessages()) {
-                try {
-                    String relayMessage = sourceNodeId + DELIMITER + logMessage;
-                    if (sessionId != null) {
-                        messagePublisher.publishRelay(
-                                CATEGORY_SCHEDULER, nodeId, sessionId, relayMessage);
-                    } else {
-                        messagePublisher.publishRelay(
-                                CATEGORY_SCHEDULER, nodeId, relayMessage);
-                    }
-                } catch (Exception e) {
-                    logger.error("Failed to relay initial log message to node: {}", nodeId, e);
-                }
-            }
-        }
     }
 
     public synchronized void release(@NonNull SchedulerSession session) {
@@ -129,41 +111,13 @@ public class SchedulerBroker {
 
     /**
      * Bridges a scheduler result to all connected clients.
-     * @param message the result payload to send
+     * @param response the result payload to send
      */
-    public void bridge(String message) {
-        bridge(schedulerManager.getNodeId(), message);
-    }
-
-    /**
-     * Bridges a scheduler result to all connected clients.
-     * @param sourceNodeId the ID of the node where the message originated
-     * @param message the result payload to send
-     */
-    public void bridge(String sourceNodeId, String message) {
+    public void bridge(SchedulerResponseParameters response) {
         Set<String> sessionIds = subscriptionRegistry.getAllSessionIds();
         for (String sid : sessionIds) {
-            schedulerManager.bridge(sid, sourceNodeId, message);
+            schedulerManager.bridge(sid, response);
         }
     }
-
-//    /**
-//     * Bridges a scheduler result to a specific session.
-//     * @param session the target session
-//     * @param data the result payload to send
-//     */
-//    public void bridge(@NonNull SchedulerSession session, String data) {
-//        bridge(session, schedulerManager.getNodeId(), data);
-//    }
-//
-//    /**
-//     * Bridges a scheduler result to a specific session.
-//     * @param session the target session
-//     * @param sourceNodeId the ID of the node where the message originated
-//     * @param data the result payload to send
-//     */
-//    public void bridge(@NonNull SchedulerSession session, String sourceNodeId, String data) {
-//        schedulerManager.bridge(session.getId(), sourceNodeId, data);
-//    }
 
 }

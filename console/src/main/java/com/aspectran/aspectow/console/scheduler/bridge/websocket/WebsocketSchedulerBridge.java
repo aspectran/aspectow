@@ -16,14 +16,13 @@
 package com.aspectran.aspectow.console.scheduler.bridge.websocket;
 
 import com.aspectran.aspectow.appmon.common.auth.AppMonTokenIssuer;
-import com.aspectran.aspectow.node.management.scheduler.bridge.SchedulerBridge;
-import com.aspectran.aspectow.node.management.scheduler.bridge.SchedulerSession;
 import com.aspectran.aspectow.node.management.scheduler.SchedulerManager;
 import com.aspectran.aspectow.node.management.scheduler.SchedulerRequestParameters;
 import com.aspectran.aspectow.node.management.scheduler.SchedulerResponseParameters;
+import com.aspectran.aspectow.node.management.scheduler.bridge.SchedulerBridge;
+import com.aspectran.aspectow.node.management.scheduler.bridge.SchedulerSession;
 import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Component;
-import com.aspectran.core.component.bean.annotation.Initialize;
 import com.aspectran.utils.StringUtils;
 import com.aspectran.utils.apon.JsonToParameters;
 import com.aspectran.utils.security.InvalidPBTokenException;
@@ -34,8 +33,6 @@ import jakarta.websocket.server.ServerEndpoint;
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Collection;
 
 import static com.aspectran.aspectow.node.management.scheduler.bridge.SchedulerBroker.CATEGORY_SCHEDULER;
 import static com.aspectran.aspectow.node.manager.NodeMessageProtocol.NODES_BASE_PATH;
@@ -136,12 +133,7 @@ public class WebsocketSchedulerBridge extends SimplifiedEndpoint implements Sche
 
     private void established(@NonNull Session session) {
         WebsocketSchedulerSession schedulerSession = new WebsocketSchedulerSession(session);
-        if (schedulerManager.getBroker().subscribe(schedulerSession)) {
-            // Send initial log lines to the new session
-            for (String message : schedulerManager.collectLastMessages()) {
-                sendText(session, message);
-            }
-        }
+        schedulerManager.getBroker().subscribe(schedulerSession);
         logger.debug("Scheduler management session established: session {}", session.getId());
     }
 
@@ -167,24 +159,16 @@ public class WebsocketSchedulerBridge extends SimplifiedEndpoint implements Sche
     }
 
     @Override
-    public void bridge(String sourceNodeId, String data) {
-        if (data != null) {
-            SchedulerResponseParameters responseParameters = new SchedulerResponseParameters()
-                    .setHeader("result")
-                    .setNodeId(sourceNodeId)
-                    .setResult(data);
-            broadcast(responseParameters.toString());
+    public void bridge(SchedulerResponseParameters response) {
+        if (response != null) {
+            broadcast(response.toString());
         }
     }
 
     @Override
-    public void bridge(@NonNull SchedulerSession session, String sourceNodeId, String data) {
+    public void bridge(@NonNull SchedulerSession session, SchedulerResponseParameters response) {
         if (session instanceof WebsocketSchedulerSession websocketSchedulerSession) {
-            SchedulerResponseParameters responseParameters = new SchedulerResponseParameters()
-                    .setHeader("result")
-                    .setNodeId(sourceNodeId)
-                    .setResult(data);
-            sendText(websocketSchedulerSession.getSession(), responseParameters.toString());
+            sendText(websocketSchedulerSession.getSession(), response.toString());
         }
     }
 
