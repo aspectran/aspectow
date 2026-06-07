@@ -19,7 +19,7 @@
  * automatically falling back to HTTP long-polling if WebSockets are unavailable.
  *
  * @version 4.0
- * @last-modified 2026-06-06
+ * @last-modified 2026-06-07
  */
 class ConsoleClient {
 
@@ -39,12 +39,7 @@ class ConsoleClient {
             onSubscribed: null,
             onEstablished: null,
             onFailed: null,
-            onError: null,
-            viewer: {
-                printMessage: (msg) => console.log(this.node.id, msg),
-                printErrorMessage: (msg) => console.error(this.node.id, msg),
-                processMessage: (msg) => console.log(this.node.id, "received:", msg)
-            }
+            onError: null
         }, options);
 
         if (this.options.token && this.node.endpoint) {
@@ -57,10 +52,8 @@ class ConsoleClient {
         this.retryCount = 0;
         this.established = false;
         this.manualClose = false;
-        this.pendingMessages = [];
         this.activityPath = null;
         this.mode = 'websocket'; // 'websocket' or 'polling'
-        this.sessionId = null;
     }
 
     /**
@@ -102,6 +95,25 @@ class ConsoleClient {
     }
 
     /**
+     * Closes the socket and clears timers.
+     * @param {boolean} afterClosing - whether this is called after the socket is already closed
+     * @private
+     */
+    closeSocket(afterClosing) {
+        if (this.socket) {
+            this.established = false;
+            if (!afterClosing) {
+                this.socket.close();
+            }
+            this.socket = null;
+        }
+        if (this.heartbeatTimer) {
+            clearTimeout(this.heartbeatTimer);
+            this.heartbeatTimer = null;
+        }
+    }
+
+    /**
      * Actually opens a new WebSocket connection.
      * @private
      */
@@ -125,7 +137,6 @@ class ConsoleClient {
             this.socket.onopen = (event) => {
                 console.log(this.node.id, "websocket connected");
                 this.retryCount = 0;
-                this.pendingMessages.push("Socket connection successful");
 
                 const subscribeMessage = { header: "subscribe", targetNodeId: this.node.id };
                 this.socket.send(JSON.stringify(subscribeMessage));
@@ -145,6 +156,7 @@ class ConsoleClient {
                         if (header === 'subscribed') {
                             console.log(this.node.id, "subscribed", this.activityPath);
                             this.establish(response);
+                            this.sendMessage(JSON.stringify({ header: "established" }));
                         } else if (header === 'pong') {
                             this.sendPing();
                         } else {
@@ -163,18 +175,15 @@ class ConsoleClient {
                         setTimeout(() => this.options.onClose(event), 100);
                     }
                     if (event.code === 1003) {
-                        console.warn("Websocket connection refused: ", event.code);
-                        this.options.viewer.printErrorMessage("Connection rejected: " + (event.reason || "Unauthorized"));
+                        console.warn("Websocket connection refused: ", event.code, (event.reason || "Unauthorized"));
                         return;
                     }
                     if (event.code === 1011) {
                         console.log("Websocket connection closed: ", event.code);
-                        this.options.viewer.printErrorMessage("Websocket connection closed due to server error.");
                         return;
                     }
                     if (event.code === 1000 || this.retryCount === 0) {
                         console.log("Websocket connection closed: ", event.code);
-                        this.options.viewer.printMessage("Websocket connection closed.");
                     }
                     if (event.code !== 1000) {
                         setTimeout(() => this.reconnect(), 1000);
@@ -218,12 +227,8 @@ class ConsoleClient {
             .then(res => res.json())
             .then(res => {
                 if (res.success) {
-                    this.sessionId = res.data;
-                    this.established = true;
-                    this.options.viewer.printMessage("Joined via HTTP Polling");
-                    if (this.options.onEstablished) {
-                        this.options.onEstablished(this.node);
-                    }
+                    console.log(this.node.id, "subscribed", this.activityPath);
+                    this.establish(res.data);
                     this.poll();
                 } else {
                     throw new Error(res.error ? res.error.message : "Failed to join polling session");
@@ -247,7 +252,7 @@ class ConsoleClient {
             path = p + a;
         }
 
-        const pullUrl = path + "/pull?sessionId=" + this.sessionId;
+        const pullUrl = path + "/pull";
         fetch(pullUrl, {
             headers: {
                 'Accept': 'application/json'
@@ -256,27 +261,8 @@ class ConsoleClient {
             .then(res => res.json())
             .then(res => {
                 if (res.success) {
-                    const messages = res.data;
-                    if (messages && messages.length > 0) {
-                        messages.forEach(msg => {
-                            let sourceNodeId = this.node.id;
-                            let content = msg;
-                            const idx = msg.indexOf('\u001F');
-                            if (idx !== -1) {
-                                sourceNodeId = msg.substring(0, idx);
-                                content = msg.substring(idx + 1);
-                            }
-
-                            try {
-                                const message = JSON.parse(content);
-                                message.nodeId = sourceNodeId;
-                                this.handleMessage(message);
-                            } catch (e) {
-                                // Raw string result
-                                this.handleMessage({ header: "result", nodeId: sourceNodeId, result: content });
-                            }
-                        });
-                    }
+                    const response = JSON.parse(res.data);
+                    this.handleMessage(response);
                     this.pollingTimer = setTimeout(() => this.poll(), this.options.pollingInterval);
                 } else {
                     throw new Error(res.error ? res.error.message : "Polling failed");
@@ -295,33 +281,6 @@ class ConsoleClient {
         }
     }
 
-    handleMessage(message) {
-        if (this.options.onMessage) {
-            this.options.onMessage(message);
-        } else {
-            this.options.viewer.processMessage(message);
-        }
-    }
-
-    /**
-     * Closes the socket and clears timers.
-     * @param {boolean} afterClosing - whether this is called after the socket is already closed
-     * @private
-     */
-    closeSocket(afterClosing) {
-        if (this.socket) {
-            this.established = false;
-            if (!afterClosing) {
-                this.socket.close();
-            }
-            this.socket = null;
-        }
-        if (this.heartbeatTimer) {
-            clearTimeout(this.heartbeatTimer);
-            this.heartbeatTimer = null;
-        }
-    }
-
     /**
      * Completes the connection process after receiving the 'subscribed' message.
      * @param {Object} payload - payload from the server
@@ -331,37 +290,15 @@ class ConsoleClient {
         if (this.options.onSubscribed) {
             this.options.onSubscribed(this.node, payload);
         }
-        while (this.pendingMessages.length) {
-            this.options.viewer.printMessage(this.pendingMessages.shift());
-        }
         if (this.options.onEstablished) {
             this.options.onEstablished(this.node);
         }
         this.established = true;
-        this.socket.send(JSON.stringify({ header: "established" }));
     }
 
-    /**
-     * Retries the connection with exponential backoff.
-     * @private
-     */
-    reconnect() {
-        if (this.retryCount < this.options.maxRetries) {
-            this.retryCount++;
-            const jitter = Math.floor(Math.random() * 1000);
-            const interval = (this.options.retryInterval * this.retryCount) + jitter;
-            const status = "(" + this.retryCount + "/" + this.options.maxRetries + ", interval=" + interval + "ms)";
-
-            this.options.viewer.printMessage("Trying to reconnect... " + status);
-            if (this.options.onRetry) {
-                this.options.onRetry(this.retryCount, this.options.maxRetries, interval);
-            }
-            setTimeout(() => {
-                this.openSocket();
-            }, interval);
-        } else {
-            console.log(this.node.id, "abort reconnect attempt, switching to polling");
-            this.switchToPolling();
+    handleMessage(message) {
+        if (this.options.onMessage) {
+            this.options.onMessage(message);
         }
     }
 
@@ -379,21 +316,6 @@ class ConsoleClient {
             } catch (e) {
                 console.error("Failed to parse message for polling execution:", data);
             }
-        }
-    }
-
-    /**
-     * Sends a command to the server.
-     * @param {string} command - the command name
-     * @param {string[]} [args] - optional arguments
-     */
-    sendCommand(command, args = []) {
-        if (this.mode === 'websocket' && this.socket && this.socket.readyState === WebSocket.OPEN) {
-            const options = ["command:" + command, ...args];
-            this.socket.send(options.join(";"));
-        } else if (this.mode === 'polling') {
-            const targetNodeId = (args && args.length > 0) ? args[0] : this.node.id;
-            this.executePollingCommand(command, targetNodeId);
         }
     }
 
@@ -440,6 +362,29 @@ class ConsoleClient {
                 this.socket.send(JSON.stringify({ header: "ping" }));
             }
         }, this.options.heartbeatInterval);
+    }
+
+    /**
+     * Retries the connection with exponential backoff.
+     * @private
+     */
+    reconnect() {
+        if (this.retryCount < this.options.maxRetries) {
+            this.retryCount++;
+            const jitter = Math.floor(Math.random() * 1000);
+            const interval = (this.options.retryInterval * this.retryCount) + jitter;
+            const status = "(" + this.retryCount + "/" + this.options.maxRetries + ", interval=" + interval + "ms)";
+            console.log(this.node.id, "reconnect attempt", status);
+            if (this.options.onRetry) {
+                this.options.onRetry(this.retryCount, this.options.maxRetries, interval);
+            }
+            setTimeout(() => {
+                this.openSocket();
+            }, interval);
+        } else {
+            console.log(this.node.id, "abort reconnect attempt, switching to polling");
+            this.switchToPolling();
+        }
     }
 
 }

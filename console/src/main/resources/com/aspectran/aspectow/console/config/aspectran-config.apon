@@ -6,6 +6,7 @@ context: {
     ]
     scan: [
         com.aspectran.aspectow.appmon.engine
+        com.aspectran.aspectow.console.appmon
         com.aspectran.aspectow.console.auth
         com.aspectran.aspectow.console.cluster
         com.aspectran.aspectow.console.commands
