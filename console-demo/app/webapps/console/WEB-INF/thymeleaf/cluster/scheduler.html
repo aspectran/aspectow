@@ -72,6 +72,28 @@
             justify-content: space-between;
             align-items: center;
         }
+        .log-wrapper.expanded {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 1050;
+            display: flex;
+            flex-direction: column;
+            background: #1e1e1e;
+        }
+        .log-wrapper.expanded .log-header {
+            border-radius: 0;
+            padding: 10px 20px;
+        }
+        .log-wrapper.expanded .log-container {
+            flex: 1;
+            height: auto;
+            border-radius: 0;
+            border: none;
+            font-size: 0.9rem;
+        }
     </style>
 </head>
 <body>
@@ -512,21 +534,26 @@
 
                     if (service.schedules && service.schedules.length > 0) {
                         html += `<!-- Log Viewer Section -->
-                        <div class="log-header">
-                            <span><i class="bi bi-terminal me-2"></i>Live Scheduler Logs</span>
-                            <div class="d-flex align-items-center gap-3">
-                                <button class="btn btn-link btn-xs text-secondary p-0 text-decoration-none" onclick="clearLog('${service.loggingGroup}')">
-                                    <i class="bi bi-trash3"></i> Clear
-                                </button>
-                                <div class="form-check form-check-inline m-0 d-flex align-items-center">
-                                    <input class="form-check-input me-2" type="checkbox" id="auto-scroll-${service.loggingGroup}" checked style="cursor:pointer">
-                                    <label class="form-check-label text-secondary" for="auto-scroll-${service.loggingGroup}" style="cursor:pointer; font-size: 0.75rem;">Auto-scroll</label>
+                        <div id="log-wrapper-${service.loggingGroup}" class="log-wrapper">
+                            <div class="log-header">
+                                <span><i class="bi bi-terminal me-2"></i>Live Scheduler Logs</span>
+                                <div class="d-flex align-items-center gap-3">
+                                    <button class="btn btn-link btn-xs text-secondary p-0 text-decoration-none" onclick="clearLog('${service.loggingGroup}')">
+                                        <i class="bi bi-trash3"></i> Clear
+                                    </button>
+                                    <button class="btn btn-link btn-xs text-secondary p-0 text-decoration-none expand-btn" onclick="toggleExpandLog('${service.loggingGroup}')">
+                                        <i class="bi bi-arrows-angle-expand"></i> Expand
+                                    </button>
+                                    <div class="form-check form-check-inline m-0 d-flex align-items-center">
+                                        <input class="form-check-input me-2" type="checkbox" id="auto-scroll-${service.loggingGroup}" checked style="cursor:pointer">
+                                        <label class="form-check-label text-secondary" for="auto-scroll-${service.loggingGroup}" style="cursor:pointer; font-size: 0.75rem;">Auto-scroll</label>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div id="log-viewer-${service.loggingGroup}" class="log-container" 
-                             onscroll="onLogScroll(this, '${service.loggingGroup}')">
-                            <div class="text-muted italic">Waiting for logs...</div>
+                            <div id="log-viewer-${service.loggingGroup}" class="log-container" 
+                                 onscroll="onLogScroll(this, '${service.loggingGroup}')">
+                                <div class="text-muted italic">Waiting for logs...</div>
+                            </div>
                         </div>`;
                     }
 
@@ -607,7 +634,8 @@
 
             function onLogScroll(container, loggingGroup) {
                 const $container = $(container);
-                if ($container.scrollTop() === 0 && !$container.data('loading') && !$container.data('no-more-logs')) {
+                if ($container.scrollTop() === 0 && $container.children('.log-line').length > 0 &&
+                    !$container.data('loading') && !$container.data('no-more-logs')) {
                     fetchPreviousLogs(loggingGroup);
                 }
             }
@@ -637,6 +665,29 @@
                 $container.empty().append('<div class="text-muted italic">Log cleared.</div>');
                 $container.data('no-more-logs', false);
                 $container.data('loading', false);
+            }
+
+            function toggleExpandLog(loggingGroup) {
+                const $wrapper = $(`#log-wrapper-${loggingGroup}`);
+                const isExpanded = $wrapper.toggleClass('expanded').hasClass('expanded');
+                const $btn = $wrapper.find('.expand-btn');
+                const $icon = $btn.find('i');
+                const $container = $wrapper.find('.log-container');
+                
+                if (isExpanded) {
+                    $icon.removeClass('bi-arrows-angle-expand').addClass('bi-arrows-angle-contract');
+                    $btn.contents().last()[0].textContent = ' Collapse';
+                    $('body').css('overflow', 'hidden');
+                } else {
+                    $icon.removeClass('bi-arrows-angle-contract').addClass('bi-arrows-angle-expand');
+                    $btn.contents().last()[0].textContent = ' Expand';
+                    $('body').css('overflow', '');
+                }
+                
+                // Auto-scroll to bottom if checked
+                if ($(`#auto-scroll-${loggingGroup}`).is(':checked')) {
+                    $container.scrollTop($container[0].scrollHeight);
+                }
             }
 
             function updateStats(schedules, jobs, isolated, node) {
