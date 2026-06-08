@@ -169,6 +169,17 @@ public class PollingRelaySession implements RelaySession {
         }
     }
 
+    @Override
+    public boolean isValid() {
+        return !isExpired();
+    }
+
+    protected boolean isExpired() {
+        try (AutoLock ignored = autoLock.lock()) {
+            return expired;
+        }
+    }
+
     /**
      * Updates the session's last access time and schedules the next expiry check.
      * @param create {@code true} if the session is being created
@@ -191,17 +202,6 @@ public class PollingRelaySession implements RelaySession {
         try (AutoLock ignored = autoLock.lock()) {
             expiryTimer.destroy();
             messageQueue.clear();
-        }
-    }
-
-    @Override
-    public boolean isValid() {
-        return !isExpired();
-    }
-
-    protected boolean isExpired() {
-        try (AutoLock ignored = autoLock.lock()) {
-            return expired;
         }
     }
 

@@ -111,7 +111,6 @@ public class SchedulerActivity {
     /**
      * Joins a polling session.
      * @param nodeId the node ID to join
-     * @return the node ID
      */
     @Request("/subscribe")
     public RestResponse subscribe(String nodeId) {
@@ -129,7 +128,6 @@ public class SchedulerActivity {
     /**
      * Pulls new scheduler messages for a polling session.
      * @param translet the translet
-     * @return an array of messages
      */
     @Request("/pull")
     public RestResponse pull(@NonNull Translet translet) {

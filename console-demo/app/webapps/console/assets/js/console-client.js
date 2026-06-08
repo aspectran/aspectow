@@ -113,6 +113,16 @@ class ConsoleClient {
         }
     }
 
+    endpointPath() {
+        let path = this.node.endpoint.path;
+        if (this.activityPath) {
+            const p = (path.endsWith('/') ? path : path + '/');
+            const a = (this.activityPath.startsWith('/') ? this.activityPath.substring(1) : this.activityPath);
+            path = p + a;
+        }
+        return path;
+    }
+
     /**
      * Actually opens a new WebSocket connection.
      * @private
@@ -121,13 +131,7 @@ class ConsoleClient {
         this.mode = 'websocket';
         this.closeSocket(false);
 
-        let path = this.node.endpoint.path;
-        if (this.activityPath) {
-            const p = (path.endsWith('/') ? path : path + '/');
-            const a = (this.activityPath.startsWith('/') ? this.activityPath.substring(1) : this.activityPath);
-            path = p + a;
-        }
-        const url = new URL(path + "/websocket/" + this.node.endpoint.token, location.href);
+        const url = new URL(this.endpointPath() + "/websocket/" + this.node.endpoint.token, location.href);
         url.protocol = url.protocol.replace("https:", "wss:").replace("http:", "ws:");
 
         console.log(this.node.id, "connecting to websocket:", url.href);
@@ -211,14 +215,8 @@ class ConsoleClient {
 
     startPolling() {
         this.stopPolling();
-        let path = this.node.endpoint.path;
-        if (this.activityPath) {
-            const p = (path.endsWith('/') ? path : path + '/');
-            const a = (this.activityPath.startsWith('/') ? this.activityPath.substring(1) : this.activityPath);
-            path = p + a;
-        }
 
-        const subscribeUrl = path + "/subscribe?nodeId=" + this.node.id;
+        const subscribeUrl = this.endpointPath() + "/polling/subscribe?nodeId=" + this.node.id;
         fetch(subscribeUrl, {
             headers: {
                 'Accept': 'application/json'
@@ -245,14 +243,7 @@ class ConsoleClient {
     poll() {
         if (this.mode !== 'polling' || this.manualClose) return;
 
-        let path = this.node.endpoint.path;
-        if (this.activityPath) {
-            const p = (path.endsWith('/') ? path : path + '/');
-            const a = (this.activityPath.startsWith('/') ? this.activityPath.substring(1) : this.activityPath);
-            path = p + a;
-        }
-
-        const pullUrl = path + "/pull";
+        const pullUrl = this.endpointPath() + "/polling/pull";
         fetch(pullUrl, {
             headers: {
                 'Accept': 'application/json'
@@ -320,14 +311,7 @@ class ConsoleClient {
     }
 
     executePollingCommand(command, nodeId) {
-        let path = this.node.endpoint.path;
-        if (this.activityPath) {
-            const p = (path.endsWith('/') ? path : path + '/');
-            const a = (this.activityPath.startsWith('/') ? this.activityPath.substring(1) : this.activityPath);
-            path = p + a;
-        }
-
-        const executeUrl = path + "/execute";
+        const executeUrl = this.endpointPath() + "/polling/execute";
         const formData = new URLSearchParams();
         formData.append("nodeId", nodeId || this.node.id);
         formData.append("command", command);

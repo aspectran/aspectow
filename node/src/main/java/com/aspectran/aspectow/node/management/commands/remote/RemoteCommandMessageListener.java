@@ -62,7 +62,7 @@ public class RemoteCommandMessageListener implements NodeMessageListener {
             if (message.startsWith(CommandBroker.CONTROL_SUBSCRIBE)) {
                 remoteCommandManager.getBroker().subscribeRemotely(requesterNodeId, sessionId);
             } else if (message.startsWith(CommandBroker.CONTROL_RELEASE)) {
-                remoteCommandManager.getBroker().releaseRemotely(requesterNodeId);
+                remoteCommandManager.getBroker().unsubscribeRemotely(requesterNodeId);
             }
         } else if (message.startsWith(CommandBroker.CONTROL_REQUEST)) {
             String requestData = message.substring(CommandBroker.CONTROL_REQUEST.length());

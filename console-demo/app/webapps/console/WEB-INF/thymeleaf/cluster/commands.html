@@ -441,8 +441,8 @@ arguments: {
                 consoleClient = new ConsoleClient(nodeInfo, {
                     onBeforeConnect: () => {
                         return fetch(basePath + "/cluster/token", {
-                            headers: { 'Accept': 'application/json' }
-                        })
+                                headers: { 'Accept': 'application/json' }
+                            })
                             .then(response => response.json())
                             .then(res => res.success ? res.data : null)
                             .catch(err => {

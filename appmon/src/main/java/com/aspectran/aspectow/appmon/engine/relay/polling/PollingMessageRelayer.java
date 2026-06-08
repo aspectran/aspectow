@@ -98,7 +98,7 @@ public class PollingMessageRelayer implements MessageRelayer {
     public Map<String, Object> subscribe(@NonNull Translet translet) throws IOException {
         String nodeId = translet.getParameter("nodeId");
         Assert.hasText(nodeId, "Node ID cannot be empty");
-        String nodeToSubscribe = translet.getParameter("nodeId");
+        String nodeToSubscribe = translet.getParameter("nodeToSubscribe");
         if (messageRelayManager.isSameNode(nodeId) || StringUtils.hasText(nodeToSubscribe)) {
             String appsToSubscribe = translet.getParameter("appsToSubscribe");
             String[] appIds = StringUtils.splitWithComma(appsToSubscribe);
@@ -118,11 +118,10 @@ public class PollingMessageRelayer implements MessageRelayer {
                     "alive", true
             );
         } else if (messageRelayManager.isGatewayMode()) {
-            String nodeInfo = messageRelayManager.getNodeRegistry().getNode(nodeId);
             return Map.of(
                     "nodeId", nodeId,
                     "primary", false,
-                    "alive", (nodeInfo != null)
+                    "alive", messageRelayManager.getNodeRegistry().isFound(nodeId)
             );
         } else {
             return null;

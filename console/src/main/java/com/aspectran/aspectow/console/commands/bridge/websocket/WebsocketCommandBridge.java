@@ -110,7 +110,7 @@ public class WebsocketCommandBridge extends SimplifiedEndpoint implements Comman
     protected void onSessionRemoved(@NonNull Session session) {
         remoteCommandManager.unregisterSession(session.getId());
         WebsocketCommandSession commandSession = new WebsocketCommandSession(session);
-        remoteCommandManager.getBroker().release(commandSession);
+        remoteCommandManager.getBroker().unsubscribe(commandSession);
         logger.debug("Remote command WebSocket session removed: {} (Total: {})", session.getId(), countSessions());
     }
 

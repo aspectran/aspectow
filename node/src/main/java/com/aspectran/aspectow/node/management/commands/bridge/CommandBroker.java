@@ -65,7 +65,7 @@ public class CommandBroker {
         subscriptionRegistry.addRemoteSubscription(nodeId);
     }
 
-    public synchronized void release(@NonNull CommandSession session) {
+    public synchronized void unsubscribe(@NonNull CommandSession session) {
         subscriptionRegistry.removeLocalSubscription(session.getId());
         String targetNodeId = session.getNodeId();
         if (commandManager.isGatewayMode() && !commandManager.isSameNode(targetNodeId)) {
@@ -73,8 +73,8 @@ public class CommandBroker {
         }
     }
 
-    public synchronized void releaseRemotely(String nodeId) {
-        logger.info("Received command release request from node: {}", nodeId);
+    public synchronized void unsubscribeRemotely(String nodeId) {
+        logger.info("Received command unsubscribe request from node: {}", nodeId);
         subscriptionRegistry.removeRemoteSubscription(nodeId);
     }
 
