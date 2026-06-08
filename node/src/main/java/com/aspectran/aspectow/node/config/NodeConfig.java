@@ -38,8 +38,8 @@ public class NodeConfig extends DefaultParameters {
 
     static {
         cluster = new ParameterKey("cluster", ClusterConfig.class);
-        group = new ParameterKey("groups", new String[] {"group"}, GroupInfo.class, true, true);
-        node = new ParameterKey("nodes", new String[] {"node"}, NodeInfo.class, true, true);
+        group = new ParameterKey("group", new String[] {"groups"}, GroupInfo.class, true, true);
+        node = new ParameterKey("node", new String[] {"nodes"}, NodeInfo.class, true, true);
 
         parameterKeys = new ParameterKey[] {
                 cluster,

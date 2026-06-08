@@ -13,7 +13,7 @@ node: {
     group: group1
     title: Localhost(Websocket Mode)
     endpoint: {
-        mode: auto
+        mode: polling
     }
 }
 #node: {

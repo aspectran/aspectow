@@ -87,7 +87,6 @@ class ConsoleClient {
                 this.connect();
             }).catch((err) => {
                 console.error(this.node.id, "failed to prepare connection:", err);
-                this.switchToPolling();
             });
         } else {
             this.connect();

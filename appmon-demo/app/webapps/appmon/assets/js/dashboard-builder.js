@@ -136,11 +136,6 @@ class DashboardBuilder {
     }
 
     connect(nodeIndex) {
-        if (nodeIndex === 0) {
-            console.log("cluster mode:", this.clusterMode);
-            console.log("connecting node:", nodeIndex);
-        }
-
         const onSubscribed = (node, primary) => {
             if (node.subscribed && node.subscribeAttempts > 0) return;
             if (primary) {
@@ -216,6 +211,12 @@ class DashboardBuilder {
         };
 
         const node = this.nodes[nodeIndex];
+        if (nodeIndex === 0) {
+            console.log("cluster mode:", this.clusterMode);
+            console.log("endpoint mode:", node.endpoint.mode);
+        }
+        console.log("connecting node:", nodeIndex);
+
         if (node.subscribed) return;
         const viewer = this.viewers[nodeIndex];
 

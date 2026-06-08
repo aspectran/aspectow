@@ -24,6 +24,7 @@ import com.aspectran.core.activity.Translet;
 import com.aspectran.core.component.AbstractComponent;
 import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Component;
+import com.aspectran.core.component.bean.annotation.Request;
 import com.aspectran.core.component.bean.annotation.RequestToGet;
 import com.aspectran.core.component.bean.annotation.RequestToPost;
 import com.aspectran.utils.Assert;
@@ -81,7 +82,7 @@ public class PollingCommandBridge extends AbstractComponent implements CommandBr
      * Allows a client to subscribe and start a polling session.
      * @param translet the current translet
      */
-    @RequestToPost("/polling/subscribe")
+    @Request("/polling/subscribe")
     public RestResponse subscribe(@NonNull Translet translet) {
         String nodeId = translet.getParameter("nodeId");
         Assert.hasText(nodeId, "Node ID cannot be empty");
@@ -124,6 +125,11 @@ public class PollingCommandBridge extends AbstractComponent implements CommandBr
      */
     @RequestToPost("/polling/execute")
     public RestResponse executeCommand(@NonNull Translet translet) {
+        PollingCommandSession session = pollingSessionManager.getSession(translet);
+        if (session == null) {
+            return new FailureResponse().setError("not_found", "Session not found");
+        }
+
         String targetNodeId = translet.getParameter("nodeId");
         String targetGroup = translet.getParameter("targetGroup");
         boolean targetAll = Boolean.parseBoolean(translet.getParameter("targetAll"));
@@ -136,10 +142,11 @@ public class PollingCommandBridge extends AbstractComponent implements CommandBr
         try {
             RemoteRequestParameters request = new RemoteRequestParameters();
             request.setHeader("execute");
-            request.setCommand(command);
+            request.setSessionId(session.getId());
             request.setTargetNodeId(targetNodeId);
             request.setTargetGroup(targetGroup);
             request.setTargetAll(targetAll);
+            request.setCommand(command);
 
             remoteCommandManager.process(request);
             return new SuccessResponse("Command initiated successfully").ok();
