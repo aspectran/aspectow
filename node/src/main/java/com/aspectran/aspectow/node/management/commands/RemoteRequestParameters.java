@@ -127,8 +127,4 @@ public class RemoteRequestParameters extends DefaultParameters {
         putValue(RemoteRequestParameters.command, command);
     }
 
-    public void setCommand(String command) {
-        putValue(RemoteRequestParameters.command, command);
-    }
-
 }

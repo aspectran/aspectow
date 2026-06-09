@@ -314,7 +314,7 @@
                             command: "services",
                             targetNodeId: currentNodeId
                         };
-                        consoleClient.sendMessage(JSON.stringify(message));
+                        consoleClient.sendMessage(message);
                     },
                     onRetry: (count, max) => {
                         $('#connection-indicator').text(`RECONNECTING (${count}/${max})...`).removeClass("bg-success bg-danger").addClass("bg-warning");
@@ -657,7 +657,7 @@
                     loggingGroup: loggingGroup,
                     loadedLines: loadedCount
                 };
-                consoleClient.sendMessage(JSON.stringify(message));
+                consoleClient.sendMessage(message);
             }
 
             function clearLog(loggingGroup) {
@@ -707,8 +707,7 @@
                 };
                 if (type === 'schedule') message.scheduleId = id;
                 if (type === 'job') message.jobName = id;
-
-                consoleClient.sendMessage(JSON.stringify(message));
+                consoleClient.sendMessage(message);
             }
 
             $(function() {
@@ -731,7 +730,7 @@
                                 command: "services",
                                 targetNodeId: currentNodeId
                             };
-                            consoleClient.sendMessage(JSON.stringify(message));
+                            consoleClient.sendMessage(message);
                         } else {
                             doConnectToNode(currentNodeId);
                         }

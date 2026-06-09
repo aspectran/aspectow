@@ -353,8 +353,7 @@ arguments: {
                     if (targetType === 'node') message.targetNodeId = targetValue;
                     if (targetType === 'group') message.targetGroup = targetValue;
                     if (targetType === 'all') message.targetAll = true;
-
-                    consoleClient.sendMessage(JSON.stringify(message));
+                    consoleClient.sendMessage(message);
                 }
             }
 

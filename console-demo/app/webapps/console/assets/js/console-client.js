@@ -157,9 +157,9 @@ class ConsoleClient {
                         const header = response.header;
 
                         if (header === 'subscribed') {
-                            console.log(this.node.id, "subscribed", this.activityPath);
+                            console.log("subscribed", response.nodeId);
                             this.establish(response);
-                            this.sendMessage(JSON.stringify({ header: "established" }));
+                            this.sendMessage({ header: "established" });
                         } else if (header === 'pong') {
                             this.sendPing();
                         } else {
@@ -224,15 +224,18 @@ class ConsoleClient {
             .then(res => res.json())
             .then(res => {
                 if (res.success) {
-                    console.log(this.node.id, "subscribed", this.activityPath);
+                    console.log("subscribed", res.data.nodeId);
+                    if (res.data.pollingInterval) {
+                        this.options.pollingInterval = res.data.pollingInterval;
+                    }
                     this.establish(res.data);
                     this.poll();
                 } else {
-                    throw new Error(res.error ? res.error.message : "Failed to join polling session");
+                    throw new Error(res.error.message);
                 }
             })
             .catch(err => {
-                console.error(this.node.id, "failed to join polling session:", err);
+                console.error("Failed to start polling:", err);
                 if (this.options.onFailed) {
                     this.options.onFailed(this.node);
                 }
@@ -294,42 +297,38 @@ class ConsoleClient {
 
     /**
      * Sends a raw message to the server.
-     * @param {string} data - the message data to send
+     * @param {string} messageData - the message data to send
      */
-    sendMessage(data) {
+    sendMessage(messageData) {
         if (this.mode === 'websocket' && this.socket && this.socket.readyState === WebSocket.OPEN) {
-            this.socket.send(data);
+            this.socket.send(JSON.stringify(messageData));
         } else if (this.mode === 'polling') {
             try {
-                const message = JSON.parse(data);
-                this.executePollingCommand(message.command, message.targetNodeId);
+                this.pushMessage(messageData);
             } catch (e) {
-                console.error("Failed to parse message for polling execution:", data);
+                console.error("Failed to push message:", messageData);
             }
         }
     }
 
-    executePollingCommand(command, nodeId) {
-        const executeUrl = this.endpointPath() + "/polling/execute";
-        const formData = new URLSearchParams();
-        formData.append("nodeId", nodeId || this.node.id);
-        formData.append("command", command);
-
-        fetch(executeUrl, {
+    pushMessage(messageData) {
+        if (this.mode !== 'polling' || this.manualClose) return;
+        fetch(this.endpointPath() + "/polling/push", {
             method: 'POST',
-            body: formData,
             headers: {
+                'Content-Type': 'application/json',
                 'Accept': 'application/json'
-            }
+            },
+            body: JSON.stringify(messageData)
         }).then(res => res.json())
         .then(res => {
             if (res.success) {
-                console.log(this.node.id, "polling command executed:", res.data);
+                console.log("message pushed:", messageData, res.data);
             } else {
-                console.error(this.node.id, "polling command failed:", res.error.message);
+                console.error("message processing failed:", messageData, res.error.message);
             }
         })
-        .catch(err => console.error(this.node.id, "polling command failed:", err));
+        .catch(err => console.error("message processing failed:", err));
     }
 
     /**

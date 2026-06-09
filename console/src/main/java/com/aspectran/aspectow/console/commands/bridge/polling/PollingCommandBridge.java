@@ -29,6 +29,7 @@ import com.aspectran.core.component.bean.annotation.RequestToGet;
 import com.aspectran.core.component.bean.annotation.RequestToPost;
 import com.aspectran.utils.Assert;
 import com.aspectran.utils.StringUtils;
+import com.aspectran.utils.apon.Parameters;
 import com.aspectran.web.activity.response.RestResponse;
 import com.aspectran.web.support.rest.response.FailureResponse;
 import com.aspectran.web.support.rest.response.SuccessResponse;
@@ -85,7 +86,9 @@ public class PollingCommandBridge extends AbstractComponent implements CommandBr
     @Request("/polling/subscribe")
     public RestResponse subscribe(@NonNull Translet translet) {
         String nodeId = translet.getParameter("nodeId");
-        Assert.hasText(nodeId, "Node ID cannot be empty");
+        if (StringUtils.isEmpty(nodeId)) {
+            return new FailureResponse("Node ID cannot be empty");
+        }
 
         PollingCommandSession commandSession = pollingSessionManager.getSession(translet);
         if (commandSession == null) {
@@ -123,31 +126,20 @@ public class PollingCommandBridge extends AbstractComponent implements CommandBr
      * Creates a command to be sent to a specific node or all nodes.
      * @return a success message
      */
-    @RequestToPost("/polling/execute")
-    public RestResponse executeCommand(@NonNull Translet translet) {
+    @RequestToPost("/polling/push")
+    public RestResponse push(@NonNull Translet translet, @NonNull RemoteRequestParameters request) {
         PollingCommandSession session = pollingSessionManager.getSession(translet);
         if (session == null) {
             return new FailureResponse().setError("not_found", "Session not found");
         }
 
-        String targetNodeId = translet.getParameter("nodeId");
-        String targetGroup = translet.getParameter("targetGroup");
-        boolean targetAll = Boolean.parseBoolean(translet.getParameter("targetAll"));
-        String command = translet.getParameter("command");
-
-        if (StringUtils.isEmpty(command)) {
+        if (request.getCommand() == null) {
             return new FailureResponse().setError("required", "Command is required");
         }
 
         try {
-            RemoteRequestParameters request = new RemoteRequestParameters();
             request.setHeader("execute");
             request.setSessionId(session.getId());
-            request.setTargetNodeId(targetNodeId);
-            request.setTargetGroup(targetGroup);
-            request.setTargetAll(targetAll);
-            request.setCommand(command);
-
             remoteCommandManager.process(request);
             return new SuccessResponse("Command initiated successfully").ok();
         } catch (Exception e) {
