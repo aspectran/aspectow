@@ -181,7 +181,7 @@ arguments: {
             const templates = {
                 sysinfo: 'command: sysinfo\narguments: {\n    item: { value: mem }\n    item: { value: props }\n}',
                 polling: 'command: pollingInterval\narguments: {\n    item: { value: 5000, valueType: long }\n}',
-                translet: 'command: translet\ntranslet: hello',
+                translet: 'command: translet\ntranslet: sample/commands/hello',
                 restart: 'command: restart\nrequeuable: false'
             };
 
@@ -496,16 +496,18 @@ arguments: {
                             if (nodeId) {
                                 nodeResult += `[Node: ${nodeId}]\n`;
                             }
-                            if (error) {
-                                nodeResult += "[ERROR] " + error;
-                                target.status = 'failed';
-                            } else {
-                                nodeResult += result;
-                                if (result && result.includes('[FAILED]')) {
+                            if (result !== undefined && result !== null) {
+                                nodeResult += result + "\n";
+                                if (result.includes('[FAILED]')) {
                                     target.status = 'failed';
                                 } else if (target.status !== 'failed') {
                                     target.status = 'completed';
                                 }
+                            } else if (target.status !== 'failed') {
+                                target.status = 'completed';
+                            }
+                            if (error) {
+                                nodeResult += "[ERROR] " + error;
                             }
 
                             if (target.result) {

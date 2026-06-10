@@ -72,7 +72,7 @@ public class LocalCommandService {
      * @param commandData the command payload in APON/JSON format
      * @return the execution result
      */
-    public String execute(String commandData) {
+    public CommandResult execute(String commandData) {
         if (daemonService == null) {
             setupDaemonService();
         }
@@ -83,14 +83,14 @@ public class LocalCommandService {
                 if (!commandResult.isSuccess() && commandResult.getError() != null) {
                     logger.error("Local command execution failed: {}", commandResult.getError());
                 }
-                return commandResult.getResult();
+                return commandResult;
             } catch (Exception e) {
                 logger.error("Error executing local daemon command", e);
-                return "[FAILED] Error executing command: " + e.getMessage();
+                return new CommandResult(false, "[FAILED] Error executing local daemon command", e.getMessage());
             }
         } else {
             logger.warn("DaemonService is not available for local command processing");
-            return "[FAILED] Local DaemonService is not available";
+            return new CommandResult(false, "[FAILED] Local DaemonService is not available");
         }
     }
 

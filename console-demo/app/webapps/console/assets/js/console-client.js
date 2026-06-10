@@ -222,7 +222,12 @@ class ConsoleClient {
                 'Accept': 'application/json'
             }
         })
-            .then(res => res.json())
+            .then(res => {
+                if (!res.ok) {
+                    throw new Error("HTTP error " + res.status);
+                }
+                return res.json();
+            })
             .then(res => {
                 if (res.success) {
                     console.log("subscribed", res.data.nodeId);
@@ -251,17 +256,28 @@ class ConsoleClient {
                 'Accept': 'application/json'
             }
         })
-            .then(res => res.json())
             .then(res => {
-                if (res.success && res.data) {
-                    res.data.forEach(msg => {
-                        try {
-                            const response = JSON.parse(msg);
-                            this.handleMessage(response);
-                        } catch (e) {
-                            console.error(this.node.id, "failed to parse poll message:", msg, e);
-                        }
-                    });
+                if (!res.ok) {
+                    throw new Error("HTTP error " + res.status);
+                }
+                return res.json();
+            })
+            .then(res => {
+                if (res.success) {
+                    if (res.data) {
+                        res.data.forEach(msg => {
+                            try {
+                                const response = JSON.parse(msg);
+                                try {
+                                    this.handleMessage(response);
+                                } catch (ex) {
+                                    console.error(this.node.id, "Error in handleMessage callback:", ex);
+                                }
+                            } catch (e) {
+                                console.error(this.node.id, "failed to parse poll message:", msg, e);
+                            }
+                        });
+                    }
                     this.pollingTimer = setTimeout(() => this.poll(), this.options.pollingInterval);
                 } else {
                     if (res.error && (res.error.code === 'not_found' || res.error.code === 'session_not_found')) {
@@ -363,6 +379,20 @@ class ConsoleClient {
      * @private
      */
     reconnect() {
+        if (this.established) {
+            this.established = false;
+            if (this.options.onClose) {
+                const closeEvent = { code: 1006, reason: "Connection lost", wasClean: false };
+                setTimeout(() => {
+                    try {
+                        this.options.onClose(closeEvent);
+                    } catch (e) {
+                        console.error(this.node.id, "Error in onClose callback:", e);
+                    }
+                }, 100);
+            }
+        }
+
         if (this.retryCount < this.options.maxRetries) {
             this.retryCount++;
             const jitter = Math.floor(Math.random() * 1000);

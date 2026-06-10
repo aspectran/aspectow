@@ -45,7 +45,7 @@ import static com.aspectran.aspectow.node.manager.NodeMessageProtocol.NODES_BASE
  */
 @Component
 @ServerEndpoint(
-        value = NODES_BASE_PATH + "/{nodeId}/" + CATEGORY_COMMANDS + "/websocket-/{token}",
+        value = NODES_BASE_PATH + "/{nodeId}/" + CATEGORY_COMMANDS + "/websocket/{token}",
         configurator = AspectranConfigurator.class
 )
 public class WebsocketCommandBridge extends SimplifiedEndpoint implements CommandBridge {

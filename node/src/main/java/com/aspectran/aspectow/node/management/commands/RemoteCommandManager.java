@@ -24,6 +24,7 @@ import com.aspectran.aspectow.node.manager.NodeManager;
 import com.aspectran.aspectow.node.manager.NodeMessagePublisher;
 import com.aspectran.core.component.bean.ablility.InitializableBean;
 import com.aspectran.daemon.command.CommandParameters;
+import com.aspectran.daemon.command.CommandResult;
 import com.aspectran.utils.Assert;
 import com.aspectran.utils.StringUtils;
 import org.jspecify.annotations.NonNull;
@@ -155,13 +156,14 @@ public class RemoteCommandManager implements InitializableBean {
                 CommandParameters commandParameters = request.getCommand();
                 if (commandParameters != null) {
                     logger.debug("Executing local daemon command: {}", commandParameters);
-                    String result = localCommandService.execute(commandParameters.toString());
+                    CommandResult result = localCommandService.execute(commandParameters.toString());
                     if (result != null) {
                         RemoteResponseParameters response = new RemoteResponseParameters()
                                 .setHeader("result")
                                 .setNodeId(getNodeId())
                                 .setRequestId(request.getRequestId())
-                                .setResult(result);
+                                .setResult(result.getResult())
+                                .setError(result.getError());
                         bridge(request.getSessionId(), response.toString());
                     }
                 }
@@ -180,7 +182,7 @@ public class RemoteCommandManager implements InitializableBean {
         }
         Thread.ofVirtual().start(() -> {
             try {
-                String result = execute(request);
+                CommandResult result = execute(request);
                 if (result != null && messagePublisher != null) {
                     String requesterNodeId = request.getSourceNodeId();
                     String sessionId = request.getSessionId();
@@ -188,7 +190,8 @@ public class RemoteCommandManager implements InitializableBean {
                             .setHeader("result")
                             .setNodeId(getNodeId())
                             .setRequestId(request.getRequestId())
-                            .setResult(result);
+                            .setResult(result.getResult())
+                            .setError(result.getError());
                     String relayMessage = response.toString();
                     if (requesterNodeId != null && sessionId != null) {
                         messagePublisher.publishRelay(
@@ -202,7 +205,7 @@ public class RemoteCommandManager implements InitializableBean {
     }
 
     @Nullable
-    private String execute(@NonNull RemoteRequestParameters request) {
+    private CommandResult execute(@NonNull RemoteRequestParameters request) {
         CommandParameters commandParameters = request.getCommand();
         if (commandParameters != null) {
             return localCommandService.execute(commandParameters.toString());

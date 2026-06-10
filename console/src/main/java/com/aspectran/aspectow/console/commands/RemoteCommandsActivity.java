@@ -17,21 +17,15 @@ package com.aspectran.aspectow.console.commands;
 
 import com.aspectran.aspectow.console.cluster.NodeConsoleHelper;
 import com.aspectran.aspectow.node.config.NodeInfo;
-import com.aspectran.aspectow.node.management.commands.RemoteCommandManager;
-import com.aspectran.aspectow.node.management.commands.RemoteRequestParameters;
 import com.aspectran.aspectow.node.manager.NodeManager;
-import com.aspectran.core.activity.Translet;
 import com.aspectran.core.component.bean.annotation.Action;
 import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Component;
 import com.aspectran.core.component.bean.annotation.Dispatch;
 import com.aspectran.core.component.bean.annotation.Request;
-import com.aspectran.core.component.bean.annotation.RequestToPost;
-import com.aspectran.utils.StringUtils;
 import com.aspectran.web.activity.response.RestResponse;
 import com.aspectran.web.support.rest.response.FailureResponse;
 import com.aspectran.web.support.rest.response.SuccessResponse;
-import org.jspecify.annotations.NonNull;
 
 import java.util.HashMap;
 import java.util.List;
@@ -48,16 +42,12 @@ public class RemoteCommandsActivity {
 
     private final NodeManager nodeManager;
 
-    private final RemoteCommandManager remoteCommandManager;
-
     private final NodeConsoleHelper nodeConsoleHelper;
 
     @Autowired
     public RemoteCommandsActivity(NodeManager nodeManager,
-                                  RemoteCommandManager remoteCommandManager,
                                   NodeConsoleHelper nodeConsoleHelper) {
         this.nodeManager = nodeManager;
-        this.remoteCommandManager = remoteCommandManager;
         this.nodeConsoleHelper = nodeConsoleHelper;
     }
 
