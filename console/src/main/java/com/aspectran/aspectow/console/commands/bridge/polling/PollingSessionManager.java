@@ -202,7 +202,7 @@ public class PollingSessionManager extends AbstractComponent {
             sessions.entrySet().removeIf(entry -> {
                 PollingCommandSession session = entry.getValue();
                 if (session.isExpired()) {
-                    bridge.unregisterSession(session.getId());
+                    bridge.getRemoteCommandManager().unregisterSession(session.getId());
                     bridge.getBroker().unsubscribe(session);
                     session.destroy();
                     return true;

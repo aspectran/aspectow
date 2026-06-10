@@ -67,12 +67,8 @@ public class PollingCommandBridge extends AbstractComponent implements CommandBr
         pollingSessionManager.destroy();
     }
 
-    public void registerSession(String sessionId) {
-        remoteCommandManager.registerSession(sessionId, this);
-    }
-
-    public void unregisterSession(String sessionId) {
-        remoteCommandManager.unregisterSession(sessionId);
+    public RemoteCommandManager getRemoteCommandManager() {
+        return remoteCommandManager;
     }
 
     public CommandBroker getBroker() {
@@ -115,7 +111,7 @@ public class PollingCommandBridge extends AbstractComponent implements CommandBr
                 String[] messages = pollingSessionManager.pull(session);
                 return new SuccessResponse(messages).ok();
             } else {
-                return new FailureResponse().setError("not_found", "Session not found");
+                return new FailureResponse().setError("session_not_found", "Session not found");
             }
         } catch (Exception e) {
             return new FailureResponse().setError("error", e.getMessage());

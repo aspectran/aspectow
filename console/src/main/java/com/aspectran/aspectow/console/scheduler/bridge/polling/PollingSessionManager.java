@@ -15,11 +15,19 @@
  */
 package com.aspectran.aspectow.console.scheduler.bridge.polling;
 
+import com.aspectran.aspectow.node.management.scheduler.bridge.SchedulerSession;
+import com.aspectran.core.activity.Translet;
 import com.aspectran.core.component.AbstractComponent;
 import com.aspectran.core.component.session.SessionIdGenerator;
 import com.aspectran.utils.CopyOnWriteMap;
 import com.aspectran.utils.scheduling.ScheduledExecutorScheduler;
 import com.aspectran.utils.scheduling.Scheduler;
+import com.aspectran.web.support.util.CookieGenerator;
+import com.aspectran.web.support.util.WebUtils;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.jspecify.annotations.NonNull;
 
 import java.util.Map;
 
@@ -29,6 +37,10 @@ import java.util.Map;
  */
 public class PollingSessionManager extends AbstractComponent {
 
+    private static final String SESSION_ID_COOKIE_NAME = PollingSessionManager.class.getName() + ".SESSION_ID";
+
+    private final CookieGenerator sessionIdCookieGenerator = new CookieGenerator(SESSION_ID_COOKIE_NAME);
+
     private final SessionIdGenerator sessionIdGenerator = new SessionIdGenerator();
 
     private final Scheduler scheduler = new ScheduledExecutorScheduler("PSM-Scheduler", false);
@@ -37,47 +49,156 @@ public class PollingSessionManager extends AbstractComponent {
 
     private final PollingSchedulerBridge bridge;
 
+    private final BroadcastMessageBuffer broadcastMessageBuffer;
+
     public PollingSessionManager(PollingSchedulerBridge bridge) {
         this.bridge = bridge;
-    }
-
-    public PollingSchedulerSession createSession(String nodeId) {
-        String sessionId = sessionIdGenerator.createSessionId();
-        PollingSchedulerSession newSession = new PollingSchedulerSession(sessionId, bridge, this);
-        newSession.setNodeId(nodeId);
-        newSession.setSessionTimeout(60); // 1 minute default
-        newSession.access(true);
-        sessions.put(sessionId, newSession);
-        bridge.registerSession(sessionId);
-        bridge.getBroker().subscribe(newSession);
-        return newSession;
+        this.broadcastMessageBuffer = new BroadcastMessageBuffer();
     }
 
     public PollingSchedulerSession getSession(String sessionId) {
-        PollingSchedulerSession session = sessions.get(sessionId);
-        if (session != null) {
-            session.access(false);
+        return sessions.get(sessionId);
+    }
+
+    /**
+     * Creates a new polling session or retrieves an existing one.
+     * @param translet the current translet
+     * @return a new or existing {@link PollingSchedulerSession}
+     */
+    public PollingSchedulerSession createSession(@NonNull Translet translet) {
+        int pollingInterval = 0;
+        try {
+            pollingInterval = Integer.parseInt(translet.getParameter("pollingInterval"));
+        } catch (NumberFormatException e) {
+            // ignore
         }
-        return session;
+
+        String sessionId = getSessionId(translet, true);
+        PollingSchedulerSession existingSession = sessions.get(sessionId);
+        if (existingSession != null) {
+            existingSession.access(false);
+            existingSession.setPollingInterval(pollingInterval);
+            return existingSession;
+        } else {
+            PollingSchedulerSession newSession = new PollingSchedulerSession(sessionId, this);
+            newSession.setPollingInterval(pollingInterval);
+            existingSession = sessions.put(sessionId, newSession);
+            if (existingSession != null) {
+                return existingSession;
+            } else {
+                newSession.access(true);
+                return newSession;
+            }
+        }
     }
 
-    public Map<String, PollingSchedulerSession> getSessions() {
-        return sessions;
+    /**
+     * Gets the polling session associated with the current request.
+     * @param translet the current translet
+     * @return the {@link PollingSchedulerSession}, or {@code null} if not found
+     */
+    public PollingSchedulerSession getSession(@NonNull Translet translet) {
+        String sessionId = getSessionId(translet, false);
+        if (sessionId == null) {
+            return null;
+        }
+        PollingSchedulerSession serviceSession = sessions.get(sessionId);
+        if (serviceSession != null) {
+            serviceSession.access(false);
+            return serviceSession;
+        } else {
+            return null;
+        }
     }
 
-    public Scheduler getScheduler() {
-        return scheduler;
+    private String getSessionId(@NonNull Translet translet, boolean create) {
+        HttpServletRequest request = translet.getRequestAdaptee();
+        HttpServletResponse response = translet.getResponseAdaptee();
+        String cookieName = sessionIdCookieGenerator.getCookieName();
+        Cookie cookie = WebUtils.getCookie(request, cookieName);
+        String sessionId = null;
+        if (cookie != null) {
+            sessionId = cookie.getValue();
+        }
+        if (sessionId == null && create) {
+            sessionId = sessionIdGenerator.createSessionId();
+            sessionIdCookieGenerator.addCookie(response, sessionId);
+        }
+        return sessionId;
+    }
+
+    /**
+     * Pushes a message to the central buffer to be pulled by clients.
+     * @param message the message to push
+     */
+    public void push(String message) {
+        if (!sessions.isEmpty()) {
+            broadcastMessageBuffer.push(message);
+        }
+    }
+
+    public void push(SchedulerSession schedulerSession, String message) {
+        if (schedulerSession instanceof PollingSchedulerSession pollingSchedulerSession) {
+            pollingSchedulerSession.push(message);
+        }
+    }
+
+    /**
+     * Pulls new messages from the buffer for a specific session.
+     * @param session the session pulling the messages
+     * @return an array of new messages, or {@code null} if there are no new messages
+     */
+    public String[] pull(PollingSchedulerSession session) {
+        String[] bMessages = broadcastMessageBuffer.pop(session);
+        java.util.List<String> pMessages = session.popMessages();
+        if (bMessages == null && pMessages == null) {
+            return null;
+        }
+        if (bMessages != null && bMessages.length > 0) {
+            shrinkBuffer();
+        }
+        if (bMessages != null && pMessages != null) {
+            String[] messages = new String[bMessages.length + pMessages.size()];
+            System.arraycopy(bMessages, 0, messages, 0, bMessages.length);
+            for (int i = 0; i < pMessages.size(); i++) {
+                messages[bMessages.length + i] = pMessages.get(i);
+            }
+            return messages;
+        } else if (bMessages != null) {
+            return bMessages;
+        } else {
+            return pMessages.toArray(new String[0]);
+        }
+    }
+
+    private void shrinkBuffer() {
+        int minLineIndex = getMinLineIndex();
+        if (minLineIndex > -1) {
+            broadcastMessageBuffer.shrink(minLineIndex);
+        }
+    }
+
+    private int getMinLineIndex() {
+        int minLineIndex = -1;
+        for (PollingSchedulerSession session : sessions.values()) {
+            if (minLineIndex == -1) {
+                minLineIndex = session.getLastLineIndex();
+            } else if (session.getLastLineIndex() < minLineIndex) {
+                minLineIndex = session.getLastLineIndex();
+            }
+        }
+        return minLineIndex;
     }
 
     /**
      * Scavenges for and removes expired sessions.
      */
-    public void scavenge() {
+    protected void scavenge() {
         if (!sessions.isEmpty()) {
             sessions.entrySet().removeIf(entry -> {
                 PollingSchedulerSession session = entry.getValue();
                 if (session.isExpired()) {
-                    bridge.unregisterSession(session.getId());
+                    bridge.getSchedulerManager().unregisterSession(session.getId());
                     bridge.getBroker().release(session);
                     session.destroy();
                     return true;
@@ -85,11 +206,15 @@ public class PollingSessionManager extends AbstractComponent {
                 return false;
             });
             if (sessions.isEmpty()) {
-                bridge.getBufferedMessages().clear();
+                broadcastMessageBuffer.clear();
             } else {
-                bridge.shrinkBuffer();
+                shrinkBuffer();
             }
         }
+    }
+
+    protected Scheduler getScheduler() {
+        return scheduler;
     }
 
     @Override
@@ -100,7 +225,7 @@ public class PollingSessionManager extends AbstractComponent {
     @Override
     protected void doDestroy() throws Exception {
         scheduler.stop();
-        sessions.clear();
+        broadcastMessageBuffer.clear();
     }
 
 }

@@ -29,6 +29,8 @@ import java.util.concurrent.TimeUnit;
  */
 public class PollingCommandSession implements CommandSession {
 
+    private static final int DEFAULT_POLLING_INTERVAL = 2000;
+
     private static final int MIN_POLLING_INTERVAL = 500;
 
     private static final int MAX_POLLING_INTERVAL = 5000;
@@ -86,7 +88,13 @@ public class PollingCommandSession implements CommandSession {
     }
 
     public void setPollingInterval(int pollingInterval) {
-        this.pollingInterval = Math.clamp(pollingInterval, MIN_POLLING_INTERVAL, MAX_POLLING_INTERVAL);
+        if (pollingInterval <= 0) {
+            this.pollingInterval = DEFAULT_POLLING_INTERVAL;
+        } else if (pollingInterval < MIN_POLLING_INTERVAL) {
+            this.pollingInterval = MIN_POLLING_INTERVAL;
+        } else {
+            this.pollingInterval = Math.min(pollingInterval, MAX_POLLING_INTERVAL);
+        }
         this.sessionTimeout = pollingInterval + SESSION_TIMEOUT_THRESHOLD;
     }
 

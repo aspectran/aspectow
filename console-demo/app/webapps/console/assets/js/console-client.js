@@ -19,7 +19,7 @@
  * automatically falling back to HTTP long-polling if WebSockets are unavailable.
  *
  * @version 4.0
- * @last-modified 2026-06-07
+ * @last-modified 2026-06-10
  */
 class ConsoleClient {
 
@@ -173,6 +173,7 @@ class ConsoleClient {
 
             this.socket.onclose = (event) => {
                 this.closeSocket(true);
+                if (this.mode === 'polling') return;
                 if (!this.manualClose) {
                     if (this.options.onClose) {
                         setTimeout(() => this.options.onClose(event), 100);
@@ -227,6 +228,7 @@ class ConsoleClient {
                     console.log("subscribed", res.data.nodeId);
                     if (res.data.pollingInterval) {
                         this.options.pollingInterval = res.data.pollingInterval;
+                        console.log("polling interval:", this.options.pollingInterval);
                     }
                     this.establish(res.data);
                     this.poll();
@@ -236,9 +238,7 @@ class ConsoleClient {
             })
             .catch(err => {
                 console.error("Failed to start polling:", err);
-                if (this.options.onFailed) {
-                    this.options.onFailed(this.node);
-                }
+                this.reconnect();
             });
     }
 
@@ -253,17 +253,28 @@ class ConsoleClient {
         })
             .then(res => res.json())
             .then(res => {
-                if (res.success) {
-                    const response = JSON.parse(res.data);
-                    this.handleMessage(response);
+                if (res.success && res.data) {
+                    res.data.forEach(msg => {
+                        try {
+                            const response = JSON.parse(msg);
+                            this.handleMessage(response);
+                        } catch (e) {
+                            console.error(this.node.id, "failed to parse poll message:", msg, e);
+                        }
+                    });
                     this.pollingTimer = setTimeout(() => this.poll(), this.options.pollingInterval);
                 } else {
-                    throw new Error(res.error ? res.error.message : "Polling failed");
+                    if (res.error && (res.error.code === 'not_found' || res.error.code === 'session_not_found')) {
+                        console.warn(this.node.id, "Session lost (not found). Re-subscribing...");
+                        this.reconnect();
+                    } else {
+                        throw new Error(res.error ? res.error.message : "Polling failed");
+                    }
                 }
             })
             .catch(err => {
                 console.error(this.node.id, "polling error:", err);
-                this.pollingTimer = setTimeout(() => this.poll(), this.options.retryInterval);
+                this.reconnect();
             });
     }
 
@@ -280,6 +291,7 @@ class ConsoleClient {
      * @private
      */
     establish(payload) {
+        this.retryCount = 0;
         if (this.options.onSubscribed) {
             this.options.onSubscribed(this.node, payload);
         }
@@ -361,11 +373,23 @@ class ConsoleClient {
                 this.options.onRetry(this.retryCount, this.options.maxRetries, interval);
             }
             setTimeout(() => {
-                this.openSocket();
+                if (this.mode === 'websocket') {
+                    this.openSocket();
+                } else if (this.mode === 'polling') {
+                    this.startPolling();
+                }
             }, interval);
         } else {
-            console.log(this.node.id, "abort reconnect attempt, switching to polling");
-            this.switchToPolling();
+            if (this.mode === 'websocket') {
+                console.log(this.node.id, "abort reconnect attempt, switching to polling");
+                this.switchToPolling();
+            } else if (this.mode === 'polling') {
+                console.log(this.node.id, "abort reconnect attempt, connection failed");
+                this.stopPolling();
+                if (this.options.onFailed) {
+                    this.options.onFailed(this.node);
+                }
+            }
         }
     }
 

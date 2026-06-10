@@ -103,34 +103,4 @@ public class RemoteCommandsActivity {
         }
     }
 
-    /**
-     * Creates a command to be sent to a specific node or all nodes.
-     * @return a success message
-     */
-    @RequestToPost("/execute")
-    public RestResponse executeCommand(@NonNull Translet translet) {
-        String targetNodeId = translet.getParameter("nodeId");
-        String targetGroup = translet.getParameter("targetGroup");
-        boolean targetAll = Boolean.parseBoolean(translet.getParameter("targetAll"));
-        String command = translet.getParameter("command");
-
-        if (StringUtils.isEmpty(command)) {
-            return new FailureResponse().setError("required", "Command is required");
-        }
-
-        try {
-            RemoteRequestParameters request = new RemoteRequestParameters();
-            request.setHeader("execute");
-            request.setCommand(command);
-            request.setTargetNodeId(targetNodeId);
-            request.setTargetGroup(targetGroup);
-            request.setTargetAll(targetAll);
-
-            remoteCommandManager.process(request);
-            return new SuccessResponse("Command initiated successfully").ok();
-        } catch (Exception e) {
-            return new FailureResponse().setError("error", e.getMessage());
-        }
-    }
-
 }

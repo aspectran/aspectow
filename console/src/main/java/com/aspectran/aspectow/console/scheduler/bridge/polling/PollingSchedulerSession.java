@@ -22,7 +22,6 @@ import com.aspectran.utils.timer.CyclicTimeout;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * A {@link SchedulerSession} implementation for HTTP polling.
@@ -30,31 +29,41 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class PollingSchedulerSession implements SchedulerSession {
 
-    private static final int MIN_SESSION_TIMEOUT = 500;
+    private static final int DEFAULT_POLLING_INTERVAL = 2000;
+
+    private static final int MIN_POLLING_INTERVAL = 500;
+
+    private static final int MAX_POLLING_INTERVAL = 5000;
+
+    private static final int SESSION_TIMEOUT_THRESHOLD = 30000;
 
     private final AutoLock autoLock = new AutoLock();
 
-    private final String id;
+    private final List<String> messageQueue = new ArrayList<>();
 
-    private final PollingSchedulerBridge bridge;
+    private final String id;
 
     private final PollingSessionManager sessionManager;
 
     private final SessionExpiryTimer expiryTimer;
 
-    private final List<String> messageQueue = new ArrayList<>();
-
     private String nodeId;
 
-    private volatile int sessionTimeout;
+    private volatile int pollingInterval = MAX_POLLING_INTERVAL;
 
-    private final AtomicInteger lastLineIndex = new AtomicInteger(-1);
+    private volatile int sessionTimeout = MAX_POLLING_INTERVAL + SESSION_TIMEOUT_THRESHOLD;
+
+    private int lastLineIndex = -1;
 
     private boolean expired;
 
-    public PollingSchedulerSession(String id, PollingSchedulerBridge bridge, PollingSessionManager sessionManager) {
+    /**
+     * Instantiates a new PollingSchedulerSession.
+     * @param id the unique identifier of this session
+     * @param sessionManager the session manager that created this session
+     */
+    public PollingSchedulerSession(String id, PollingSessionManager sessionManager) {
         this.id = id;
-        this.bridge = bridge;
         this.sessionManager = sessionManager;
         this.expiryTimer = new SessionExpiryTimer();
     }
@@ -74,17 +83,35 @@ public class PollingSchedulerSession implements SchedulerSession {
         this.nodeId = nodeId;
     }
 
-    @Override
-    public boolean isValid() {
-        return !isExpired();
+    public int getPollingInterval() {
+        return pollingInterval;
+    }
+
+    public void setPollingInterval(int pollingInterval) {
+        if (pollingInterval <= 0) {
+            this.pollingInterval = DEFAULT_POLLING_INTERVAL;
+        } else if (pollingInterval < MIN_POLLING_INTERVAL) {
+            this.pollingInterval = MIN_POLLING_INTERVAL;
+        } else {
+            this.pollingInterval = Math.min(pollingInterval, MAX_POLLING_INTERVAL);
+        }
+        this.sessionTimeout = pollingInterval + SESSION_TIMEOUT_THRESHOLD;
     }
 
     public int getSessionTimeout() {
         return sessionTimeout;
     }
 
-    public void setSessionTimeout(int sessionTimeout) {
-        this.sessionTimeout = Math.max(sessionTimeout, MIN_SESSION_TIMEOUT);
+    /**
+     * Gets the index of the last message line that was sent to this session.
+     * @return the last line index
+     */
+    public int getLastLineIndex() {
+        return lastLineIndex;
+    }
+
+    protected void setLastLineIndex(int lastLineIndex) {
+        this.lastLineIndex = lastLineIndex;
     }
 
     /**
@@ -114,43 +141,48 @@ public class PollingSchedulerSession implements SchedulerSession {
         }
     }
 
-    public void access(boolean first) {
+    @Override
+    public boolean isValid() {
+        return !isExpired();
+    }
+
+    protected boolean isExpired() {
+        try (AutoLock ignored = autoLock.lock()) {
+            return expired;
+        }
+    }
+
+    /**
+     * Updates the session's last access time and schedules the next expiry check.
+     * @param create {@code true} if the session is being created
+     */
+    protected void access(boolean create) {
         try (AutoLock ignored = autoLock.lock()) {
             if (isValid()) {
-                if (!first) {
+                if (!create) {
                     expiryTimer.cancel();
-                }
-                if (first && bridge != null) {
-                    this.lastLineIndex.set(bridge.getBufferedMessages().getCurrentLineIndex());
                 }
                 expiryTimer.schedule(sessionTimeout);
             }
         }
     }
 
-    public boolean isExpired() {
+    /**
+     * Destroys this session and its expiry timer.
+     */
+    protected void destroy() {
         try (AutoLock ignored = autoLock.lock()) {
-            return expired;
-        }
-    }
-
-    public int getLastLineIndex() {
-        return lastLineIndex.get();
-    }
-
-    public void setLastLineIndex(int lastLineIndex) {
-        this.lastLineIndex.set(lastLineIndex);
-    }
-
-    public void destroy() {
-        try (AutoLock ignored = autoLock.lock()) {
-            expired = true;
             expiryTimer.destroy();
+            messageQueue.clear();
         }
+    }
+
+    protected AutoLock lock() {
+        return autoLock.lock();
     }
 
     private void doExpiry() {
-        try (AutoLock ignored = autoLock.lock()) {
+        try (AutoLock ignored = lock()) {
             if (!expired) {
                 expired = true;
                 sessionManager.scavenge();
