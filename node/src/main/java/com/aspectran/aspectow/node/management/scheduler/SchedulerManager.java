@@ -172,7 +172,7 @@ public class SchedulerManager implements ApplicationAdapterAware, InitializableB
                             logger.info("Discovered scheduler log file: {}", logFile.getAbsolutePath());
                             // Currently using default settings; future: apply injected overrides
                             SchedulerLogExporter exporter = new SchedulerLogExporter(
-                                    loggingGroup, logFile, broker, logCharset);
+                                    getNodeId(), loggingGroup, logFile, broker, logCharset);
                             logExporters.put(loggingGroup, exporter);
                         } else if (logger.isDebugEnabled()) {
                             logger.debug("Scheduler log file not found: {}", logFile.getAbsolutePath());
@@ -198,8 +198,8 @@ public class SchedulerManager implements ApplicationAdapterAware, InitializableB
             }
             SchedulerResponseParameters response = execute(request);
             if (response != null) {
-                String sessionId = request.getSessionId();
                 String header = response.getHeader();
+                String sessionId = request.getSessionId();
                 String message = response.toString();
                 if ("stateUpdated".equals(header)) {
                     bridge(message);
@@ -261,14 +261,11 @@ public class SchedulerManager implements ApplicationAdapterAware, InitializableB
         SchedulerResponseParameters response = null;
         try {
             String command = request.getCommand();
-            if (OP_SERVICES.equals(command)) {
-                response = localSchedulerService.getSchedulesAsJson();
-            } else if (OP_ENABLE.equals(command)) {
-                response = performStateChange(request, false);
-            } else if (OP_DISABLE.equals(command)) {
-                response = performStateChange(request, true);
-            } else if (OP_PREVIOUS_LOGS.equals(command)) {
-                response = readPreviousLogs(request);
+            switch (command) {
+                case OP_SERVICES -> response = localSchedulerService.getSchedulesAsJson();
+                case OP_ENABLE -> response = performStateChange(request, false);
+                case OP_DISABLE -> response = performStateChange(request, true);
+                case OP_PREVIOUS_LOGS -> response = readPreviousLogs(request);
             }
         } catch (Exception e) {
             logger.error("Failed to execute scheduler request: {}", request, e);
@@ -323,8 +320,8 @@ public class SchedulerManager implements ApplicationAdapterAware, InitializableB
         broker.bridge(message, false);
     }
 
-    public void bridgeLogRemotely(String message) {
-        broker.bridgeLog(message, false);
+    public void bridgeLogRemotely(String nodeId, String message) {
+        broker.bridgeLog(nodeId, message, false);
     }
 
     public void bridge(String sessionId, String message) {

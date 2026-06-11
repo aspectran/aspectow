@@ -64,6 +64,10 @@ public class SchedulerResponseParameters extends DefaultParameters {
         return this;
     }
 
+    public String getNodeId() {
+        return getString(nodeId);
+    }
+
     public SchedulerResponseParameters setNodeId(String nodeId) {
         putValue(SchedulerResponseParameters.nodeId, nodeId);
         return this;

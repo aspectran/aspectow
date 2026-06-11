@@ -132,18 +132,17 @@ public class SchedulerBroker {
      * Bridges a scheduler result to all connected clients.
      * @param message the result payload to send
      */
-    public void bridgeLog(String message, boolean locally) {
+    public void bridgeLog(String nodeId, String message, boolean locally) {
         Set<String> sessionIds = subscriptionRegistry.getAllSessionIds();
-        String targetNodeId = schedulerManager.getNodeId();
         for (String sid : sessionIds) {
-            schedulerManager.bridge(targetNodeId, sid, message);
+            schedulerManager.bridge(nodeId, sid, message);
         }
 
         if (locally) {
             Set<String> remoteNodeIds = subscriptionRegistry.getRemoteSubscriptions();
             if (!remoteNodeIds.isEmpty()) {
-                for (String nodeId : remoteNodeIds) {
-                    publishRelay(nodeId, message);
+                for (String nid : remoteNodeIds) {
+                    publishRelay(nid, message);
                 }
             }
         }

@@ -44,6 +44,8 @@ public class SchedulerLogExporter extends AbstractLifeCycle {
 
     private static final Charset DEFAULT_CHARSET = Charset.defaultCharset();
 
+    private final String nodeId;
+
     private final String loggingGroup;
 
     private final File logFile;
@@ -58,23 +60,28 @@ public class SchedulerLogExporter extends AbstractLifeCycle {
 
     private Tailer tailer;
 
-    public SchedulerLogExporter(String loggingGroup, File logFile, SchedulerBroker broker) {
-        this(loggingGroup, logFile, broker, DEFAULT_CHARSET.name());
+    public SchedulerLogExporter(String nodeId, String loggingGroup, File logFile, SchedulerBroker broker) {
+        this(nodeId, loggingGroup, logFile, broker, DEFAULT_CHARSET.name());
     }
 
-    public SchedulerLogExporter(String loggingGroup, File logFile, SchedulerBroker broker, String charsetName) {
-        this(loggingGroup, logFile, broker, charsetName, 1000L, 100);
+    public SchedulerLogExporter(String nodeId, String loggingGroup, File logFile, SchedulerBroker broker, String charsetName) {
+        this(nodeId, loggingGroup, logFile, broker, charsetName, 1000L, 100);
     }
 
     public SchedulerLogExporter(
-            String loggingGroup, File logFile, SchedulerBroker broker,
+            String nodeId, String loggingGroup, File logFile, SchedulerBroker broker,
             String charsetName, long sampleInterval, int lastLines) {
+        this.nodeId = nodeId;
         this.loggingGroup = loggingGroup;
         this.logFile = logFile;
         this.broker = broker;
         this.charset = (charsetName != null ? Charset.forName(charsetName) : DEFAULT_CHARSET);
         this.sampleInterval = sampleInterval;
         this.lastLines = lastLines;
+    }
+
+    public String getNodeId() {
+        return nodeId;
     }
 
     public String getLoggingGroup() {
@@ -253,9 +260,10 @@ public class SchedulerLogExporter extends AbstractLifeCycle {
     protected void broadcast(String message) {
         SchedulerResponseParameters response = new SchedulerResponseParameters()
                 .setHeader("log")
+                .setNodeId(nodeId)
                 .setOwner(loggingGroup)
                 .setData(message);
-        broker.bridgeLog(response.toString(), true);
+        broker.bridgeLog(nodeId, response.toString(), true);
     }
 
     @Override

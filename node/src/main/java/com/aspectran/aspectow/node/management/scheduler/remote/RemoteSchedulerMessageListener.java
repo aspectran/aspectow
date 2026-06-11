@@ -84,7 +84,7 @@ public class RemoteSchedulerMessageListener implements NodeMessageListener {
         try {
             SchedulerResponseParameters response = JsonToParameters.from(message, SchedulerResponseParameters.class);
             if ("log".equals(response.getHeader())) {
-                schedulerManager.bridgeLogRemotely(message);
+                schedulerManager.bridgeLogRemotely(response.getNodeId(), message);
             } else {
                 schedulerManager.bridgeRemotely(message);
             }

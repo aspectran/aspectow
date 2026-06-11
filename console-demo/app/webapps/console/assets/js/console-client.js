@@ -142,7 +142,7 @@ class ConsoleClient {
                 console.log(this.node.id, "websocket connected");
                 this.retryCount = 0;
 
-                const subscribeMessage = { header: "subscribe", targetNodeId: this.node.id };
+                const subscribeMessage = { header: "subscribe", nodeId: this.node.id };
                 this.socket.send(JSON.stringify(subscribeMessage));
                 this.sendPing();
 
