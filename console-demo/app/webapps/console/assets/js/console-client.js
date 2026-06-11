@@ -53,6 +53,7 @@ class ConsoleClient {
         this.established = false;
         this.manualClose = false;
         this.activityPath = null;
+        this.primaryNodeId = node.id;
         this.mode = 'websocket'; // 'websocket' or 'polling'
     }
 
@@ -157,8 +158,9 @@ class ConsoleClient {
                         const header = response.header;
 
                         if (header === 'subscribed') {
-                            console.log("subscribed", response.nodeId);
-                            this.establish(response);
+                            const primaryNodeId = response.nodeId;
+                            console.log("subscribed", primaryNodeId);
+                            this.establish(primaryNodeId);
                             this.sendMessage({ header: "established" });
                         } else if (header === 'pong') {
                             this.sendPing();
@@ -230,12 +232,13 @@ class ConsoleClient {
             })
             .then(res => {
                 if (res.success) {
-                    console.log("subscribed", res.data.nodeId);
+                    const primaryNodeId = res.data.nodeId;
+                    console.log("subscribed", primaryNodeId);
                     if (res.data.pollingInterval) {
                         this.options.pollingInterval = res.data.pollingInterval;
                         console.log("polling interval:", this.options.pollingInterval);
                     }
-                    this.establish(res.data);
+                    this.establish(primaryNodeId);
                     this.poll();
                 } else {
                     throw new Error(res.error.message);
@@ -280,7 +283,7 @@ class ConsoleClient {
                     }
                     this.pollingTimer = setTimeout(() => this.poll(), this.options.pollingInterval);
                 } else {
-                    if (res.error && (res.error.code === 'not_found' || res.error.code === 'session_not_found')) {
+                    if (res.error && res.error.code === 'session_not_found') {
                         console.warn(this.node.id, "Session lost (not found). Re-subscribing...");
                         this.reconnect();
                     } else {
@@ -306,15 +309,13 @@ class ConsoleClient {
      * @param {Object} payload - payload from the server
      * @private
      */
-    establish(payload) {
+    establish(primaryNodeId) {
         this.retryCount = 0;
-        if (this.options.onSubscribed) {
-            this.options.onSubscribed(this.node, payload);
-        }
+        this.established = true;
+        this.primaryNodeId = primaryNodeId;
         if (this.options.onEstablished) {
             this.options.onEstablished(this.node);
         }
-        this.established = true;
     }
 
     handleMessage(message) {
@@ -356,7 +357,7 @@ class ConsoleClient {
                 console.error("message processing failed:", messageData, res.error.message);
             }
         })
-        .catch(err => console.error("message processing failed:", err));
+        .catch(err => console.error("message pushing failed:", err));
     }
 
     /**

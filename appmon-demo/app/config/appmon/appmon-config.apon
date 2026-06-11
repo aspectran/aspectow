@@ -58,7 +58,7 @@ app: {
         target: appmon
         parameters: {
             +: /**
-            -: /nodes/*/appmon/polling/pull  # Ignore polling requests
+            -: /nodes/**/polling/**  # Ignore polling requests
         }
     }
     event: {

@@ -79,22 +79,23 @@ public class PollingSchedulerBridge extends AbstractComponent implements Schedul
      */
     @Request("/polling/subscribe")
     public RestResponse subscribe(@NonNull Translet translet) {
-        String nodeId = translet.getParameter("nodeId");
-        if (StringUtils.isEmpty(nodeId)) {
-            return new FailureResponse("Node ID cannot be empty");
+        String targetNodeId = translet.getParameter("nodeId");
+        if (!StringUtils.hasText(targetNodeId)) {
+            targetNodeId = schedulerManager.getNodeId();
         }
 
         PollingSchedulerSession schedulerSession = sessionManager.getSession(translet);
         if (schedulerSession == null) {
             schedulerSession = sessionManager.createSession(translet);
             schedulerManager.registerSession(schedulerSession.getId(), this);
-            schedulerManager.getBroker().subscribe(schedulerSession);
         }
+        schedulerSession.setNodeId(targetNodeId);
+
+        schedulerManager.getBroker().subscribe(schedulerSession);
 
         return new SuccessResponse(Map.of(
                 "pollingInterval", schedulerSession.getPollingInterval(),
-                "nodeId", schedulerManager.getNodeId(),
-                "primary", schedulerManager.isSameNode(nodeId)
+                "nodeId", schedulerManager.getNodeId()
                 )).ok();
     }
 
@@ -104,17 +105,13 @@ public class PollingSchedulerBridge extends AbstractComponent implements Schedul
      */
     @RequestToGet("/polling/pull")
     public RestResponse pull(@NonNull Translet translet) {
-        try {
-            PollingSchedulerSession session = sessionManager.getSession(translet);
-            if (session != null) {
-                String[] messages = sessionManager.pull(session);
-                return new SuccessResponse(messages).ok();
-            } else {
-                return new FailureResponse().setError("session_not_found", "Session not found");
-            }
-        } catch (Exception e) {
-            return new FailureResponse().setError("error", e.getMessage());
+        PollingSchedulerSession session = sessionManager.getSession(translet);
+        if (session == null) {
+            return new FailureResponse().setError("session_not_found", "Session not found");
         }
+
+        String[] messages = sessionManager.pull(session);
+        return new SuccessResponse(messages).ok();
     }
 
     /**
@@ -125,11 +122,11 @@ public class PollingSchedulerBridge extends AbstractComponent implements Schedul
     public RestResponse push(@NonNull Translet translet, @NonNull SchedulerRequestParameters request) {
         PollingSchedulerSession session = sessionManager.getSession(translet);
         if (session == null) {
-            return new FailureResponse().setError("not_found", "Session not found");
+            return new FailureResponse().setError("session_not_found", "Session not found");
         }
 
         if (request.getCommand() == null) {
-            return new FailureResponse().setError("required", "Command is required");
+            return new FailureResponse().setError("command_required", "Command is required");
         }
 
         try {

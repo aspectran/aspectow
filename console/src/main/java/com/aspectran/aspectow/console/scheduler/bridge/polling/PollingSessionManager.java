@@ -29,6 +29,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.jspecify.annotations.NonNull;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -150,7 +151,7 @@ public class PollingSessionManager extends AbstractComponent {
      */
     public String[] pull(PollingSchedulerSession session) {
         String[] bMessages = broadcastMessageBuffer.pop(session);
-        java.util.List<String> pMessages = session.popMessages();
+        List<String> pMessages = session.popMessages();
         if (bMessages == null && pMessages == null) {
             return null;
         }
@@ -199,7 +200,7 @@ public class PollingSessionManager extends AbstractComponent {
                 PollingSchedulerSession session = entry.getValue();
                 if (session.isExpired()) {
                     bridge.getSchedulerManager().unregisterSession(session.getId());
-                    bridge.getBroker().release(session);
+                    bridge.getBroker().unsubscribe(session);
                     session.destroy();
                     return true;
                 }

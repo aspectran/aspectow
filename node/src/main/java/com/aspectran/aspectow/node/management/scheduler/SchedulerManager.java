@@ -188,7 +188,7 @@ public class SchedulerManager implements ApplicationAdapterAware, InitializableB
      * @param request the structured request parameters
      */
     public void process(@NonNull SchedulerRequestParameters request) {
-        String targetNodeId = request.getTargetNodeId();
+        String targetNodeId = request.getNodeId();
         if (StringUtils.isEmpty(targetNodeId)) {
             targetNodeId = getNodeId();
         }
@@ -198,13 +198,13 @@ public class SchedulerManager implements ApplicationAdapterAware, InitializableB
             }
             SchedulerResponseParameters response = execute(request);
             if (response != null) {
-                response.setNodeId(getNodeId());
                 String sessionId = request.getSessionId();
                 String header = response.getHeader();
-                if (sessionId != null && !"stateUpdated".equals(header)) {
-                    bridge(sessionId, response);
-                } else {
-                    bridge(response);
+                String message = response.toString();
+                if ("stateUpdated".equals(header)) {
+                    bridge(message);
+                } else if (sessionId != null) {
+                    bridge(sessionId, message);
                 }
             }
         } else {
@@ -215,7 +215,6 @@ public class SchedulerManager implements ApplicationAdapterAware, InitializableB
     private void dispatch(String targetNodeId, @NonNull SchedulerRequestParameters request) {
         if (messagePublisher != null) {
             try {
-                request.setSourceNodeId(getNodeId());
                 String message = SchedulerBroker.CONTROL_REQUEST + request;
                 messagePublisher.publishControl(SchedulerBroker.CATEGORY_SCHEDULER, targetNodeId, message);
                 if (logger.isDebugEnabled()) {
@@ -239,24 +238,12 @@ public class SchedulerManager implements ApplicationAdapterAware, InitializableB
         try {
             SchedulerResponseParameters response = execute(request);
             if (response != null && messagePublisher != null) {
-                response.setNodeId(getNodeId());
-                String requesterNodeId = request.getSourceNodeId();
                 String sessionId = request.getSessionId();
                 String message = response.toString();
-                if (requesterNodeId != null) {
-                    if (sessionId != null) {
-                        messagePublisher.publishRelay(
-                                SchedulerBroker.CATEGORY_SCHEDULER, requesterNodeId, sessionId, message);
-                    } else {
-                        messagePublisher.publishRelay(
-                                SchedulerBroker.CATEGORY_SCHEDULER, requesterNodeId, message);
-                    }
+                if ("stateUpdated".equals(response.getHeader())) {
+                    bridge(message);
                 } else {
-                    messagePublisher.publishRelay(SchedulerBroker.CATEGORY_SCHEDULER, message);
-                }
-
-                if ("stateUpdated".equals(response.getString(SchedulerResponseParameters.header))) {
-                    bridge(response);
+                    bridgeRemotely(sessionId, message);
                 }
             }
         } catch (Exception e) {
@@ -271,21 +258,25 @@ public class SchedulerManager implements ApplicationAdapterAware, InitializableB
      */
     @Nullable
     private SchedulerResponseParameters execute(SchedulerRequestParameters request) {
+        SchedulerResponseParameters response = null;
         try {
             String command = request.getCommand();
             if (OP_SERVICES.equals(command)) {
-                return localSchedulerService.getSchedulesAsJson();
+                response = localSchedulerService.getSchedulesAsJson();
             } else if (OP_ENABLE.equals(command)) {
-                return performStateChange(request, false);
+                response = performStateChange(request, false);
             } else if (OP_DISABLE.equals(command)) {
-                return performStateChange(request, true);
+                response = performStateChange(request, true);
             } else if (OP_PREVIOUS_LOGS.equals(command)) {
-                return readPreviousLogs(request);
+                response = readPreviousLogs(request);
             }
         } catch (Exception e) {
             logger.error("Failed to execute scheduler request: {}", request, e);
         }
-        return null;
+        if (response != null) {
+            response.setNodeId(getNodeId());
+        }
+        return response;
     }
 
     @Nullable
@@ -324,31 +315,38 @@ public class SchedulerManager implements ApplicationAdapterAware, InitializableB
         return null;
     }
 
-    /**
-     * Broadcasts a management result to all connected clients on this node.
-     * @param response the result payload in JSON format
-     */
-    public void bridge(SchedulerResponseParameters response) {
-        if (response != null) {
-            bridge(response.toString());
-        }
-    }
     public void bridge(String message) {
-        broker.bridge(message);
+        broker.bridge(message, true);
     }
 
-    public void bridge(String sessionId, SchedulerResponseParameters response) {
-        if (response != null) {
-            bridge(sessionId, response.toString());
-        }
+    public void bridgeRemotely(String message) {
+        broker.bridge(message, false);
+    }
+
+    public void bridgeLogRemotely(String message) {
+        broker.bridgeLog(message, false);
     }
 
     public void bridge(String sessionId, String message) {
+        bridge(null, sessionId, message);
+    }
+
+    public void bridgeRemotely(String sessionId, String message) {
+        broker.bridgeRemotely(sessionId, message);
+    }
+
+    public void bridge(String nodeId, String sessionId, String message) {
         SchedulerBridge bridge = sessionBridgeMap.get(sessionId);
         if (bridge != null) {
             SchedulerSession session = bridge.findSchedulerSession(sessionId);
             if (session != null) {
-                bridge.bridge(session, message);
+                if (nodeId != null) {
+                    if (nodeId.equals(session.getNodeId())) {
+                        bridge.bridge(session, message);
+                    }
+                } else {
+                    bridge.bridge(session, message);
+                }
             }
         }
     }

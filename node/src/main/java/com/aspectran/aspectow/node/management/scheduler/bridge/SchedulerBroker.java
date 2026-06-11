@@ -35,7 +35,7 @@ public class SchedulerBroker {
 
     public static final String CONTROL_SUBSCRIBE = "subscribe:";
 
-    public static final String CONTROL_RELEASE = "release:";
+    public static final String CONTROL_UNSUBSCRIBE = "unsubscribe:";
 
     public static final String CONTROL_REQUEST = "request:";
 
@@ -78,19 +78,19 @@ public class SchedulerBroker {
         }
     }
 
-    public synchronized void release(@NonNull SchedulerSession session) {
+    public synchronized void unsubscribe(@NonNull SchedulerSession session) {
         subscriptionRegistry.removeLocalSubscription(session.getId());
         String targetNodeId = session.getNodeId();
         if (schedulerManager.isSameNode(targetNodeId)) {
-            if (!subscriptionRegistry.isInUseLocally()) {
+            if (!subscriptionRegistry.isInUse()) {
                 schedulerManager.stopExporters();
             }
         } else if (schedulerManager.isGatewayMode()) {
-            publishControl(targetNodeId, CONTROL_RELEASE + schedulerManager.getNodeId() + DELIMITER + session.getId());
+            publishControl(targetNodeId, CONTROL_UNSUBSCRIBE + schedulerManager.getNodeId() + DELIMITER + session.getId());
         }
     }
 
-    public synchronized void releaseRemotely(String nodeId) {
+    public synchronized void unsubscribeRemotely(String nodeId) {
         logger.info("Received scheduler release request from node: {}", nodeId);
         subscriptionRegistry.removeRemoteSubscription(nodeId);
         if (!subscriptionRegistry.isInUse()) {
@@ -118,20 +118,58 @@ public class SchedulerBroker {
         }
     }
 
+    private void publishRelay(String targetNodeId, String sessionId, String message) {
+        if (messagePublisher != null) {
+            try {
+                messagePublisher.publishRelay(CATEGORY_SCHEDULER, targetNodeId, sessionId, message);
+            } catch (Exception e) {
+                logger.error("Failed to publish relay message to node: {}", targetNodeId, e);
+            }
+        }
+    }
+
     /**
      * Bridges a scheduler result to all connected clients.
      * @param message the result payload to send
      */
-    public void bridge(String message) {
+    public void bridgeLog(String message, boolean locally) {
+        Set<String> sessionIds = subscriptionRegistry.getAllSessionIds();
+        String targetNodeId = schedulerManager.getNodeId();
+        for (String sid : sessionIds) {
+            schedulerManager.bridge(targetNodeId, sid, message);
+        }
+
+        if (locally) {
+            Set<String> remoteNodeIds = subscriptionRegistry.getRemoteSubscriptions();
+            if (!remoteNodeIds.isEmpty()) {
+                for (String nodeId : remoteNodeIds) {
+                    publishRelay(nodeId, message);
+                }
+            }
+        }
+    }
+
+    public void bridge(String message, boolean locally) {
         Set<String> sessionIds = subscriptionRegistry.getAllSessionIds();
         for (String sid : sessionIds) {
             schedulerManager.bridge(sid, message);
         }
 
+        if (locally) {
+            Set<String> remoteNodeIds = subscriptionRegistry.getRemoteSubscriptions();
+            if (!remoteNodeIds.isEmpty()) {
+                for (String nodeId : remoteNodeIds) {
+                    publishRelay(nodeId, message);
+                }
+            }
+        }
+    }
+
+    public void bridgeRemotely(String sessionId, String message) {
         Set<String> remoteNodeIds = subscriptionRegistry.getRemoteSubscriptions();
         if (!remoteNodeIds.isEmpty()) {
             for (String nodeId : remoteNodeIds) {
-                publishRelay(nodeId, message);
+                publishRelay(nodeId, sessionId, message);
             }
         }
     }

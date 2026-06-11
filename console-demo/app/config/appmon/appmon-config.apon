@@ -14,7 +14,7 @@ app: {
         target: console
         parameters: {
             +: /**
-            -: /nodes/**/appmon/polling/**  # Ignore polling requests
+            -: /nodes/**/polling/**  # Ignore polling requests
         }
     }
     event: {

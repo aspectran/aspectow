@@ -43,7 +43,7 @@ import static com.aspectran.aspectow.node.manager.NodeMessageProtocol.NODES_BASE
  */
 @Component
 @ServerEndpoint(
-        value = NODES_BASE_PATH + "/{nodeId}/" + CATEGORY_SCHEDULER + "/websocket/{token}",
+        value = NODES_BASE_PATH + "/{nodeId}/" + CATEGORY_SCHEDULER + "/websocket-/{token}",
         configurator = AspectranConfigurator.class
 )
 public class WebsocketSchedulerBridge extends SimplifiedEndpoint implements SchedulerBridge {
@@ -107,13 +107,13 @@ public class WebsocketSchedulerBridge extends SimplifiedEndpoint implements Sche
     protected void onSessionRemoved(@NonNull Session session) {
         schedulerManager.unregisterSession(session.getId());
         WebsocketSchedulerSession schedulerSession = new WebsocketSchedulerSession(session);
-        schedulerManager.getBroker().release(schedulerSession);
+        schedulerManager.getBroker().unsubscribe(schedulerSession);
         logger.debug("Scheduler WebSocket session removed: {}", session.getId());
     }
 
     private void subscribe(Session session, @NonNull SchedulerRequestParameters request) {
         WebsocketSchedulerSession schedulerSession = new WebsocketSchedulerSession(session);
-        String targetNodeId = request.getTargetNodeId();
+        String targetNodeId = request.getNodeId();
         if (StringUtils.hasText(targetNodeId)) {
             schedulerSession.setNodeId(targetNodeId);
         } else {
@@ -122,10 +122,10 @@ public class WebsocketSchedulerBridge extends SimplifiedEndpoint implements Sche
 
         if (addSession(session)) {
             schedulerManager.registerSession(session.getId(), this);
-            SchedulerResponseParameters responseParameters = new SchedulerResponseParameters()
+            SchedulerResponseParameters response = new SchedulerResponseParameters()
                     .setHeader("subscribed")
                     .setNodeId(schedulerManager.getNodeId());
-            sendText(session, responseParameters.toString());
+            sendText(session, response.toString());
             logger.debug("ConsoleClient joined scheduler management: session {}, targetNodeId: {}",
                     session.getId(), schedulerSession.getNodeId());
         }

@@ -312,7 +312,7 @@
                         const message = {
                             header: "execute",
                             command: "services",
-                            targetNodeId: currentNodeId
+                            nodeId: currentNodeId
                         };
                         consoleClient.sendMessage(message);
                     },
@@ -653,7 +653,7 @@
                 const message = {
                     header: "execute",
                     command: "previousLogs",
-                    targetNodeId: currentNodeId,
+                    nodeId: currentNodeId,
                     loggingGroup: loggingGroup,
                     loadedLines: loadedCount
                 };
@@ -702,7 +702,7 @@
                 const message = {
                     header: "execute",
                     command: command,
-                    targetNodeId: currentNodeId,
+                    nodeId: currentNodeId,
                     serviceName: serviceName
                 };
                 if (type === 'schedule') message.scheduleId = id;
@@ -728,7 +728,7 @@
                             const message = {
                                 header: "execute",
                                 command: "services",
-                                targetNodeId: currentNodeId
+                                nodeId: currentNodeId
                             };
                             consoleClient.sendMessage(message);
                         } else {

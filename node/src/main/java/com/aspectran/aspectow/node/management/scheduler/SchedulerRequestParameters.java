@@ -26,8 +26,7 @@ import com.aspectran.utils.apon.ValueType;
 public class SchedulerRequestParameters extends DefaultParameters {
 
     public static final ParameterKey header;
-    public static final ParameterKey targetNodeId;
-    public static final ParameterKey sourceNodeId;
+    public static final ParameterKey nodeId;
     public static final ParameterKey sessionId;
     public static final ParameterKey command;
     public static final ParameterKey serviceName;
@@ -40,8 +39,7 @@ public class SchedulerRequestParameters extends DefaultParameters {
 
     static {
         header = new ParameterKey("header", ValueType.STRING);
-        targetNodeId = new ParameterKey("targetNodeId", ValueType.STRING);
-        sourceNodeId = new ParameterKey("sourceNodeId", ValueType.STRING);
+        nodeId = new ParameterKey("nodeId", ValueType.STRING);
         sessionId = new ParameterKey("sessionId", ValueType.STRING);
         command = new ParameterKey("command", ValueType.STRING);
         serviceName = new ParameterKey("serviceName", ValueType.STRING);
@@ -52,8 +50,7 @@ public class SchedulerRequestParameters extends DefaultParameters {
 
         parameterKeys = new ParameterKey[] {
                 header,
-                targetNodeId,
-                sourceNodeId,
+                nodeId,
                 sessionId,
                 command,
                 serviceName,
@@ -77,20 +74,12 @@ public class SchedulerRequestParameters extends DefaultParameters {
         putValue(SchedulerRequestParameters.header, header);
     }
 
-    public String getTargetNodeId() {
-        return getString(targetNodeId);
+    public String getNodeId() {
+        return getString(nodeId);
     }
 
-    public void setTargetNodeId(String targetNodeId) {
-        putValue(SchedulerRequestParameters.targetNodeId, targetNodeId);
-    }
-
-    public String getSourceNodeId() {
-        return getString(sourceNodeId);
-    }
-
-    public void setSourceNodeId(String sourceNodeId) {
-        putValue(SchedulerRequestParameters.sourceNodeId, sourceNodeId);
+    public void setNodeId(String nodeId) {
+        putValue(SchedulerRequestParameters.nodeId, nodeId);
     }
 
     public String getSessionId() {

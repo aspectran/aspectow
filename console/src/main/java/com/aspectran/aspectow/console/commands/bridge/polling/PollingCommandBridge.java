@@ -27,9 +27,7 @@ import com.aspectran.core.component.bean.annotation.Component;
 import com.aspectran.core.component.bean.annotation.Request;
 import com.aspectran.core.component.bean.annotation.RequestToGet;
 import com.aspectran.core.component.bean.annotation.RequestToPost;
-import com.aspectran.utils.Assert;
 import com.aspectran.utils.StringUtils;
-import com.aspectran.utils.apon.Parameters;
 import com.aspectran.web.activity.response.RestResponse;
 import com.aspectran.web.support.rest.response.FailureResponse;
 import com.aspectran.web.support.rest.response.SuccessResponse;
@@ -86,16 +84,15 @@ public class PollingCommandBridge extends AbstractComponent implements CommandBr
             return new FailureResponse("Node ID cannot be empty");
         }
 
-        PollingCommandSession commandSession = pollingSessionManager.getSession(translet);
-        if (commandSession == null) {
-            commandSession = pollingSessionManager.createSession(translet);
-            remoteCommandManager.registerSession(commandSession.getId(), this);
+        PollingCommandSession session = pollingSessionManager.getSession(translet);
+        if (session == null) {
+            session = pollingSessionManager.createSession(translet);
+            remoteCommandManager.registerSession(session.getId(), this);
         }
 
         return new SuccessResponse(Map.of(
-                "pollingInterval", commandSession.getPollingInterval(),
-                "nodeId", remoteCommandManager.getNodeId(),
-                "primary", remoteCommandManager.isSameNode(nodeId)
+                "pollingInterval", session.getPollingInterval(),
+                "nodeId", remoteCommandManager.getNodeId()
                 )).ok();
     }
 
@@ -105,20 +102,16 @@ public class PollingCommandBridge extends AbstractComponent implements CommandBr
      */
     @RequestToGet("/polling/pull")
     public RestResponse pull(@NonNull Translet translet) {
-        try {
-            PollingCommandSession session = pollingSessionManager.getSession(translet);
-            if (session != null) {
-                String[] messages = pollingSessionManager.pull(session);
-                return new SuccessResponse(messages).ok();
-            } else {
-                return new FailureResponse().setError("session_not_found", "Session not found");
-            }
-        } catch (Exception e) {
-            return new FailureResponse().setError("error", e.getMessage());
+        PollingCommandSession session = pollingSessionManager.getSession(translet);
+        if (session == null) {
+            return new FailureResponse().setError("session_not_found", "Session not found");
         }
+
+        String[] messages = pollingSessionManager.pull(session);
+        return new SuccessResponse(messages).ok();
     }
 
-        /**
+    /**
      * Creates a command to be sent to a specific node or all nodes.
      * @return a success message
      */
@@ -126,11 +119,11 @@ public class PollingCommandBridge extends AbstractComponent implements CommandBr
     public RestResponse push(@NonNull Translet translet, @NonNull RemoteRequestParameters request) {
         PollingCommandSession session = pollingSessionManager.getSession(translet);
         if (session == null) {
-            return new FailureResponse().setError("not_found", "Session not found");
+            return new FailureResponse().setError("session_not_found", "Session not found");
         }
 
         if (request.getCommand() == null) {
-            return new FailureResponse().setError("required", "Command is required");
+            return new FailureResponse().setError("command_required", "Command is required");
         }
 
         try {

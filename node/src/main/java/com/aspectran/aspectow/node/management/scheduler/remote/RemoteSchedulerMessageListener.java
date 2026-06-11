@@ -47,15 +47,15 @@ public class RemoteSchedulerMessageListener implements NodeMessageListener {
 
     @Override
     public void onControlMessage(String nodeId, @NonNull String message) {
-        if (message.startsWith(SchedulerBroker.CONTROL_SUBSCRIBE) || message.startsWith(SchedulerBroker.CONTROL_RELEASE)) {
+        if (message.startsWith(SchedulerBroker.CONTROL_SUBSCRIBE) || message.startsWith(SchedulerBroker.CONTROL_UNSUBSCRIBE)) {
             String requesterNodeId = null;
             String sessionId = null;
             String[] parts = message.split(SchedulerBroker.DELIMITER);
-            if (parts.length >= 3) {
-                requesterNodeId = parts[2];
+            if (parts.length >= 2) {
+                requesterNodeId = parts[1];
             }
-            if (parts.length >= 4) {
-                sessionId = parts[3];
+            if (parts.length >= 3) {
+                sessionId = parts[2];
             }
             if (requesterNodeId == null) {
                 requesterNodeId = nodeId;
@@ -63,8 +63,8 @@ public class RemoteSchedulerMessageListener implements NodeMessageListener {
 
             if (message.startsWith(SchedulerBroker.CONTROL_SUBSCRIBE)) {
                 schedulerManager.getBroker().subscribeRemotely(requesterNodeId, sessionId);
-            } else if (message.startsWith(SchedulerBroker.CONTROL_RELEASE)) {
-                schedulerManager.getBroker().releaseRemotely(requesterNodeId);
+            } else if (message.startsWith(SchedulerBroker.CONTROL_UNSUBSCRIBE)) {
+                schedulerManager.getBroker().unsubscribeRemotely(requesterNodeId);
             }
         } else if (message.startsWith(SchedulerBroker.CONTROL_REQUEST)) {
             String requestData = message.substring(SchedulerBroker.CONTROL_REQUEST.length());
@@ -83,7 +83,11 @@ public class RemoteSchedulerMessageListener implements NodeMessageListener {
     public void onRelayMessage(String nodeId, @NonNull String message) {
         try {
             SchedulerResponseParameters response = JsonToParameters.from(message, SchedulerResponseParameters.class);
-            schedulerManager.bridge(response);
+            if ("log".equals(response.getHeader())) {
+                schedulerManager.bridgeLogRemotely(message);
+            } else {
+                schedulerManager.bridgeRemotely(message);
+            }
         } catch (Exception e) {
             logger.error("Failed to parse scheduler response: {}", message, e);
         }
@@ -92,8 +96,7 @@ public class RemoteSchedulerMessageListener implements NodeMessageListener {
     @Override
     public void onRelayMessage(String nodeId, String sessionId, @NonNull String message) {
         try {
-            SchedulerResponseParameters response = JsonToParameters.from(message, SchedulerResponseParameters.class);
-            schedulerManager.bridge(sessionId, response);
+            schedulerManager.bridge(sessionId, message);
         } catch (Exception e) {
             logger.error("Failed to parse scheduler response: {}", message, e);
         }
