@@ -154,6 +154,7 @@ class ConsoleClient {
             this.socket.onmessage = (event) => {
                 if (typeof event.data === "string") {
                     try {
+                        console.log(event.data);
                         const response = JSON.parse(event.data);
                         const header = response.header;
 
@@ -318,29 +319,29 @@ class ConsoleClient {
         }
     }
 
-    handleMessage(message) {
+    handleMessage(response) {
         if (this.options.onMessage) {
-            this.options.onMessage(message);
+            this.options.onMessage(response);
         }
     }
 
     /**
      * Sends a raw message to the server.
-     * @param {string} messageData - the message data to send
+     * @param {Object} request - the message data to send
      */
-    sendMessage(messageData) {
+    sendMessage(request) {
         if (this.mode === 'websocket' && this.socket && this.socket.readyState === WebSocket.OPEN) {
-            this.socket.send(JSON.stringify(messageData));
+            this.socket.send(JSON.stringify(request));
         } else if (this.mode === 'polling') {
             try {
-                this.pushMessage(messageData);
+                this.pushMessage(request);
             } catch (e) {
-                console.error("Failed to push message:", messageData);
+                console.error("Failed to push message:", request);
             }
         }
     }
 
-    pushMessage(messageData) {
+    pushMessage(request) {
         if (this.mode !== 'polling' || this.manualClose) return;
         fetch(this.endpointPath() + "/polling/push", {
             method: 'POST',
@@ -348,13 +349,13 @@ class ConsoleClient {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json'
             },
-            body: JSON.stringify(messageData)
+            body: JSON.stringify(request)
         }).then(res => res.json())
         .then(res => {
             if (res.success) {
-                console.log("message pushed:", messageData, res.data);
+                console.log("message pushed:", request, res.data);
             } else {
-                console.error("message processing failed:", messageData, res.error.message);
+                console.error("message processing failed:", request, res.error.message);
             }
         })
         .catch(err => console.error("message pushing failed:", err));

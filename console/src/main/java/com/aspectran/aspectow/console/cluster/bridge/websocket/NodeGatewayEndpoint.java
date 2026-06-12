@@ -13,19 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.aspectran.aspectow.console.cluster;
+package com.aspectran.aspectow.console.cluster.bridge.websocket;
 
 import com.aspectran.aspectow.appmon.common.auth.AppMonTokenIssuer;
+import com.aspectran.aspectow.node.config.NodeInfo;
+import com.aspectran.aspectow.node.management.nodes.NodeRequestParameters;
+import com.aspectran.aspectow.node.manager.ClusterEventListener;
+import com.aspectran.aspectow.node.management.nodes.NodeResponseParameters;
+import com.aspectran.aspectow.node.manager.ClusterEventSubscriber;
 import com.aspectran.aspectow.node.manager.NodeManager;
-import com.aspectran.aspectow.node.manager.NodeMessageListener;
-import com.aspectran.aspectow.node.manager.NodeMessageProtocol;
-import com.aspectran.aspectow.node.manager.NodeMessageSubscriber;
 import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Component;
 import com.aspectran.core.component.bean.annotation.Destroy;
 import com.aspectran.core.component.bean.annotation.Initialize;
 import com.aspectran.utils.StringUtils;
-import com.aspectran.utils.json.JsonBuilder;
+import com.aspectran.utils.apon.JsonToParameters;
 import com.aspectran.utils.security.InvalidPBTokenException;
 import com.aspectran.web.websocket.jsr356.AspectranConfigurator;
 import com.aspectran.web.websocket.jsr356.SimplifiedEndpoint;
@@ -47,7 +49,7 @@ import static com.aspectran.aspectow.node.manager.NodeMessageProtocol.NODES_BASE
         value = NODES_BASE_PATH + "/{nodeId}/websocket/{token}",
         configurator = AspectranConfigurator.class
 )
-public class NodeGatewayEndpoint extends SimplifiedEndpoint implements NodeMessageListener {
+public class NodeGatewayEndpoint extends SimplifiedEndpoint implements ClusterEventListener {
 
     private static final Logger logger = LoggerFactory.getLogger(NodeGatewayEndpoint.class);
 
@@ -67,16 +69,16 @@ public class NodeGatewayEndpoint extends SimplifiedEndpoint implements NodeMessa
 
     @Initialize
     public void registerListener() {
-        NodeMessageSubscriber subscriber = nodeManager.getNodeMessageSubscriber();
+        ClusterEventSubscriber subscriber = nodeManager.getClusterEventSubscriber();
         if (subscriber != null) {
             subscriber.addListener(this);
-            logger.info("NodeGatewayEndpoint registered as NodeMessageListener");
+            logger.info("NodeGatewayEndpoint registered as ClusterEventListener");
         }
     }
 
     @Destroy
     public void unregisterListener() {
-        NodeMessageSubscriber subscriber = nodeManager.getNodeMessageSubscriber();
+        ClusterEventSubscriber subscriber = nodeManager.getClusterEventSubscriber();
         if (subscriber != null) {
             subscriber.removeListener(this);
         }
@@ -108,35 +110,45 @@ public class NodeGatewayEndpoint extends SimplifiedEndpoint implements NodeMessa
     }
 
     @Override
-    public String getCategory() {
-        return NodeMessageProtocol.CATEGORY_CLUSTER;
+    public void onJoined(NodeInfo nodeInfo) {
+        NodeResponseParameters params = new NodeResponseParameters();
+        params.setHeader("joined");
+        params.setNode(nodeInfo);
+        broadcast(params.toString());
     }
 
     @Override
-    public void onControlMessage(String nodeId, String message) {
-        String json = new JsonBuilder()
-                .object()
-                .put("type", "control")
-                .put("nodeId", nodeId)
-                .put("message", message)
-                .endObject()
-                .toString();
-        broadcast(json);
-    }
+    public void onLeft(String nodeId) {
+        NodeInfo nodeInfo = new NodeInfo();
+        nodeInfo.setId(nodeId);
 
-    @Override
-    public void onRelayMessage(String nodeId, String message) {
-        String json = new JsonBuilder()
-                .object()
-                .put("type", "relay")
-                .put("nodeId", nodeId)
-                .put("message", message)
-                .endObject()
-                .toString();
-        broadcast(json);
+        NodeResponseParameters params = new NodeResponseParameters();
+        params.setHeader("left");
+        params.setNode(nodeInfo);
+        broadcast(params.toString());
     }
 
     private void handleMessage(Session session, String message) {
+        if (StringUtils.isEmpty(message)) {
+            return;
+        }
+
+        try {
+            NodeRequestParameters request = JsonToParameters.from(message, NodeRequestParameters.class);
+
+            String header = request.getHeader();
+            if ("subscribe".equals(header)) {
+                subscribe(session);
+            } else if ("established".equals(header)) {
+                established(session);
+            } else if ("ping".equals(header)) {
+                pong(session);
+            }
+        } catch (Exception e) {
+            logger.error("Failed to parse incoming remote command message: {}", message, e);
+            sendText(session, "[ERROR] Invalid message format");
+        }
+
         if (StringUtils.isEmpty(message)) {
             return;
         }
@@ -162,13 +174,17 @@ public class NodeGatewayEndpoint extends SimplifiedEndpoint implements NodeMessa
     }
 
     private void pong(Session session) {
-        String newToken = AppMonTokenIssuer.issueToken(1800); // 30 min.
-        sendText(session, MESSAGE_PONG + newToken);
+        NodeResponseParameters response = new NodeResponseParameters()
+                .setHeader("pong");
+        sendText(session, response.toString());
     }
 
     private void subscribe(Session session) {
         if (addSession(session)) {
-            sendText(session, MESSAGE_SUBSCRIBED);
+            NodeResponseParameters response = new NodeResponseParameters()
+                    .setHeader("subscribed");
+            sendText(session, response.toString());
+
         }
     }
 

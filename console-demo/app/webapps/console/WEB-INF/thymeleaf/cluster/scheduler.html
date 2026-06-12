@@ -309,12 +309,12 @@
                     },
                     onEstablished: () => {
                         $('#connection-indicator').text("CONNECTED").removeClass("bg-secondary bg-danger bg-warning").addClass("bg-success");
-                        const message = {
+                        const request = {
                             header: "execute",
                             command: "services",
                             nodeId: currentNodeId
                         };
-                        consoleClient.sendMessage(message);
+                        consoleClient.sendMessage(request);
                     },
                     onRetry: (count, max) => {
                         $('#connection-indicator').text(`RECONNECTING (${count}/${max})...`).removeClass("bg-success bg-danger").addClass("bg-warning");
@@ -650,14 +650,14 @@
                 }
                 $container.prepend('<div class="loading-logs text-info small italic py-2"><i class="bi bi-arrow-up-circle me-2"></i>Loading previous logs...</div>');
 
-                const message = {
+                const request = {
                     header: "execute",
                     command: "previousLogs",
                     nodeId: currentNodeId,
                     loggingGroup: loggingGroup,
                     loadedLines: loadedCount
                 };
-                consoleClient.sendMessage(message);
+                consoleClient.sendMessage(request);
             }
 
             function clearLog(loggingGroup) {
@@ -699,15 +699,15 @@
 
             function toggleState(serviceName, type, id, checked) {
                 const command = checked ? 'enable' : 'disable';
-                const message = {
+                const request = {
                     header: "execute",
                     command: command,
                     nodeId: currentNodeId,
                     serviceName: serviceName
                 };
-                if (type === 'schedule') message.scheduleId = id;
-                if (type === 'job') message.jobName = id;
-                consoleClient.sendMessage(message);
+                if (type === 'schedule') request.scheduleId = id;
+                if (type === 'job') request.jobName = id;
+                consoleClient.sendMessage(request);
             }
 
             $(function() {
@@ -725,12 +725,12 @@
                 $('#refresh-btn').on('click', function() {
                     refreshNodeList().then(() => {
                         if (consoleClient && consoleClient.established && consoleClient.mode === 'websocket') {
-                            const message = {
+                            const request = {
                                 header: "execute",
                                 command: "services",
                                 nodeId: currentNodeId
                             };
-                            consoleClient.sendMessage(message);
+                            consoleClient.sendMessage(request);
                         } else {
                             doConnectToNode(currentNodeId);
                         }

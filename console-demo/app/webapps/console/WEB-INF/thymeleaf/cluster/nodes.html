@@ -150,12 +150,12 @@
                     isUnloading = true;
                 });
 
-                function updateNodeStatus(nodeId, data) {
+                function updateNodeStatus(nodeId, response) {
                     const $card = $(`.node-id-badge:contains("${nodeId}")`).closest('.node-card');
                     if ($card.length) {
                         const $dot = $card.find('.status-dot');
                         const $statusText = $card.find('.small.fw-bold');
-                        const status = data.status || (data.type === 'control' ? JSON.parse(data.message).status : null);
+                        const status = response.node ? response.node.status : null;;
                         
                         if (status) {
                             $dot.removeClass('bg-success bg-warning bg-danger')
@@ -189,19 +189,19 @@
                                         return null;
                                     });
                             },
-                            onMessage: (msg) => {
-                                try {
-                                    const event = JSON.parse(msg);
-                                    updateNodeStatus(n.id, event);
-                                } catch (e) {
-                                    console.warn("Invalid message from node " + n.id, msg);
-                                }
+                            onOpen: () => {
+                                node.status = 'live';
+                                updateNodeStatus(n.id, { node: node });
                             },
-                            onOpen: () => updateNodeStatus(n.id, { status: 'live' }),
                             onClose: () => {
                                 if (!isUnloading) {
-                                    updateNodeStatus(n.id, { status: 'dead' });
+                                    node.status = 'dead';
+                                    updateNodeStatus(n.id, { node: node });
                                 }
+                            },
+                            onMessage: (response) => {
+                                console.log(response);
+                                updateNodeStatus(n.id, response);
                             }
                         });
                         client.start('');
@@ -221,16 +221,10 @@
                                     return null;
                                 });
                         },
-                        onMessage: (msg) => {
+                        onMessage: (response) => {
                             if (isUnloading) return;
-                            try {
-                                const event = JSON.parse(msg);
-                                if (event.nodeId) {
-                                    updateNodeStatus(event.nodeId, event);
-                                }
-                            } catch (e) {
-                                console.warn("Invalid message from gateway", msg);
-                            }
+                            console.log(response);
+                            updateNodeStatus(node.id, response);
                         }
                     });
                     client.start('');

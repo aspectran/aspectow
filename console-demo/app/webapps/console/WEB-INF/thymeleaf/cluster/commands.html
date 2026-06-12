@@ -484,11 +484,11 @@ arguments: {
                             updateHistoryUI();
                         }
                     },
-                    onMessage: (message) => {
-                        const result = message.result;
-                        const error = message.error;
-                        const nodeId = message.nodeId;
-                        const requestId = message.requestId;
+                    onMessage: (response) => {
+                        const result = response.result;
+                        const error = response.error;
+                        const nodeId = response.nodeId;
+                        const requestId = response.requestId;
 
                         const target = commandHistory.find(c => c.id === requestId) || commandHistory.find(c => c.status === 'queued');
                         if (target) {

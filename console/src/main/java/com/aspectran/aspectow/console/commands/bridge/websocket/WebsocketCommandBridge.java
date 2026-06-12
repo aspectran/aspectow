@@ -102,7 +102,9 @@ public class WebsocketCommandBridge extends SimplifiedEndpoint implements Comman
             }
         } catch (Exception e) {
             logger.error("Failed to parse incoming remote command message: {}", message, e);
-            sendText(session, "[ERROR] Invalid message format");
+            RemoteResponseParameters response = new RemoteResponseParameters()
+                    .setError("Invalid request format");
+            sendText(session, response.toString());
         }
     }
 

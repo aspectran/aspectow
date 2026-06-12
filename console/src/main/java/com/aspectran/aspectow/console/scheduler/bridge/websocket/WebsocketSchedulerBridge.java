@@ -43,7 +43,7 @@ import static com.aspectran.aspectow.node.manager.NodeMessageProtocol.NODES_BASE
  */
 @Component
 @ServerEndpoint(
-        value = NODES_BASE_PATH + "/{nodeId}/" + CATEGORY_SCHEDULER + "/websocket-/{token}",
+        value = NODES_BASE_PATH + "/{nodeId}/" + CATEGORY_SCHEDULER + "/websocket/{token}",
         configurator = AspectranConfigurator.class
 )
 public class WebsocketSchedulerBridge extends SimplifiedEndpoint implements SchedulerBridge {
@@ -99,7 +99,9 @@ public class WebsocketSchedulerBridge extends SimplifiedEndpoint implements Sche
             }
         } catch (Exception e) {
             logger.error("Failed to parse incoming scheduler management request: {}", message, e);
-            sendText(session, "[ERROR] Invalid request format");
+            SchedulerResponseParameters response = new SchedulerResponseParameters()
+                    .setError("Invalid request format");
+            sendText(session, response.toString());
         }
     }
 
@@ -138,9 +140,9 @@ public class WebsocketSchedulerBridge extends SimplifiedEndpoint implements Sche
     }
 
     private void pong(Session session) {
-        SchedulerResponseParameters responseParameters = new SchedulerResponseParameters()
+        SchedulerResponseParameters response = new SchedulerResponseParameters()
                 .setHeader("pong");
-        sendText(session, responseParameters.toString());
+        sendText(session, response.toString());
     }
 
     private void execute(Session session, @NonNull SchedulerRequestParameters request) {

@@ -9,7 +9,7 @@
         <argument>root</argument>
     </bean>
 
-    <bean class="com.aspectran.aspectow.console.cluster.TowServerPortProvider">
+    <bean class="com.aspectran.aspectow.console.cluster.support.TowServerPortProvider">
         <argument>tow.server</argument>
     </bean>
 
