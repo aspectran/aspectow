@@ -98,9 +98,9 @@
                 </div>
                 <div class="col-md-4">
                     <select id="target-type" class="form-select form-select-sm" onchange="onTargetTypeChange()">
-                        <option value="all" th:selected="${page.node == null}">All Nodes in Cluster</option>
+                        <option value="all" th:selected="${page.targetNodeId == null}">All Nodes in Cluster</option>
                         <option value="group" th:if="${page.clusterMode == 'gateway'}">Specific Group</option>
-                        <option value="node" th:selected="${page.node != null}">Individual Node</option>
+                        <option value="node" th:selected="${page.targetNodeId != null}">Individual Node</option>
                     </select>
                 </div>
                 <div class="col-md-4" id="target-value-container">
@@ -173,7 +173,7 @@ arguments: {
             const basePath = [[@{/}]].replace(/\/$/, '');
             const clusterMode = [[${page.clusterMode}]];
             const myNodeId = [[${page.myNodeId}]];
-            const currentNodeId = [[${page.node?.id}]];
+            const targetNodeId = [[${page.targetNodeId}]];
             let nodes = [[${page.nodes}]];
 
             let consoleClient = null;
@@ -212,7 +212,6 @@ arguments: {
                 const type = $('#target-type').val();
                 const $container = $('#target-value-container');
                 const $select = $('#target-value');
-                const prevValue = $select.val();
                 $select.empty();
 
                 if (type === 'all') {
@@ -226,7 +225,9 @@ arguments: {
                     const groups = [...new Set(nodes.map(n => n.group).filter(g => g))];
                     groups.forEach(g => $select.append(new Option(g, g)));
                     resetDeadStatus();
+                    updateUrl();
                 } else {
+                    const prevValue = $select.val();
                     $container.show();
                     if (clusterMode === 'gateway') {
                         const groups = [...new Set(nodes.map(n => n.group).filter(g => g))];
@@ -267,18 +268,22 @@ arguments: {
                         });
                     }
 
-                    const targetNodeId = prevValue || currentNodeId;
-                    if (targetNodeId) {
-                        $select.val(targetNodeId);
-                        updateUrl(targetNodeId);
-                        checkSelectedNodeStatus(targetNodeId);
+                    const currentNodeId = prevValue || targetNodeId;
+                    if (currentNodeId) {
+                        $select.val(currentNodeId);
+                        updateUrl(currentNodeId);
+                        checkSelectedNodeStatus(currentNodeId);
                     }
                 }
             }
 
             function updateUrl(nodeId) {
                 const url = new URL(window.location);
-                url.searchParams.set('nodeId', nodeId);
+                if (nodeId) {
+                    url.searchParams.set('nodeId', nodeId);
+                } else {
+                    url.searchParams.delete('nodeId');
+                }
                 window.history.replaceState({}, '', url);
             }
 
@@ -431,9 +436,9 @@ arguments: {
                 });
 
                 const nodeInfo = {
-                    id: currentNodeId || myNodeId,
+                    id: targetNodeId || myNodeId,
                     endpoint: {
-                        path: basePath + "/nodes/" + (currentNodeId || myNodeId)
+                        path: basePath + "/nodes/" + (targetNodeId || myNodeId)
                     }
                 };
 
@@ -485,10 +490,10 @@ arguments: {
                         }
                     },
                     onMessage: (response) => {
+                        const requestId = response.requestId;
+                        const nodeId = response.nodeId;
                         const result = response.result;
                         const error = response.error;
-                        const nodeId = response.nodeId;
-                        const requestId = response.requestId;
 
                         const target = commandHistory.find(c => c.id === requestId) || commandHistory.find(c => c.status === 'queued');
                         if (target) {

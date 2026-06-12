@@ -114,7 +114,9 @@ public class WebsocketCommandBridge extends SimplifiedEndpoint implements Comman
         remoteCommandManager.unregisterSession(session.getId());
         WebsocketCommandSession commandSession = new WebsocketCommandSession(session);
         remoteCommandManager.getBroker().unsubscribe(commandSession);
-        logger.debug("Remote command WebSocket session removed: {} (Total: {})", session.getId(), countSessions());
+        if (logger.isDebugEnabled()) {
+            logger.debug("Remote command WebSocket session removed: {} (Total: {})", session.getId(), countSessions());
+        }
     }
 
     private void subscribe(Session session, @NonNull RemoteRequestParameters request) {
@@ -160,7 +162,9 @@ public class WebsocketCommandBridge extends SimplifiedEndpoint implements Comman
                 }
             } catch (Exception e) {
                 logger.error("Failed to initiate command execution from session {}", session.getId(), e);
-                sendText(session, "[ERROR] " + e.getMessage());
+                RemoteResponseParameters response = new RemoteResponseParameters()
+                        .setError("Failed to initiate command execution");
+                sendText(session, response.toString());
             }
         }
     }

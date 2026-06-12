@@ -28,20 +28,23 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class SubscriptionRegistry {
 
+    private final Set<String> localSessions = ConcurrentHashMap.newKeySet();
+
     private final Set<String> localSubscriptions = ConcurrentHashMap.newKeySet();
 
     private final Set<String> remoteSubscriptions = ConcurrentHashMap.newKeySet();
+
+    public void addSession(@NonNull String sessionId) {
+        localSessions.add(sessionId);
+    }
 
     public void addLocalSubscription(@NonNull String sessionId) {
         localSubscriptions.add(sessionId);
     }
 
     public void removeLocalSubscription(@NonNull String sessionId) {
+        localSessions.remove(sessionId);
         localSubscriptions.remove(sessionId);
-    }
-
-    public int getLocalSubscriptionCount() {
-        return localSubscriptions.size();
     }
 
     public void addRemoteSubscription(@NonNull String nodeId) {
@@ -65,10 +68,11 @@ public class SubscriptionRegistry {
     }
 
     public Set<String> getAllSessionIds() {
-        return Set.copyOf(localSubscriptions);
+        return Set.copyOf(localSessions);
     }
 
     public void clear() {
+        localSessions.clear();
         localSubscriptions.clear();
         remoteSubscriptions.clear();
     }

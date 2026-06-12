@@ -54,10 +54,11 @@ public class SchedulerBroker {
 
     public synchronized boolean subscribe(@NonNull SchedulerSession session) {
         if (session.isValid()) {
-            boolean alreadyInUse = subscriptionRegistry.isInUse();
-            subscriptionRegistry.addLocalSubscription(session.getId());
+            subscriptionRegistry.addSession(session.getId());
             String targetNodeId = session.getNodeId();
             if (schedulerManager.isSameNode(targetNodeId)) {
+                boolean alreadyInUse = subscriptionRegistry.isInUse();
+                subscriptionRegistry.addLocalSubscription(session.getId());
                 if (!alreadyInUse) {
                     schedulerManager.startExporters();
                 }
@@ -140,10 +141,8 @@ public class SchedulerBroker {
 
         if (locally) {
             Set<String> remoteNodeIds = subscriptionRegistry.getRemoteSubscriptions();
-            if (!remoteNodeIds.isEmpty()) {
-                for (String nid : remoteNodeIds) {
-                    publishRelay(nid, message);
-                }
+            for (String nid : remoteNodeIds) {
+                publishRelay(nid, message);
             }
         }
     }
@@ -156,10 +155,8 @@ public class SchedulerBroker {
 
         if (locally) {
             Set<String> remoteNodeIds = subscriptionRegistry.getRemoteSubscriptions();
-            if (!remoteNodeIds.isEmpty()) {
-                for (String nodeId : remoteNodeIds) {
-                    publishRelay(nodeId, message);
-                }
+            for (String nodeId : remoteNodeIds) {
+                publishRelay(nodeId, message);
             }
         }
     }

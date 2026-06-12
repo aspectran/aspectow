@@ -61,6 +61,8 @@ public class SchedulerManager implements ApplicationAdapterAware, InitializableB
 
     private static final String OP_PREVIOUS_LOGS = "previousLogs";
 
+    private static final String STATE_UPDATED = "stateUpdated";
+
     private final Map<String, SchedulerLogExporter> logExporters = new ConcurrentHashMap<>();
 
     private final Map<String, SchedulerBridge> sessionBridgeMap = new ConcurrentHashMap<>();
@@ -199,7 +201,7 @@ public class SchedulerManager implements ApplicationAdapterAware, InitializableB
                 String header = response.getHeader();
                 String sessionId = request.getSessionId();
                 String message = response.toString();
-                if ("stateUpdated".equals(header)) {
+                if (STATE_UPDATED.equals(header)) {
                     bridge(message);
                 } else if (sessionId != null) {
                     bridge(sessionId, message);
@@ -237,7 +239,7 @@ public class SchedulerManager implements ApplicationAdapterAware, InitializableB
                 String gatewayNodeId = request.getNodeId();
                 String sessionId = request.getSessionId();
                 String message = response.toString();
-                if ("stateUpdated".equals(response.getHeader())) {
+                if (STATE_UPDATED.equals(response.getHeader())) {
                     bridge(message);
                 } else {
                     bridgeRemotely(gatewayNodeId, sessionId, message);
@@ -288,7 +290,7 @@ public class SchedulerManager implements ApplicationAdapterAware, InitializableB
             }
             JsonBuilder jsonBuilder = new JsonBuilder().put(lines);
             return new SchedulerResponseParameters()
-                    .setHeader("previousLogs")
+                    .setHeader(OP_PREVIOUS_LOGS)
                     .setOwner(loggingGroup)
                     .setData(jsonBuilder.toJsonString());
         }

@@ -24,6 +24,7 @@ import com.aspectran.aspectow.node.management.scheduler.bridge.SchedulerSession;
 import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Component;
 import com.aspectran.utils.StringUtils;
+import com.aspectran.utils.ToStringBuilder;
 import com.aspectran.utils.apon.JsonToParameters;
 import com.aspectran.utils.security.InvalidPBTokenException;
 import com.aspectran.web.websocket.jsr356.AspectranConfigurator;
@@ -132,15 +133,19 @@ public class WebsocketSchedulerBridge extends SimplifiedEndpoint implements Sche
                     .setHeader("subscribed")
                     .setNodeId(schedulerManager.getNodeId());
             sendText(session, response.toString());
-            logger.debug("ConsoleClient joined scheduler management: session {}, targetNodeId: {}",
-                    session.getId(), schedulerSession.getNodeId());
+            if (logger.isDebugEnabled()) {
+                logger.debug("ConsoleClient joined scheduler management: session {}, targetNodeId: {}",
+                        session.getId(), schedulerSession.getNodeId());
+            }
         }
     }
 
     private void established(@NonNull Session session) {
         WebsocketSchedulerSession schedulerSession = new WebsocketSchedulerSession(session);
         schedulerManager.getBroker().subscribe(schedulerSession);
-        logger.debug("Scheduler management session established: session {}", session.getId());
+        if (logger.isDebugEnabled()) {
+            logger.debug("Scheduler management session established: session {}", session.getId());
+        }
     }
 
     private void pong(Session session) {

@@ -62,8 +62,8 @@ public class RemoteCommandsActivity {
     public Map<String, Object> commands(String nodeId) {
         String clusterMode = nodeManager.getClusterConfig().getMode();
         List<Map<String, Object>> nodes = nodeConsoleHelper.getNodes(true);
-        NodeInfo nodeInfo = (nodeId != null ? nodeManager.getNodeInfoHolder().getNodeInfo(nodeId) : null);
-        if (nodeId != null && nodeInfo == null) {
+        String targetNodeId = (nodeId != null ? (nodeManager.getNodeInfoHolder().hasNode(nodeId) ? nodeId : null) : null);
+        if (nodeId != null && targetNodeId == null) {
             throw new IllegalArgumentException("No node found with ID: " + nodeId);
         }
         Map<String, Object> model = new HashMap<>();
@@ -71,10 +71,10 @@ public class RemoteCommandsActivity {
         model.put("style", "commands-page");
         model.put("group", "cluster-menu");
         model.put("clusterMode", clusterMode);
-        model.put("myNodeId", nodeManager.getNodeId());
         model.put("nodes", nodes);
-        if (nodeInfo != null) {
-            model.put("node", nodeConsoleHelper.createNodeMap(nodeInfo, true, true));
+        model.put("myNodeId", nodeManager.getNodeId());
+        if (targetNodeId != null) {
+            model.put("targetNodeId", targetNodeId);
         }
         return model;
     }
