@@ -79,9 +79,9 @@ public class PollingCommandBridge extends AbstractComponent implements CommandBr
      */
     @Request("/polling/subscribe")
     public RestResponse subscribe(@NonNull Translet translet) {
-        String nodeId = translet.getParameter("nodeId");
-        if (StringUtils.isEmpty(nodeId)) {
-            return new FailureResponse("Node ID cannot be empty");
+        String targetNodeId = translet.getParameter("targetNodeId");
+        if (!StringUtils.hasText(targetNodeId)) {
+            return new FailureResponse("Target node ID is required");
         }
 
         PollingCommandSession session = pollingSessionManager.getSession(translet);

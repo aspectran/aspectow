@@ -173,4 +173,8 @@ public class SchedulerBroker {
         }
     }
 
+    public void bridgeRemotely(String nodeId, String sessionId, String message) {
+        publishRelay(nodeId, sessionId, message);
+    }
+
 }

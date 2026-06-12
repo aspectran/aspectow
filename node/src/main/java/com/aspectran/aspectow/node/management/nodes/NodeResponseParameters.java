@@ -26,16 +26,19 @@ public class NodeResponseParameters extends DefaultParameters {
 
     public static final ParameterKey header;
     public static final ParameterKey node;
+    public static final ParameterKey error;
 
     private static final ParameterKey[] parameterKeys;
 
     static {
         header = new ParameterKey("header", ValueType.STRING);
         node = new ParameterKey("node", NodeInfo.class);
+        error = new ParameterKey("error", ValueType.TEXT);
 
         parameterKeys = new ParameterKey[] {
                 header,
-                node
+                node,
+                error
         };
     }
 
@@ -59,6 +62,15 @@ public class NodeResponseParameters extends DefaultParameters {
 
     public NodeResponseParameters setNode(NodeInfo node) {
         putValue(NodeResponseParameters.node, node);
+        return this;
+    }
+
+    public String getError() {
+        return getString(error);
+    }
+
+    public NodeResponseParameters setError(String error) {
+        putValue(NodeResponseParameters.error, error);
         return this;
     }
 

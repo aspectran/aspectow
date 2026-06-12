@@ -142,8 +142,8 @@ class ConsoleClient {
                 console.log(this.node.id, "websocket connected");
                 this.retryCount = 0;
 
-                const subscribeMessage = { header: "subscribe", nodeId: this.node.id };
-                this.socket.send(JSON.stringify(subscribeMessage));
+                const subscribeRequest = { header: "subscribe", targetNodeId: this.node.id };
+                this.socket.send(JSON.stringify(subscribeRequest));
                 this.sendPing();
 
                 if (this.options.onOpen) {
@@ -154,10 +154,8 @@ class ConsoleClient {
             this.socket.onmessage = (event) => {
                 if (typeof event.data === "string") {
                     try {
-                        console.log(event.data);
                         const response = JSON.parse(event.data);
                         const header = response.header;
-
                         if (header === 'subscribed') {
                             const primaryNodeId = response.nodeId;
                             console.log("subscribed", primaryNodeId);
@@ -219,7 +217,7 @@ class ConsoleClient {
     startPolling() {
         this.stopPolling();
 
-        const subscribeUrl = this.endpointPath() + "/polling/subscribe?nodeId=" + this.node.id;
+        const subscribeUrl = this.endpointPath() + "/polling/subscribe?targetNodeId=" + this.node.id;
         fetch(subscribeUrl, {
             headers: {
                 'Accept': 'application/json'
@@ -307,8 +305,6 @@ class ConsoleClient {
 
     /**
      * Completes the connection process after receiving the 'subscribed' message.
-     * @param {Object} payload - payload from the server
-     * @private
      */
     establish(primaryNodeId) {
         this.retryCount = 0;
@@ -355,7 +351,11 @@ class ConsoleClient {
             if (res.success) {
                 console.log("message pushed:", request, res.data);
             } else {
-                console.error("message processing failed:", request, res.error.message);
+                if (res.error && res.error.code === 'session_not_found') {
+                    console.warn(this.node.id, "Session lost (not found)");
+                } else {
+                    console.error("message processing failed:", request, res.error.message);
+                }
             }
         })
         .catch(err => console.error("message pushing failed:", err));

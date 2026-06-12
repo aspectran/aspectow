@@ -28,9 +28,9 @@ public class RemoteRequestParameters extends DefaultParameters {
 
     public static final ParameterKey header;
     public static final ParameterKey requestId;
-    public static final ParameterKey targetNodeId;
-    public static final ParameterKey sourceNodeId;
+    public static final ParameterKey nodeId;
     public static final ParameterKey sessionId;
+    public static final ParameterKey targetNodeId;
     public static final ParameterKey targetGroup;
     public static final ParameterKey targetAll;
     public static final ParameterKey command;
@@ -40,9 +40,9 @@ public class RemoteRequestParameters extends DefaultParameters {
     static {
         header = new ParameterKey("header", ValueType.STRING);
         requestId = new ParameterKey("requestId", ValueType.STRING);
-        targetNodeId = new ParameterKey("targetNodeId", ValueType.STRING);
-        sourceNodeId = new ParameterKey("sourceNodeId", ValueType.STRING);
+        nodeId = new ParameterKey("nodeId", ValueType.STRING);
         sessionId = new ParameterKey("sessionId", ValueType.STRING);
+        targetNodeId = new ParameterKey("targetNodeId", ValueType.STRING);
         targetGroup = new ParameterKey("targetGroup", ValueType.STRING);
         targetAll = new ParameterKey("targetAll", ValueType.BOOLEAN);
         command = new ParameterKey("command", CommandParameters.class);
@@ -50,9 +50,9 @@ public class RemoteRequestParameters extends DefaultParameters {
         parameterKeys = new ParameterKey[] {
                 header,
                 requestId,
-                targetNodeId,
-                sourceNodeId,
+                nodeId,
                 sessionId,
+                targetNodeId,
                 targetGroup,
                 targetAll,
                 command
@@ -79,20 +79,12 @@ public class RemoteRequestParameters extends DefaultParameters {
         putValue(RemoteRequestParameters.requestId, requestId);
     }
 
-    public String getTargetNodeId() {
-        return getString(targetNodeId);
+    public String getNodeId() {
+        return getString(nodeId);
     }
 
-    public void setTargetNodeId(String targetNodeId) {
-        putValue(RemoteRequestParameters.targetNodeId, targetNodeId);
-    }
-
-    public String getSourceNodeId() {
-        return getString(sourceNodeId);
-    }
-
-    public void setSourceNodeId(String sourceNodeId) {
-        putValue(RemoteRequestParameters.sourceNodeId, sourceNodeId);
+    public void setNodeId(String nodeId) {
+        putValue(RemoteRequestParameters.nodeId, nodeId);
     }
 
     public String getSessionId() {
@@ -101,6 +93,14 @@ public class RemoteRequestParameters extends DefaultParameters {
 
     public void setSessionId(String sessionId) {
         putValue(RemoteRequestParameters.sessionId, sessionId);
+    }
+
+    public String getTargetNodeId() {
+        return getString(targetNodeId);
+    }
+
+    public void setTargetNodeId(String targetNodeId) {
+        putValue(RemoteRequestParameters.targetNodeId, targetNodeId);
     }
 
     public String getTargetGroup() {

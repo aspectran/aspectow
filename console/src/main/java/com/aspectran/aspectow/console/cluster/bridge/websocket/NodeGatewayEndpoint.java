@@ -121,6 +121,7 @@ public class NodeGatewayEndpoint extends SimplifiedEndpoint implements ClusterEv
     public void onLeft(String nodeId) {
         NodeInfo nodeInfo = new NodeInfo();
         nodeInfo.setId(nodeId);
+        nodeInfo.setStatus("offline");
 
         NodeResponseParameters params = new NodeResponseParameters();
         params.setHeader("left");
@@ -145,31 +146,10 @@ public class NodeGatewayEndpoint extends SimplifiedEndpoint implements ClusterEv
                 pong(session);
             }
         } catch (Exception e) {
-            logger.error("Failed to parse incoming remote command message: {}", message, e);
-            sendText(session, "[ERROR] Invalid message format");
-        }
-
-        if (StringUtils.isEmpty(message)) {
-            return;
-        }
-        if (message.startsWith("command:")) {
-            String command = message.substring(8);
-            int idx = command.indexOf(';');
-            if (idx != -1) {
-                command = command.substring(0, idx);
-            }
-
-            switch (command) {
-                case COMMAND_PING:
-                    pong(session);
-                    break;
-                case COMMAND_SUBSCRIBED:
-                    subscribe(session);
-                    break;
-                case COMMAND_ESTABLISHED:
-                    established(session);
-                    break;
-            }
+            logger.error("Failed to parse incoming request message: {}", message, e);
+            NodeResponseParameters response = new NodeResponseParameters()
+                    .setError("Invalid request format");
+            sendText(session, response.toString());
         }
     }
 
@@ -184,7 +164,6 @@ public class NodeGatewayEndpoint extends SimplifiedEndpoint implements ClusterEv
             NodeResponseParameters response = new NodeResponseParameters()
                     .setHeader("subscribed");
             sendText(session, response.toString());
-
         }
     }
 

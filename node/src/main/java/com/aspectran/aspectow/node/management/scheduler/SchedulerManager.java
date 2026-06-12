@@ -30,6 +30,7 @@ import com.aspectran.core.scheduler.service.SchedulerService;
 import com.aspectran.core.service.CoreService;
 import com.aspectran.core.service.CoreServiceHolder;
 import com.aspectran.logging.LoggingDefaults;
+import com.aspectran.utils.Assert;
 import com.aspectran.utils.StringUtils;
 import com.aspectran.utils.json.JsonBuilder;
 import org.jspecify.annotations.NonNull;
@@ -188,10 +189,7 @@ public class SchedulerManager implements ApplicationAdapterAware, InitializableB
      * @param request the structured request parameters
      */
     public void process(@NonNull SchedulerRequestParameters request) {
-        String targetNodeId = request.getNodeId();
-        if (StringUtils.isEmpty(targetNodeId)) {
-            targetNodeId = getNodeId();
-        }
+        String targetNodeId = request.getTargetNodeId();
         if (isSameNode(targetNodeId)) {
             if (logger.isDebugEnabled()) {
                 logger.debug("Executing local scheduler request: {}", request.getCommand());
@@ -232,18 +230,17 @@ public class SchedulerManager implements ApplicationAdapterAware, InitializableB
      * Processes an incoming message received from the cluster relay.
      */
     public void processRemotely(SchedulerRequestParameters request) {
-        if (request == null) {
-            return;
-        }
+        Assert.notNull(request, "Scheduler request cannot be null");
         try {
             SchedulerResponseParameters response = execute(request);
             if (response != null && messagePublisher != null) {
+                String gatewayNodeId = request.getNodeId();
                 String sessionId = request.getSessionId();
                 String message = response.toString();
                 if ("stateUpdated".equals(response.getHeader())) {
                     bridge(message);
                 } else {
-                    bridgeRemotely(sessionId, message);
+                    bridgeRemotely(gatewayNodeId, sessionId, message);
                 }
             }
         } catch (Exception e) {
@@ -320,16 +317,16 @@ public class SchedulerManager implements ApplicationAdapterAware, InitializableB
         broker.bridge(message, false);
     }
 
+    public void bridgeRemotely(String nodeId, String sessionId, String message) {
+        broker.bridgeRemotely(nodeId, sessionId, message);
+    }
+
     public void bridgeLogRemotely(String nodeId, String message) {
         broker.bridgeLog(nodeId, message, false);
     }
 
     public void bridge(String sessionId, String message) {
         bridge(null, sessionId, message);
-    }
-
-    public void bridgeRemotely(String sessionId, String message) {
-        broker.bridgeRemotely(sessionId, message);
     }
 
     public void bridge(String nodeId, String sessionId, String message) {

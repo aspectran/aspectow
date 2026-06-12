@@ -300,9 +300,8 @@
                             });
                     },
                     onMessage: (response) => {
-                        const error = response.error;
-                        if (error) {
-                            console.error("Received error from scheduler bridge:", error);
+                        if (response.error) {
+                            console.error("Received error message:", response.error);
                             return;
                         }
                         handleMessage(response);
@@ -311,8 +310,8 @@
                         $('#connection-indicator').text("CONNECTED").removeClass("bg-secondary bg-danger bg-warning").addClass("bg-success");
                         const request = {
                             header: "execute",
-                            command: "services",
-                            nodeId: currentNodeId
+                            targetNodeId: currentNodeId,
+                            command: "services"
                         };
                         consoleClient.sendMessage(request);
                     },
@@ -652,8 +651,8 @@
 
                 const request = {
                     header: "execute",
+                    targetNodeId: currentNodeId,
                     command: "previousLogs",
-                    nodeId: currentNodeId,
                     loggingGroup: loggingGroup,
                     loadedLines: loadedCount
                 };
@@ -701,8 +700,8 @@
                 const command = checked ? 'enable' : 'disable';
                 const request = {
                     header: "execute",
+                    targetNodeId: currentNodeId,
                     command: command,
-                    nodeId: currentNodeId,
                     serviceName: serviceName
                 };
                 if (type === 'schedule') request.scheduleId = id;
@@ -727,8 +726,8 @@
                         if (consoleClient && consoleClient.established && consoleClient.mode === 'websocket') {
                             const request = {
                                 header: "execute",
-                                command: "services",
-                                nodeId: currentNodeId
+                                targetNodeId: currentNodeId,
+                                command: "services"
                             };
                             consoleClient.sendMessage(request);
                         } else {

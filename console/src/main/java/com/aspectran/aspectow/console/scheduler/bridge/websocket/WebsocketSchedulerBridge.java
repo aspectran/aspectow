@@ -86,6 +86,7 @@ public class WebsocketSchedulerBridge extends SimplifiedEndpoint implements Sche
 
         try {
             SchedulerRequestParameters request = JsonToParameters.from(message, SchedulerRequestParameters.class);
+            request.setNodeId(schedulerManager.getNodeId());
             request.setSessionId(session.getId());
             String header = request.getHeader();
             if ("execute".equals(header)) {
@@ -114,13 +115,16 @@ public class WebsocketSchedulerBridge extends SimplifiedEndpoint implements Sche
     }
 
     private void subscribe(Session session, @NonNull SchedulerRequestParameters request) {
-        WebsocketSchedulerSession schedulerSession = new WebsocketSchedulerSession(session);
-        String targetNodeId = request.getNodeId();
-        if (StringUtils.hasText(targetNodeId)) {
-            schedulerSession.setNodeId(targetNodeId);
-        } else {
-            schedulerSession.setNodeId(schedulerManager.getNodeId());
+        String targetNodeId = request.getTargetNodeId();
+        if (!StringUtils.hasText(targetNodeId)) {
+            SchedulerResponseParameters response = new SchedulerResponseParameters()
+                    .setError("Target node is required");
+            sendText(session, response.toString());
+            return;
         }
+
+        WebsocketSchedulerSession schedulerSession = new WebsocketSchedulerSession(session);
+        schedulerSession.setNodeId(targetNodeId);
 
         if (addSession(session)) {
             schedulerManager.registerSession(session.getId(), this);
@@ -146,11 +150,19 @@ public class WebsocketSchedulerBridge extends SimplifiedEndpoint implements Sche
     }
 
     private void execute(Session session, @NonNull SchedulerRequestParameters request) {
+        if (!StringUtils.hasText(request.getTargetNodeId())) {
+            SchedulerResponseParameters response = new SchedulerResponseParameters()
+                    .setError("Target node is required");
+            sendText(session, response.toString());
+            return;
+        }
         try {
             schedulerManager.process(request);
         } catch (Exception e) {
             logger.error("Failed to execute scheduler request from session {}", session.getId(), e);
-            sendText(session, "[ERROR] " + e.getMessage());
+            SchedulerResponseParameters response = new SchedulerResponseParameters()
+                    .setError(e.getMessage());
+            sendText(session, response.toString());
         }
     }
 

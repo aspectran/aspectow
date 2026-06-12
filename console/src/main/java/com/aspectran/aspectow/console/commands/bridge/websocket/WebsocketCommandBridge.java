@@ -26,6 +26,7 @@ import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Component;
 import com.aspectran.daemon.command.CommandParameters;
 import com.aspectran.utils.StringUtils;
+import com.aspectran.utils.ToStringBuilder;
 import com.aspectran.utils.apon.JsonToParameters;
 import com.aspectran.utils.security.InvalidPBTokenException;
 import com.aspectran.web.websocket.jsr356.AspectranConfigurator;
@@ -117,13 +118,16 @@ public class WebsocketCommandBridge extends SimplifiedEndpoint implements Comman
     }
 
     private void subscribe(Session session, @NonNull RemoteRequestParameters request) {
-        WebsocketCommandSession commandSession = new WebsocketCommandSession(session);
         String targetNodeId = request.getTargetNodeId();
-        if (targetNodeId != null && !targetNodeId.isEmpty()) {
-            commandSession.setNodeId(targetNodeId);
-        } else {
-            commandSession.setNodeId(nodeManager.getNodeId());
+        if (!StringUtils.hasText(targetNodeId)) {
+            RemoteResponseParameters response = new RemoteResponseParameters()
+                    .setError("Target node is required");
+            sendText(session, response.toString());
+            return;
         }
+
+        WebsocketCommandSession commandSession = new WebsocketCommandSession(session);
+        commandSession.setNodeId(targetNodeId);
 
         if (addSession(session)) {
             remoteCommandManager.registerSession(session.getId(), this);
@@ -151,8 +155,9 @@ public class WebsocketCommandBridge extends SimplifiedEndpoint implements Comman
             request.setSessionId(session.getId());
             try {
                 remoteCommandManager.process(request);
-                logger.debug("Command execution initiated from session {}: target={}, command={}",
-                        session.getId(), request.getTargetNodeId(), commandParameters.getCommandName());
+                if (logger.isDebugEnabled()) {
+                    logger.debug(ToStringBuilder.toString("Command execution initiated:", request));
+                }
             } catch (Exception e) {
                 logger.error("Failed to initiate command execution from session {}", session.getId(), e);
                 sendText(session, "[ERROR] " + e.getMessage());

@@ -136,7 +136,7 @@ public class RemoteCommandManager implements InitializableBean {
     private void dispatch(String targetNodeId, @NonNull RemoteRequestParameters request) {
         if (messagePublisher != null) {
             try {
-                request.setSourceNodeId(getNodeId());
+                request.setNodeId(getNodeId());
                 String message = CommandBroker.CONTROL_REQUEST + request;
                 messagePublisher.publishControl(CommandBroker.CATEGORY_COMMANDS, targetNodeId, message);
                 if (logger.isDebugEnabled()) {
@@ -184,7 +184,7 @@ public class RemoteCommandManager implements InitializableBean {
             try {
                 CommandResult result = execute(request);
                 if (result != null && messagePublisher != null) {
-                    String requesterNodeId = request.getSourceNodeId();
+                    String gatewayNodeId = request.getNodeId();
                     String sessionId = request.getSessionId();
                     RemoteResponseParameters response = new RemoteResponseParameters()
                             .setHeader("result")
@@ -193,9 +193,9 @@ public class RemoteCommandManager implements InitializableBean {
                             .setResult(result.getResult())
                             .setError(result.getError());
                     String relayMessage = response.toString();
-                    if (requesterNodeId != null && sessionId != null) {
+                    if (gatewayNodeId != null && sessionId != null) {
                         messagePublisher.publishRelay(
-                                CommandBroker.CATEGORY_COMMANDS, requesterNodeId, sessionId, relayMessage);
+                                CommandBroker.CATEGORY_COMMANDS, gatewayNodeId, sessionId, relayMessage);
                     }
                 }
             } catch (Exception e) {

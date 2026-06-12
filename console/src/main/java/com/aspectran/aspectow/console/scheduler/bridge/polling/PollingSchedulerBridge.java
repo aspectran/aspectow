@@ -79,9 +79,9 @@ public class PollingSchedulerBridge extends AbstractComponent implements Schedul
      */
     @Request("/polling/subscribe")
     public RestResponse subscribe(@NonNull Translet translet) {
-        String targetNodeId = translet.getParameter("nodeId");
+        String targetNodeId = translet.getParameter("targetNodeId");
         if (!StringUtils.hasText(targetNodeId)) {
-            targetNodeId = schedulerManager.getNodeId();
+            return new FailureResponse("Target node ID is required");
         }
 
         PollingSchedulerSession schedulerSession = sessionManager.getSession(translet);
@@ -129,7 +129,12 @@ public class PollingSchedulerBridge extends AbstractComponent implements Schedul
             return new FailureResponse().setError("command_required", "Command is required");
         }
 
+        if (!StringUtils.hasText(request.getTargetNodeId())) {
+            return new FailureResponse().setError("target_node_required", "Target node is required");
+        }
+
         try {
+            request.setNodeId(schedulerManager.getNodeId());
             request.setSessionId(session.getId());
             schedulerManager.process(request);
             return new SuccessResponse("Scheduler command initiated successfully").ok();
