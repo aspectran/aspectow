@@ -31,7 +31,7 @@
     </th:block>
 </head>
 <body>
-    <div layout:fragment="content" class="container">
+    <th:block layout:fragment="content" class="container">
         <div class="row">
             <div class="node-bar mb-2 mb-md-0 mt-3">
                 <ul class="node tabs nav nav-tabs">
@@ -178,7 +178,7 @@
                 <pre class="console"></pre>
             </div>
         </div>
-    </div>
+    </th:block>
 
     <script layout:fragment="script" th:inline="javascript">
     $(function () {
