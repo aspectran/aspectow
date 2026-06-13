@@ -7,10 +7,23 @@
     <style>
         .command-container {
             display: grid;
-            grid-template-columns: 350px 1fr;
+            grid-template-columns: 350px minmax(0, 1fr);
             gap: 20px;
             height: calc(100vh - 250px);
             min-height: 650px;
+        }
+        .status-pill {
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 10px;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+        .target-selector {
+            background: var(--bs-tertiary-bg);
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid var(--bs-border-color);
         }
         .history-panel {
             background: var(--bs-body-bg);
@@ -43,13 +56,13 @@
             display: flex;
             flex-direction: column;
             gap: 20px;
+            min-width: 0;
         }
         .command-editor {
             background: #1e1e1e;
             color: #d4d4d4;
             font-family: var(--bs-font-monospace);
             padding: 15px;
-            border: 1px solid #333;
             min-height: 200px;
             width: 100%;
             resize: vertical;
@@ -61,19 +74,11 @@
             padding: 20px;
             overflow-y: auto;
             border: 1px solid var(--bs-border-color);
+            min-width: 0;
         }
-        .status-pill {
-            font-size: 0.7rem;
-            padding: 2px 8px;
-            border-radius: 10px;
-            text-transform: uppercase;
-            font-weight: bold;
-        }
-        .target-selector {
-            background: var(--bs-tertiary-bg);
-            padding: 15px;
-            margin-bottom: 20px;
-            border: 1px solid var(--bs-border-color);
+        .result-panel pre {
+            max-width: 100%;
+            overflow-x: auto;
         }
     </style>
 </head>
@@ -407,11 +412,11 @@ arguments: {
                     <div class="mb-3">
                         <div class="text-muted mb-1 small text-uppercase fw-bold">Target & Payload:</div>
                         <div class="p-2 bg-dark rounded-top border-bottom border-secondary small text-warning">Target: ${cmd.target}</div>
-                        <pre class="bg-dark text-info p-3 rounded-bottom" style="font-size: 0.85rem;">${cmd.content}</pre>
+                        <pre class="bg-dark text-info p-3 rounded-bottom">${cmd.content}</pre>
                     </div>
                     <div>
                         <div class="text-muted mb-1 small text-uppercase fw-bold">Execution Result:</div>
-                        <pre class="bg-dark text-light p-3 rounded" style="font-size: 0.85rem; border: 1px solid #444;">${cmd.result || (cmd.status === 'queued' ? 'Wait for response...' : 'No result.')}</pre>
+                        <pre class="bg-dark text-light p-3 rounded">${cmd.result || (cmd.status === 'queued' ? 'Wait for response...' : 'No result.')}</pre>
                     </div>
                 `);
                 $view.append($detail);
