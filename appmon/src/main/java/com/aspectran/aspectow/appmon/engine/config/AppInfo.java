@@ -46,9 +46,9 @@ public class AppInfo extends DefaultParameters {
         group = new ParameterKey("group", ValueType.STRING);
         title = new ParameterKey("title", ValueType.STRING);
         hidden = new ParameterKey("hidden", ValueType.BOOLEAN);
-        event = new ParameterKey("event", new String[] {"events"}, EventInfo.class, true, true);
-        metric = new ParameterKey("metric", new String[] {"metrics"}, MetricInfo.class, true, true);
-        log = new ParameterKey("log", new String[] {"logs"}, LogInfo.class, true, true);
+        event = new ParameterKey("events", new String[] {"event"}, EventInfo.class, true, true);
+        metric = new ParameterKey("metrics", new String[] {"metric"}, MetricInfo.class, true, true);
+        log = new ParameterKey("logs", new String[] {"log"}, LogInfo.class, true, true);
 
         parameterKeys = new ParameterKey[] {
                 id,

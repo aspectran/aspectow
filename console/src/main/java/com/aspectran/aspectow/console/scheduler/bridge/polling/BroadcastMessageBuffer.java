@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2026-present The Aspectran Project
+ * Copyright (c) 2020-present The Aspectran Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,23 +63,21 @@ public class BroadcastMessageBuffer {
             if (lineIndex < 0) {
                 session.setLastLineIndex(maxLineIndex);
                 return (!buffer.isEmpty() ? buffer.toArray(new String[0]) : null);
-            } else {
-                if (lineIndex < maxLineIndex) {
-                    session.setLastLineIndex(maxLineIndex);
-                    int offset = maxLineIndex - lineIndex;
-                    if (offset < buffer.size()) {
-                        int start = buffer.size() - offset;
-                        return buffer.subList(start, buffer.size()).toArray(new String[0]);
-                    } else {
-                        return buffer.toArray(new String[0]);
-                    }
-                } else if (lineIndex > maxLineIndex) {
-                    session.setLastLineIndex(maxLineIndex);
-                    return null;
+            }
+            if (lineIndex < maxLineIndex) {
+                session.setLastLineIndex(maxLineIndex);
+                int offset = maxLineIndex - lineIndex;
+                if (offset < buffer.size()) {
+                    int start = buffer.size() - offset;
+                    return buffer.subList(start, buffer.size()).toArray(new String[0]);
                 } else {
-                    return null;
+                    return buffer.toArray(new String[0]);
                 }
             }
+            if (lineIndex > maxLineIndex) {
+                session.setLastLineIndex(maxLineIndex);
+            }
+            return null;
         }
     }
 

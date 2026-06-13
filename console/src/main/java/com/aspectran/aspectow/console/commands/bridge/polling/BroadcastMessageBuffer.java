@@ -65,23 +65,21 @@ public class BroadcastMessageBuffer {
             if (lineIndex < 0) {
                 session.setLastLineIndex(maxLineIndex);
                 return (!buffer.isEmpty() ? buffer.toArray(new String[0]) : null);
-            } else {
-                if (lineIndex < maxLineIndex) {
-                    session.setLastLineIndex(maxLineIndex);
-                    int offset = maxLineIndex - lineIndex;
-                    if (offset < buffer.size()) {
-                        int start = buffer.size() - offset;
-                        return buffer.subList(start, buffer.size()).toArray(new String[0]);
-                    } else {
-                        return buffer.toArray(new String[0]);
-                    }
-                } else if (lineIndex > maxLineIndex) {
-                    session.setLastLineIndex(maxLineIndex);
-                    return null;
+            }
+            if (lineIndex < maxLineIndex) {
+                session.setLastLineIndex(maxLineIndex);
+                int offset = maxLineIndex - lineIndex;
+                if (offset < buffer.size()) {
+                    int start = buffer.size() - offset;
+                    return buffer.subList(start, buffer.size()).toArray(new String[0]);
                 } else {
-                    return null;
+                    return buffer.toArray(new String[0]);
                 }
             }
+            if (lineIndex > maxLineIndex) {
+                session.setLastLineIndex(maxLineIndex);
+            }
+            return null;
         }
     }
 
