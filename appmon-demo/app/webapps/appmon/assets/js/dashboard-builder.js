@@ -347,12 +347,11 @@ class DashboardBuilder {
 
     updateNodeTabs() {
         const availableTabs = $(`.node.tabs .tabs-title[data-group-id=${this.currentGroupId}]`);
-        const activeCount = this.nodes.filter(d => d.active && d.group === this.currentGroupId).length;
         availableTabs.removeClass("active");
         this.nodes.filter(d => d.active && d.group === this.currentGroupId).forEach(d => {
             $(".node.tabs .tabs-title[data-node-index=" + d.index + "]").addClass("active");
         })
-        $(".node.metrics-bar.available").toggleClass("full-width", (availableTabs.length === 1 || activeCount > 0));
+        $(".node.metrics-bar.available").toggleClass("no-title", (availableTabs.length === 1));
     }
 
     updateNodeVisibility(node, appId) {
@@ -842,7 +841,6 @@ class DashboardBuilder {
         const $tab = $tabs.find(".tabs-title").first().hide().clone().addClass("available")
             .attr({ "data-node-index": nodeInfo.index, "data-node-id": nodeInfo.id , "data-group-id": nodeInfo.group });
         $tab.find("a .title").text(" " + (nodeInfo.title || nodeInfo.id) + " ");
-        
         const nodesInGroup = this.nodes.filter(n => n.group === nodeInfo.group);
         if (nodesInGroup.length > 1) {
             $tab.find(".number").text(" " + nodeInfo.nodeNoInGroup);
@@ -863,14 +861,10 @@ class DashboardBuilder {
     addNodeMetricsBar(nodeInfo) {
         const $metricsBar = $(".node.metrics-bar");
         const $newBar = $metricsBar.first().hide().clone().addClass("available").attr("data-node-index", nodeInfo.index);
-        
         const nodesInGroup = this.nodes.filter(n => n.group === nodeInfo.group);
         if (nodesInGroup.length > 1) {
             $newBar.find(".number").text(" " + nodeInfo.nodeNoInGroup);
-            $newBar.removeClass("full-width");
-        } else {
-            $newBar.find(".number").empty();
-            $newBar.addClass("full-width");
+            $newBar.removeClass("no-title");
         }
         return $newBar.insertAfter($metricsBar.last());
     }
