@@ -35,6 +35,10 @@
     padding: 0;
 }
 
+.group-bar {
+    display: none;
+}
+
 .node-bar {
     border-bottom: 1px solid #ddd;
 }

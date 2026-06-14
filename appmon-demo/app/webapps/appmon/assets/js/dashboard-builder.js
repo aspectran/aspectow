@@ -29,12 +29,13 @@ class DashboardBuilder {
         this.isGatewayMode = false;
         this.counterPersistInterval = 5;
         this.groups = [];
-        this.currentGroupId = null;
         this.nodes = [];
         this.apps = [];
         this.metrics = [];
         this.viewers = [];
         this.clients = [];
+        this.currentGroupId = null;
+        this.selectedNodeIdByGroup = {};
     }
 
     build(basePath, appsToSubscribe, nodeToSubscribe) {
@@ -42,6 +43,7 @@ class DashboardBuilder {
         this.appsToSubscribe = appsToSubscribe;
         this.nodeToSubscribe = nodeToSubscribe;
         this.currentGroupId = null;
+        this.selectedNodeIdByGroup = {};
         this.suspendMonitoring();
         this.clearView();
         $.ajax({
@@ -281,6 +283,9 @@ class DashboardBuilder {
         // Toggle or exclusively activate
         if (!wasActive) {
             node.active = true;
+            this.selectedNodeIdByGroup[this.currentGroupId] = node.id;
+        } else {
+            delete this.selectedNodeIdByGroup[this.currentGroupId];
         }
 
         this.nodes.forEach(n => {
@@ -313,13 +318,13 @@ class DashboardBuilder {
     }
 
     updateNodeTabs() {
-        const availableTabs = $(".node.tabs .tabs-title.available");
+        const availableTabs = $(`.node.tabs .tabs-title[data-group-id=${this.currentGroupId}]`);
         const activeCount = this.nodes.filter(d => d.active && d.group === this.currentGroupId).length;
         availableTabs.removeClass("active");
-        this.nodes.forEach(d => {
-            if (d.active) $(".node.tabs .tabs-title[data-node-index=" + d.index + "]").addClass("active");
-        });
-        $(".node.metrics-bar.available").toggleClass("full-width", (availableTabs.length === 1 || availableTabs.length !== activeCount));
+        this.nodes.filter(d => d.active && d.group === this.currentGroupId).forEach(d => {
+            $(".node.tabs .tabs-title[data-node-index=" + d.index + "]").addClass("active");
+        })
+        $(".node.metrics-bar.available").toggleClass("full-width", (availableTabs.length === 1 || activeCount > 0));
     }
 
     updateNodeVisibility(node, appId) {
@@ -379,13 +384,19 @@ class DashboardBuilder {
 
         // Filter Node Tabs
         let nodeCount = 0;
+        const selectedNodeId = this.selectedNodeIdByGroup[groupId];
         this.nodes.forEach(node => {
             const $tab = $(".node.tabs .tabs-title[data-node-index=" + node.index + "]");
             if (!groupId || node.group === groupId) $tab.show(); else $tab.hide();
-            node.active = false; // Start with no nodes explicitly active
+            if (selectedNodeId) {
+                node.active = (node.id === selectedNodeId);
+            } else {
+                node.active = false; // Start with no nodes explicitly active
+            }
             if (node.group === groupId) nodeCount++;
         });
-        if (nodeCount === 1) {
+
+        if (!selectedNodeId && nodeCount === 1) {
             this.nodes.forEach(node => {
                 if (node.group === groupId) node.active = true;
             });
@@ -443,6 +454,7 @@ class DashboardBuilder {
     }
 
     initView() {
+        if (this.groups.length) $(".group-bar").show();
         $(".speed-options").addClass("hide");
         if (this.nodes.some(d => d.endpoint.mode === "polling")) {
             $(".speed-options").removeClass("hide");
@@ -792,7 +804,7 @@ class DashboardBuilder {
     addNodeTab(nodeInfo) {
         const $tabs = $(".node.tabs");
         const $tab = $tabs.find(".tabs-title").first().hide().clone().addClass("available")
-            .attr({ "data-node-index": nodeInfo.index, "data-node-id": nodeInfo.id });
+            .attr({ "data-node-index": nodeInfo.index, "data-node-id": nodeInfo.id , "data-group-id": nodeInfo.group });
         $tab.find("a .title").text(" " + (nodeInfo.title || nodeInfo.id) + " ");
         if (this.nodes.length > 1) $tab.find(".number").text(" " + (nodeInfo.index + 1));
         return $tab.show().appendTo($tabs);
@@ -818,7 +830,6 @@ class DashboardBuilder {
         const $metricsBar = $(".node.metrics-bar");
         const $newBar = $metricsBar.first().hide().clone().addClass("available").attr("data-node-index", nodeInfo.index);
         $newBar.find(".number").text(" " + (nodeInfo.index + 1));
-        $newBar.toggleClass("full-width", (this.nodes.length === 1));
         return $newBar.insertAfter($metricsBar.last());
     }
 
