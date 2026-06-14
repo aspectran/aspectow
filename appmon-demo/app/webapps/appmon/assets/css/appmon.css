@@ -27,8 +27,9 @@
     }
 }
 .monitoring-page .group.tabs > .tabs-title > a, .monitoring-page .group.tabs > .tabs-title button {
-    border-radius: var(--bs-nav-tabs-border-radius);
     margin-right: 4px;
+    border-radius: 30px !important;
+    padding: 6px 18px 6px 14px !important;
 }
 
 .tabs > .tabs-title .indicator {

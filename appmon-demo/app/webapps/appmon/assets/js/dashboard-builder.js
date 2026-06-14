@@ -801,20 +801,20 @@ class DashboardBuilder {
         }
     }
 
+    addGroupTab(groupInfo) {
+        const $tabs = $(".group.tabs");
+        const $tab = $tabs.find(".tabs-title").first().hide().clone().addClass("available")
+            .attr({ "data-group-id": groupInfo.id, "title": groupInfo.description });
+        $tab.find("a .title").text(" " + (groupInfo.title || groupInfo.id) + " ");
+        return $tab.show().appendTo($tabs);
+    }
+
     addNodeTab(nodeInfo) {
         const $tabs = $(".node.tabs");
         const $tab = $tabs.find(".tabs-title").first().hide().clone().addClass("available")
             .attr({ "data-node-index": nodeInfo.index, "data-node-id": nodeInfo.id , "data-group-id": nodeInfo.group });
         $tab.find("a .title").text(" " + (nodeInfo.title || nodeInfo.id) + " ");
         if (this.nodes.length > 1) $tab.find(".number").text(" " + (nodeInfo.index + 1));
-        return $tab.show().appendTo($tabs);
-    }
-
-    addGroupTab(groupInfo) {
-        const $tabs = $(".group.tabs");
-        const $tab = $tabs.find(".tabs-title").first().hide().clone().addClass("available")
-            .attr({ "data-group-id": groupInfo.id, "title": groupInfo.description });
-        $tab.find("a .title").text(" " + (groupInfo.title || groupInfo.id) + " ");
         return $tab.show().appendTo($tabs);
     }
 
