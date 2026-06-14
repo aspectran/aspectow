@@ -18,6 +18,7 @@ package com.aspectran.aspectow.appmon.dashboard;
 import com.aspectran.aspectow.appmon.anatomy.AnatomyActivity;
 import com.aspectran.aspectow.appmon.engine.config.AppInfo;
 import com.aspectran.aspectow.appmon.engine.manager.AppMonManager;
+import com.aspectran.aspectow.node.config.GroupInfo;
 import com.aspectran.aspectow.node.config.NodeInfo;
 import com.aspectran.core.component.bean.annotation.Action;
 import com.aspectran.core.component.bean.annotation.Autowired;
@@ -57,12 +58,14 @@ public class HomeActivity {
     @Action("page")
     public Map<String, Object> home() {
         List<NodeInfo> nodeInfoList = appMonManager.getNodeInfoList();
-        List<AppInfo> appInfoList = appMonManager.getAppInfoList();
+        List<GroupInfo> groupInfoList = appMonManager.getGroupInfoList();
+        List<AppInfo> appInfoList = appMonManager.getClusterAppInfoList();
         Map<String, ActivityContext> contexts = AnatomyActivity.prepareContextMap();
         List<String> allContextNames = new ArrayList<>(contexts.keySet());
         return Map.of(
                 "style", "fluid compact",
                 "nodeInfoList", nodeInfoList,
+                "groupInfoList", groupInfoList,
                 "appInfoList", appInfoList,
                 "allContextNames", allContextNames
         );

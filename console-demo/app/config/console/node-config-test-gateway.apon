@@ -9,5 +9,5 @@ cluster: {
 group: {
     id: console-demo
     title: Console Demo
-    description: This group is for console demo.
+    description: This group is for Console Demo.
 }

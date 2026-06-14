@@ -73,12 +73,6 @@ class DashboardBuilder {
                     let index = 0;
                     const random1000 = this.random(1, 1000);
 
-                    if (data.groups) {
-                        data.groups.forEach(groupInfo => {
-                            this.groups.push({ ...groupInfo, active: false });
-                        });
-                    }
-
                     data.nodes.forEach(nodeInfo => {
                         if (this.nodeToSubscribe && this.nodeToSubscribe !== nodeInfo.id) {
                             return;
@@ -101,6 +95,19 @@ class DashboardBuilder {
                         console.log(index, "node", node);
                     });
 
+                    if (data.groups) {
+                        data.groups.forEach(groupInfo => {
+                            if (this.nodes.some(node => node.group === groupInfo.id)) {
+                                const group = { ...groupInfo, active: false };
+                                if (data.myGroupId && groupInfo.id === data.myGroupId) {
+                                    this.groups.unshift(group);
+                                } else {
+                                    this.groups.push(group);
+                                }
+                            }
+                        });
+                    }
+
                     data.apps.forEach(appInfo => {
                         const app = { ...appInfo, active: false };
                         this.apps.push(app);
@@ -115,7 +122,17 @@ class DashboardBuilder {
 
                     // Select the initial group
                     if (this.groups.length > 0) {
-                        this.changeGroup(this.groups[0].id);
+                        let initialGroupId = null;
+                        if (this.nodeToSubscribe) {
+                            const targetNode = data.nodes.find(n => n.id === this.nodeToSubscribe);
+                            if (targetNode && targetNode.group) {
+                                initialGroupId = targetNode.group;
+                            }
+                        }
+                        if (!initialGroupId) {
+                            initialGroupId = this.groups[0].id;
+                        }
+                        this.changeGroup(initialGroupId);
                     }
                 }
             },

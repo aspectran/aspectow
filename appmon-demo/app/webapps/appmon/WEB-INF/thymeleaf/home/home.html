@@ -57,51 +57,96 @@
 <body>
     <div layout:fragment="content" class="container-fluid pt-3">
         <div class="row g-3">
-            <!-- Nodes Panel -->
-            <div class="col-lg-5">
-                <div class="card h-100">
-                    <div class="card-header">
-                        <h5 class="mb-0"><i class="bi bi-hdd-stack"></i> Nodes</h5>
-                    </div>
-                    <div class="card-body">
-                        <p class="card-text text-muted">List of servers in the cluster. Click a node to see related apps.</p>
-                        <th:block th:if="${not #lists.isEmpty(page.nodeInfoList)}">
-                            <div class="row row-cols-1 row-cols-sm-2 mt-3">
-                                <div class="col" th:each="nodeInfo : ${page.nodeInfoList}">
-                                    <a href="#" class="node-link">
-                                        <i class="bi bi-server"></i> [[${nodeInfo.title}]]
-                                    </a>
+            <th:block th:if="${not #lists.isEmpty(page.groupInfoList)}">
+                <!-- Group-based layout -->
+                <div class="col-12" th:each="groupInfo : ${page.groupInfoList}">
+                    <div class="card">
+                        <div class="card-header bg-body-tertiary d-flex align-items-center justify-content-between">
+                            <h5 class="mb-0"><i class="bi bi-collection"></i> [[${groupInfo.title}]]</h5>
+                            <span class="text-muted small" th:text="${groupInfo.description}">Group description</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-5">
+                                <!-- Nodes in Group -->
+                                <div class="col-md-5">
+                                    <h6 class="border-bottom pb-2 text-secondary"><i class="bi bi-hdd-stack"></i> Nodes</h6>
+                                    <div class="row row-cols-1 row-cols-sm-2 mt-2">
+                                        <th:block th:each="nodeInfo : ${page.nodeInfoList}" th:if="${nodeInfo.group == groupInfo.id}">
+                                            <div class="col">
+                                                <a href="#" class="node-link">
+                                                    <i class="bi bi-server"></i> [[${#strings.isEmpty(nodeInfo.title) ? nodeInfo.id : nodeInfo.title}]]
+                                                </a>
+                                            </div>
+                                        </th:block>
+                                    </div>
+                                </div>
+                                <!-- Apps in Group -->
+                                <div class="col-md-7">
+                                    <h6 class="border-bottom pb-2 text-secondary"><i class="bi bi-display"></i> App Configurations</h6>
+                                    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 mt-2">
+                                        <th:block th:each="appInfo : ${page.appInfoList}" th:if="${appInfo.groupId == groupInfo.id}">
+                                            <div class="col">
+                                                <a th:href="@{/dashboard/{appId}(appId=${appInfo.appId})}" class="app-link">
+                                                    <i class="bi bi-box"></i> [[${appInfo.title}]]
+                                                </a>
+                                            </div>
+                                        </th:block>
+                                    </div>
                                 </div>
                             </div>
-                        </th:block>
-                        <p th:unless="${not #lists.isEmpty(page.nodeInfoList)}" class="text-muted mt-3">No nodes found.</p>
+                        </div>
                     </div>
                 </div>
-            </div>
+            </th:block>
 
-            <!-- App Configurations Panel -->
-            <div class="col-lg-7">
-                <div class="card h-100">
-                    <div class="card-header">
-                        <h5 class="mb-0"><i class="bi bi-display"></i> App Configurations</h5>
-                    </div>
-                    <div class="card-body">
-                        <p class="card-text text-muted">Common app configurations running on each node.</p>
-                        <th:block th:if="${not #lists.isEmpty(page.appInfoList)}">
-                            <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 mt-3">
-                                <div class="col" th:each="appInfo : ${page.appInfoList}">
-                                    <a th:href="@{/dashboard/{appId}(appId=${appInfo.appId})}" class="app-link">
-                                        <i class="bi bi-box"></i> [[${appInfo.title}]]
-                                    </a>
+            <th:block th:unless="${not #lists.isEmpty(page.groupInfoList)}">
+                <!-- Original layout for single node / no groups -->
+                <!-- Nodes Panel -->
+                <div class="col-lg-5">
+                    <div class="card h-100">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="bi bi-hdd-stack"></i> Nodes</h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text text-muted">List of servers in the cluster. Click a node to see related apps.</p>
+                            <th:block th:if="${not #lists.isEmpty(page.nodeInfoList)}">
+                                <div class="row row-cols-1 row-cols-sm-2 mt-3">
+                                    <div class="col" th:each="nodeInfo : ${page.nodeInfoList}">
+                                        <a href="#" class="node-link">
+                                            <i class="bi bi-server"></i> [[${#strings.isEmpty(nodeInfo.title) ? nodeInfo.id : nodeInfo.title}]]
+                                        </a>
+                                    </div>
                                 </div>
-                            </div>
-                        </th:block>
-                        <p th:unless="${not #lists.isEmpty(page.appInfoList)}" class="text-muted mt-3">No app configurations found.</p>
+                            </th:block>
+                            <p th:unless="${not #lists.isEmpty(page.nodeInfoList)}" class="text-muted mt-3">No nodes found.</p>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Framework Anatomy Panel -->
+                <!-- App Configurations Panel -->
+                <div class="col-lg-7">
+                    <div class="card h-100">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="bi bi-display"></i> App Configurations</h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text text-muted">Common app configurations running on each node.</p>
+                            <th:block th:if="${not #lists.isEmpty(page.appInfoList)}">
+                                <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 mt-3">
+                                    <div class="col" th:each="appInfo : ${page.appInfoList}">
+                                        <a th:href="@{/dashboard/{appId}(appId=${appInfo.appId})}" class="app-link">
+                                            <i class="bi bi-box"></i> [[${appInfo.title}]]
+                                        </a>
+                                    </div>
+                                </div>
+                            </th:block>
+                            <p th:unless="${not #lists.isEmpty(page.appInfoList)}" class="text-muted mt-3">No app configurations found.</p>
+                        </div>
+                    </div>
+                </div>
+            </th:block>
+
+            <!-- Framework Anatomy Panel (Always visible at bottom) -->
             <div class="col-lg-12 mt-3">
                 <div class="card h-100">
                     <div class="card-header">
@@ -130,7 +175,10 @@
         $('.node-link').on('click', function(e) {
             e.preventDefault();
 
-            const $apps = $('.app-link');
+            let $apps = $(this).closest('.card-body').find('.app-link');
+            if ($apps.length === 0) {
+                $apps = $('.app-link');
+            }
             if ($apps.length === 0) {
                 return;
             }
