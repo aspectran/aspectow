@@ -97,7 +97,7 @@
 .node.metrics-bar {
     position: relative;
     height: auto;
-    padding: 0 50px;
+    padding: 0 75px;
     border-bottom: 1px solid #ddd;
     background-color: unset;
     box-shadow: 0 6px 15px -10px rgba(50, 50, 50, .33);
@@ -106,7 +106,7 @@
     }
     @media screen and (max-width: 389px) {
         text-align: center;
-        padding: 0 0 0 50px;
+        padding: 0 0 0 75px;
     }
     @media (min-width: 1200px) {
         flex: 0 0 auto;
@@ -120,12 +120,12 @@
     position: absolute;
     top: 0;
     left: 13px;
-    width: 50px;
-    height: 2rem;
+    height: 1.8rem;
     text-align: left;
     align-content: center;
     font-weight: bold;
     color: #677278;
+    white-space: nowrap;
 }
 .node.metrics-bar .metric {
     border-left: 1px solid #ccc;

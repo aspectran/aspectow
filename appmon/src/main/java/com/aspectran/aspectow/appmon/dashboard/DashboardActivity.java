@@ -31,7 +31,9 @@ import com.aspectran.utils.StringUtils;
 import com.aspectran.web.activity.response.DefaultRestResponse;
 import com.aspectran.web.activity.response.RestResponse;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -114,6 +116,10 @@ public class DashboardActivity {
             groupInfoList = groupInfoList.stream()
                     .filter(group -> activeGroupIds.contains(group.getId()))
                     .collect(Collectors.toList());
+        }
+        if (appMonManager.isGatewayMode()) {
+            nodeInfoList = new ArrayList<>(nodeInfoList);
+            nodeInfoList.sort(Comparator.comparing(NodeInfo::getId, Comparator.nullsLast(String::compareTo)));
         }
 
         Map<String, Object> data = Map.of(

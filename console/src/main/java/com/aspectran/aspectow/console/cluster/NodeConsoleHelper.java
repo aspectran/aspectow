@@ -24,6 +24,7 @@ import com.aspectran.core.component.bean.annotation.Component;
 import org.jspecify.annotations.NonNull;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -71,12 +72,15 @@ public class NodeConsoleHelper {
             }
         }
 
+        List<NodeInfo> allNodes = new ArrayList<>(mergedNodes.values());
+        allNodes.sort(Comparator.comparing(NodeInfo::getId, Comparator.nullsLast(String::compareTo)));
+
         Map<String, String> pulses = nodeRegistry.getAllPulses();
-        List<Map<String, Object>> result = new ArrayList<>(mergedNodes.size());
+        List<Map<String, Object>> result = new ArrayList<>(allNodes.size());
         long now = System.currentTimeMillis();
         long timeout = 15000; // 15 seconds timeout
 
-        for (NodeInfo info : mergedNodes.values()) {
+        for (NodeInfo info : allNodes) {
             String nodeId = info.getId();
             boolean alive = false;
             String pulseStr = (pulses != null ? pulses.get(nodeId) : null);

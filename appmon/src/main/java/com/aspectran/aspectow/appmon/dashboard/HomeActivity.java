@@ -58,6 +58,10 @@ public class HomeActivity {
     @Action("page")
     public Map<String, Object> home() {
         List<NodeInfo> nodeInfoList = appMonManager.getNodeInfoList();
+        if (appMonManager.isGatewayMode()) {
+            nodeInfoList = new java.util.ArrayList<>(nodeInfoList);
+            nodeInfoList.sort(java.util.Comparator.comparing(NodeInfo::getId, java.util.Comparator.nullsLast(String::compareTo)));
+        }
         List<GroupInfo> groupInfoList = appMonManager.getGroupInfoList();
         List<AppInfo> appInfoList = appMonManager.getClusterAppInfoList();
         Map<String, ActivityContext> contexts = AnatomyActivity.prepareContextMap();

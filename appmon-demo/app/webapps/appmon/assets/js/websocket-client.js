@@ -193,12 +193,12 @@ class WebsocketClient extends BaseClient {
 
         if (primary) {
             // Passive Swap: If the server routed us to a different node than we expected
-            if (this.isGatewayMode && this.node.id !== nodeId) {
+            if (this.isGatewayMode && !this.getNodeConfig(nodeId)) {
                 this.stop();
                 // Unknown node ID became primary!
                 // This happens in Autoscaling mode when the gateway instance restarts with a new ID.
                 if (this.onRequireRebuild) {
-                    console.log(this.node.id, "unknown node became primary, requesting full rebuild");
+                    console.log(nodeId, "unknown node became primary, requesting full rebuild");
                     this.onRequireRebuild();
                 }
                 return;

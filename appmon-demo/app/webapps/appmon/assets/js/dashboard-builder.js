@@ -95,6 +95,17 @@ class DashboardBuilder {
                         console.log(index, "node", node);
                     });
 
+                    // Assign group-specific logical numbers to each node
+                    const groupNodeCounts = {};
+                    this.nodes.forEach(node => {
+                        const groupId = node.group;
+                        if (!groupNodeCounts[groupId]) {
+                            groupNodeCounts[groupId] = 0;
+                        }
+                        groupNodeCounts[groupId]++;
+                        node.nodeNoInGroup = groupNodeCounts[groupId];
+                    });
+
                     if (data.groups) {
                         data.groups.forEach(groupInfo => {
                             if (this.nodes.some(node => node.group === groupInfo.id)) {
@@ -831,7 +842,13 @@ class DashboardBuilder {
         const $tab = $tabs.find(".tabs-title").first().hide().clone().addClass("available")
             .attr({ "data-node-index": nodeInfo.index, "data-node-id": nodeInfo.id , "data-group-id": nodeInfo.group });
         $tab.find("a .title").text(" " + (nodeInfo.title || nodeInfo.id) + " ");
-        if (this.nodes.length > 1) $tab.find(".number").text(" " + (nodeInfo.index + 1));
+        
+        const nodesInGroup = this.nodes.filter(n => n.group === nodeInfo.group);
+        if (nodesInGroup.length > 1) {
+            $tab.find(".number").text(" " + nodeInfo.nodeNoInGroup);
+        } else {
+            $tab.find(".number").empty();
+        }
         return $tab.show().appendTo($tabs);
     }
 
@@ -846,7 +863,15 @@ class DashboardBuilder {
     addNodeMetricsBar(nodeInfo) {
         const $metricsBar = $(".node.metrics-bar");
         const $newBar = $metricsBar.first().hide().clone().addClass("available").attr("data-node-index", nodeInfo.index);
-        $newBar.find(".number").text(" " + (nodeInfo.index + 1));
+        
+        const nodesInGroup = this.nodes.filter(n => n.group === nodeInfo.group);
+        if (nodesInGroup.length > 1) {
+            $newBar.find(".number").text(" " + nodeInfo.nodeNoInGroup);
+            $newBar.removeClass("full-width");
+        } else {
+            $newBar.find(".number").empty();
+            $newBar.addClass("full-width");
+        }
         return $newBar.insertAfter($metricsBar.last());
     }
 
@@ -869,7 +894,13 @@ class DashboardBuilder {
             .attr({ "data-node-index": nodeInfo.index, "data-app-id": appInfo.id });
         const $titleBar = $box.find(".title-bar");
         $titleBar.find("h4").text(nodeInfo.title || nodeInfo.id);
-        if (this.nodes.length > 1) $titleBar.find(".number").text(" " + (nodeInfo.index + 1));
+        
+        const nodesInGroup = this.nodes.filter(n => n.group === nodeInfo.group);
+        if (nodesInGroup.length > 1) {
+            $titleBar.find(".number").text(" " + nodeInfo.nodeNoInGroup);
+        } else {
+            $titleBar.find(".number").empty();
+        }
         return $box.insertBefore($(".console-box").first());
     }
 
