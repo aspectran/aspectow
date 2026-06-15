@@ -15,8 +15,8 @@
  */
 package com.aspectran.aspectow.console.commands.bridge.polling;
 
+import com.aspectran.aspectow.node.management.commands.CommandRequestParameters;
 import com.aspectran.aspectow.node.management.commands.RemoteCommandManager;
-import com.aspectran.aspectow.node.management.commands.RemoteRequestParameters;
 import com.aspectran.aspectow.node.management.commands.bridge.CommandBridge;
 import com.aspectran.aspectow.node.management.commands.bridge.CommandBroker;
 import com.aspectran.aspectow.node.management.commands.bridge.CommandSession;
@@ -116,7 +116,7 @@ public class PollingCommandBridge extends AbstractComponent implements CommandBr
      * @return a success message
      */
     @RequestToPost("/polling/push")
-    public RestResponse push(@NonNull Translet translet, @NonNull RemoteRequestParameters request) {
+    public RestResponse push(@NonNull Translet translet, @NonNull CommandRequestParameters request) {
         PollingCommandSession session = pollingSessionManager.getSession(translet);
         if (session == null) {
             return new FailureResponse().setError("session_not_found", "Session not found");

@@ -24,6 +24,7 @@ public class NodeRequestParameters extends DefaultParameters {
 
     public static final ParameterKey header;
     public static final ParameterKey nodeId;
+    public static final ParameterKey targetNodeId;
     public static final ParameterKey command;
 
     private static final ParameterKey[] parameterKeys;
@@ -31,11 +32,13 @@ public class NodeRequestParameters extends DefaultParameters {
     static {
         header = new ParameterKey("header", ValueType.STRING);
         nodeId = new ParameterKey("nodeId", ValueType.STRING);
+        targetNodeId = new ParameterKey("targetNodeId", ValueType.STRING);
         command = new ParameterKey("command", ValueType.STRING);
 
         parameterKeys = new ParameterKey[] {
                 header,
                 nodeId,
+                targetNodeId,
                 command
         };
     }
@@ -59,6 +62,14 @@ public class NodeRequestParameters extends DefaultParameters {
 
     public void setNodeId(String nodeId) {
         putValue(NodeRequestParameters.nodeId, nodeId);
+    }
+
+    public String getTargetNodeId() {
+        return getString(targetNodeId);
+    }
+
+    public void setTargetNodeId(String targetNodeId) {
+        putValue(NodeRequestParameters.targetNodeId, targetNodeId);
     }
 
     public String getCommand() {

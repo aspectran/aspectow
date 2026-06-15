@@ -16,9 +16,9 @@
 package com.aspectran.aspectow.console.commands.bridge.websocket;
 
 import com.aspectran.aspectow.appmon.common.auth.AppMonTokenIssuer;
+import com.aspectran.aspectow.node.management.commands.CommandRequestParameters;
+import com.aspectran.aspectow.node.management.commands.CommandResponseParameters;
 import com.aspectran.aspectow.node.management.commands.RemoteCommandManager;
-import com.aspectran.aspectow.node.management.commands.RemoteRequestParameters;
-import com.aspectran.aspectow.node.management.commands.RemoteResponseParameters;
 import com.aspectran.aspectow.node.management.commands.bridge.CommandBridge;
 import com.aspectran.aspectow.node.management.commands.bridge.CommandSession;
 import com.aspectran.aspectow.node.manager.NodeManager;
@@ -91,7 +91,7 @@ public class WebsocketCommandBridge extends SimplifiedEndpoint implements Comman
         }
 
         try {
-            RemoteRequestParameters request = JsonToParameters.from(message, RemoteRequestParameters.class);
+            CommandRequestParameters request = JsonToParameters.from(message, CommandRequestParameters.class);
 
             String header = request.getHeader();
             if ("execute".equals(header)) {
@@ -103,7 +103,7 @@ public class WebsocketCommandBridge extends SimplifiedEndpoint implements Comman
             }
         } catch (Exception e) {
             logger.error("Failed to parse incoming remote command message: {}", message, e);
-            RemoteResponseParameters response = new RemoteResponseParameters()
+            CommandResponseParameters response = new CommandResponseParameters()
                     .setError("Invalid request format");
             sendText(session, response.toString());
         }
@@ -119,10 +119,10 @@ public class WebsocketCommandBridge extends SimplifiedEndpoint implements Comman
         }
     }
 
-    private void subscribe(Session session, @NonNull RemoteRequestParameters request) {
+    private void subscribe(Session session, @NonNull CommandRequestParameters request) {
         String targetNodeId = request.getTargetNodeId();
         if (!StringUtils.hasText(targetNodeId)) {
-            RemoteResponseParameters response = new RemoteResponseParameters()
+            CommandResponseParameters response = new CommandResponseParameters()
                     .setError("Target node is required");
             sendText(session, response.toString());
             return;
@@ -134,7 +134,7 @@ public class WebsocketCommandBridge extends SimplifiedEndpoint implements Comman
         if (addSession(session)) {
             remoteCommandManager.registerSession(session.getId(), this);
             remoteCommandManager.getBroker().subscribe(commandSession);
-            RemoteResponseParameters response = new RemoteResponseParameters()
+            CommandResponseParameters response = new CommandResponseParameters()
                     .setHeader("subscribed")
                     .setNodeId(nodeManager.getNodeId());
             sendText(session, response.toString());
@@ -146,12 +146,12 @@ public class WebsocketCommandBridge extends SimplifiedEndpoint implements Comman
     }
 
     private void pong(Session session) {
-        RemoteResponseParameters response = new RemoteResponseParameters()
+        CommandResponseParameters response = new CommandResponseParameters()
                 .setHeader("pong");
         sendText(session, response.toString());
     }
 
-    private void execute(Session session, @NonNull RemoteRequestParameters request) {
+    private void execute(Session session, @NonNull CommandRequestParameters request) {
         CommandParameters commandParameters = request.getCommand();
         if (commandParameters != null) {
             request.setSessionId(session.getId());
@@ -162,7 +162,7 @@ public class WebsocketCommandBridge extends SimplifiedEndpoint implements Comman
                 }
             } catch (Exception e) {
                 logger.error("Failed to initiate command execution from session {}", session.getId(), e);
-                RemoteResponseParameters response = new RemoteResponseParameters()
+                CommandResponseParameters response = new CommandResponseParameters()
                         .setError("Failed to initiate command execution");
                 sendText(session, response.toString());
             }

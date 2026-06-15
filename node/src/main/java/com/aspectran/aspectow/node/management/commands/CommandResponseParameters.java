@@ -23,7 +23,7 @@ import com.aspectran.utils.json.JsonBuilder;
 /**
  * Represents a structured outgoing message for remote command results.
  */
-public class RemoteResponseParameters extends DefaultParameters {
+public class CommandResponseParameters extends DefaultParameters {
 
     public static final ParameterKey header;
     public static final ParameterKey requestId;
@@ -49,7 +49,7 @@ public class RemoteResponseParameters extends DefaultParameters {
         };
     }
 
-    public RemoteResponseParameters() {
+    public CommandResponseParameters() {
         super(parameterKeys);
     }
 
@@ -57,7 +57,7 @@ public class RemoteResponseParameters extends DefaultParameters {
         return getString(header);
     }
 
-    public RemoteResponseParameters setHeader(String headerValue) {
+    public CommandResponseParameters setHeader(String headerValue) {
         putValue(header, headerValue);
         return this;
     }
@@ -66,7 +66,7 @@ public class RemoteResponseParameters extends DefaultParameters {
         return getString(requestId);
     }
 
-    public RemoteResponseParameters setRequestId(String requestIdValue) {
+    public CommandResponseParameters setRequestId(String requestIdValue) {
         putValue(requestId, requestIdValue);
         return this;
     }
@@ -75,7 +75,7 @@ public class RemoteResponseParameters extends DefaultParameters {
         return getString(nodeId);
     }
 
-    public RemoteResponseParameters setNodeId(String nodeIdValue) {
+    public CommandResponseParameters setNodeId(String nodeIdValue) {
         putValue(nodeId, nodeIdValue);
         return this;
     }
@@ -84,7 +84,7 @@ public class RemoteResponseParameters extends DefaultParameters {
         return getString(result);
     }
 
-    public RemoteResponseParameters setResult(String resultValue) {
+    public CommandResponseParameters setResult(String resultValue) {
         putValue(result, resultValue);
         return this;
     }
@@ -93,7 +93,7 @@ public class RemoteResponseParameters extends DefaultParameters {
         return getString(error);
     }
 
-    public RemoteResponseParameters setError(String errorValue) {
+    public CommandResponseParameters setError(String errorValue) {
         putValue(error, errorValue);
         return this;
     }

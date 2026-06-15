@@ -104,7 +104,7 @@ public class RemoteCommandManager implements InitializableBean {
      * Dispatches a command request to a specific node or handles it locally.
      * @param request the command request parameters
      */
-    public void process(@NonNull RemoteRequestParameters request) {
+    public void process(@NonNull CommandRequestParameters request) {
         if (request.isTargetAll()) {
             for (NodeInfo nodeInfo : nodeManager.getNodeInfoList()) {
                 process(nodeInfo.getId(), request);
@@ -125,7 +125,7 @@ public class RemoteCommandManager implements InitializableBean {
         }
     }
 
-    private void process(String targetNodeId, @NonNull RemoteRequestParameters request) {
+    private void process(String targetNodeId, @NonNull CommandRequestParameters request) {
         if (isSameNode(targetNodeId)) {
             executeLocally(request);
         } else {
@@ -133,7 +133,7 @@ public class RemoteCommandManager implements InitializableBean {
         }
     }
 
-    private void dispatch(String targetNodeId, @NonNull RemoteRequestParameters request) {
+    private void dispatch(String targetNodeId, @NonNull CommandRequestParameters request) {
         if (messagePublisher != null) {
             try {
                 request.setNodeId(getNodeId());
@@ -150,7 +150,7 @@ public class RemoteCommandManager implements InitializableBean {
         }
     }
 
-    private void executeLocally(@NonNull RemoteRequestParameters request) {
+    private void executeLocally(@NonNull CommandRequestParameters request) {
         Thread.ofVirtual().start(() -> {
             try {
                 CommandParameters commandParameters = request.getCommand();
@@ -158,7 +158,7 @@ public class RemoteCommandManager implements InitializableBean {
                     logger.debug("Executing local daemon command: {}", commandParameters);
                     CommandResult result = localCommandService.execute(commandParameters.toString());
                     if (result != null) {
-                        RemoteResponseParameters response = new RemoteResponseParameters()
+                        CommandResponseParameters response = new CommandResponseParameters()
                                 .setHeader("result")
                                 .setNodeId(getNodeId())
                                 .setRequestId(request.getRequestId())
@@ -176,7 +176,7 @@ public class RemoteCommandManager implements InitializableBean {
     /**
      * Processes an incoming message received from the cluster relay.
      */
-    public void executeRemotely(RemoteRequestParameters request) {
+    public void executeRemotely(CommandRequestParameters request) {
         if (request == null) {
             return;
         }
@@ -186,7 +186,7 @@ public class RemoteCommandManager implements InitializableBean {
                 if (result != null && messagePublisher != null) {
                     String gatewayNodeId = request.getNodeId();
                     String sessionId = request.getSessionId();
-                    RemoteResponseParameters response = new RemoteResponseParameters()
+                    CommandResponseParameters response = new CommandResponseParameters()
                             .setHeader("result")
                             .setNodeId(getNodeId())
                             .setRequestId(request.getRequestId())
@@ -205,7 +205,7 @@ public class RemoteCommandManager implements InitializableBean {
     }
 
     @Nullable
-    private CommandResult execute(@NonNull RemoteRequestParameters request) {
+    private CommandResult execute(@NonNull CommandRequestParameters request) {
         CommandParameters commandParameters = request.getCommand();
         if (commandParameters != null) {
             return localCommandService.execute(commandParameters.toString());

@@ -18,8 +18,8 @@ package com.aspectran.aspectow.console.cluster.bridge.websocket;
 import com.aspectran.aspectow.appmon.common.auth.AppMonTokenIssuer;
 import com.aspectran.aspectow.node.config.NodeInfo;
 import com.aspectran.aspectow.node.management.nodes.NodeRequestParameters;
-import com.aspectran.aspectow.node.manager.ClusterEventListener;
 import com.aspectran.aspectow.node.management.nodes.NodeResponseParameters;
+import com.aspectran.aspectow.node.manager.ClusterEventListener;
 import com.aspectran.aspectow.node.manager.ClusterEventSubscriber;
 import com.aspectran.aspectow.node.manager.NodeManager;
 import com.aspectran.core.component.bean.annotation.Autowired;
@@ -52,13 +52,6 @@ import static com.aspectran.aspectow.node.manager.NodeMessageProtocol.NODES_BASE
 public class NodeGatewayEndpoint extends SimplifiedEndpoint implements ClusterEventListener {
 
     private static final Logger logger = LoggerFactory.getLogger(NodeGatewayEndpoint.class);
-
-    private static final String COMMAND_PING = "ping";
-    private static final String COMMAND_SUBSCRIBED = "subscribed";
-    private static final String COMMAND_ESTABLISHED = "established";
-
-    private static final String MESSAGE_PONG = "pong:";
-    private static final String MESSAGE_SUBSCRIBED = "subscribed:";
 
     private final NodeManager nodeManager;
 

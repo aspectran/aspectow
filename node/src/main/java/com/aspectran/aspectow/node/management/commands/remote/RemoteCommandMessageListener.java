@@ -15,8 +15,8 @@
  */
 package com.aspectran.aspectow.node.management.commands.remote;
 
+import com.aspectran.aspectow.node.management.commands.CommandRequestParameters;
 import com.aspectran.aspectow.node.management.commands.RemoteCommandManager;
-import com.aspectran.aspectow.node.management.commands.RemoteRequestParameters;
 import com.aspectran.aspectow.node.management.commands.bridge.CommandBroker;
 import com.aspectran.aspectow.node.manager.NodeMessageListener;
 import com.aspectran.utils.apon.AponParseException;
@@ -66,7 +66,7 @@ public class RemoteCommandMessageListener implements NodeMessageListener {
             }
         } else if (message.startsWith(CommandBroker.CONTROL_REQUEST)) {
             String requestData = message.substring(CommandBroker.CONTROL_REQUEST.length());
-            RemoteRequestParameters request = new RemoteRequestParameters();
+            CommandRequestParameters request = new CommandRequestParameters();
             try {
                 request.readFrom(requestData);
             } catch (AponParseException e) {

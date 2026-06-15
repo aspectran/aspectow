@@ -158,27 +158,27 @@ public class NodeInfo extends DefaultParameters {
 
     /**
      * Create a copy of the current NodeInfo with updated values from the new dynamic state of the node
-     * @param newInfo the new dynamic state to update for the node
+     * @param nodeInfo the new dynamic state to update for the node
      * @return the updated NodeInfo instance
      */
-    public NodeInfo copyWithUpdatedState(@NonNull NodeInfo newInfo) {
-        NodeInfo info = new NodeInfo();
+    public NodeInfo copyWithUpdatedState(@NonNull NodeInfo nodeInfo) {
+        NodeInfo newInfo = new NodeInfo();
 
         // keep static config
-        info.setId(getId());
-        info.setGroup(getGroup());
-        info.setTitle(getTitle());
+        newInfo.setId(getId());
+        newInfo.setGroup(getGroup());
+        newInfo.setTitle(getTitle());
 
         // update dynamic state
-        info.setHost(newInfo.getHost());
-        info.setPort(newInfo.getPort());
-        info.setStartTime(newInfo.getStartTime());
-        info.setStatus(newInfo.getStatus());
-        info.setPulseInterval(newInfo.getPulseInterval());
-        info.setEndpointConfig(newInfo.getEndpointConfig());
-        info.setToken(newInfo.getToken());
+        newInfo.setHost(nodeInfo.getHost());
+        newInfo.setPort(nodeInfo.getPort());
+        newInfo.setStartTime(nodeInfo.getStartTime());
+        newInfo.setStatus(nodeInfo.getStatus());
+        newInfo.setPulseInterval(nodeInfo.getPulseInterval());
+        newInfo.setEndpointConfig(nodeInfo.getEndpointConfig());
+        newInfo.setToken(nodeInfo.getToken());
 
-        return info;
+        return newInfo;
     }
 
 }
