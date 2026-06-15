@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.aspectran.aspectow.console.cluster.support;
+package com.aspectran.aspectow.appmon.common.support;
 
 import com.aspectran.aspectow.node.manager.NodePortProvider;
 import com.aspectran.core.component.bean.aware.ActivityContextAware;
