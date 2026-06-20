@@ -51,12 +51,7 @@
         <div class="row config-container g-3 mt-1">
             <div class="col-md-4 left-panel">
                 <div class="card h-100 border shadow-sm overflow-hidden">
-                    <div class="p-2 border-bottom">
-                        <div class="input-group input-group-sm">
-                            <span class="input-group-text bg-transparent border-end-0"><i class="bi bi-search"></i></span>
-                            <input type="text" id="config-filter" class="form-control border-start-0" placeholder="Filter configurations..."/>
-                        </div>
-                    </div>
+
                     <div class="scrollable-pane p-0" id="config-menu-list">
                         <div class="text-center p-5 text-muted">
                             <div class="spinner-border spinner-border-sm me-2" role="status"></div>
@@ -109,9 +104,20 @@
                     $.each(configData, function(key, section) {
                         rawAponData[key] = section.apon;
 
+                        let htmlContent = '';
+                        let itemClass = 'list-group-item config-item';
+
+                        if (key === "Full Configuration") {
+                            itemClass += ' fw-bold';
+                            htmlContent = `<i class="bi bi-file-earmark-code me-2 text-muted"></i><span>${key}</span>`;
+                        } else {
+                            itemClass += ' ps-4 text-secondary';
+                            htmlContent = `<i class="bi bi-chevron-right me-2 text-muted small"></i><span>${key}</span>`;
+                        }
+
                         const $item = $('<div/>', {
-                            'class': 'list-group-item config-item',
-                            'html': `<i class="bi bi-gear-wide-connected me-2 text-muted"></i><span>${key}</span>`,
+                            'class': itemClass,
+                            'html': htmlContent,
                             'data-key': key
                         });
 
@@ -138,18 +144,7 @@
                     $configMenuList.html('<div class="p-3 text-danger">Failed to load configuration data.</div>');
                 });
 
-                $('#config-filter').on('keyup', function() {
-                    const filterText = $(this).val().toLowerCase();
-                    $('.config-item').each(function() {
-                        const $item = $(this);
-                        const text = $item.find('span').text().toLowerCase();
-                        if (text.includes(filterText)) {
-                            $item.show();
-                        } else {
-                            $item.hide();
-                        }
-                    });
-                });
+
 
                 $('#copy-btn').on('click', function() {
                     // Copy the raw APON text, not the highlighted HTML
