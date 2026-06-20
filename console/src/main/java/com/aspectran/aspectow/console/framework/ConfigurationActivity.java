@@ -103,54 +103,62 @@ public class ConfigurationActivity {
         // Full Configuration
         configData.put("Full Configuration", Map.of(
                 "name", "Full Configuration",
-                "apon", aspectranConfig.toString()
+                "apon", maskSensitiveData(aspectranConfig.toString())
         ));
 
         // Sections
         if (aspectranConfig.hasSystemConfig()) {
             configData.put("System Config", Map.of(
                     "name", "system",
-                    "apon", aspectranConfig.getSystemConfig().toString()
+                    "apon", maskSensitiveData(aspectranConfig.getSystemConfig().toString())
             ));
         }
         if (aspectranConfig.hasContextConfig()) {
             configData.put("Context Config", Map.of(
                     "name", "context",
-                    "apon", aspectranConfig.getContextConfig().toString()
+                    "apon", maskSensitiveData(aspectranConfig.getContextConfig().toString())
             ));
         }
         if (aspectranConfig.hasSchedulerConfig()) {
             configData.put("Scheduler Config", Map.of(
                     "name", "scheduler",
-                    "apon", aspectranConfig.getSchedulerConfig().toString()
+                    "apon", maskSensitiveData(aspectranConfig.getSchedulerConfig().toString())
             ));
         }
         if (aspectranConfig.hasWebConfig()) {
             configData.put("Web Config", Map.of(
                     "name", "web",
-                    "apon", aspectranConfig.getWebConfig().toString()
+                    "apon", maskSensitiveData(aspectranConfig.getWebConfig().toString())
             ));
         }
         if (aspectranConfig.getDaemonConfig() != null) {
             configData.put("Daemon Config", Map.of(
                     "name", "daemon",
-                    "apon", aspectranConfig.getDaemonConfig().toString()
+                    "apon", maskSensitiveData(aspectranConfig.getDaemonConfig().toString())
             ));
         }
         if (aspectranConfig.getShellConfig() != null) {
             configData.put("Shell Config", Map.of(
                     "name", "shell",
-                    "apon", aspectranConfig.getShellConfig().toString()
+                    "apon", maskSensitiveData(aspectranConfig.getShellConfig().toString())
             ));
         }
         if (aspectranConfig.getEmbedConfig() != null) {
             configData.put("Embed Config", Map.of(
                     "name", "embed",
-                    "apon", aspectranConfig.getEmbedConfig().toString()
+                    "apon", maskSensitiveData(aspectranConfig.getEmbedConfig().toString())
             ));
         }
 
         return new DefaultRestResponse("configData", configData).nullWritable(false).ok();
+    }
+
+    private String maskSensitiveData(String apon) {
+        if (apon == null) {
+            return null;
+        }
+        String regex = "(?i)([\\w\\-\\.]*(?:password|secret|passphrase|privatekey|secretkey)[\\w\\-\\.]*)\\s*:\\s*(\"(?:[^\"\\\\]|\\\\.)*\"|'(?:[^'\\\\]|\\\\.)*'|[^\\s,{}#\\[\\]\\(\\)]+)";
+        return apon.replaceAll(regex, "$1: ********");
     }
 
 }

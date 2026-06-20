@@ -57,7 +57,7 @@ public class UserManagementActivity {
         List<Role> roleList = userService.getRoleList();
         return Map.of(
             "title", "Users",
-            "style", "user-page",
+            "style", "user-management-page",
             "group", "accounts-menu",
             "userList", userList,
             "roleList", roleList
@@ -79,8 +79,8 @@ public class UserManagementActivity {
         List<LoginHistory> historyList = userService.getLoginHistoryList(targetUsername);
         return Map.of(
             "title", "Login History",
-            "style", "user-page",
-                "group", "accounts-menu",
+            "style", "login-history-page",
+            "group", "accounts-menu",
             "historyList", historyList,
             "username", (targetUsername != null ? targetUsername : "")
         );

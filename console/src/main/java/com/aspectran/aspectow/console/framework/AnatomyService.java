@@ -203,10 +203,19 @@ public class AnatomyService {
 
     private String paramsToString(Parameters params) {
         try {
-            return new AponWriter().nullWritable(false).write(params).toString();
+            String apon = new AponWriter().nullWritable(false).write(params).toString();
+            return maskSensitiveData(apon);
         } catch (IOException e) {
             return StringUtils.EMPTY;
         }
+    }
+
+    private String maskSensitiveData(String apon) {
+        if (apon == null) {
+            return null;
+        }
+        String regex = "(?i)([\\w\\-\\.]*(?:password|secret|passphrase|privatekey|secretkey)[\\w\\-\\.]*)\\s*:\\s*(\"(?:[^\"\\\\]|\\\\.)*\"|'(?:[^'\\\\]|\\\\.)*'|[^\\s,{}#\\[\\]\\(\\)]+)";
+        return apon.replaceAll(regex, "$1: ********");
     }
 
 }

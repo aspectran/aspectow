@@ -113,24 +113,22 @@
             
             <!-- Accounts Group -->
             <div class="nav-group">
-                <a class="nav-link d-flex justify-content-between align-items-center" th:classappend="${page.style == 'user-page' ? 'active' : 'collapsed'}"
+                <a class="nav-link d-flex justify-content-between align-items-center"
+                   th:classappend="${page.group == 'accounts-menu' ? 'active' : 'collapsed'}"
                    data-bs-toggle="collapse" href="#user-menu" role="button" aria-expanded="false">
                     <span><i class="bi bi-person-badge"></i> Accounts</span>
                     <i class="bi bi-chevron-down small"></i>
                 </a>
-                <div class="collapse" th:classappend="${page.style == 'user-page' ? 'show' : ''}" id="user-menu">
-                    <a th:href="@{/user}" class="nav-link ps-5 py-2 small" th:classappend="${page.include == 'user' ? 'active' : ''}">
+                <div class="collapse" th:classappend="${page.group == 'accounts-menu' ? 'show' : ''}" id="user-menu">
+                    <a th:href="@{/user}" class="nav-link ps-5 py-2 small" th:classappend="${page.style == 'user-management-page' ? 'active' : ''}">
                         Users
                     </a>
-                    <a th:href="@{/user/login-history}" class="nav-link ps-5 py-2 small" th:classappend="${page.include == 'login-history' ? 'active' : ''}">
+                    <a th:href="@{/user/login-history}" class="nav-link ps-5 py-2 small" th:classappend="${page.style == 'login-history-page' ? 'active' : ''}">
                         Login History
                     </a>
                 </div>
             </div>
 
-            <a href="#" class="nav-link">
-                <i class="bi bi-gear"></i> Settings
-            </a>
         </nav>
         <div class="p-3 border-top">
             <div class="d-flex align-items-center gap-2 mb-2" th:if="${session.USER_INFO != null}">
