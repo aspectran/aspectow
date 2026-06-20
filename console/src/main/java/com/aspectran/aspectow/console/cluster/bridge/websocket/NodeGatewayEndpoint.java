@@ -55,11 +55,18 @@ public class NodeGatewayEndpoint extends SimplifiedEndpoint implements ClusterEv
 
     private final NodeManager nodeManager;
 
+    /**
+     * Constructs a new {@code NodeGatewayEndpoint} with the specified node manager.
+     * @param nodeManager the node manager
+     */
     @Autowired
     public NodeGatewayEndpoint(NodeManager nodeManager) {
         this.nodeManager = nodeManager;
     }
 
+    /**
+     * Registers this endpoint as a cluster event listener when initialized.
+     */
     @Initialize
     public void registerListener() {
         ClusterEventSubscriber subscriber = nodeManager.getClusterEventSubscriber();
@@ -69,6 +76,9 @@ public class NodeGatewayEndpoint extends SimplifiedEndpoint implements ClusterEv
         }
     }
 
+    /**
+     * Unregisters this endpoint as a cluster event listener when destroyed.
+     */
     @Destroy
     public void unregisterListener() {
         ClusterEventSubscriber subscriber = nodeManager.getClusterEventSubscriber();
@@ -77,6 +87,11 @@ public class NodeGatewayEndpoint extends SimplifiedEndpoint implements ClusterEv
         }
     }
 
+    /**
+     * Checks if the session is authorized using the path parameter token.
+     * @param session the websocket session
+     * @return true if authorized, false otherwise
+     */
     @Override
     protected boolean checkAuthorized(@NonNull Session session) {
         String token = session.getPathParameters().get("token");
@@ -89,6 +104,10 @@ public class NodeGatewayEndpoint extends SimplifiedEndpoint implements ClusterEv
         return true;
     }
 
+    /**
+     * Registers the message handler to process incoming text messages from the session.
+     * @param session the websocket session
+     */
     @Override
     protected void registerMessageHandlers(@NonNull Session session) {
         if (session.getMessageHandlers().isEmpty()) {
@@ -96,12 +115,21 @@ public class NodeGatewayEndpoint extends SimplifiedEndpoint implements ClusterEv
         }
     }
 
+    /**
+     * Handles clean up tasks when a session is removed.
+     * @param session the websocket session that was removed
+     */
     @Override
     protected void onSessionRemoved(@NonNull Session session) {
         String nodeId = session.getPathParameters().get("nodeId");
         logger.info("Node management session removed: {} (nodeId: {})", session.getId(), nodeId);
     }
 
+    /**
+     * Invoked when a new node joins the cluster.
+     * Broadcasts the join event to all subscribed sessions.
+     * @param nodeInfo the node information of the joined node
+     */
     @Override
     public void onJoined(NodeInfo nodeInfo) {
         NodeResponseParameters params = new NodeResponseParameters();
@@ -110,6 +138,11 @@ public class NodeGatewayEndpoint extends SimplifiedEndpoint implements ClusterEv
         broadcast(params.toString());
     }
 
+    /**
+     * Invoked when a node leaves the cluster.
+     * Broadcasts the leave event to all subscribed sessions.
+     * @param nodeId the ID of the node that left
+     */
     @Override
     public void onLeft(String nodeId) {
         NodeInfo nodeInfo = new NodeInfo();

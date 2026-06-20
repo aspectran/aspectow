@@ -37,18 +37,27 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Handles user management requests.
+ * Controller class that handles user management requests, including
+ * listing users, managing login history, and creating, updating, or deleting users.
  */
 @Component("/user")
 public class UserManagementActivity {
 
     private final UserService userService;
 
+    /**
+     * Constructs a new {@code UserManagementActivity} with the specified user service.
+     * @param userService the user service
+     */
     @Autowired
     public UserManagementActivity(UserService userService) {
         this.userService = userService;
     }
 
+    /**
+     * Displays the user list page containing all users and available roles.
+     * @return a map of attributes for rendering the view
+     */
     @Request("/")
     @Dispatch("user/list")
     @Action("page")
@@ -64,6 +73,12 @@ public class UserManagementActivity {
         );
     }
 
+    /**
+     * Displays the login history page for a given user or the current user if not an admin.
+     * @param translet the current translet
+     * @param username the target username
+     * @return a map of attributes for rendering the view
+     */
     @Request("/login-history")
     @Dispatch("user/login-history")
     @Action("page")
@@ -86,6 +101,13 @@ public class UserManagementActivity {
         );
     }
 
+    /**
+     * Saves user details, either creating a new user or updating an existing one,
+     * along with their assigned roles.
+     * @param user the user data
+     * @param roleIds the array of role IDs to associate with the user
+     * @return a {@link RestResponse} representing success or failure of the operation
+     */
     @RequestToPost("/save")
     public RestResponse save(@NonNull User user, Long[] roleIds) {
         if (StringUtils.isEmpty(user.getUsername())) {
@@ -115,6 +137,11 @@ public class UserManagementActivity {
         }
     }
 
+    /**
+     * Deletes the user with the specified user ID.
+     * @param userId the ID of the user to delete
+     * @return a {@link RestResponse} representing success or failure of the operation
+     */
     @RequestToPost("/delete")
     public RestResponse delete(Long userId) {
         if (userId == null) {

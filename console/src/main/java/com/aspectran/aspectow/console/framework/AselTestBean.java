@@ -29,26 +29,50 @@ import java.util.Map;
 @Bean("aselTestBean")
 public class AselTestBean {
 
+    /**
+     * Gets the name of the test bean.
+     * @return the name of the test bean
+     */
     public String getName() {
         return "AsEL Expression Tester";
     }
 
+    /**
+     * Gets a test value.
+     * @return the test value
+     */
     public int getValue() {
         return 12345;
     }
 
+    /**
+     * Checks if the service or bean is available.
+     * @return {@code true} if available, {@code false} otherwise
+     */
     public boolean isAvailable() {
         return true;
     }
 
+    /**
+     * Gets the current server time.
+     * @return the current local date-time
+     */
     public LocalDateTime getServerTime() {
         return LocalDateTime.now();
     }
 
+    /**
+     * Gets a list of tags associated with the test bean.
+     * @return a list of tags
+     */
     public List<String> getTags() {
         return List.of("aspectran", "asel", "expression", "language");
     }
 
+    /**
+     * Gets metadata details as a map.
+     * @return a map containing metadata
+     */
     public Map<String, Object> getMetadata() {
         return Map.of(
             "version", "1.0.0",
@@ -57,6 +81,11 @@ public class AselTestBean {
         );
     }
 
+    /**
+     * Returns a greeting message for the specified user.
+     * @param user the user name
+     * @return the greeting message
+     */
     public String greet(String user) {
         return "Hello, " + user + "! Welcome to AsEL.";
     }

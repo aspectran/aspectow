@@ -25,6 +25,9 @@ import com.aspectran.core.component.bean.aware.ActivityContextAware;
 import com.aspectran.core.context.ActivityContext;
 import org.jspecify.annotations.NonNull;
 
+/**
+ * FactoryBean that creates and initializes a {@link NodeManager} instance.
+ */
 public class NodeManagerFactoryBean implements ActivityContextAware, InitializableFactoryBean<NodeManager>, DisposableBean {
 
     private ActivityContext context;
@@ -38,6 +41,10 @@ public class NodeManagerFactoryBean implements ActivityContextAware, Initializab
         this.context = context;
     }
 
+    /**
+     * Sets the Redis connection pool configuration.
+     * @param redisConnectionPoolConfig the Redis connection pool configuration to set
+     */
     public void setRedisConnectionPoolConfig(RedisConnectionPoolConfig redisConnectionPoolConfig) {
         this.redisConnectionPoolConfig = redisConnectionPoolConfig;
     }

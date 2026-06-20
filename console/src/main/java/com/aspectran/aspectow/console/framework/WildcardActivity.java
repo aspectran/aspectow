@@ -39,6 +39,10 @@ import java.util.Map;
 @Bean("wildcardActivity")
 public class WildcardActivity {
 
+    /**
+     * Renders the wildcard tester page.
+     * @return the model map containing attributes for rendering the view
+     */
     @Request("/")
     @Dispatch("framework/wildcard/tester")
     @Action("page")
@@ -50,6 +54,13 @@ public class WildcardActivity {
         );
     }
 
+    /**
+     * Tests if an input string matches a wildcard pattern.
+     * @param pattern the wildcard pattern
+     * @param input the input string to match
+     * @param separator the optional path separator
+     * @return a REST response containing the match status, masked parts, and pattern weight
+     */
     @RequestToPost("/test")
     public RestResponse test(String pattern, String input, String separator) {
         pattern = StringUtils.trimWhitespace(pattern);

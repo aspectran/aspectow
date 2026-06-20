@@ -45,11 +45,19 @@ public class CommandBroker {
 
     private final SubscriptionRegistry subscriptionRegistry = new SubscriptionRegistry();
 
+    /**
+     * Instantiates a new CommandBroker.
+     * @param commandManager the remote command manager
+     */
     public CommandBroker(@NonNull RemoteCommandManager commandManager) {
         this.commandManager = commandManager;
         this.messagePublisher = commandManager.getMessagePublisher();
     }
 
+    /**
+     * Subscribes a local session to command execution results.
+     * @param session the command session
+     */
     public synchronized void subscribe(@NonNull CommandSession session) {
         if (session.isValid()) {
             subscriptionRegistry.addLocalSubscription(session.getId());
@@ -60,11 +68,20 @@ public class CommandBroker {
         }
     }
 
+    /**
+     * Subscribes a remote node to command execution results.
+     * @param nodeId the remote node ID
+     * @param sessionId the remote session ID
+     */
     public synchronized void subscribeRemotely(String nodeId, String sessionId) {
         logger.info("Received command subscribe request from node: {}, session: {}", nodeId, sessionId);
         subscriptionRegistry.addRemoteSubscription(nodeId);
     }
 
+    /**
+     * Unsubscribes a local session from command execution results.
+     * @param session the command session
+     */
     public synchronized void unsubscribe(@NonNull CommandSession session) {
         subscriptionRegistry.removeLocalSubscription(session.getId());
         String targetNodeId = session.getNodeId();
@@ -73,6 +90,10 @@ public class CommandBroker {
         }
     }
 
+    /**
+     * Unsubscribes a remote node from command execution results.
+     * @param nodeId the remote node ID
+     */
     public synchronized void unsubscribeRemotely(String nodeId) {
         logger.info("Received command unsubscribe request from node: {}", nodeId);
         subscriptionRegistry.removeRemoteSubscription(nodeId);

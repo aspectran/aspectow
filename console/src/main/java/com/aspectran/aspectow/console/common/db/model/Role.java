@@ -33,34 +33,66 @@ public class Role implements Serializable {
 
     private List<Permission> permissions;
 
+    /**
+     * Gets the role ID.
+     * @return the role ID
+     */
     public Long getRoleId() {
         return roleId;
     }
 
+    /**
+     * Sets the role ID.
+     * @param roleId the role ID
+     */
     public void setRoleId(Long roleId) {
         this.roleId = roleId;
     }
 
+    /**
+     * Gets the role name.
+     * @return the role name
+     */
     public String getRoleName() {
         return roleName;
     }
 
+    /**
+     * Sets the role name.
+     * @param roleName the role name
+     */
     public void setRoleName(String roleName) {
         this.roleName = roleName;
     }
 
+    /**
+     * Gets the description.
+     * @return the description
+     */
     public String getDescription() {
         return description;
     }
 
+    /**
+     * Sets the description.
+     * @param description the description
+     */
     public void setDescription(String description) {
         this.description = description;
     }
 
+    /**
+     * Gets the list of permissions associated with this role.
+     * @return the list of permissions
+     */
     public List<Permission> getPermissions() {
         return permissions;
     }
 
+    /**
+     * Sets the list of permissions associated with this role.
+     * @param permissions the list of permissions
+     */
     public void setPermissions(List<Permission> permissions) {
         this.permissions = permissions;
     }

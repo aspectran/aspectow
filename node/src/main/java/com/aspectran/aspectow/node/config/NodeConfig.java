@@ -48,15 +48,28 @@ public class NodeConfig extends DefaultParameters {
         };
     }
 
+    /**
+     * Instantiates a new NodeConfig.
+     */
     public NodeConfig() {
         super(parameterKeys);
     }
 
+    /**
+     * Instantiates a new NodeConfig by reading from a {@link Reader}.
+     * @param reader the reader to read configuration from
+     * @throws IOException if an I/O error occurs
+     */
     public NodeConfig(Reader reader) throws IOException {
         this();
         readFrom(reader);
     }
 
+    /**
+     * Instantiates a new NodeConfig by reading from a {@link File}.
+     * @param configFile the configuration file
+     * @throws IOException if an I/O error occurs
+     */
     public NodeConfig(File configFile) throws IOException {
         this();
         readFrom(configFile);

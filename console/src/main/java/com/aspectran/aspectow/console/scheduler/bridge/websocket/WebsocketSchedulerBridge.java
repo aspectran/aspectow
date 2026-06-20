@@ -52,11 +52,20 @@ public class WebsocketSchedulerBridge extends SimplifiedEndpoint implements Sche
 
     private final SchedulerManager schedulerManager;
 
+    /**
+     * Constructs a new {@code WebsocketSchedulerBridge} with the specified scheduler manager.
+     * @param schedulerManager the scheduler manager to handle scheduler operations
+     */
     @Autowired
     public WebsocketSchedulerBridge(SchedulerManager schedulerManager) {
         this.schedulerManager = schedulerManager;
     }
 
+    /**
+     * Checks if the session is authorized using the security token provided in the path parameters.
+     * @param session the WebSocket session to authorize
+     * @return {@code true} if authorized; {@code false} otherwise
+     */
     @Override
     protected boolean checkAuthorized(@NonNull Session session) {
         String token = session.getPathParameters().get("token");
@@ -69,6 +78,10 @@ public class WebsocketSchedulerBridge extends SimplifiedEndpoint implements Sche
         }
     }
 
+    /**
+     * Registers the message handler for incoming WebSocket messages on the session.
+     * @param session the WebSocket session
+     */
     @Override
     protected void registerMessageHandlers(@NonNull Session session) {
         if (session.getMessageHandlers().isEmpty()) {
@@ -106,6 +119,11 @@ public class WebsocketSchedulerBridge extends SimplifiedEndpoint implements Sche
         }
     }
 
+    /**
+     * Invoked when a WebSocket session is removed (closed or errored). Unregisters
+     * the session from the scheduler manager and unsubscribes it.
+     * @param session the WebSocket session being removed
+     */
     @Override
     protected void onSessionRemoved(@NonNull Session session) {
         schedulerManager.unregisterSession(session.getId());
@@ -170,12 +188,21 @@ public class WebsocketSchedulerBridge extends SimplifiedEndpoint implements Sche
         }
     }
 
+    /**
+     * Finds and returns the scheduler session associated with the given session ID.
+     * @param sessionId the session identifier
+     * @return the {@link SchedulerSession} if found, or {@code null} if not found
+     */
     @Override
     public SchedulerSession findSchedulerSession(String sessionId) {
         Session session = findSession(sessionId);
         return (session != null ? new WebsocketSchedulerSession(session) : null);
     }
 
+    /**
+     * Broadcasts a message to all connected sessions through this bridge.
+     * @param message the message to broadcast
+     */
     @Override
     public void bridge(String message) {
         if (message != null) {
@@ -183,6 +210,11 @@ public class WebsocketSchedulerBridge extends SimplifiedEndpoint implements Sche
         }
     }
 
+    /**
+     * Sends a message to a specific scheduler session through this bridge.
+     * @param session the target scheduler session
+     * @param message the message to send
+     */
     @Override
     public void bridge(@NonNull SchedulerSession session, String message) {
         if (session instanceof WebsocketSchedulerSession websocketSchedulerSession) {

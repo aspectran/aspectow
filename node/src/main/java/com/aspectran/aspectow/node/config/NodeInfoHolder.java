@@ -33,6 +33,9 @@ public class NodeInfoHolder {
 
     private final Map<String, NodeInfo> nodeInfoMap = Collections.synchronizedMap(new LinkedHashMap<>());
 
+    /**
+     * Instantiates a new NodeInfoHolder.
+     */
     public NodeInfoHolder() {
     }
 
@@ -65,14 +68,27 @@ public class NodeInfoHolder {
         return nodeInfoMap.containsKey(nodeId);
     }
 
+    /**
+     * Returns the node configuration for the specified node ID.
+     * @param nodeId the node identifier
+     * @return the node information, or {@code null} if not found
+     */
     public NodeInfo getNodeInfo(String nodeId) {
         return nodeInfoMap.get(nodeId);
     }
 
+    /**
+     * Adds or updates node information.
+     * @param nodeInfo the node information to add or update
+     */
     public void putNodeInfo(NodeInfo nodeInfo) {
         nodeInfoMap.put(nodeInfo.getId(), nodeInfo);
     }
 
+    /**
+     * Removes the node information for the specified node ID.
+     * @param nodeId the node identifier
+     */
     public void removeNode(String nodeId) {
         nodeInfoMap.remove(nodeId);
     }

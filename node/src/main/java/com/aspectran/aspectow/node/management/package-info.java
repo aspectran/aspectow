@@ -15,6 +15,6 @@
  */
 
 /**
- * Configuration parameters and classes for the Aspectow node management cluster.
+ * Provides interfaces and classes for managing nodes, schedulers, and commands within the cluster.
  */
-package com.aspectran.aspectow.node.config;
+package com.aspectran.aspectow.node.management;

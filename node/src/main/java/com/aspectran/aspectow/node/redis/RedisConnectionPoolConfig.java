@@ -36,19 +36,35 @@ public class RedisConnectionPoolConfig extends GenericObjectPoolConfig<StatefulR
 
     private ClientOptions clientOptions;
 
+    /**
+     * Instantiates a new RedisConnectionPoolConfig with default settings.
+     */
     public RedisConnectionPoolConfig() {
         super();
     }
 
+    /**
+     * Instantiates a new RedisConnectionPoolConfig using the specified properties.
+     * @param properties the properties containing configuration values
+     */
     public RedisConnectionPoolConfig(@NonNull Properties properties) {
         super();
         setUri(properties.getProperty("aspectow.redis.uri"));
     }
 
+    /**
+     * Returns the Redis URI for connection.
+     * @return the Redis URI
+     */
     public RedisURI getRedisURI() {
         return redisURI;
     }
 
+    /**
+     * Sets the Redis URI for connection.
+     * @param redisURI the Redis URI
+     * @throws IllegalArgumentException if the {@code redisURI} is null
+     */
     public void setRedisURI(RedisURI redisURI) {
         if (redisURI == null) {
             throw new IllegalArgumentException("redisURI must not be null");
@@ -56,6 +72,11 @@ public class RedisConnectionPoolConfig extends GenericObjectPoolConfig<StatefulR
         this.redisURI = redisURI;
     }
 
+    /**
+     * Sets the connection URI for Redis.
+     * @param uri the URI string
+     * @throws IllegalArgumentException if the {@code uri} is null or empty
+     */
     public void setUri(String uri) {
         if (!StringUtils.hasText(uri)) {
             throw new IllegalArgumentException("uri must not be null or empty");
@@ -63,14 +84,26 @@ public class RedisConnectionPoolConfig extends GenericObjectPoolConfig<StatefulR
         this.redisURI = RedisURI.create(uri);
     }
 
+    /**
+     * Returns the Lettuce client options.
+     * @return the client options, or {@code null} if not configured
+     */
     public ClientOptions getClientOptions() {
         return clientOptions;
     }
 
+    /**
+     * Sets the Lettuce client options.
+     * @param clientOptions the client options to set
+     */
     public void setClientOptions(ClientOptions clientOptions) {
         this.clientOptions = clientOptions;
     }
 
+    /**
+     * Returns a string representation of the Redis connection pool configuration.
+     * @return a string representation of the configuration
+     */
     @Override
     public String toString() {
         ToStringBuilder tsb = new ToStringBuilder();

@@ -50,44 +50,84 @@ public class SchedulerResponseParameters extends DefaultParameters {
         };
     }
 
+    /**
+     * Instantiates a new SchedulerResponseParameters.
+     */
     public SchedulerResponseParameters() {
         super(parameterKeys);
         setRenderStyle(AponRenderStyle.COMPACT);
     }
 
+    /**
+     * Gets the response header.
+     * @return the header
+     */
     public String getHeader() {
         return getString(header);
     }
 
+    /**
+     * Sets the response header.
+     * @param header the header to set
+     * @return this instance
+     */
     public SchedulerResponseParameters setHeader(String header) {
         putValue(SchedulerResponseParameters.header, header);
         return this;
     }
 
+    /**
+     * Gets the node ID.
+     * @return the node ID
+     */
     public String getNodeId() {
         return getString(nodeId);
     }
 
+    /**
+     * Sets the node ID.
+     * @param nodeId the node ID to set
+     * @return this instance
+     */
     public SchedulerResponseParameters setNodeId(String nodeId) {
         putValue(SchedulerResponseParameters.nodeId, nodeId);
         return this;
     }
 
+    /**
+     * Sets the owner name (e.g. logging group or service name).
+     * @param group the owner to set
+     * @return this instance
+     */
     public SchedulerResponseParameters setOwner(String group) {
         putValue(SchedulerResponseParameters.owner, group);
         return this;
     }
 
+    /**
+     * Sets the response data payload.
+     * @param data the data to set
+     * @return this instance
+     */
     public SchedulerResponseParameters setData(Object data) {
         putValue(SchedulerResponseParameters.data, data);
         return this;
     }
 
+    /**
+     * Sets the error message.
+     * @param error the error message to set
+     * @return this instance
+     */
     public SchedulerResponseParameters setError(String error) {
         putValue(SchedulerResponseParameters.error, error);
         return this;
     }
 
+    /**
+     * Returns a JSON representation of the parameters.
+     * @return the JSON string representation
+     */
     @Override
     public String toString() {
         try {

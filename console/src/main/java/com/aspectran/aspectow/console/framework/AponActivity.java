@@ -30,6 +30,10 @@ import java.util.Map;
 @Bean("aponActivity")
 public class AponActivity {
 
+    /**
+     * Renders the APON converter page.
+     * @return the model map containing attributes for rendering the view
+     */
     @Request("/")
     @Dispatch("framework/apon/converter")
     @Action("page")

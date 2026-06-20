@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 /**
- * Configuration parameters and classes for the Aspectow node management cluster.
+ * Contains WebSocket-based command bridging classes.
  */
-package com.aspectran.aspectow.node.config;
+package com.aspectran.aspectow.console.commands.bridge.websocket;

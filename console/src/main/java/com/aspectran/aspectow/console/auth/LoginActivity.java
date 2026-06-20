@@ -114,7 +114,7 @@ public class LoginActivity {
 
     @Request("/logout")
     @Redirect("/")
-    public void logout(Translet translet) {
+    public void logout(@NonNull Translet translet) {
         SessionAdapter sessionAdapter = translet.getSessionAdapter();
         sessionAdapter.removeAttribute(UserInfo.USERINFO_KEY);
     }

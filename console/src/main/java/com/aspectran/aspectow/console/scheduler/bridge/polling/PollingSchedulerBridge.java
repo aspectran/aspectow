@@ -49,26 +49,46 @@ public class PollingSchedulerBridge extends AbstractComponent implements Schedul
 
     private final SchedulerManager schedulerManager;
 
+    /**
+     * Constructs a new {@code PollingSchedulerBridge} with the specified scheduler manager.
+     * @param schedulerManager the scheduler manager to handle scheduler operations
+     */
     @Autowired
     public PollingSchedulerBridge(SchedulerManager schedulerManager) {
         this.schedulerManager = schedulerManager;
         this.sessionManager = new PollingSessionManager(this);
     }
 
+    /**
+     * Initializes the bridge components, starting the session manager.
+     * @throws Exception if initialization fails
+     */
     @Override
     protected void doInitialize() throws Exception {
         sessionManager.initialize();
     }
 
+    /**
+     * Destroys the bridge components, stopping the session manager.
+     * @throws Exception if destruction fails
+     */
     @Override
     protected void doDestroy() throws Exception {
         sessionManager.destroy();
     }
 
+    /**
+     * Gets the associated scheduler manager.
+     * @return the scheduler manager
+     */
     public SchedulerManager getSchedulerManager() {
         return schedulerManager;
     }
 
+    /**
+     * Gets the scheduler broker from the scheduler manager.
+     * @return the scheduler broker
+     */
     public SchedulerBroker getBroker() {
         return schedulerManager.getBroker();
     }
@@ -76,6 +96,7 @@ public class PollingSchedulerBridge extends AbstractComponent implements Schedul
     /**
      * Allows a client to subscribe and start a polling session.
      * @param translet the current translet
+     * @return a {@link RestResponse} containing the subscription details or error message
      */
     @Request("/polling/subscribe")
     public RestResponse subscribe(@NonNull Translet translet) {
@@ -102,6 +123,7 @@ public class PollingSchedulerBridge extends AbstractComponent implements Schedul
     /**
      * Allows a client to pull new messages from the server.
      * @param translet the current translet
+     * @return a {@link RestResponse} containing the list of new messages or error message
      */
     @RequestToGet("/polling/pull")
     public RestResponse pull(@NonNull Translet translet) {
@@ -116,7 +138,9 @@ public class PollingSchedulerBridge extends AbstractComponent implements Schedul
 
     /**
      * Creates a scheduler command to be sent to a specific node or all nodes.
-     * @return a success message
+     * @param translet the current translet
+     * @param request the scheduler request parameters containing the command
+     * @return a {@link RestResponse} representing success or failure of the push operation
      */
     @RequestToPost("/polling/push")
     public RestResponse push(@NonNull Translet translet, @NonNull SchedulerRequestParameters request) {
@@ -143,16 +167,30 @@ public class PollingSchedulerBridge extends AbstractComponent implements Schedul
         }
     }
 
+    /**
+     * Finds and returns the scheduler session associated with the given session ID.
+     * @param sessionId the session identifier
+     * @return the {@link SchedulerSession} if found, or {@code null} if not found
+     */
     @Override
     public SchedulerSession findSchedulerSession(String sessionId) {
         return sessionManager.getSession(sessionId);
     }
 
+    /**
+     * Broadcasts a message to all connected polling sessions.
+     * @param message the message to broadcast
+     */
     @Override
     public void bridge(String message) {
         sessionManager.push(message);
     }
 
+    /**
+     * Sends a message to a specific polling scheduler session.
+     * @param schedulerSession the target scheduler session
+     * @param message the message to send
+     */
     @Override
     public void bridge(@NonNull SchedulerSession schedulerSession, String message) {
         sessionManager.push(schedulerSession, message);

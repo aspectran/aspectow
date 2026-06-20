@@ -44,6 +44,11 @@ public class SchedulerActivity {
 
     private final NodeConsoleHelper nodeConsoleHelper;
 
+    /**
+     * Constructs a new {@code SchedulerActivity} with the specified node manager and node console helper.
+     * @param nodeManager the node manager
+     * @param nodeConsoleHelper the node console helper
+     */
     @Autowired
     public SchedulerActivity(NodeManager nodeManager,
                              NodeConsoleHelper nodeConsoleHelper) {
@@ -80,7 +85,7 @@ public class SchedulerActivity {
 
     /**
      * Lists all registered nodes with their current status.
-     * @return a list of node information maps
+     * @return a {@link RestResponse} containing list of node information maps
      */
     @Request("/nodes")
     public RestResponse getNodes() {

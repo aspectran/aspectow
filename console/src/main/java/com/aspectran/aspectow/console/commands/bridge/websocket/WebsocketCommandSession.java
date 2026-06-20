@@ -35,21 +35,37 @@ public class WebsocketCommandSession extends WrappedSession implements CommandSe
         super(session);
     }
 
+    /**
+     * Returns the unique identifier of the WebSocket session.
+     * @return the session ID
+     */
     @Override
     public String getId() {
         return getSession().getId();
     }
 
+    /**
+     * Returns the target node ID associated with this command session.
+     * @return the target node ID
+     */
     @Override
     public String getNodeId() {
         return (String)getSession().getUserProperties().get(NODE_ID_PROPERTY);
     }
 
+    /**
+     * Sets the target node ID associated with this command session.
+     * @param nodeId the target node ID
+     */
     @Override
     public void setNodeId(String nodeId) {
         getSession().getUserProperties().put(NODE_ID_PROPERTY, nodeId);
     }
 
+    /**
+     * Returns whether the underlying WebSocket session is valid and open.
+     * @return {@code true} if the session is open; {@code false} otherwise
+     */
     @Override
     public boolean isValid() {
         return getSession().isOpen();

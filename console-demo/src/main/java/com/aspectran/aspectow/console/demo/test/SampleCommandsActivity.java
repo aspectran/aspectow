@@ -21,7 +21,7 @@ import com.aspectran.core.component.bean.annotation.Transform;
 import com.aspectran.core.context.rule.type.FormatType;
 
 /**
- * RemoteCommandsActivity provides views and REST API endpoints for managing
+ * SampleCommandsActivity provides views and REST API endpoints for managing
  * cluster nodes and executing remote file commands.
  *
  * <p>Created: 2026-04-16</p>

@@ -29,6 +29,7 @@ public interface SchedulerBridge {
 
     /**
      * Bridges a message to all connected sessions.
+     * @param message the message to bridge
      */
     void bridge(String message);
 

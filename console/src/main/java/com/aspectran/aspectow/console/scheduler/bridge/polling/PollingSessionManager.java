@@ -52,11 +52,20 @@ public class PollingSessionManager extends AbstractComponent {
 
     private final BroadcastMessageBuffer broadcastMessageBuffer;
 
+    /**
+     * Constructs a new {@code PollingSessionManager} with the specified bridge.
+     * @param bridge the polling scheduler bridge
+     */
     public PollingSessionManager(PollingSchedulerBridge bridge) {
         this.bridge = bridge;
         this.broadcastMessageBuffer = new BroadcastMessageBuffer();
     }
 
+    /**
+     * Retrieves the polling scheduler session with the given session ID.
+     * @param sessionId the session identifier
+     * @return the {@link PollingSchedulerSession} if found, or {@code null} if not found
+     */
     public PollingSchedulerSession getSession(String sessionId) {
         return sessions.get(sessionId);
     }
@@ -138,6 +147,11 @@ public class PollingSessionManager extends AbstractComponent {
         }
     }
 
+    /**
+     * Pushes a message to a specific scheduler session.
+     * @param schedulerSession the scheduler session
+     * @param message the message to push
+     */
     public void push(SchedulerSession schedulerSession, String message) {
         if (schedulerSession instanceof PollingSchedulerSession pollingSchedulerSession) {
             pollingSchedulerSession.push(message);
@@ -214,15 +228,27 @@ public class PollingSessionManager extends AbstractComponent {
         }
     }
 
+    /**
+     * Gets the internal scheduler used for session expiry checks.
+     * @return the scheduler
+     */
     protected Scheduler getScheduler() {
         return scheduler;
     }
 
+    /**
+     * Initializes the manager, starting the internal scheduler.
+     * @throws Exception if initialization fails
+     */
     @Override
     protected void doInitialize() throws Exception {
         scheduler.start();
     }
 
+    /**
+     * Destroys the manager, stopping the scheduler and clearing the broadcast buffer.
+     * @throws Exception if destruction fails
+     */
     @Override
     protected void doDestroy() throws Exception {
         scheduler.stop();

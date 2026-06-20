@@ -46,6 +46,10 @@ public class AnatomyActivity {
 
     private final AnatomyService anatomyService;
 
+    /**
+     * Constructs a new {@code AnatomyActivity} with the specified anatomy service.
+     * @param anatomyService the anatomy service
+     */
     @Autowired
     public AnatomyActivity(AnatomyService anatomyService) {
         this.anatomyService = anatomyService;
@@ -53,6 +57,8 @@ public class AnatomyActivity {
 
     /**
      * Dispatches to the anatomy viewer page.
+     * @param contextName the name of the context
+     * @return the model map containing attributes for rendering the view
      */
     @Request("/${contextName}")
     @Dispatch("framework/anatomy/viewer")
@@ -79,7 +85,8 @@ public class AnatomyActivity {
 
     /**
      * Provides framework anatomy data as JSON.
-     * @return a map containing the anatomy data, identified by "anatomyData"
+     * @param contextName the name of the context
+     * @return a REST response containing the anatomy data
      */
     @Request("/${contextName}/data")
     public RestResponse data(String contextName) {
@@ -92,6 +99,10 @@ public class AnatomyActivity {
         return new DefaultRestResponse("anatomyData", data).nullWritable(false).ok();
     }
 
+    /**
+     * Prepares a map of context names to their corresponding activity contexts.
+     * @return a map of context names to activity contexts
+     */
     @NonNull
     public static Map<String, ActivityContext> prepareContextMap() {
         List<CoreService> services = new ArrayList<>(CoreServiceHolder.getAllServices());

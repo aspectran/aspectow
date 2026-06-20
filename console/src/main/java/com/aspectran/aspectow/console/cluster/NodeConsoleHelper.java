@@ -41,11 +41,20 @@ public class NodeConsoleHelper {
 
     private final NodeManager nodeManager;
 
+    /**
+     * Constructs a new {@code NodeConsoleHelper} with the specified node manager.
+     * @param nodeManager the node manager
+     */
     @Autowired
     public NodeConsoleHelper(NodeManager nodeManager) {
         this.nodeManager = nodeManager;
     }
 
+    /**
+     * Retrieves the list of cluster nodes formatted as maps for UI rendering.
+     * @param includeEndpoint whether to include endpoint configuration in the node maps
+     * @return the list of maps representing cluster nodes
+     */
     public List<Map<String, Object>> getNodes(boolean includeEndpoint) {
         List<NodeInfo> configuredNodes = nodeManager.getNodeInfoHolder().getNodeInfoList();
         NodeRegistry nodeRegistry = nodeManager.getNodeRegistry();
@@ -96,6 +105,13 @@ public class NodeConsoleHelper {
         return result;
     }
 
+    /**
+     * Creates a map representation of the specified node information.
+     * @param info the node information
+     * @param alive whether the node is currently alive
+     * @param includeEndpoint whether to include endpoint details
+     * @return the map representation of the node info
+     */
     public Map<String, Object> createNodeMap(@NonNull NodeInfo info, boolean alive, boolean includeEndpoint) {
         Map<String, Object> map = new HashMap<>();
         map.put("id", info.getId());

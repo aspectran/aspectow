@@ -49,26 +49,47 @@ public class PollingCommandBridge extends AbstractComponent implements CommandBr
 
     private final RemoteCommandManager remoteCommandManager;
 
+    /**
+     * Constructs a new {@code PollingCommandBridge} with the specified remote
+     * command manager.
+     * @param remoteCommandManager the manager for executing remote commands
+     */
     @Autowired
     public PollingCommandBridge(RemoteCommandManager remoteCommandManager) {
         this.remoteCommandManager = remoteCommandManager;
         this.pollingSessionManager = new PollingSessionManager(this);
     }
 
+    /**
+     * Initializes the polling command bridge by initializing the polling session manager.
+     * @throws Exception if initialization fails
+     */
     @Override
     protected void doInitialize() throws Exception {
         pollingSessionManager.initialize();
     }
 
+    /**
+     * Destroys the polling command bridge by destroying the polling session manager.
+     * @throws Exception if destruction fails
+     */
     @Override
     protected void doDestroy() throws Exception {
         pollingSessionManager.destroy();
     }
 
+    /**
+     * Returns the remote command manager.
+     * @return the remote command manager
+     */
     public RemoteCommandManager getRemoteCommandManager() {
         return remoteCommandManager;
     }
 
+    /**
+     * Returns the command broker.
+     * @return the command broker
+     */
     public CommandBroker getBroker() {
         return remoteCommandManager.getBroker();
     }
@@ -76,6 +97,7 @@ public class PollingCommandBridge extends AbstractComponent implements CommandBr
     /**
      * Allows a client to subscribe and start a polling session.
      * @param translet the current translet
+     * @return the RestResponse containing session and node details
      */
     @Request("/polling/subscribe")
     public RestResponse subscribe(@NonNull Translet translet) {
@@ -99,6 +121,7 @@ public class PollingCommandBridge extends AbstractComponent implements CommandBr
     /**
      * Allows a client to pull new messages from the server.
      * @param translet the current translet
+     * @return the RestResponse containing the array of new messages
      */
     @RequestToGet("/polling/pull")
     public RestResponse pull(@NonNull Translet translet) {
@@ -113,7 +136,9 @@ public class PollingCommandBridge extends AbstractComponent implements CommandBr
 
     /**
      * Creates a command to be sent to a specific node or all nodes.
-     * @return a success message
+     * @param translet the current translet
+     * @param request the command request parameters
+     * @return a success message or failure response
      */
     @RequestToPost("/polling/push")
     public RestResponse push(@NonNull Translet translet, @NonNull CommandRequestParameters request) {
@@ -136,16 +161,30 @@ public class PollingCommandBridge extends AbstractComponent implements CommandBr
         }
     }
 
+    /**
+     * Finds the command session with the given session ID.
+     * @param sessionId the session ID to find
+     * @return the command session, or {@code null} if not found
+     */
     @Override
     public CommandSession findCommandSession(String sessionId) {
         return pollingSessionManager.getSession(sessionId);
     }
 
+    /**
+     * Bridges a broadcast message to the central polling buffer.
+     * @param message the message to broadcast
+     */
     @Override
     public void bridge(String message) {
         pollingSessionManager.push(message);
     }
 
+    /**
+     * Bridges a message to a specific polling command session.
+     * @param commandSession the target command session
+     * @param message the message to send
+     */
     @Override
     public void bridge(@NonNull CommandSession commandSession, String message) {
         pollingSessionManager.push(commandSession, message);

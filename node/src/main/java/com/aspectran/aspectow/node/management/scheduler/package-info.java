@@ -15,6 +15,6 @@
  */
 
 /**
- * Configuration parameters and classes for the Aspectow node management cluster.
+ * Provides services and managers for handling and executing local and remote schedulers.
  */
-package com.aspectran.aspectow.node.config;
+package com.aspectran.aspectow.node.management.scheduler;

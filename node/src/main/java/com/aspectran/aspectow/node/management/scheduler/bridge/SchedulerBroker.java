@@ -47,11 +47,20 @@ public class SchedulerBroker {
 
     private final SubscriptionRegistry subscriptionRegistry = new SubscriptionRegistry();
 
+    /**
+     * Constructs a new SchedulerBroker.
+     * @param schedulerManager the scheduler manager to associate with this broker
+     */
     public SchedulerBroker(@NonNull SchedulerManager schedulerManager) {
         this.schedulerManager = schedulerManager;
         this.messagePublisher = schedulerManager.getMessagePublisher();
     }
 
+    /**
+     * Subscribes a session to scheduler management updates.
+     * @param session the session to subscribe
+     * @return true if the subscription was successful, false otherwise
+     */
     public synchronized boolean subscribe(@NonNull SchedulerSession session) {
         if (session.isValid()) {
             subscriptionRegistry.addSession(session.getId());
@@ -70,6 +79,11 @@ public class SchedulerBroker {
         return false;
     }
 
+    /**
+     * Registers a remote node subscription.
+     * @param nodeId the ID of the remote node
+     * @param sessionId the ID of the remote session
+     */
     public synchronized void subscribeRemotely(String nodeId, String sessionId) {
         logger.info("Received scheduler subscribe request from node: {}, session: {}", nodeId, sessionId);
         boolean alreadyInUse = subscriptionRegistry.isInUse();
@@ -79,6 +93,10 @@ public class SchedulerBroker {
         }
     }
 
+    /**
+     * Unsubscribes a session from scheduler management updates.
+     * @param session the session to unsubscribe
+     */
     public synchronized void unsubscribe(@NonNull SchedulerSession session) {
         subscriptionRegistry.removeLocalSubscription(session.getId());
         String targetNodeId = session.getNodeId();
@@ -91,6 +109,10 @@ public class SchedulerBroker {
         }
     }
 
+    /**
+     * Unsubscribes a remote node.
+     * @param nodeId the ID of the remote node to unsubscribe
+     */
     public synchronized void unsubscribeRemotely(String nodeId) {
         logger.info("Received scheduler release request from node: {}", nodeId);
         subscriptionRegistry.removeRemoteSubscription(nodeId);
@@ -147,6 +169,12 @@ public class SchedulerBroker {
         }
     }
 
+    /**
+     * Bridges a scheduler response message to connected local sessions, and optionally
+     * relays it to remote nodes.
+     * @param message the message payload
+     * @param locally if true, also relays the message to remote nodes
+     */
     public void bridge(String message, boolean locally) {
         Set<String> sessionIds = subscriptionRegistry.getAllSessionIds();
         for (String sid : sessionIds) {
@@ -161,6 +189,11 @@ public class SchedulerBroker {
         }
     }
 
+    /**
+     * Bridges a scheduler response message to remote nodes.
+     * @param sessionId the session ID
+     * @param message the message payload
+     */
     public void bridgeRemotely(String sessionId, String message) {
         Set<String> remoteNodeIds = subscriptionRegistry.getRemoteSubscriptions();
         if (!remoteNodeIds.isEmpty()) {
@@ -170,6 +203,12 @@ public class SchedulerBroker {
         }
     }
 
+    /**
+     * Bridges a scheduler response message to a specific remote node and session.
+     * @param nodeId the remote node ID
+     * @param sessionId the remote session ID
+     * @param message the message payload
+     */
     public void bridgeRemotely(String nodeId, String sessionId, String message) {
         publishRelay(nodeId, sessionId, message);
     }

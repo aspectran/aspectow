@@ -53,6 +53,12 @@ import java.util.stream.Collectors;
 @Bean("anatomyService")
 public class AnatomyService {
 
+    /**
+     * Retrieves all framework anatomy data, including translets, beans, aspects, schedules,
+     * templates, and type converters, formatted for presentation.
+     * @param context the current activity context
+     * @return a map containing categorized framework anatomy data
+     */
     public Map<String, Object> getAnatomyData(ActivityContext context) {
         Assert.notNull(context, "context must not be null");
 
@@ -70,8 +76,7 @@ public class AnatomyService {
         // 2. Bean Rules
         if (context.getBeanRegistry() instanceof DefaultBeanRegistry registry) {
             BeanRuleRegistry beanRuleRegistry = registry.getBeanRuleRegistry();
-            Set<BeanRule> allBeanRules = new HashSet<>();
-            allBeanRules.addAll(beanRuleRegistry.getIdBasedBeanRules());
+            Set<BeanRule> allBeanRules = new HashSet<>(beanRuleRegistry.getIdBasedBeanRules());
             beanRuleRegistry.getTypeBasedBeanRules().forEach(allBeanRules::addAll);
             allBeanRules.addAll(beanRuleRegistry.getConfigurableBeanRules());
 

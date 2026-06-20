@@ -40,6 +40,10 @@ import java.util.Map;
 @Bean("aselActivity")
 public class AselActivity extends InstantActivitySupport {
 
+    /**
+     * Renders the AsEL tester page.
+     * @return the model map containing attributes for rendering the view
+     */
     @Request("/")
     @Dispatch("framework/asel/tester")
     @Action("page")
@@ -51,6 +55,11 @@ public class AselActivity extends InstantActivitySupport {
         );
     }
 
+    /**
+     * Tests and evaluates an AsEL expression in a sandbox environment.
+     * @param expression the AsEL expression to evaluate
+     * @return a REST response containing the evaluation result and its type, or error details
+     */
     @RequestToPost("/test")
     public RestResponse test(String expression) {
         if (StringUtils.isEmpty(expression)) {

@@ -34,6 +34,10 @@ public class RemoteCommandMessageListener implements NodeMessageListener {
 
     private final RemoteCommandManager remoteCommandManager;
 
+    /**
+     * Instantiates a new RemoteCommandMessageListener.
+     * @param remoteCommandManager the remote command manager
+     */
     public RemoteCommandMessageListener(RemoteCommandManager remoteCommandManager) {
         this.remoteCommandManager = remoteCommandManager;
     }

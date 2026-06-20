@@ -34,43 +34,82 @@ public class SubscriptionRegistry {
 
     private final Set<String> remoteSubscriptions = ConcurrentHashMap.newKeySet();
 
+    /**
+     * Adds a local session ID to the registry.
+     * @param sessionId the session identifier
+     */
     public void addSession(@NonNull String sessionId) {
         localSessions.add(sessionId);
     }
 
+    /**
+     * Adds a local subscription by session ID.
+     * @param sessionId the session identifier
+     */
     public void addLocalSubscription(@NonNull String sessionId) {
         localSubscriptions.add(sessionId);
     }
 
+    /**
+     * Removes a local subscription by session ID.
+     * @param sessionId the session identifier
+     */
     public void removeLocalSubscription(@NonNull String sessionId) {
         localSessions.remove(sessionId);
         localSubscriptions.remove(sessionId);
     }
 
+    /**
+     * Adds a remote node subscription.
+     * @param nodeId the remote node identifier
+     */
     public void addRemoteSubscription(@NonNull String nodeId) {
         remoteSubscriptions.add(nodeId);
     }
 
+    /**
+     * Removes a remote node subscription.
+     * @param nodeId the remote node identifier
+     */
     public void removeRemoteSubscription(@NonNull String nodeId) {
         remoteSubscriptions.remove(nodeId);
     }
 
+    /**
+     * Returns a set of all remote subscriptions (node IDs).
+     * @return the set of remote subscriptions
+     */
     public Set<String> getRemoteSubscriptions() {
         return remoteSubscriptions;
     }
 
+    /**
+     * Returns whether there are any active local or remote subscriptions.
+     * @return true if active, false otherwise
+     */
     public boolean isInUse() {
         return (!localSubscriptions.isEmpty() || !remoteSubscriptions.isEmpty());
     }
 
+    /**
+     * Returns whether there are any active local subscriptions.
+     * @return true if local subscriptions are active, false otherwise
+     */
     public boolean isInUseLocally() {
         return !localSubscriptions.isEmpty();
     }
 
+    /**
+     * Returns a set of all local session IDs.
+     * @return the set of local session IDs
+     */
     public Set<String> getAllSessionIds() {
         return Set.copyOf(localSessions);
     }
 
+    /**
+     * Clears all registered sessions and subscriptions.
+     */
     public void clear() {
         localSessions.clear();
         localSubscriptions.clear();

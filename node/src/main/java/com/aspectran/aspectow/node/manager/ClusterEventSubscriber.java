@@ -49,15 +49,28 @@ public class ClusterEventSubscriber extends RedisPubSubAdapter<String, String> {
 
     private StatefulRedisPubSubConnection<String, String> pubSubConnection;
 
+    /**
+     * Constructs a new ClusterEventSubscriber.
+     * @param clusterId the cluster ID
+     * @param connectionPool the Redis connection pool
+     */
     public ClusterEventSubscriber(String clusterId, RedisConnectionPool connectionPool) {
         this.clusterId = clusterId;
         this.connectionPool = connectionPool;
     }
 
+    /**
+     * Adds a cluster event listener.
+     * @param listener the listener to add
+     */
     public void addListener(ClusterEventListener listener) {
         listeners.add(listener);
     }
 
+    /**
+     * Removes a cluster event listener.
+     * @param listener the listener to remove
+     */
     public void removeListener(ClusterEventListener listener) {
         listeners.remove(listener);
     }
@@ -87,6 +100,9 @@ public class ClusterEventSubscriber extends RedisPubSubAdapter<String, String> {
         }
     }
 
+    /**
+     * Starts the subscriber, establishing a connection and subscribing to cluster events.
+     */
     public void start() {
         this.pubSubConnection = connectionPool.getPubSubConnection();
         this.pubSubConnection.addListener(this);
@@ -96,6 +112,9 @@ public class ClusterEventSubscriber extends RedisPubSubAdapter<String, String> {
         logger.info("ClusterEventSubscriber initialized and subscribed to channel: {}", eventsChannel);
     }
 
+    /**
+     * Stops the subscriber, removing listeners and closing the connection.
+     */
     public void stop() {
         if (pubSubConnection != null) {
             pubSubConnection.removeListener(this);

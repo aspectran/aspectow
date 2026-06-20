@@ -42,6 +42,9 @@ public class EndpointConfig extends DefaultParameters {
         };
     }
 
+    /**
+     * Instantiates a new EndpointConfig.
+     */
     public EndpointConfig() {
         super(parameterKeys);
     }

@@ -22,6 +22,9 @@ import com.aspectran.utils.apon.ParameterKey;
 import com.aspectran.utils.apon.ValueType;
 import com.aspectran.utils.json.JsonBuilder;
 
+/**
+ * Parameters representing a node management response.
+ */
 public class NodeResponseParameters extends DefaultParameters {
 
     public static final ParameterKey header;
@@ -42,38 +45,72 @@ public class NodeResponseParameters extends DefaultParameters {
         };
     }
 
+    /**
+     * Instantiates a new NodeResponseParameters.
+     */
     public NodeResponseParameters() {
         super(parameterKeys);
         setRenderStyle(AponRenderStyle.COMPACT);
     }
 
+    /**
+     * Returns the response header.
+     * @return the header
+     */
     public String getHeader() {
         return getString(header);
     }
 
+    /**
+     * Sets the response header.
+     * @param header the header to set
+     * @return this instance
+     */
     public NodeResponseParameters setHeader(String header) {
         putValue(NodeResponseParameters.header, header);
         return this;
     }
 
+    /**
+     * Returns the node configuration/state info.
+     * @return the node info
+     */
     public NodeInfo getNode() {
         return getParameters(node);
     }
 
+    /**
+     * Sets the node configuration/state info.
+     * @param node the node info to set
+     * @return this instance
+     */
     public NodeResponseParameters setNode(NodeInfo node) {
         putValue(NodeResponseParameters.node, node);
         return this;
     }
 
+    /**
+     * Returns the error message, if any.
+     * @return the error message
+     */
     public String getError() {
         return getString(error);
     }
 
+    /**
+     * Sets the error message.
+     * @param error the error message to set
+     * @return this instance
+     */
     public NodeResponseParameters setError(String error) {
         putValue(NodeResponseParameters.error, error);
         return this;
     }
 
+    /**
+     * Returns a JSON representation of the parameters.
+     * @return the JSON string representation
+     */
     @Override
     public String toString() {
         try {

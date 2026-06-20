@@ -43,6 +43,12 @@ public class RemoteCommandsActivity {
 
     private final NodeConsoleHelper nodeConsoleHelper;
 
+    /**
+     * Constructs a new {@code RemoteCommandsActivity} with the specified
+     * node manager and node console helper.
+     * @param nodeManager the node manager for cluster management
+     * @param nodeConsoleHelper the node console helper for cluster nodes
+     */
     @Autowired
     public RemoteCommandsActivity(NodeManager nodeManager,
                                   NodeConsoleHelper nodeConsoleHelper) {
@@ -80,7 +86,7 @@ public class RemoteCommandsActivity {
 
     /**
      * Lists all registered nodes with their current status.
-     * @return a list of node information maps
+     * @return the RestResponse containing a list of node information maps
      */
     @Request("/list")
     public RestResponse listNodes() {

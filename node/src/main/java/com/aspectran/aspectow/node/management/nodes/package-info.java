@@ -15,6 +15,6 @@
  */
 
 /**
- * Configuration parameters and classes for the Aspectow node management cluster.
+ * Contains request and response parameters for managing cluster node status.
  */
-package com.aspectran.aspectow.node.config;
+package com.aspectran.aspectow.node.management.nodes;

@@ -119,6 +119,13 @@ public abstract class NodeMessageProtocol {
         return KEY_PREFIX + TYPE_CONTROL + "::" + clusterId + ":" + nodeId + ":";
     }
 
+    /**
+     * Returns the Redis Pub/Sub channel for management and control messages of a specific category.
+     * @param category the category of the control message
+     * @param clusterId the cluster ID
+     * @param nodeId the node ID
+     * @return the channel name
+     */
     @NonNull
     public static String getControlChannel(String category, String clusterId, String nodeId) {
         return KEY_PREFIX + TYPE_CONTROL + ":" + category + ":" + clusterId + ":" + nodeId + ":";
@@ -137,6 +144,15 @@ public abstract class NodeMessageProtocol {
         return KEY_PREFIX + TYPE_RELAY + ":" + category + ":" + clusterId + ":" + nodeId + ":";
     }
 
+    /**
+     * Returns the Redis Pub/Sub channel for transparently relaying application-specific
+     * messages for a specific session on a node.
+     * @param category the category of the relay message
+     * @param clusterId the cluster ID
+     * @param nodeId the node ID
+     * @param sessionId the session ID
+     * @return the channel name
+     */
     @NonNull
     public static String getRelayChannel(String category, String clusterId, String nodeId, String sessionId) {
         return KEY_PREFIX + TYPE_RELAY + ":" + category + ":" + clusterId + ":" + nodeId + ":" + StringUtils.nullToEmpty(sessionId);

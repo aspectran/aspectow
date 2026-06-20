@@ -15,6 +15,6 @@
  */
 
 /**
- * Configuration parameters and classes for the Aspectow node management cluster.
+ * Provides services and manager for executing cluster-wide daemon commands.
  */
-package com.aspectran.aspectow.node.config;
+package com.aspectran.aspectow.node.management.commands;

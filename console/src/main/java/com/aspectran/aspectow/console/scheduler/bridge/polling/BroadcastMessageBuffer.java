@@ -33,7 +33,7 @@ public class BroadcastMessageBuffer {
     private final List<String> buffer = new LinkedList<>();
 
     /**
-     * Instantiates a new BroadcastMessageBuffer.
+     * Instantiates a new {@code BroadcastMessageBuffer}.
      */
     public BroadcastMessageBuffer() {
     }

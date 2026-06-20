@@ -26,22 +26,66 @@ import java.util.List;
  */
 public interface UserService {
 
+    /**
+     * Retrieves a user by their ID.
+     * @param userId the user ID
+     * @return the user, or null if not found
+     */
     User getUserById(Long userId);
 
+    /**
+     * Retrieves a user by their username.
+     * @param username the username of the user
+     * @return the user, or null if not found
+     */
     User getUserByUsername(String username);
 
+    /**
+     * Retrieves all users.
+     * @return the list of users
+     */
     List<User> getUserList();
 
+    /**
+     * Retrieves all roles.
+     * @return the list of roles
+     */
     List<Role> getRoleList();
 
+    /**
+     * Creates a new user with assigned roles.
+     * @param user the user details to create
+     * @param roleIds the IDs of roles to assign to the user
+     */
     void createUser(User user, List<Long> roleIds);
 
+    /**
+     * Updates an existing user and their assigned roles.
+     * @param user the user details to update
+     * @param roleIds the updated list of role IDs to assign
+     */
     void updateUser(User user, List<Long> roleIds);
 
+    /**
+     * Deletes a user by their ID.
+     * @param userId the user ID to delete
+     */
     void deleteUser(Long userId);
 
+    /**
+     * Records a user login attempt.
+     * @param username the username of the user attempting to log in
+     * @param ipAddress the IP address from which the login attempt originated
+     * @param userAgent the User-Agent header of the browser or client
+     * @param success true if the login attempt was successful, false otherwise
+     */
     void recordLogin(String username, String ipAddress, String userAgent, boolean success);
 
+    /**
+     * Retrieves the login history for a specific user.
+     * @param username the username of the user
+     * @return the list of login history records
+     */
     List<LoginHistory> getLoginHistoryList(String username);
 
 }

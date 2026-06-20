@@ -30,16 +30,30 @@ public class NodeMessagePublisher {
 
     private final RedisConnectionPool connectionPool;
 
+    /**
+     * Constructs a new NodeMessagePublisher.
+     * @param clusterId the cluster ID
+     * @param nodeId the node ID
+     * @param connectionPool the Redis connection pool
+     */
     public NodeMessagePublisher(String clusterId, String nodeId, RedisConnectionPool connectionPool) {
         this.clusterId = clusterId;
         this.nodeId = nodeId;
         this.connectionPool = connectionPool;
     }
 
+    /**
+     * Returns the cluster ID.
+     * @return the cluster ID
+     */
     public String getClusterId() {
         return clusterId;
     }
 
+    /**
+     * Returns the node ID.
+     * @return the node ID
+     */
     public String getNodeId() {
         return nodeId;
     }
@@ -90,11 +104,26 @@ public class NodeMessagePublisher {
         asyncPublish(channel, message);
     }
 
+    /**
+     * Publishes a transparent application message to be relayed to a specific node.
+     * @param category the category of the relay message
+     * @param targetNodeId the target node ID
+     * @param message the message to publish
+     * @throws Exception if an error occurs during publication
+     */
     public void publishRelay(String category, String targetNodeId, String message) throws Exception {
         String channel = NodeMessageProtocol.getRelayChannel(category, clusterId, targetNodeId);
         asyncPublish(channel, message);
     }
 
+    /**
+     * Publishes a transparent application message to be relayed to a specific session on a node.
+     * @param category the category of the relay message
+     * @param targetNodeId the target node ID
+     * @param sessionId the session ID
+     * @param message the message to publish
+     * @throws Exception if an error occurs during publication
+     */
     public void publishRelay(String category, String targetNodeId, String sessionId, String message) throws Exception {
         String channel = NodeMessageProtocol.getRelayChannel(category, clusterId, targetNodeId, sessionId);
         asyncPublish(channel, message);

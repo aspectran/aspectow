@@ -58,6 +58,14 @@ public abstract class NodeManagerBuilder {
 
     private static final String DEFAULT_GROUP_TITLE = "Group 1";
 
+    /**
+     * Builds and initializes a new {@link NodeManager} instance.
+     * @param context the activity context
+     * @param nodeConfig the node configuration
+     * @param redisConnectionPoolConfig the Redis connection pool configuration
+     * @return the configured and built NodeManager instance
+     * @throws Exception if an error occurs during initialization
+     */
     @NonNull
     public static NodeManager build(
             ActivityContext context, NodeConfig nodeConfig,

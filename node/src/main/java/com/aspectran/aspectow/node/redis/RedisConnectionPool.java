@@ -40,24 +40,44 @@ public class RedisConnectionPool implements InitializableBean, DisposableBean {
 
     private GenericObjectPool<StatefulRedisConnection<String, String>> pool;
 
+    /**
+     * Instantiates a new RedisConnectionPool with the specified configuration.
+     * @param poolConfig the connection pool configuration
+     */
     public RedisConnectionPool(RedisConnectionPoolConfig poolConfig) {
         this.poolConfig = poolConfig;
     }
 
+    /**
+     * Borrows a connection from the pool.
+     * @return a stateful Redis connection
+     * @throws Exception if a connection cannot be borrowed from the pool
+     */
     public StatefulRedisConnection<String, String> getConnection() throws Exception {
         Assert.state(pool != null, "No RedisConnectionPool configured");
         return pool.borrowObject();
     }
 
+    /**
+     * Establishes a new pub/sub connection.
+     * @return a stateful Redis pub/sub connection
+     */
     public StatefulRedisPubSubConnection<String, String> getPubSubConnection() {
         Assert.state(client != null, "No RedisClient configured");
         return client.connectPubSub();
     }
 
+    /**
+     * Checks if the connection pool is active and available.
+     * @return {@code true} if the pool is initialized and not closed, otherwise {@code false}
+     */
     public boolean isAvailable() {
         return (pool != null && !pool.isClosed());
     }
 
+    /**
+     * Initializes the Redis client and connection pool.
+     */
     @Override
     public void initialize() {
         Assert.state(client == null, "RedisConnectionPool is already initialized");
@@ -74,6 +94,9 @@ public class RedisConnectionPool implements InitializableBean, DisposableBean {
                         -> client.connect(), poolConfig);
     }
 
+    /**
+     * Closes the connection pool and shuts down the Redis client.
+     */
     @Override
     public void destroy() {
         if (pool != null) {

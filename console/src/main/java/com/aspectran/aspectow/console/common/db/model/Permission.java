@@ -30,26 +30,50 @@ public class Permission implements Serializable {
     private String permCode;
     private String description;
 
+    /**
+     * Gets the permission ID.
+     * @return the permission ID
+     */
     public Long getPermId() {
         return permId;
     }
 
+    /**
+     * Sets the permission ID.
+     * @param permId the permission ID
+     */
     public void setPermId(Long permId) {
         this.permId = permId;
     }
 
+    /**
+     * Gets the permission code.
+     * @return the permission code
+     */
     public String getPermCode() {
         return permCode;
     }
 
+    /**
+     * Sets the permission code.
+     * @param permCode the permission code
+     */
     public void setPermCode(String permCode) {
         this.permCode = permCode;
     }
 
+    /**
+     * Gets the description.
+     * @return the description
+     */
     public String getDescription() {
         return description;
     }
 
+    /**
+     * Sets the description.
+     * @param description the description
+     */
     public void setDescription(String description) {
         this.description = description;
     }

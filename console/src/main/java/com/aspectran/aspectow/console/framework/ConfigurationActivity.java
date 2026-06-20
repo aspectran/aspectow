@@ -43,6 +43,8 @@ public class ConfigurationActivity {
 
     /**
      * Dispatches to the configuration viewer page.
+     * @param contextName the name of the context
+     * @return the model map containing attributes for rendering the view
      */
     @Request("/${contextName}")
     @Dispatch("framework/config/viewer")
@@ -69,7 +71,8 @@ public class ConfigurationActivity {
 
     /**
      * Provides framework configuration data as JSON.
-     * @return a map containing the configuration data, identified by "configData"
+     * @param contextName the name of the context
+     * @return a REST response containing the configuration data
      */
     @Request("/${contextName}/data")
     public RestResponse data(String contextName) {

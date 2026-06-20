@@ -49,55 +49,107 @@ public class CommandResponseParameters extends DefaultParameters {
         };
     }
 
+    /**
+     * Instantiates a new CommandResponseParameters.
+     */
     public CommandResponseParameters() {
         super(parameterKeys);
     }
 
+    /**
+     * Returns the command response header.
+     * @return the header
+     */
     public String getHeader() {
         return getString(header);
     }
 
+    /**
+     * Sets the command response header.
+     * @param headerValue the header value
+     * @return this instance
+     */
     public CommandResponseParameters setHeader(String headerValue) {
         putValue(header, headerValue);
         return this;
     }
 
+    /**
+     * Returns the associated request ID.
+     * @return the request ID
+     */
     public String getRequestId() {
         return getString(requestId);
     }
 
+    /**
+     * Sets the associated request ID.
+     * @param requestIdValue the request ID value
+     * @return this instance
+     */
     public CommandResponseParameters setRequestId(String requestIdValue) {
         putValue(requestId, requestIdValue);
         return this;
     }
 
+    /**
+     * Returns the ID of the node sending the response.
+     * @return the node ID
+     */
     public String getNodeId() {
         return getString(nodeId);
     }
 
+    /**
+     * Sets the ID of the node sending the response.
+     * @param nodeIdValue the node ID value
+     * @return this instance
+     */
     public CommandResponseParameters setNodeId(String nodeIdValue) {
         putValue(nodeId, nodeIdValue);
         return this;
     }
 
+    /**
+     * Returns the result of the command execution.
+     * @return the result text
+     */
     public String getResult() {
         return getString(result);
     }
 
+    /**
+     * Sets the result of the command execution.
+     * @param resultValue the result text
+     * @return this instance
+     */
     public CommandResponseParameters setResult(String resultValue) {
         putValue(result, resultValue);
         return this;
     }
 
+    /**
+     * Returns the error message, if any, that occurred during command execution.
+     * @return the error message
+     */
     public String getError() {
         return getString(error);
     }
 
+    /**
+     * Sets the error message that occurred during command execution.
+     * @param errorValue the error message
+     * @return this instance
+     */
     public CommandResponseParameters setError(String errorValue) {
         putValue(error, errorValue);
         return this;
     }
 
+    /**
+     * Returns a JSON representation of the parameters.
+     * @return the JSON string representation
+     */
     @Override
     public String toString() {
         try {

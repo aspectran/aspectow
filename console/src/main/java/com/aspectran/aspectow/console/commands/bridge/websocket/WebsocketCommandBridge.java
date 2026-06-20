@@ -57,12 +57,24 @@ public class WebsocketCommandBridge extends SimplifiedEndpoint implements Comman
 
     private final NodeManager nodeManager;
 
+    /**
+     * Constructs a new {@code WebsocketCommandBridge} with the specified remote
+     * command manager and node manager.
+     * @param remoteCommandManager the manager for executing remote commands
+     * @param nodeManager the manager for local node information
+     */
     @Autowired
     public WebsocketCommandBridge(RemoteCommandManager remoteCommandManager, NodeManager nodeManager) {
         this.remoteCommandManager = remoteCommandManager;
         this.nodeManager = nodeManager;
     }
 
+    /**
+     * Checks if the WebSocket connection is authorized by validating the token
+     * passed in the path parameters.
+     * @param session the WebSocket session
+     * @return {@code true} if authorized; {@code false} otherwise
+     */
     @Override
     protected boolean checkAuthorized(@NonNull Session session) {
         String token = session.getPathParameters().get("token");
@@ -75,6 +87,11 @@ public class WebsocketCommandBridge extends SimplifiedEndpoint implements Comman
         }
     }
 
+    /**
+     * Registers message handlers for the WebSocket session to process incoming
+     * text messages from the client.
+     * @param session the WebSocket session
+     */
     @Override
     protected void registerMessageHandlers(@NonNull Session session) {
         if (session.getMessageHandlers().isEmpty()) {
@@ -109,6 +126,11 @@ public class WebsocketCommandBridge extends SimplifiedEndpoint implements Comman
         }
     }
 
+    /**
+     * Handles clean up tasks when a WebSocket session is removed, including
+     * unregistering the session and unsubscribing from the command broker.
+     * @param session the removed WebSocket session
+     */
     @Override
     protected void onSessionRemoved(@NonNull Session session) {
         remoteCommandManager.unregisterSession(session.getId());
@@ -169,12 +191,21 @@ public class WebsocketCommandBridge extends SimplifiedEndpoint implements Comman
         }
     }
 
+    /**
+     * Finds a command session associated with the given session ID.
+     * @param sessionId the session ID to locate
+     * @return the command session, or {@code null} if not found
+     */
     @Override
     public CommandSession findCommandSession(String sessionId) {
         Session session = findSession(sessionId);
         return (session != null ? new WebsocketCommandSession(session) : null);
     }
 
+    /**
+     * Broadcasts a command message to all connected sessions.
+     * @param message the message to broadcast
+     */
     @Override
     public void bridge(String message) {
         if (message != null) {
@@ -182,6 +213,11 @@ public class WebsocketCommandBridge extends SimplifiedEndpoint implements Comman
         }
     }
 
+    /**
+     * Bridges a command message to a specific command session.
+     * @param session the command session to receive the message
+     * @param message the message to send
+     */
     @Override
     public void bridge(@NonNull CommandSession session, String message) {
         if (message != null && session instanceof WebsocketCommandSession websocketCommandSession) {

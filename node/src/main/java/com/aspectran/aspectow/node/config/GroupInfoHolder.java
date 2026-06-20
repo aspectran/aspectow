@@ -53,10 +53,18 @@ public class GroupInfoHolder {
         }
     }
 
+    /**
+     * Returns whether the groups are explicitly declared.
+     * @return true if explicitly declared, false otherwise
+     */
     public boolean isExplicitDeclared() {
         return explicitDeclared;
     }
 
+    /**
+     * Sets whether the groups are explicitly declared.
+     * @param explicitDeclared true if explicitly declared, false otherwise
+     */
     public void setExplicitDeclared(boolean explicitDeclared) {
         this.explicitDeclared = explicitDeclared;
     }
@@ -96,6 +104,10 @@ public class GroupInfoHolder {
         return groupInfoMap.size();
     }
 
+    /**
+     * Returns whether this holder has any group configuration.
+     * @return true if there is at least one group configuration, false otherwise
+     */
     public boolean hasGroupInfo() {
         return !groupInfoMap.isEmpty();
     }

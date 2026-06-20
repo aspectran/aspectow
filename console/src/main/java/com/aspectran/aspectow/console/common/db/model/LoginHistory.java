@@ -34,50 +34,98 @@ public class LoginHistory implements Serializable {
     private String userAgent;
     private String successYn;
 
+    /**
+     * Gets the login history ID.
+     * @return the history ID
+     */
     public Long getHistoryId() {
         return historyId;
     }
 
+    /**
+     * Sets the login history ID.
+     * @param historyId the history ID
+     */
     public void setHistoryId(Long historyId) {
         this.historyId = historyId;
     }
 
+    /**
+     * Gets the username.
+     * @return the username
+     */
     public String getUsername() {
         return username;
     }
 
+    /**
+     * Sets the username.
+     * @param username the username
+     */
     public void setUsername(String username) {
         this.username = username;
     }
 
+    /**
+     * Gets the login timestamp.
+     * @return the login timestamp
+     */
     public LocalDateTime getLoginAt() {
         return loginAt;
     }
 
+    /**
+     * Sets the login timestamp.
+     * @param loginAt the login timestamp
+     */
     public void setLoginAt(LocalDateTime loginAt) {
         this.loginAt = loginAt;
     }
 
+    /**
+     * Gets the IP address.
+     * @return the IP address
+     */
     public String getIpAddress() {
         return ipAddress;
     }
 
+    /**
+     * Sets the IP address.
+     * @param ipAddress the IP address
+     */
     public void setIpAddress(String ipAddress) {
         this.ipAddress = ipAddress;
     }
 
+    /**
+     * Gets the User-Agent string.
+     * @return the User-Agent string
+     */
     public String getUserAgent() {
         return userAgent;
     }
 
+    /**
+     * Sets the User-Agent string.
+     * @param userAgent the User-Agent string
+     */
     public void setUserAgent(String userAgent) {
         this.userAgent = userAgent;
     }
 
+    /**
+     * Gets the success indicator flag ("Y" or "N").
+     * @return the success indicator flag
+     */
     public String getSuccessYn() {
         return successYn;
     }
 
+    /**
+     * Sets the success indicator flag ("Y" or "N").
+     * @param successYn the success indicator flag
+     */
     public void setSuccessYn(String successYn) {
         this.successYn = successYn;
     }

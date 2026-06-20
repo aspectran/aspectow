@@ -60,14 +60,39 @@ public class SchedulerLogExporter extends AbstractLifeCycle {
 
     private Tailer tailer;
 
+    /**
+     * Constructs a new SchedulerLogExporter with default charset, sample interval, and last lines.
+     * @param nodeId the ID of the node
+     * @param loggingGroup the logging group
+     * @param logFile the log file to export
+     * @param broker the broker to broadcast logs to
+     */
     public SchedulerLogExporter(String nodeId, String loggingGroup, File logFile, SchedulerBroker broker) {
         this(nodeId, loggingGroup, logFile, broker, DEFAULT_CHARSET.name());
     }
 
+    /**
+     * Constructs a new SchedulerLogExporter with specified charset.
+     * @param nodeId the ID of the node
+     * @param loggingGroup the logging group
+     * @param logFile the log file to export
+     * @param broker the broker to broadcast logs to
+     * @param charsetName the name of the charset to use
+     */
     public SchedulerLogExporter(String nodeId, String loggingGroup, File logFile, SchedulerBroker broker, String charsetName) {
         this(nodeId, loggingGroup, logFile, broker, charsetName, 1000L, 100);
     }
 
+    /**
+     * Constructs a new SchedulerLogExporter with specified charset, sample interval, and last lines.
+     * @param nodeId the ID of the node
+     * @param loggingGroup the logging group
+     * @param logFile the log file to export
+     * @param broker the broker to broadcast logs to
+     * @param charsetName the name of the charset to use
+     * @param sampleInterval the sample interval in milliseconds
+     * @param lastLines the number of last lines to read initially
+     */
     public SchedulerLogExporter(
             String nodeId, String loggingGroup, File logFile, SchedulerBroker broker,
             String charsetName, long sampleInterval, int lastLines) {
@@ -80,10 +105,18 @@ public class SchedulerLogExporter extends AbstractLifeCycle {
         this.lastLines = lastLines;
     }
 
+    /**
+     * Gets the node ID.
+     * @return the node ID
+     */
     public String getNodeId() {
         return nodeId;
     }
 
+    /**
+     * Gets the logging group.
+     * @return the logging group
+     */
     public String getLoggingGroup() {
         return loggingGroup;
     }
@@ -96,6 +129,10 @@ public class SchedulerLogExporter extends AbstractLifeCycle {
         readLastLines(messages);
     }
 
+    /**
+     * Reads the last lines and appends them to the messages list.
+     * @param messages the list to add log lines to
+     */
     public void readLastLines(@NonNull List<String> messages) {
         if (lastLines > 0) {
             try {
@@ -128,6 +165,11 @@ public class SchedulerLogExporter extends AbstractLifeCycle {
         }
     }
 
+    /**
+     * Reads a number of previous lines before the currently loaded ones.
+     * @param loadedLines the number of lines already loaded
+     * @return a list of previous log lines
+     */
     public List<String> readPreviousLines(int loadedLines) {
         try {
             return readPreviousLines(loadedLines, lastLines);
@@ -257,6 +299,10 @@ public class SchedulerLogExporter extends AbstractLifeCycle {
         return list;
     }
 
+    /**
+     * Broadcasts a log line message to all connected sessions.
+     * @param message the log line to broadcast
+     */
     protected void broadcast(String message) {
         SchedulerResponseParameters response = new SchedulerResponseParameters()
                 .setHeader("log")
@@ -266,6 +312,10 @@ public class SchedulerLogExporter extends AbstractLifeCycle {
         broker.bridgeLog(nodeId, response.toString(), true);
     }
 
+    /**
+     * Starts tailing the scheduler log file.
+     * @throws Exception if tailing fails to start
+     */
     @Override
     protected void doStart() throws Exception {
         if (logFile.exists()) {
@@ -281,6 +331,10 @@ public class SchedulerLogExporter extends AbstractLifeCycle {
         }
     }
 
+    /**
+     * Stops tailing the scheduler log file.
+     * @throws Exception if tailing fails to stop
+     */
     @Override
     protected void doStop() throws Exception {
         if (tailer != null) {

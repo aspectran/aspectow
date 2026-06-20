@@ -15,6 +15,6 @@
  */
 
 /**
- * Configuration parameters and classes for the Aspectow node management cluster.
+ * Handles the bridging and distribution of scheduler session messages and results.
  */
-package com.aspectran.aspectow.node.config;
+package com.aspectran.aspectow.node.management.scheduler.bridge;

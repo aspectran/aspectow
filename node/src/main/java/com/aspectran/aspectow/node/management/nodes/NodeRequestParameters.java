@@ -20,6 +20,9 @@ import com.aspectran.utils.apon.DefaultParameters;
 import com.aspectran.utils.apon.ParameterKey;
 import com.aspectran.utils.apon.ValueType;
 
+/**
+ * Parameters representing a node management request.
+ */
 public class NodeRequestParameters extends DefaultParameters {
 
     public static final ParameterKey header;
@@ -43,39 +46,74 @@ public class NodeRequestParameters extends DefaultParameters {
         };
     }
 
+    /**
+     * Instantiates a new NodeRequestParameters.
+     */
     public NodeRequestParameters() {
         super(parameterKeys);
         setRenderStyle(AponRenderStyle.COMPACT);
     }
 
+    /**
+     * Returns the request header.
+     * @return the header
+     */
     public String getHeader() {
         return getString(header);
     }
 
+    /**
+     * Sets the request header.
+     * @param header the header to set
+     */
     public void setHeader(String header) {
         putValue(NodeRequestParameters.header, header);
     }
 
+    /**
+     * Returns the initiating node ID.
+     * @return the node ID
+     */
     public String getNodeId() {
         return getString(nodeId);
     }
 
+    /**
+     * Sets the initiating node ID.
+     * @param nodeId the node ID to set
+     */
     public void setNodeId(String nodeId) {
         putValue(NodeRequestParameters.nodeId, nodeId);
     }
 
+    /**
+     * Returns the target node ID.
+     * @return the target node ID
+     */
     public String getTargetNodeId() {
         return getString(targetNodeId);
     }
 
+    /**
+     * Sets the target node ID.
+     * @param targetNodeId the target node ID to set
+     */
     public void setTargetNodeId(String targetNodeId) {
         putValue(NodeRequestParameters.targetNodeId, targetNodeId);
     }
 
+    /**
+     * Returns the node management command to execute.
+     * @return the command
+     */
     public String getCommand() {
         return getString(command);
     }
 
+    /**
+     * Sets the node management command to execute.
+     * @param command the command to set
+     */
     public void setCommand(String command) {
         putValue(NodeRequestParameters.command, command);
     }

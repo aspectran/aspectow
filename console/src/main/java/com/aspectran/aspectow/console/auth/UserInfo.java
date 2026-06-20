@@ -35,50 +35,100 @@ public class UserInfo implements Serializable {
     private Set<String> roles;
     private Set<String> permissions;
 
+    /**
+     * Gets the user ID.
+     * @return the user ID
+     */
     public Long getUserId() {
         return userId;
     }
 
+    /**
+     * Sets the user ID.
+     * @param userId the user ID to set
+     */
     public void setUserId(Long userId) {
         this.userId = userId;
     }
 
+    /**
+     * Gets the username.
+     * @return the username
+     */
     public String getUsername() {
         return username;
     }
 
+    /**
+     * Sets the username.
+     * @param username the username to set
+     */
     public void setUsername(String username) {
         this.username = username;
     }
 
+    /**
+     * Gets the nickname.
+     * @return the nickname
+     */
     public String getNickname() {
         return nickname;
     }
 
+    /**
+     * Sets the nickname.
+     * @param nickname the nickname to set
+     */
     public void setNickname(String nickname) {
         this.nickname = nickname;
     }
 
+    /**
+     * Gets the set of roles assigned to the user.
+     * @return the set of roles
+     */
     public Set<String> getRoles() {
         return roles;
     }
 
+    /**
+     * Sets the set of roles assigned to the user.
+     * @param roles the set of roles to set
+     */
     public void setRoles(Set<String> roles) {
         this.roles = roles;
     }
 
+    /**
+     * Gets the set of permissions granted to the user.
+     * @return the set of permissions
+     */
     public Set<String> getPermissions() {
         return permissions;
     }
 
+    /**
+     * Sets the set of permissions granted to the user.
+     * @param permissions the set of permissions to set
+     */
     public void setPermissions(Set<String> permissions) {
         this.permissions = permissions;
     }
 
+    /**
+     * Checks if the user has the specified role.
+     * @param role the role name
+     * @return {@code true} if the user has the role, {@code false} otherwise
+     */
     public boolean hasRole(String role) {
         return (roles != null && roles.contains(role));
     }
 
+    /**
+     * Checks if the user has the specified permission.
+     * @param permission the permission name
+     * @return {@code true} if the user has the permission, {@code false} otherwise
+     */
     public boolean hasPermission(String permission) {
         return (permissions != null && permissions.contains(permission));
     }

@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 /**
- * Configuration parameters and classes for the Aspectow node management cluster.
+ * Contains activities and controller classes for executing remote commands on nodes.
  */
-package com.aspectran.aspectow.node.config;
+package com.aspectran.aspectow.console.commands;

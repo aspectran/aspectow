@@ -45,6 +45,11 @@ public class ClusterActivity {
 
     private final NodeConsoleHelper nodeConsoleHelper;
 
+    /**
+     * Constructs a new {@code ClusterActivity} with the specified node manager and node console helper.
+     * @param nodeManager the node manager
+     * @param nodeConsoleHelper the node console helper
+     */
     @Autowired
     public ClusterActivity(NodeManager nodeManager, NodeConsoleHelper nodeConsoleHelper) {
         this.nodeManager = nodeManager;

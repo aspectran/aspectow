@@ -30,6 +30,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * Activity for the home page of the Aspectow Management Console.
+ */
 @Component("/")
 public class HomeActivity {
 
@@ -37,12 +40,21 @@ public class HomeActivity {
 
     private final NodeConsoleHelper nodeConsoleHelper;
 
+    /**
+     * Constructs a new {@code HomeActivity} with the specified node manager and node console helper.
+     * @param nodeManager the node manager
+     * @param nodeConsoleHelper the node console helper
+     */
     @Autowired
     public HomeActivity(NodeManager nodeManager, NodeConsoleHelper nodeConsoleHelper) {
         this.nodeManager = nodeManager;
         this.nodeConsoleHelper = nodeConsoleHelper;
     }
 
+    /**
+     * Renders the home page of the Aspectow Management Console.
+     * @return the model map containing attributes for rendering the home page
+     */
     @Request("/")
     @Dispatch("home/home")
     @Action("page")

@@ -31,14 +31,38 @@ import java.util.List;
 @Mapper
 public interface VaultMapper {
 
+    /**
+     * Retrieves a vault by its ID.
+     * @param vaultId the vault ID
+     * @return the vault, or null if not found
+     */
     Vault getVaultById(Long vaultId);
 
+    /**
+     * Retrieves all vaults.
+     * @return the list of vaults
+     */
     List<Vault> getVaultList();
 
+    /**
+     * Inserts a new vault.
+     * @param vault the vault to insert
+     * @return the number of affected rows
+     */
     int insertVault(Vault vault);
 
+    /**
+     * Updates an existing vault.
+     * @param vault the vault to update
+     * @return the number of affected rows
+     */
     int updateVault(Vault vault);
 
+    /**
+     * Deletes a vault by its ID.
+     * @param vaultId the vault ID to delete
+     * @return the number of affected rows
+     */
     int deleteVault(Long vaultId);
 
     /**
@@ -48,6 +72,10 @@ public interface VaultMapper {
     @Bean("console.vaultDao")
     class Dao extends SqlMapperAccess<VaultMapper> implements VaultMapper {
 
+        /**
+         * Constructs a new Dao.
+         * @param sqlMapperProvider the SQL mapper provider
+         */
         @Autowired
         public Dao(ConsoleSqlMapperProvider sqlMapperProvider) {
             super(sqlMapperProvider);

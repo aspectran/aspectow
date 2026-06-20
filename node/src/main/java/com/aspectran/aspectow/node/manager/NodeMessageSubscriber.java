@@ -48,20 +48,38 @@ public class NodeMessageSubscriber extends RedisPubSubAdapter<String, String> {
 
     private String subscribePattern;
 
+    /**
+     * Constructs a new NodeMessageSubscriber.
+     * @param clusterId the cluster ID
+     * @param nodeId the node ID
+     * @param connectionPool the Redis connection pool
+     */
     public NodeMessageSubscriber(String clusterId, String nodeId, RedisConnectionPool connectionPool) {
         this.clusterId = clusterId;
         this.nodeId = nodeId;
         this.connectionPool = connectionPool;
     }
 
+    /**
+     * Returns the node ID of this subscriber.
+     * @return the node ID
+     */
     public String getNodeId() {
         return nodeId;
     }
 
+    /**
+     * Adds a node message listener.
+     * @param listener the listener to add
+     */
     public void addListener(NodeMessageListener listener) {
         listeners.add(listener);
     }
 
+    /**
+     * Removes a node message listener.
+     * @param listener the listener to remove
+     */
     public void removeListener(NodeMessageListener listener) {
         listeners.remove(listener);
     }
@@ -121,6 +139,9 @@ public class NodeMessageSubscriber extends RedisPubSubAdapter<String, String> {
         }
     }
 
+    /**
+     * Starts the subscriber, establishing a connection and subscribing to the Redis pattern.
+     */
     public void start() {
         this.pubSubConnection = connectionPool.getPubSubConnection();
         this.pubSubConnection.addListener(this);
@@ -131,6 +152,9 @@ public class NodeMessageSubscriber extends RedisPubSubAdapter<String, String> {
         logger.info("NodeMessageSubscriber initialized and subscribed to pattern: {}", pattern);
     }
 
+    /**
+     * Stops the subscriber, removing listeners and closing the connection.
+     */
     public void stop() {
         if (pubSubConnection != null) {
             pubSubConnection.removeListener(this);

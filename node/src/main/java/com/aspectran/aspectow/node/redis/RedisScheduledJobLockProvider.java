@@ -41,12 +41,21 @@ public class RedisScheduledJobLockProvider implements ScheduledJobLockProvider {
 
     private boolean releasedOnUnlock = false;
 
+    /**
+     * Instantiates a new RedisScheduledJobLockProvider with the connection pool and cluster ID.
+     * @param connectionPool the Redis connection pool
+     * @param clusterId the unique cluster identifier, can be {@code null}
+     */
     public RedisScheduledJobLockProvider(RedisConnectionPool connectionPool, String clusterId) {
         Assert.notNull(connectionPool, "connectionPool must not be null");
         this.connectionPool = connectionPool;
         this.clusterId = clusterId;
     }
 
+    /**
+     * Sets the lock timeout in seconds.
+     * @param lockTimeoutSeconds the lock timeout in seconds
+     */
     public void setLockTimeoutSeconds(long lockTimeoutSeconds) {
         this.lockTimeoutSeconds = lockTimeoutSeconds;
     }
@@ -63,6 +72,11 @@ public class RedisScheduledJobLockProvider implements ScheduledJobLockProvider {
         this.releasedOnUnlock = releasedOnUnlock;
     }
 
+    /**
+     * Acquires a distributed lock for the specified job key.
+     * @param lockKey the unique key representing the job to lock
+     * @return {@code true} if the lock was successfully acquired, otherwise {@code false}
+     */
     @Override
     public boolean lock(String lockKey) {
         String fullKey = getFullKey(lockKey);
@@ -80,6 +94,10 @@ public class RedisScheduledJobLockProvider implements ScheduledJobLockProvider {
         }
     }
 
+    /**
+     * Releases the distributed lock for the specified job key.
+     * @param lockKey the unique key representing the job to unlock
+     */
     @Override
     public void unlock(String lockKey) {
         if (!releasedOnUnlock) {

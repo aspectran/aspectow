@@ -40,30 +40,57 @@ public class SchedulerConfig extends DefaultParameters {
         };
     }
 
+    /**
+     * Instantiates a new SchedulerConfig.
+     */
     public SchedulerConfig() {
         super(parameterKeys);
     }
 
+    /**
+     * Returns the lock timeout in seconds.
+     * @return the lock timeout
+     */
     public long getLockTimeout() {
         return getLong(lockTimeout, 60);
     }
 
+    /**
+     * Returns whether the lock timeout has been configured.
+     * @return true if configured, false otherwise
+     */
     public boolean hasLockTimeout() {
         return hasValue(lockTimeout);
     }
 
+    /**
+     * Sets the lock timeout in seconds.
+     * @param lockTimeout the lock timeout
+     */
     public void setLockTimeout(long lockTimeout) {
         putValue(SchedulerConfig.lockTimeout, lockTimeout);
     }
 
+    /**
+     * Returns whether locks should be released on unlock.
+     * @return true if released on unlock, false otherwise
+     */
     public boolean isReleasedOnUnlock() {
         return getBoolean(releasedOnUnlock, false);
     }
 
+    /**
+     * Returns whether the release on unlock property has been configured.
+     * @return true if configured, false otherwise
+     */
     public boolean hasReleasedOnUnlock() {
         return hasValue(releasedOnUnlock);
     }
 
+    /**
+     * Sets whether locks should be released on unlock.
+     * @param releasedOnUnlock true to release on unlock, false otherwise
+     */
     public void setReleasedOnUnlock(boolean releasedOnUnlock) {
         putValue(SchedulerConfig.releasedOnUnlock, releasedOnUnlock);
     }

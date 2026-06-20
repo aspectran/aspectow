@@ -46,6 +46,9 @@ public class SecretConfig extends DefaultParameters {
         };
     }
 
+    /**
+     * Instantiates a new SecretConfig.
+     */
     public SecretConfig() {
         super(parameterKeys);
     }

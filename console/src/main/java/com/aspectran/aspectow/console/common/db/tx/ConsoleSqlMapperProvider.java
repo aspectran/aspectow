@@ -37,6 +37,12 @@ public class ConsoleSqlMapperProvider implements SqlMapperProvider {
 
     private final SqlSession consoleReuseSqlSession;
 
+    /**
+     * Constructs a new ConsoleSqlMapperProvider.
+     * @param consoleSqlSession the console simple SQL session
+     * @param consoleBatchSqlSession the console batch SQL session
+     * @param consoleReuseSqlSession the console reuse SQL session
+     */
     @Autowired
     public ConsoleSqlMapperProvider(
             ConsoleSqlSession consoleSqlSession,
@@ -47,16 +53,28 @@ public class ConsoleSqlMapperProvider implements SqlMapperProvider {
         this.consoleReuseSqlSession = consoleReuseSqlSession;
     }
 
+    /**
+     * Returns the simple SQL session agent.
+     * @return the simple SQL session
+     */
     @Override
     public SqlSession getSimpleSqlSession() {
         return consoleSqlSession;
     }
 
+    /**
+     * Returns the batch SQL session agent.
+     * @return the batch SQL session
+     */
     @Override
     public SqlSession getBatchSqlSession() {
         return consoleBatchSqlSession;
     }
 
+    /**
+     * Returns the reuse SQL session agent.
+     * @return the reuse SQL session
+     */
     @Override
     public SqlSession getReuseSqlSession() {
         return consoleReuseSqlSession;

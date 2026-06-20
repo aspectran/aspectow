@@ -53,13 +53,19 @@ public class PollingSessionManager extends AbstractComponent {
     private final BroadcastMessageBuffer broadcastMessageBuffer;
 
     /**
-     * Instantiates a new PollingSessionManager.
+     * Instantiates a new {@code PollingSessionManager} with the specified command bridge.
+     * @param bridge the polling command bridge associated with this manager
      */
     public PollingSessionManager(PollingCommandBridge bridge) {
         this.bridge = bridge;
         this.broadcastMessageBuffer = new BroadcastMessageBuffer();
     }
 
+    /**
+     * Retrieves the polling command session with the given session ID.
+     * @param sessionId the session ID
+     * @return the {@link PollingCommandSession}, or {@code null} if not found
+     */
     public PollingCommandSession getSession(String sessionId) {
         return sessions.get(sessionId);
     }
@@ -142,6 +148,11 @@ public class PollingSessionManager extends AbstractComponent {
         }
     }
 
+    /**
+     * Pushes a message to a specific command session.
+     * @param commandSession the target command session
+     * @param message the message to push
+     */
     public void push(CommandSession commandSession, String message) {
         if (commandSession instanceof PollingCommandSession pollingCommandSession) {
             pollingCommandSession.push(message);
@@ -218,15 +229,27 @@ public class PollingSessionManager extends AbstractComponent {
         }
     }
 
+    /**
+     * Returns the scheduler used for managing background tasks such as session cleanup.
+     * @return the scheduler
+     */
     protected Scheduler getScheduler() {
         return scheduler;
     }
 
+    /**
+     * Initializes the session manager by starting the background scheduler.
+     * @throws Exception if initialization fails
+     */
     @Override
     protected void doInitialize() throws Exception {
         scheduler.start();
     }
 
+    /**
+     * Destroys the session manager by stopping the scheduler and clearing the message buffer.
+     * @throws Exception if destruction fails
+     */
     @Override
     protected void doDestroy() throws Exception {
         scheduler.stop();

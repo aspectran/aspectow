@@ -52,6 +52,9 @@ public class ClusterConfig extends DefaultParameters {
         };
     }
 
+    /**
+     * Instantiates a new ClusterConfig.
+     */
     public ClusterConfig() {
         super(parameterKeys);
     }

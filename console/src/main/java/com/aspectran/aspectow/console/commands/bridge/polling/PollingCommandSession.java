@@ -58,7 +58,7 @@ public class PollingCommandSession implements CommandSession {
     private boolean expired;
 
     /**
-     * Instantiates a new PollingRelaySession.
+     * Instantiates a new PollingCommandSession.
      * @param id the unique identifier of this session
      * @param sessionManager the session manager that created this session
      */
@@ -68,25 +68,45 @@ public class PollingCommandSession implements CommandSession {
         this.expiryTimer = new SessionExpiryTimer();
     }
 
+    /**
+     * Returns the unique identifier of this session.
+     * @return the session ID
+     */
     @Override
     public String getId() {
         return id;
     }
 
+    /**
+     * Returns the target node ID associated with this session.
+     * @return the target node ID
+     */
     @Override
     public String getNodeId() {
         return nodeId;
     }
 
+    /**
+     * Sets the target node ID associated with this session.
+     * @param nodeId the target node ID
+     */
     @Override
     public void setNodeId(String nodeId) {
         this.nodeId = nodeId;
     }
 
+    /**
+     * Returns the polling interval of this session.
+     * @return the polling interval in milliseconds
+     */
     public int getPollingInterval() {
         return pollingInterval;
     }
 
+    /**
+     * Sets the polling interval of this session.
+     * @param pollingInterval the polling interval in milliseconds
+     */
     public void setPollingInterval(int pollingInterval) {
         if (pollingInterval <= 0) {
             this.pollingInterval = DEFAULT_POLLING_INTERVAL;
@@ -98,6 +118,10 @@ public class PollingCommandSession implements CommandSession {
         this.sessionTimeout = pollingInterval + SESSION_TIMEOUT_THRESHOLD;
     }
 
+    /**
+     * Returns the session timeout threshold.
+     * @return the session timeout in milliseconds
+     */
     public int getSessionTimeout() {
         return sessionTimeout;
     }
@@ -110,6 +134,10 @@ public class PollingCommandSession implements CommandSession {
         return lastLineIndex;
     }
 
+    /**
+     * Sets the index of the last message line sent to this session.
+     * @param lastLineIndex the last line index
+     */
     protected void setLastLineIndex(int lastLineIndex) {
         this.lastLineIndex = lastLineIndex;
     }
@@ -141,11 +169,19 @@ public class PollingCommandSession implements CommandSession {
         }
     }
 
+    /**
+     * Returns whether this polling command session is valid (i.e. not expired).
+     * @return {@code true} if valid; {@code false} otherwise
+     */
     @Override
     public boolean isValid() {
         return !isExpired();
     }
 
+    /**
+     * Returns whether this session is expired.
+     * @return {@code true} if expired; {@code false} otherwise
+     */
     protected boolean isExpired() {
         try (AutoLock ignored = autoLock.lock()) {
             return expired;
@@ -177,6 +213,10 @@ public class PollingCommandSession implements CommandSession {
         }
     }
 
+    /**
+     * Locks this session using the internal AutoLock.
+     * @return the locked auto lock resource
+     */
     protected AutoLock lock() {
         return autoLock.lock();
     }
@@ -206,16 +246,26 @@ public class PollingCommandSession implements CommandSession {
             };
         }
 
+        /**
+         * Schedules the next session expiration check with the specified delay.
+         * @param delay the delay in milliseconds
+         */
         public void schedule(long delay) {
             if (delay >= 0) {
                 timer.schedule(delay, TimeUnit.MILLISECONDS);
             }
         }
 
+        /**
+         * Cancels the scheduled session expiration check.
+         */
         public void cancel() {
             timer.cancel();
         }
 
+        /**
+         * Destroys the expiry timer.
+         */
         public void destroy() {
             timer.destroy();
         }

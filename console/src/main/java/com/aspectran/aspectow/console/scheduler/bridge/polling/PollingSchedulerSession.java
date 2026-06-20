@@ -68,25 +68,45 @@ public class PollingSchedulerSession implements SchedulerSession {
         this.expiryTimer = new SessionExpiryTimer();
     }
 
+    /**
+     * Gets the unique identifier of this polling session.
+     * @return the session ID
+     */
     @Override
     public String getId() {
         return id;
     }
 
+    /**
+     * Gets the node identifier associated with this session.
+     * @return the node ID, or {@code null} if not set
+     */
     @Override
     public String getNodeId() {
         return nodeId;
     }
 
+    /**
+     * Sets the node identifier associated with this session.
+     * @param nodeId the node ID to associate with this session
+     */
     @Override
     public void setNodeId(String nodeId) {
         this.nodeId = nodeId;
     }
 
+    /**
+     * Gets the current polling interval in milliseconds.
+     * @return the polling interval in milliseconds
+     */
     public int getPollingInterval() {
         return pollingInterval;
     }
 
+    /**
+     * Sets the polling interval and recalculates the session timeout.
+     * @param pollingInterval the polling interval in milliseconds
+     */
     public void setPollingInterval(int pollingInterval) {
         if (pollingInterval <= 0) {
             this.pollingInterval = DEFAULT_POLLING_INTERVAL;
@@ -98,6 +118,10 @@ public class PollingSchedulerSession implements SchedulerSession {
         this.sessionTimeout = pollingInterval + SESSION_TIMEOUT_THRESHOLD;
     }
 
+    /**
+     * Gets the session timeout threshold in milliseconds.
+     * @return the session timeout in milliseconds
+     */
     public int getSessionTimeout() {
         return sessionTimeout;
     }
@@ -110,6 +134,10 @@ public class PollingSchedulerSession implements SchedulerSession {
         return lastLineIndex;
     }
 
+    /**
+     * Sets the index of the last message line that was sent to this session.
+     * @param lastLineIndex the last line index
+     */
     protected void setLastLineIndex(int lastLineIndex) {
         this.lastLineIndex = lastLineIndex;
     }
@@ -141,11 +169,19 @@ public class PollingSchedulerSession implements SchedulerSession {
         }
     }
 
+    /**
+     * Checks if this session is valid (i.e., not expired).
+     * @return {@code true} if the session is valid; {@code false} otherwise
+     */
     @Override
     public boolean isValid() {
         return !isExpired();
     }
 
+    /**
+     * Checks if this session has expired.
+     * @return {@code true} if the session is expired; {@code false} otherwise
+     */
     protected boolean isExpired() {
         try (AutoLock ignored = autoLock.lock()) {
             return expired;
@@ -154,7 +190,8 @@ public class PollingSchedulerSession implements SchedulerSession {
 
     /**
      * Updates the session's last access time and schedules the next expiry check.
-     * @param create {@code true} if the session is being created
+     * @param create {@code true} if the session is being created; {@code false}
+     *      if it is an access to an existing session
      */
     protected void access(boolean create) {
         try (AutoLock ignored = autoLock.lock()) {
@@ -177,6 +214,10 @@ public class PollingSchedulerSession implements SchedulerSession {
         }
     }
 
+    /**
+     * Locks this session using its internal AutoLock.
+     * @return the {@link AutoLock} instance
+     */
     protected AutoLock lock() {
         return autoLock.lock();
     }
@@ -197,6 +238,9 @@ public class PollingSchedulerSession implements SchedulerSession {
 
         private final CyclicTimeout timer;
 
+        /**
+         * Constructs a new session expiry timer.
+         */
         SessionExpiryTimer() {
             timer = new CyclicTimeout(sessionManager.getScheduler()) {
                 @Override
@@ -206,16 +250,26 @@ public class PollingSchedulerSession implements SchedulerSession {
             };
         }
 
+        /**
+         * Schedules the expiration check after the specified delay.
+         * @param delay the delay in milliseconds
+         */
         public void schedule(long delay) {
             if (delay >= 0) {
                 timer.schedule(delay, TimeUnit.MILLISECONDS);
             }
         }
 
+        /**
+         * Cancels the scheduled expiration check.
+         */
         public void cancel() {
             timer.cancel();
         }
 
+        /**
+         * Destroys this expiry timer.
+         */
         public void destroy() {
             timer.destroy();
         }

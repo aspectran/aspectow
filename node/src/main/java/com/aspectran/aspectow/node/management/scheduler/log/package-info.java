@@ -15,6 +15,6 @@
  */
 
 /**
- * Configuration parameters and classes for the Aspectow node management cluster.
+ * Provides utilities for tailing and exporting scheduler execution log files.
  */
-package com.aspectran.aspectow.node.config;
+package com.aspectran.aspectow.node.management.scheduler.log;

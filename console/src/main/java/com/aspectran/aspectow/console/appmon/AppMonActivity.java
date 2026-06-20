@@ -45,8 +45,6 @@ import java.util.stream.Collectors;
  * Handles requests for the Application Monitor dashboard.
  * This includes serving the main monitoring page and providing configuration
  * data to backend agents.
- *
- * <p>Created: 2020/02/23</p>
  */
 @Component("/appmon")
 public class AppMonActivity {
@@ -54,7 +52,7 @@ public class AppMonActivity {
     private final AppMonManager appMonManager;
 
     /**
-     * Instantiates a new DashboardActivity.
+     * Instantiates a new AppMonActivity.
      * @param appMonManager the application monitor manager
      */
     @Autowired

@@ -36,6 +36,10 @@ public class RemoteSchedulerMessageListener implements NodeMessageListener {
 
     private final SchedulerManager schedulerManager;
 
+    /**
+     * Constructs a new RemoteSchedulerMessageListener.
+     * @param schedulerManager the scheduler manager
+     */
     public RemoteSchedulerMessageListener(SchedulerManager schedulerManager) {
         this.schedulerManager = schedulerManager;
     }

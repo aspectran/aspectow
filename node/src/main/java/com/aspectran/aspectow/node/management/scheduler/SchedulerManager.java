@@ -77,6 +77,10 @@ public class SchedulerManager implements ApplicationAdapterAware, InitializableB
 
     private ApplicationAdapter applicationAdapter;
 
+    /**
+     * Constructs a new SchedulerManager.
+     * @param nodeManager the node manager
+     */
     @Autowired
     public SchedulerManager(@NonNull NodeManager nodeManager) {
         this.nodeManager = nodeManager;
@@ -85,11 +89,19 @@ public class SchedulerManager implements ApplicationAdapterAware, InitializableB
         this.broker = new SchedulerBroker(this);
     }
 
+    /**
+     * Sets the application adapter.
+     * @param applicationAdapter the application adapter to set
+     */
     @Override
     public void setApplicationAdapter(ApplicationAdapter applicationAdapter) {
         this.applicationAdapter = applicationAdapter;
     }
 
+    /**
+     * Initializes the scheduler manager and registers message listeners.
+     * @throws Exception if initialization fails
+     */
     @Override
     public void initialize() throws Exception {
         logger.info("Initializing SchedulerManager for node: {}", getNodeId());
@@ -100,34 +112,67 @@ public class SchedulerManager implements ApplicationAdapterAware, InitializableB
         }
     }
 
+    /**
+     * Gets the node message publisher.
+     * @return the message publisher
+     */
     public NodeMessagePublisher getMessagePublisher() {
         return messagePublisher;
     }
 
+    /**
+     * Checks if running in gateway mode.
+     * @return true if gateway mode is active, false otherwise
+     */
     public boolean isGatewayMode() {
         return (messagePublisher != null);
     }
 
+    /**
+     * Gets the node ID.
+     * @return the node ID
+     */
     public String getNodeId() {
         return nodeManager.getNodeId();
     }
 
+    /**
+     * Checks if the given node ID matches this node's ID.
+     * @param targetNodeId the node ID to check
+     * @return true if it is the same node, false otherwise
+     */
     public boolean isSameNode(String targetNodeId) {
         return (targetNodeId != null && targetNodeId.equals(getNodeId()));
     }
 
+    /**
+     * Gets the scheduler broker.
+     * @return the scheduler broker
+     */
     public SchedulerBroker getBroker() {
         return broker;
     }
 
+    /**
+     * Registers a session.
+     * @param sessionId the session ID
+     * @param schedulerBridge the scheduler bridge
+     */
     public void registerSession(String sessionId, SchedulerBridge schedulerBridge) {
         sessionBridgeMap.put(sessionId, schedulerBridge);
     }
 
+    /**
+     * Unregisters a session.
+     * @param sessionId the session ID to unregister
+     */
     public void unregisterSession(String sessionId) {
         sessionBridgeMap.remove(sessionId);
     }
 
+    /**
+     * Starts all discovered log exporters.
+     */
     public synchronized void startExporters() {
         discoverLogFiles();
         for (SchedulerLogExporter exporter : logExporters.values()) {
@@ -139,6 +184,9 @@ public class SchedulerManager implements ApplicationAdapterAware, InitializableB
         }
     }
 
+    /**
+     * Stops all active log exporters.
+     */
     public synchronized void stopExporters() {
         for (SchedulerLogExporter exporter : logExporters.values()) {
             try {
@@ -230,6 +278,7 @@ public class SchedulerManager implements ApplicationAdapterAware, InitializableB
 
     /**
      * Processes an incoming message received from the cluster relay.
+     * @param request the structured request parameters
      */
     public void processRemotely(SchedulerRequestParameters request) {
         Assert.notNull(request, "Scheduler request cannot be null");
@@ -311,26 +360,56 @@ public class SchedulerManager implements ApplicationAdapterAware, InitializableB
         return null;
     }
 
+    /**
+     * Bridges a message locally and Relays it to remote nodes.
+     * @param message the message payload
+     */
     public void bridge(String message) {
         broker.bridge(message, true);
     }
 
+    /**
+     * Bridges a message locally only.
+     * @param message the message payload
+     */
     public void bridgeRemotely(String message) {
         broker.bridge(message, false);
     }
 
+    /**
+     * Relays a message to a specific remote node and session.
+     * @param nodeId the remote node ID
+     * @param sessionId the remote session ID
+     * @param message the message payload
+     */
     public void bridgeRemotely(String nodeId, String sessionId, String message) {
         broker.bridgeRemotely(nodeId, sessionId, message);
     }
 
+    /**
+     * Relays log data to a remote node.
+     * @param nodeId the remote node ID
+     * @param message the log message
+     */
     public void bridgeLogRemotely(String nodeId, String message) {
         broker.bridgeLog(nodeId, message, false);
     }
 
+    /**
+     * Bridges a message to a specific local session.
+     * @param sessionId the local session ID
+     * @param message the message payload
+     */
     public void bridge(String sessionId, String message) {
         bridge(null, sessionId, message);
     }
 
+    /**
+     * Bridges a message to a specific session, verifying node ID if supplied.
+     * @param nodeId the node ID, or null
+     * @param sessionId the session ID
+     * @param message the message payload
+     */
     public void bridge(String nodeId, String sessionId, String message) {
         SchedulerBridge bridge = sessionBridgeMap.get(sessionId);
         if (bridge != null) {

@@ -44,6 +44,11 @@ public class NodeRegistry {
 
     private final RedisConnectionPool connectionPool;
 
+    /**
+     * Constructs a new NodeRegistry.
+     * @param clusterId the cluster ID
+     * @param connectionPool the Redis connection pool
+     */
     public NodeRegistry(String clusterId, RedisConnectionPool connectionPool) {
         this.clusterId = clusterId;
         this.connectionPool = connectionPool;
@@ -186,6 +191,11 @@ public class NodeRegistry {
         }
     }
 
+    /**
+     * Checks if the node with the specified ID is found in the registry.
+     * @param nodeId the node ID to check
+     * @return true if the node exists in the registry, false otherwise
+     */
     public boolean isFound(String nodeId) {
         return getNode(nodeId) != null;
     }
@@ -302,6 +312,9 @@ public class NodeRegistry {
         }
     }
 
+    /**
+     * Stops the node registry and performs any necessary cleanup.
+     */
     public void stop() {
         // No-op for now, but can be used for cleanup if needed
     }

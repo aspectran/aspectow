@@ -54,6 +54,10 @@ public class RemoteCommandManager implements InitializableBean {
 
     private final CommandBroker broker;
 
+    /**
+     * Instantiates a new RemoteCommandManager.
+     * @param nodeManager the node manager
+     */
     public RemoteCommandManager(@NonNull NodeManager nodeManager) {
         this.nodeManager = nodeManager;
         this.messagePublisher = nodeManager.getNodeMessagePublisher();
@@ -72,30 +76,60 @@ public class RemoteCommandManager implements InitializableBean {
         }
     }
 
+    /**
+     * Returns the message publisher for node communications.
+     * @return the message publisher
+     */
     public NodeMessagePublisher getMessagePublisher() {
         return messagePublisher;
     }
 
+    /**
+     * Returns whether the manager is running in gateway mode (i.e. has a message publisher).
+     * @return true if gateway mode, false otherwise
+     */
     public boolean isGatewayMode() {
         return (messagePublisher != null);
     }
 
+    /**
+     * Returns the unique identifier of the local node.
+     * @return the node ID
+     */
     public String getNodeId() {
         return nodeManager.getNodeId();
     }
 
+    /**
+     * Returns whether the specified node ID is the local node.
+     * @param targetNodeId the node ID to check
+     * @return true if it is the local node, false otherwise
+     */
     public boolean isSameNode(String targetNodeId) {
         return (targetNodeId != null && targetNodeId.equals(getNodeId()));
     }
 
+    /**
+     * Returns the command broker.
+     * @return the command broker
+     */
     public CommandBroker getBroker() {
         return broker;
     }
 
+    /**
+     * Registers a session with its corresponding command bridge.
+     * @param sessionId the session identifier
+     * @param commandBridge the command bridge
+     */
     public void registerSession(String sessionId, CommandBridge commandBridge) {
         sessionBridgeMap.put(sessionId, commandBridge);
     }
 
+    /**
+     * Unregisters a session.
+     * @param sessionId the session identifier
+     */
     public void unregisterSession(String sessionId) {
         sessionBridgeMap.remove(sessionId);
     }
@@ -175,6 +209,7 @@ public class RemoteCommandManager implements InitializableBean {
 
     /**
      * Processes an incoming message received from the cluster relay.
+     * @param request the command request parameters
      */
     public void executeRemotely(CommandRequestParameters request) {
         if (request == null) {
@@ -213,6 +248,11 @@ public class RemoteCommandManager implements InitializableBean {
         return null;
     }
 
+    /**
+     * Bridges a command message to a specific session.
+     * @param sessionId the session identifier
+     * @param message the message to bridge
+     */
     public void bridge(String sessionId, String message) {
         Assert.notNull(sessionId, "sessionId must not be null");
         CommandBridge bridge = sessionBridgeMap.get(sessionId);

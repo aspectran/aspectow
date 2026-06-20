@@ -15,6 +15,6 @@
  */
 
 /**
- * Configuration parameters and classes for the Aspectow node management cluster.
+ * Contains listeners for processing remote scheduler messages via Redis Pub/Sub.
  */
-package com.aspectran.aspectow.node.config;
+package com.aspectran.aspectow.node.management.scheduler.remote;

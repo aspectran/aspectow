@@ -15,6 +15,6 @@
  */
 
 /**
- * Configuration parameters and classes for the Aspectow node management cluster.
+ * Handles the bridging and subscription management of remote commands for clients.
  */
-package com.aspectran.aspectow.node.config;
+package com.aspectran.aspectow.node.management.commands.bridge;

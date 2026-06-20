@@ -50,11 +50,21 @@ public class NodeReporter {
 
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
+    /**
+     * Constructs a new NodeReporter.
+     * @param nodeManager the node manager orchestrating this node
+     * @param portProvider the provider for the active service port of the node
+     */
     public NodeReporter(NodeManager nodeManager, NodePortProvider portProvider) {
         this.nodeManager = nodeManager;
         this.portProvider = portProvider;
     }
 
+    /**
+     * Starts the node reporter.
+     * Registers the node, broadcasts the join event, and schedules periodic pulse updates.
+     * @throws Exception if an error occurs during startup
+     */
     public void start() throws Exception {
         logger.info("Initializing NodeReporter for cluster: {}, node: {}",
                 getClusterConfig().getId(), getNodeInfo().getId());
@@ -77,6 +87,10 @@ public class NodeReporter {
         }
     }
 
+    /**
+     * Stops the node reporter.
+     * Broadcasts the leave event, unregisters the node, and shuts down the scheduler.
+     */
     public void stop() {
         logger.info("Stopping NodeReporter for node: {}", getNodeInfo().getId());
 

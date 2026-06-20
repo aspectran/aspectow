@@ -26,10 +26,18 @@ public class SchedulerLogTailerListener implements TailerListener {
 
     private final SchedulerLogExporter logExporter;
 
+    /**
+     * Constructs a new SchedulerLogTailerListener.
+     * @param logExporter the log exporter to broadcast log lines to
+     */
     public SchedulerLogTailerListener(SchedulerLogExporter logExporter) {
         this.logExporter = logExporter;
     }
 
+    /**
+     * {@inheritDoc}
+     * @param tailer the tailer instance
+     */
     @Override
     public void init(Tailer tailer) {
     }
@@ -42,11 +50,19 @@ public class SchedulerLogTailerListener implements TailerListener {
     public void fileRotated() {
     }
 
+    /**
+     * {@inheritDoc}
+     * @param line the line of log text
+     */
     @Override
     public void handle(String line) {
         logExporter.broadcast(line);
     }
 
+    /**
+     * {@inheritDoc}
+     * @param e the exception that occurred
+     */
     @Override
     public void handle(Exception e) {
     }

@@ -26,25 +26,45 @@ public class WebsocketSchedulerSession extends WrappedSession implements Schedul
 
     private static final String NODE_ID_PROPERTY = "console:scheduler:nodeId";
 
+    /**
+     * Constructs a new {@code WebsocketSchedulerSession} wrapping the given JSR-356 {@link Session}.
+     * @param session the WebSocket session
+     */
     public WebsocketSchedulerSession(Session session) {
         super(session);
     }
 
+    /**
+     * Returns the unique identifier of this WebSocket session.
+     * @return the session ID
+     */
     @Override
     public String getId() {
         return getSession().getId();
     }
 
+    /**
+     * Gets the node identifier associated with this session.
+     * @return the node ID, or {@code null} if not set
+     */
     @Override
     public String getNodeId() {
         return (String)getSession().getUserProperties().get(NODE_ID_PROPERTY);
     }
 
+    /**
+     * Sets the node identifier associated with this session.
+     * @param nodeId the node ID to associate with this session
+     */
     @Override
     public void setNodeId(String nodeId) {
         getSession().getUserProperties().put(NODE_ID_PROPERTY, nodeId);
     }
 
+    /**
+     * Checks if the underlying WebSocket session is open and valid.
+     * @return {@code true} if the session is open; {@code false} otherwise
+     */
     @Override
     public boolean isValid() {
         return getSession().isOpen();

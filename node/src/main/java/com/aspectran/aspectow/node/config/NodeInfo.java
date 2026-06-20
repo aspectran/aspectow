@@ -64,94 +64,186 @@ public class NodeInfo extends DefaultParameters {
         };
     }
 
+    /**
+     * Instantiates a new NodeInfo.
+     */
     public NodeInfo() {
         super(parameterKeys);
     }
 
+    /**
+     * Returns the unique identifier of the node.
+     * @return the node ID
+     */
     public String getId() {
         return getString(id);
     }
 
+    /**
+     * Sets the unique identifier of the node.
+     * @param id the node ID
+     */
     public void setId(String id) {
         putValue(NodeInfo.id, id);
     }
 
+    /**
+     * Returns the group to which the node belongs.
+     * @return the group ID
+     */
     public String getGroup() {
         return getString(group);
     }
 
+    /**
+     * Sets the group to which the node belongs.
+     * @param group the group ID
+     */
     public void setGroup(String group) {
         putValue(NodeInfo.group, group);
     }
 
+    /**
+     * Returns the display title of the node.
+     * @return the node title
+     */
     public String getTitle() {
         return getString(title);
     }
 
+    /**
+     * Sets the display title of the node.
+     * @param title the node title
+     */
     public void setTitle(String title) {
         putValue(NodeInfo.title, title);
     }
 
+    /**
+     * Returns the host name or IP address of the node.
+     * @return the host name or IP address
+     */
     public String getHost() {
         return getString(host);
     }
 
+    /**
+     * Sets the host name or IP address of the node.
+     * @param host the host name or IP address
+     */
     public void setHost(String host) {
         putValue(NodeInfo.host, host);
     }
 
+    /**
+     * Returns the communication port of the node.
+     * @return the port number
+     */
     public Integer getPort() {
         return getInt(port);
     }
 
+    /**
+     * Sets the communication port of the node.
+     * @param port the port number
+     */
     public void setPort(Integer port) {
         putValue(NodeInfo.port, port);
     }
 
+    /**
+     * Returns the start time of the node.
+     * @return the start time as a string
+     */
     public String getStartTime() {
         return getString(startTime);
     }
 
+    /**
+     * Sets the start time of the node.
+     * @param startTime the start time as a string
+     */
     public void setStartTime(String startTime) {
         putValue(NodeInfo.startTime, startTime);
     }
 
+    /**
+     * Returns the current status of the node (e.g., "active", "inactive").
+     * @return the node status
+     */
     public String getStatus() {
         return getString(status);
     }
 
+    /**
+     * Sets the current status of the node.
+     * @param status the node status
+     */
     public void setStatus(String status) {
         putValue(NodeInfo.status, status);
     }
 
+    /**
+     * Returns the heartbeat pulse interval of the node in milliseconds.
+     * @return the heartbeat pulse interval
+     */
     public Long getPulseInterval() {
         return getLong(pulseInterval);
     }
 
+    /**
+     * Returns the heartbeat pulse interval of the node with a fallback default value.
+     * @param defaultValue the default interval to return if not specified
+     * @return the heartbeat pulse interval
+     */
     public long getPulseInterval(long defaultValue) {
         return getLong(pulseInterval, defaultValue);
     }
 
+    /**
+     * Sets the heartbeat pulse interval of the node in milliseconds.
+     * @param pulseInterval the heartbeat pulse interval
+     */
     public void setPulseInterval(Long pulseInterval) {
         putValue(NodeInfo.pulseInterval, pulseInterval);
     }
 
+    /**
+     * Returns the configuration for the communication endpoint.
+     * @return the endpoint configuration
+     */
     public EndpointConfig getEndpointConfig() {
         return getParameters(endpoint);
     }
 
+    /**
+     * Returns the endpoint configuration, creating it if it does not exist.
+     * @return the endpoint configuration
+     */
     public EndpointConfig touchEndpointConfig() {
         return touchParameters(endpoint);
     }
 
+    /**
+     * Sets the configuration for the communication endpoint.
+     * @param endpointConfig the endpoint configuration
+     */
     public void setEndpointConfig(EndpointConfig endpointConfig) {
         putValue(endpoint, endpointConfig);
     }
 
+    /**
+     * Returns the security token of the node.
+     * @return the security token
+     */
     public String getToken() {
         return getString(token);
     }
 
+    /**
+     * Sets the security token of the node.
+     * @param token the security token
+     */
     public void setToken(String token) {
         putValue(NodeInfo.token, token);
     }

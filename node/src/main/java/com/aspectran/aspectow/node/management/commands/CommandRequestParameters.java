@@ -59,70 +59,137 @@ public class CommandRequestParameters extends DefaultParameters {
         };
     }
 
+    /**
+     * Instantiates a new CommandRequestParameters.
+     */
     public CommandRequestParameters() {
         super(parameterKeys);
     }
 
+    /**
+     * Returns the command request header.
+     * @return the header
+     */
     public String getHeader() {
         return getString(header);
     }
 
+    /**
+     * Sets the command request header.
+     * @param header the header to set
+     */
     public void setHeader(String header) {
         putValue(CommandRequestParameters.header, header);
     }
 
+    /**
+     * Returns the command request ID.
+     * @return the request ID
+     */
     public String getRequestId() {
         return getString(requestId);
     }
 
+    /**
+     * Sets the command request ID.
+     * @param requestId the request ID to set
+     */
     public void setRequestId(String requestId) {
         putValue(CommandRequestParameters.requestId, requestId);
     }
 
+    /**
+     * Returns the ID of the node initiating the request.
+     * @return the node ID
+     */
     public String getNodeId() {
         return getString(nodeId);
     }
 
+    /**
+     * Sets the ID of the node initiating the request.
+     * @param nodeId the node ID to set
+     */
     public void setNodeId(String nodeId) {
         putValue(CommandRequestParameters.nodeId, nodeId);
     }
 
+    /**
+     * Returns the session ID associated with the command request.
+     * @return the session ID
+     */
     public String getSessionId() {
         return getString(sessionId);
     }
 
+    /**
+     * Sets the session ID associated with the command request.
+     * @param sessionId the session ID to set
+     */
     public void setSessionId(String sessionId) {
         putValue(CommandRequestParameters.sessionId, sessionId);
     }
 
+    /**
+     * Returns the ID of the target node for the command.
+     * @return the target node ID
+     */
     public String getTargetNodeId() {
         return getString(targetNodeId);
     }
 
+    /**
+     * Sets the ID of the target node for the command.
+     * @param targetNodeId the target node ID to set
+     */
     public void setTargetNodeId(String targetNodeId) {
         putValue(CommandRequestParameters.targetNodeId, targetNodeId);
     }
 
+    /**
+     * Returns the target group name for the command execution.
+     * @return the target group name
+     */
     public String getTargetGroup() {
         return getString(targetGroup);
     }
 
+    /**
+     * Sets the target group name for the command execution.
+     * @param targetGroup the target group name to set
+     */
     public void setTargetGroup(String targetGroup) {
         putValue(CommandRequestParameters.targetGroup, targetGroup);
     }
 
+    /**
+     * Returns whether the command is targeted at all nodes in the cluster.
+     * @return true if target is all nodes, false otherwise
+     */
     public boolean isTargetAll() {
         return getBoolean(targetAll, false);
     }
 
+    /**
+     * Sets whether the command is targeted at all nodes in the cluster.
+     * @param targetAll true if target is all nodes, false otherwise
+     */
     public void setTargetAll(boolean targetAll) {
         putValue(CommandRequestParameters.targetAll, targetAll);
     }
 
+    /**
+     * Returns the command payload parameters.
+     * @return the command parameters
+     */
     public CommandParameters getCommand() {
         return getParameters(command);
     }
 
+    /**
+     * Sets the command payload parameters.
+     * @param command the command parameters to set
+     */
     public void setCommand(CommandParameters command) {
         putValue(CommandRequestParameters.command, command);
     }
