@@ -91,9 +91,28 @@ function highlightApon(text) {
             result += `<span class="apon-bracket">(</span>`;
             i++;
             let contentStart = i;
-            while (i < len && text[i] !== ')') {
+            
+            // Find the true closing parenthesis for the text block
+            while (i < len) {
+                if (text[i] === ')') {
+                    // Backtrack to check if this line starts with '|'
+                    let isInsidePipeLine = false;
+                    let k = i - 1;
+                    while (k >= contentStart && text[k] !== '\n' && text[k] !== '\r') {
+                        if (text[k] === '|') {
+                            isInsidePipeLine = true;
+                            break;
+                        }
+                        k--;
+                    }
+                    if (!isInsidePipeLine) {
+                        // Found the closing parenthesis (no pipe character on this line)
+                        break;
+                    }
+                }
                 i++;
             }
+            
             let content = text.substring(contentStart, i);
             result += `<span class="apon-string">${escapeHtml(content)}</span>`;
             if (i < len && text[i] === ')') {
