@@ -21,7 +21,6 @@
         }
         .config-item {
             cursor: pointer;
-            font-size: 0.875rem;
             padding: 10px 16px;
         }
         .config-item:hover {
@@ -51,7 +50,6 @@
         <div class="row config-container g-3 mt-1">
             <div class="col-md-4 left-panel">
                 <div class="card h-100 border shadow-sm overflow-hidden">
-
                     <div class="scrollable-pane p-0" id="config-menu-list">
                         <div class="text-center p-5 text-muted">
                             <div class="spinner-border spinner-border-sm me-2" role="status"></div>
@@ -62,13 +60,13 @@
             </div>
             <div class="col-md-8 right-panel">
                 <div class="card h-100 border shadow-sm overflow-hidden">
-                    <div class="card-header bg-transparent py-2 d-flex justify-content-between align-items-center">
+                    <div class="card-header bg-body-tertiary py-2 d-flex justify-content-between align-items-center">
                         <span class="fw-bold small" id="details-title">Configuration Details (APON)</span>
                         <button class="btn btn-sm btn-outline-secondary border-0" id="copy-btn" title="Copy to clipboard">
                             <i class="bi bi-clipboard"></i>
                         </button>
                     </div>
-                    <div class="card-body scrollable-pane text-body bg-body-tertiary">
+                    <div class="card-body scrollable-pane text-body">
                         <pre id="details-content">Select a configuration from the left panel to see details.</pre>
                     </div>
                 </div>
@@ -143,8 +141,6 @@
                 }).fail(function() {
                     $configMenuList.html('<div class="p-3 text-danger">Failed to load configuration data.</div>');
                 });
-
-
 
                 $('#copy-btn').on('click', function() {
                     // Copy the raw APON text, not the highlighted HTML
