@@ -118,3 +118,36 @@ body {
 [data-bs-theme="light"] .logo-img {
     filter: none;
 }
+
+/* APON Syntax Highlighting */
+.apon-comment {
+    color: var(--bs-secondary-color);
+    font-style: italic;
+}
+.apon-key {
+    color: var(--bs-link-color);
+    font-weight: 600;
+}
+.apon-string {
+    color: var(--bs-success);
+}
+.apon-keyword {
+    color: var(--bs-danger);
+    font-weight: bold;
+}
+.apon-bracket {
+    color: var(--bs-body-color);
+    font-weight: bold;
+}
+.apon-number {
+    color: var(--bs-warning);
+    font-weight: 600;
+}
+
+#details-content {
+    white-space: pre;
+    overflow-x: auto;
+    margin: 0;
+    font-family: var(--bs-font-monospace);
+    font-size: 0.875rem;
+}

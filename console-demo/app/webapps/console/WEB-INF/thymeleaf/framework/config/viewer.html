@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="https://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{templates/default}">
+<head>
+    <title>Framework Configuration - Aspectow Console</title>
+    <style>
+        .config-container {
+            height: calc(100vh - 200px);
+            min-height: 600px;
+        }
+        .left-panel, .right-panel {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        .scrollable-pane {
+            flex: 1;
+            overflow-y: auto;
+        }
+        .config-item {
+            cursor: pointer;
+            font-size: 0.875rem;
+            padding: 10px 16px;
+        }
+        .config-item:hover {
+            background-color: var(--bs-tertiary-bg);
+        }
+        .config-item.active {
+            background-color: rgba(62, 207, 142, 0.1);
+            color: var(--accent-color);
+            border-color: var(--accent-color);
+        }
+    </style>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="config-tabs mt-2">
+            <ul class="nav nav-tabs">
+                <li class="nav-item" th:each="name : ${page.allContextNames}">
+                    <a class="nav-link"
+                       th:href="@{/framework/config/{name}(name=${name})}"
+                       th:classappend="${page.contextName == name} ? 'active' : ''">
+                        <i class="bi bi-pc-display-horizontal me-1"></i>
+                        <span th:text="${name}">Context Name</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+        <div class="row config-container g-3 mt-1">
+            <div class="col-md-4 left-panel">
+                <div class="card h-100 border shadow-sm overflow-hidden">
+                    <div class="p-2 border-bottom">
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text bg-transparent border-end-0"><i class="bi bi-search"></i></span>
+                            <input type="text" id="config-filter" class="form-control border-start-0" placeholder="Filter configurations..."/>
+                        </div>
+                    </div>
+                    <div class="scrollable-pane p-0" id="config-menu-list">
+                        <div class="text-center p-5 text-muted">
+                            <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+                            Loading configuration...
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-8 right-panel">
+                <div class="card h-100 border shadow-sm overflow-hidden">
+                    <div class="card-header bg-transparent py-2 d-flex justify-content-between align-items-center">
+                        <span class="fw-bold small" id="details-title">Configuration Details (APON)</span>
+                        <button class="btn btn-sm btn-outline-secondary border-0" id="copy-btn" title="Copy to clipboard">
+                            <i class="bi bi-clipboard"></i>
+                        </button>
+                    </div>
+                    <div class="card-body scrollable-pane text-body bg-body-tertiary">
+                        <pre id="details-content">Select a configuration from the left panel to see details.</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <th:block layout:fragment="script">
+        <script th:src="@{/assets/js/apon-highlighter.js}"></script>
+        <script th:inline="javascript">
+            $(function() {
+                const dataUrl = [[@{/framework/config/{name}/data(name=${page.contextName})}]];
+                const $configMenuList = $('#config-menu-list');
+                const $detailsContent = $('#details-content');
+                const $detailsTitle = $('#details-title');
+
+                let rawAponData = {};
+
+                $.getJSON(dataUrl, function(data) {
+                    const configData = data.configData;
+                    if (!configData || Object.keys(configData).length === 0) {
+                        $configMenuList.html('<div class="p-3 text-danger">No configuration found.</div>');
+                        return;
+                    }
+
+                    $configMenuList.empty();
+                    rawAponData = {};
+
+                    const $listGroup = $('<div/>', {
+                        'class': 'list-group list-group-flush'
+                    });
+
+                    $.each(configData, function(key, section) {
+                        rawAponData[key] = section.apon;
+
+                        const $item = $('<div/>', {
+                            'class': 'list-group-item config-item',
+                            'html': `<i class="bi bi-gear-wide-connected me-2 text-muted"></i><span>${key}</span>`,
+                            'data-key': key
+                        });
+
+                        $item.on('click', function() {
+                            $('.config-item').removeClass('active');
+                            $(this).addClass('active');
+                            
+                            const selectedKey = $(this).data('key');
+                            const aponText = rawAponData[selectedKey];
+                            $detailsTitle.text(`${selectedKey} (APON)`);
+                            
+                            // Apply syntax highlighting from imported apon-highlighter.js
+                            $detailsContent.html(highlightApon(aponText));
+                        });
+
+                        $listGroup.append($item);
+                    });
+
+                    $configMenuList.append($listGroup);
+
+                    // Select the first item by default
+                    $configMenuList.find('.config-item').first().trigger('click');
+                }).fail(function() {
+                    $configMenuList.html('<div class="p-3 text-danger">Failed to load configuration data.</div>');
+                });
+
+                $('#config-filter').on('keyup', function() {
+                    const filterText = $(this).val().toLowerCase();
+                    $('.config-item').each(function() {
+                        const $item = $(this);
+                        const text = $item.find('span').text().toLowerCase();
+                        if (text.includes(filterText)) {
+                            $item.show();
+                        } else {
+                            $item.hide();
+                        }
+                    });
+                });
+
+                $('#copy-btn').on('click', function() {
+                    // Copy the raw APON text, not the highlighted HTML
+                    const activeItem = $('.config-item.active');
+                    if (activeItem.length > 0) {
+                        const selectedKey = activeItem.data('key');
+                        const text = rawAponData[selectedKey] || '';
+                        navigator.clipboard.writeText(text).then(() => {
+                            const $icon = $(this).find('i');
+                            $icon.removeClass('bi-clipboard').addClass('bi-check-lg text-success');
+                            setTimeout(() => $icon.removeClass('bi-check-lg text-success').addClass('bi-clipboard'), 2000);
+                        });
+                    }
+                });
+            });
+        </script>
+    </th:block>
+</body>
+</html>

@@ -77,11 +77,8 @@
                     <a th:href="@{/framework/anatomy/}" class="nav-link ps-5 py-2 small" th:classappend="${page.style == 'anatomy-page' ? 'active' : ''}">
                         Anatomy
                     </a>
-                    <a href="#" class="nav-link ps-5 py-2 small">
+                    <a th:href="@{/framework/config/}" class="nav-link ps-5 py-2 small" th:classappend="${page.style == 'config-page' ? 'active' : ''}">
                         Configuration
-                    </a>
-                    <a href="#" class="nav-link ps-5 py-2 small">
-                        Beans
                     </a>
                 </div>
             </div>
