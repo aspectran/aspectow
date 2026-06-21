@@ -20,13 +20,14 @@ import com.aspectran.aspectow.appmon.engine.config.AppInfoHolder;
 import com.aspectran.aspectow.appmon.engine.config.PollingConfig;
 import com.aspectran.aspectow.appmon.engine.persist.PersistManager;
 import com.aspectran.aspectow.appmon.engine.relay.MessageRelayManager;
+import com.aspectran.aspectow.appmon.engine.relay.remote.NodeMessageRelayHandler;
 import com.aspectran.aspectow.node.config.GroupInfo;
 import com.aspectran.aspectow.node.config.GroupInfoHolder;
 import com.aspectran.aspectow.node.config.NodeInfo;
 import com.aspectran.aspectow.node.config.NodeInfoHolder;
+import com.aspectran.aspectow.node.manager.ClusterEventListener;
 import com.aspectran.aspectow.node.manager.NodeManager;
 import com.aspectran.aspectow.node.manager.NodeRegistry;
-import com.aspectran.aspectow.node.redis.RedisConnectionPool;
 import com.aspectran.core.activity.InstantAction;
 import com.aspectran.core.activity.InstantActivitySupport;
 import com.aspectran.core.adapter.ApplicationAdapter;
@@ -67,13 +68,15 @@ public class AppMonManager extends InstantActivitySupport {
 
     private final PersistManager persistManager;
 
-    private RedisConnectionPool redisConnectionPool;
+    private NodeMessageRelayHandler nodeMessageRelayHandler;
+
+    private ClusterEventListener clusterEventListener;
 
     /**
      * Instantiates a new AppMonManager.
+     * @param clusterMode the cluster mode
      * @param nodeId the name of the current node
      * @param groupId the name of the current node group
-     * @param clusterMode the cluster mode
      * @param pollingConfig the polling configuration
      * @param counterPersistInterval the counter persistence interval in minutes
      * @param nodeInfoHolder the holder for node information
@@ -82,18 +85,18 @@ public class AppMonManager extends InstantActivitySupport {
      * @param messageRelayManager the message relay manager
      */
     public AppMonManager(
+            String clusterMode,
             String nodeId,
             String groupId,
-            String clusterMode,
             PollingConfig pollingConfig,
             int counterPersistInterval,
             NodeInfoHolder nodeInfoHolder,
             GroupInfoHolder groupInfoHolder,
             AppInfoHolder appInfoHolder,
             MessageRelayManager messageRelayManager) {
+        this.clusterMode = clusterMode;
         this.nodeId = nodeId;
         this.groupId = groupId;
-        this.clusterMode = clusterMode;
         this.pollingConfig = pollingConfig;
         this.counterPersistInterval = counterPersistInterval;
         this.nodeInfoHolder = nodeInfoHolder;
@@ -101,6 +104,18 @@ public class AppMonManager extends InstantActivitySupport {
         this.appInfoHolder = appInfoHolder;
         this.messageRelayManager = messageRelayManager;
         this.persistManager = new PersistManager();
+    }
+
+    @Override
+    @NonNull
+    public ActivityContext getActivityContext() {
+        return super.getActivityContext();
+    }
+
+    @Override
+    @NonNull
+    public ApplicationAdapter getApplicationAdapter() {
+        return super.getApplicationAdapter();
     }
 
     /**
@@ -117,18 +132,6 @@ public class AppMonManager extends InstantActivitySupport {
      */
     public boolean isGatewayMode() {
         return "gateway".equals(clusterMode);
-    }
-
-    @Override
-    @NonNull
-    public ActivityContext getActivityContext() {
-        return super.getActivityContext();
-    }
-
-    @Override
-    @NonNull
-    public ApplicationAdapter getApplicationAdapter() {
-        return super.getApplicationAdapter();
     }
 
     /**
@@ -290,22 +293,6 @@ public class AppMonManager extends InstantActivitySupport {
         return persistManager;
     }
 
-    /**
-     * Returns the Redis connection pool.
-     * @return the Redis connection pool
-     */
-    public RedisConnectionPool getRedisConnectionPool() {
-        return redisConnectionPool;
-    }
-
-    /**
-     * Sets the Redis connection pool.
-     * @param redisConnectionPool the Redis connection pool
-     */
-    public void setRedisConnectionPool(RedisConnectionPool redisConnectionPool) {
-        this.redisConnectionPool = redisConnectionPool;
-    }
-
     @Override
     public <V> V instantActivity(InstantAction<V> instantAction) {
         return super.instantActivity(instantAction);
@@ -338,6 +325,37 @@ public class AppMonManager extends InstantActivitySupport {
      */
     public boolean containsBean(Class<?> type) {
         return getActivityContext().getBeanRegistry().containsBean(type);
+    }
+
+    protected void setNodeMessageRelayHandler(NodeMessageRelayHandler nodeMessageRelayHandler) {
+        this.nodeMessageRelayHandler = nodeMessageRelayHandler;
+    }
+
+    protected void setClusterEventListener(ClusterEventListener clusterEventListener) {
+        this.clusterEventListener = clusterEventListener;
+    }
+
+    /**
+     * Closes and releases all resources managed by this AppMonManager.
+     */
+    public void destroy() {
+        if (messageRelayManager != null) {
+            messageRelayManager.destroy();
+        }
+
+        try {
+            if (containsBean(NodeManager.class)) {
+                NodeManager nodeManager = getBean(NodeManager.class);
+                if (nodeMessageRelayHandler != null && nodeManager.getNodeMessageSubscriber() != null) {
+                    nodeManager.getNodeMessageSubscriber().removeListener(nodeMessageRelayHandler);
+                }
+                if (clusterEventListener != null && nodeManager.getClusterEventSubscriber() != null) {
+                    nodeManager.getClusterEventSubscriber().removeListener(clusterEventListener);
+                }
+            }
+        } catch (Exception e) {
+            // ignore
+        }
     }
 
 }

@@ -109,8 +109,8 @@ public class NodeRegistry {
      * @return a map of application IDs to their metadata (APON strings)
      */
     public Map<String, String> getAllApps(String groupId) {
-        String key = NodeMessageProtocol.getAppsHashKey(groupId);
-        String orderKey = NodeMessageProtocol.getAppsOrderKey(groupId);
+        String key = NodeMessageProtocol.getAppsHashKey(clusterId, groupId);
+        String orderKey = NodeMessageProtocol.getAppsOrderKey(clusterId, groupId);
         logger.debug("Retrieving all apps for group: {} from Redis hash: {}", groupId, key);
         try (StatefulRedisConnection<String, String> connection = connectionPool.getConnection()) {
             var sync = connection.sync();
@@ -306,8 +306,8 @@ public class NodeRegistry {
             if (!activeGroups.contains(gid)) {
                 logger.info("Cleaning up orphaned group metadata: {} (Cluster: {})", gid, clusterId);
                 sync.hdel(groupsKey, gid);
-                sync.del(NodeMessageProtocol.getAppsHashKey(gid));
-                sync.del(NodeMessageProtocol.getAppsOrderKey(gid));
+                sync.del(NodeMessageProtocol.getAppsHashKey(clusterId, gid));
+                sync.del(NodeMessageProtocol.getAppsOrderKey(clusterId, gid));
             }
         }
     }

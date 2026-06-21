@@ -58,22 +58,24 @@ public abstract class NodeMessageProtocol {
 
     /**
      * Returns the Redis Hash key for storing application metadata for a specific group.
+     * @param clusterId the cluster ID
      * @param groupId the group ID
      * @return the Redis key
      */
     @NonNull
-    public static String getAppsHashKey(String groupId) {
-        return KEY_PREFIX + TYPE_APPS + ":" + groupId;
+    public static String getAppsHashKey(String clusterId, String groupId) {
+        return KEY_PREFIX + TYPE_APPS + ":" + clusterId + ":" + groupId;
     }
 
     /**
      * Returns the Redis List key for storing the order of application IDs for a specific group.
+     * @param clusterId the cluster ID
      * @param groupId the group ID
      * @return the Redis key
      */
     @NonNull
-    public static String getAppsOrderKey(String groupId) {
-        return KEY_PREFIX + TYPE_APPS_ORDER + ":" + groupId;
+    public static String getAppsOrderKey(String clusterId, String groupId) {
+        return KEY_PREFIX + TYPE_APPS_ORDER + ":" + clusterId + ":" + groupId;
     }
 
     /**
