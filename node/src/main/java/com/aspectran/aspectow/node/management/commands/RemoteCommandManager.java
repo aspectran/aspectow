@@ -20,8 +20,10 @@ import com.aspectran.aspectow.node.management.commands.bridge.CommandBridge;
 import com.aspectran.aspectow.node.management.commands.bridge.CommandBroker;
 import com.aspectran.aspectow.node.management.commands.bridge.CommandSession;
 import com.aspectran.aspectow.node.management.commands.remote.RemoteCommandMessageListener;
+import com.aspectran.aspectow.node.manager.ClusterEventListener;
 import com.aspectran.aspectow.node.manager.NodeManager;
 import com.aspectran.aspectow.node.manager.NodeMessagePublisher;
+import com.aspectran.core.component.bean.ablility.DisposableBean;
 import com.aspectran.core.component.bean.ablility.InitializableBean;
 import com.aspectran.daemon.command.CommandParameters;
 import com.aspectran.daemon.command.CommandResult;
@@ -40,7 +42,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * It manages local execution, remote dispatching via Redis, and broadcasting
  * results to connected clients.
  */
-public class RemoteCommandManager implements InitializableBean {
+public class RemoteCommandManager implements InitializableBean, DisposableBean, ClusterEventListener {
 
     private static final Logger logger = LoggerFactory.getLogger(RemoteCommandManager.class);
 
@@ -53,6 +55,8 @@ public class RemoteCommandManager implements InitializableBean {
     private final LocalCommandService localCommandService;
 
     private final CommandBroker broker;
+
+    private RemoteCommandMessageListener messageListener;
 
     /**
      * Instantiates a new RemoteCommandManager.
@@ -71,8 +75,23 @@ public class RemoteCommandManager implements InitializableBean {
 
         // Register a listener for command relay messages (commands and results) from Redis
         if (nodeManager.getNodeMessageSubscriber() != null) {
-            RemoteCommandMessageListener messageListener = new RemoteCommandMessageListener(this);
-            nodeManager.getNodeMessageSubscriber().addListener(messageListener);
+            this.messageListener = new RemoteCommandMessageListener(this);
+            nodeManager.getNodeMessageSubscriber().addListener(this.messageListener);
+        }
+
+        // Register as a cluster event listener to handle node join/left events
+        if (nodeManager.getClusterEventSubscriber() != null) {
+            nodeManager.getClusterEventSubscriber().addListener(this);
+        }
+    }
+
+    @Override
+    public void destroy() {
+        if (nodeManager.getNodeMessageSubscriber() != null && this.messageListener != null) {
+            nodeManager.getNodeMessageSubscriber().removeListener(this.messageListener);
+        }
+        if (nodeManager.getClusterEventSubscriber() != null) {
+            nodeManager.getClusterEventSubscriber().removeListener(this);
         }
     }
 
@@ -261,6 +280,52 @@ public class RemoteCommandManager implements InitializableBean {
             if (session != null) {
                 bridge.bridge(session, message);
             }
+        }
+    }
+
+    @Override
+    public void onJoined(NodeInfo info) {
+        if (sessionBridgeMap.isEmpty()) {
+            return;
+        }
+        try {
+            CommandResponseParameters response = new CommandResponseParameters()
+                    .setHeader("nodeJoined")
+                    .setNodeId(info.getId());
+            String message = response.toString();
+            for (Map.Entry<String, CommandBridge> entry : sessionBridgeMap.entrySet()) {
+                String sessionId = entry.getKey();
+                CommandBridge bridge = entry.getValue();
+                CommandSession session = bridge.findCommandSession(sessionId);
+                if (session != null) {
+                    bridge.bridge(session, message);
+                }
+            }
+        } catch (Exception e) {
+            logger.error("Failed to broadcast join event of node {}", info.getId(), e);
+        }
+    }
+
+    @Override
+    public void onLeft(String leftNodeId) {
+        if (sessionBridgeMap.isEmpty()) {
+            return;
+        }
+        try {
+            CommandResponseParameters response = new CommandResponseParameters()
+                    .setHeader("nodeLeft")
+                    .setNodeId(leftNodeId);
+            String message = response.toString();
+            for (Map.Entry<String, CommandBridge> entry : sessionBridgeMap.entrySet()) {
+                String sessionId = entry.getKey();
+                CommandBridge bridge = entry.getValue();
+                CommandSession session = bridge.findCommandSession(sessionId);
+                if (session != null) {
+                    bridge.bridge(session, message);
+                }
+            }
+        } catch (Exception e) {
+            logger.error("Failed to broadcast left event of node {}", leftNodeId, e);
         }
     }
 

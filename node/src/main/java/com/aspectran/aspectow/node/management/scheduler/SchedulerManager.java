@@ -20,9 +20,12 @@ import com.aspectran.aspectow.node.management.scheduler.bridge.SchedulerBroker;
 import com.aspectran.aspectow.node.management.scheduler.bridge.SchedulerSession;
 import com.aspectran.aspectow.node.management.scheduler.log.SchedulerLogExporter;
 import com.aspectran.aspectow.node.management.scheduler.remote.RemoteSchedulerMessageListener;
+import com.aspectran.aspectow.node.config.NodeInfo;
+import com.aspectran.aspectow.node.manager.ClusterEventListener;
 import com.aspectran.aspectow.node.manager.NodeManager;
 import com.aspectran.aspectow.node.manager.NodeMessagePublisher;
 import com.aspectran.core.adapter.ApplicationAdapter;
+import com.aspectran.core.component.bean.ablility.DisposableBean;
 import com.aspectran.core.component.bean.ablility.InitializableBean;
 import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.aware.ApplicationAdapterAware;
@@ -49,7 +52,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * It manages local execution, remote dispatching via Redis, and broadcasting
  * results to connected clients.
  */
-public class SchedulerManager implements ApplicationAdapterAware, InitializableBean {
+public class SchedulerManager implements ApplicationAdapterAware, InitializableBean, DisposableBean, ClusterEventListener {
 
     private static final Logger logger = LoggerFactory.getLogger(SchedulerManager.class);
 
@@ -76,6 +79,8 @@ public class SchedulerManager implements ApplicationAdapterAware, InitializableB
     private final SchedulerBroker broker;
 
     private ApplicationAdapter applicationAdapter;
+
+    private RemoteSchedulerMessageListener bridgeHandler;
 
     /**
      * Constructs a new SchedulerManager.
@@ -107,8 +112,22 @@ public class SchedulerManager implements ApplicationAdapterAware, InitializableB
         logger.info("Initializing SchedulerManager for node: {}", getNodeId());
 
         if (nodeManager.getNodeMessageSubscriber() != null) {
-            RemoteSchedulerMessageListener bridgeHandler = new RemoteSchedulerMessageListener(this);
-            nodeManager.getNodeMessageSubscriber().addListener(bridgeHandler);
+            this.bridgeHandler = new RemoteSchedulerMessageListener(this);
+            nodeManager.getNodeMessageSubscriber().addListener(this.bridgeHandler);
+        }
+
+        if (nodeManager.getClusterEventSubscriber() != null) {
+            nodeManager.getClusterEventSubscriber().addListener(this);
+        }
+    }
+
+    @Override
+    public void destroy() {
+        if (nodeManager.getNodeMessageSubscriber() != null && this.bridgeHandler != null) {
+            nodeManager.getNodeMessageSubscriber().removeListener(this.bridgeHandler);
+        }
+        if (nodeManager.getClusterEventSubscriber() != null) {
+            nodeManager.getClusterEventSubscriber().removeListener(this);
         }
     }
 
@@ -423,6 +442,52 @@ public class SchedulerManager implements ApplicationAdapterAware, InitializableB
                     bridge.bridge(session, message);
                 }
             }
+        }
+    }
+
+    @Override
+    public void onJoined(NodeInfo info) {
+        if (sessionBridgeMap.isEmpty()) {
+            return;
+        }
+        try {
+            SchedulerResponseParameters response = new SchedulerResponseParameters()
+                    .setHeader("nodeJoined")
+                    .setNodeId(info.getId());
+            String message = response.toString();
+            for (Map.Entry<String, SchedulerBridge> entry : sessionBridgeMap.entrySet()) {
+                String sessionId = entry.getKey();
+                SchedulerBridge bridge = entry.getValue();
+                SchedulerSession session = bridge.findSchedulerSession(sessionId);
+                if (session != null) {
+                    bridge.bridge(session, message);
+                }
+            }
+        } catch (Exception e) {
+            logger.error("Failed to broadcast join event of node {}", info.getId(), e);
+        }
+    }
+
+    @Override
+    public void onLeft(String leftNodeId) {
+        if (sessionBridgeMap.isEmpty()) {
+            return;
+        }
+        try {
+            SchedulerResponseParameters response = new SchedulerResponseParameters()
+                    .setHeader("nodeLeft")
+                    .setNodeId(leftNodeId);
+            String message = response.toString();
+            for (Map.Entry<String, SchedulerBridge> entry : sessionBridgeMap.entrySet()) {
+                String sessionId = entry.getKey();
+                SchedulerBridge bridge = entry.getValue();
+                SchedulerSession session = bridge.findSchedulerSession(sessionId);
+                if (session != null) {
+                    bridge.bridge(session, message);
+                }
+            }
+        } catch (Exception e) {
+            logger.error("Failed to broadcast left event of node {}", leftNodeId, e);
         }
     }
 

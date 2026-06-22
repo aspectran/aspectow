@@ -495,10 +495,36 @@ arguments: {
                         }
                     },
                     onMessage: (response) => {
+                        const header = response.header;
                         const requestId = response.requestId;
                         const nodeId = response.nodeId;
                         const result = response.result;
                         const error = response.error;
+
+                        if (header === 'nodeJoined') {
+                            let changed = false;
+                            commandHistory.forEach(cmd => {
+                                if (cmd.status === 'queued' && cmd.content.includes('command: restart')) {
+                                    if (cmd.target.includes(nodeId)) {
+                                        cmd.status = 'completed';
+                                        cmd.result = 'Node restarted and rejoined the cluster.';
+                                        changed = true;
+                                    }
+                                }
+                            });
+                            if (changed) {
+                                updateHistoryUI();
+                            }
+                            // Refresh target node list & status UI
+                            onTargetTypeChange(true);
+                            return;
+                        }
+
+                        if (header === 'nodeLeft') {
+                            // Refresh target node list & status UI
+                            onTargetTypeChange(true);
+                            return;
+                        }
 
                         const target = commandHistory.find(c => c.id === requestId) || commandHistory.find(c => c.status === 'queued');
                         if (target) {

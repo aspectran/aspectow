@@ -181,6 +181,7 @@
         <script th:inline="javascript">
             const basePath = [[@{/}]].replace(/\/$/, '');
             const clusterMode = [[${page.clusterMode}]];
+            const myNodeId = [[${page.myNodeId}]];
             let nodes = [[${page.nodes}]];
             let consoleClient = null;
             let currentNodeId = [[${page.node.id}]];
@@ -388,6 +389,28 @@
                         $(`#switch-${serviceId}-${safeId}`).prop('checked', stateData.disabled);
                         alert(stateData.message);
                     }
+                } else if (response.header === 'nodeJoined') {
+                    if (response.nodeId === currentNodeId && currentNodeId !== myNodeId) {
+                        // Delay reload slightly to ensure the re-joined node's scheduler services have fully started
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1500);
+                        return;
+                    }
+                    refreshNodeList().then(() => {
+                        const joinedNode = nodes.find(n => n.id === response.nodeId);
+                        if (joinedNode) {
+                            joinedNode.status = 'active';
+                            renderNodeSelector();
+                        }
+                        if (response.nodeId === currentNodeId && (!consoleClient || !consoleClient.established)) {
+                            setTimeout(() => {
+                                connectToNode(currentNodeId);
+                            }, 1000);
+                        }
+                    });
+                } else if (response.header === 'nodeLeft') {
+                    refreshNodeList();
                 }
             }
 
@@ -419,7 +442,16 @@
                 let totalIsolated = 0;
 
                 if (!services || services.length === 0) {
-                    $('#scheduler-container').html('<div class="alert alert-info">No active services or schedulers found on this node.</div>');
+                    $('#scheduler-container').html(`
+                        <div class="text-center py-5">
+                            <i class="bi bi-info-circle fs-1 text-info mb-3"></i>
+                            <h5 class="fw-bold">No Active Services</h5>
+                            <p class="text-muted">No active services or schedulers found on this node. They might still be starting up.</p>
+                            <button class="btn btn-sm btn-outline-primary mt-2" onclick="connectToNode('${currentNodeId}', true)">
+                                <i class="bi bi-arrow-clockwise me-1"></i> Try Again
+                            </button>
+                        </div>
+                    `);
                     updateStats(0, 0, 0, currentNodeId);
                     return;
                 }

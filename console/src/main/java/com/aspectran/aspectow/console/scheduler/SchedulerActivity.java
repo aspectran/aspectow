@@ -76,6 +76,7 @@ public class SchedulerActivity {
                 "style", "scheduler-page",
                 "group", "cluster-menu",
                 "clusterMode", clusterMode,
+                "myNodeId", nodeManager.getNodeId(),
                 "nodes", nodes,
                 "node", nodeConsoleHelper.createNodeMap(nodeInfo, true, true),
                 "token", AppMonTokenIssuer.issueToken(30),
