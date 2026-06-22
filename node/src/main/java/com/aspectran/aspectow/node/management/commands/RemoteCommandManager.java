@@ -71,8 +71,8 @@ public class RemoteCommandManager implements InitializableBean {
 
         // Register a listener for command relay messages (commands and results) from Redis
         if (nodeManager.getNodeMessageSubscriber() != null) {
-            RemoteCommandMessageListener bridgeHandler = new RemoteCommandMessageListener(this);
-            nodeManager.getNodeMessageSubscriber().addListener(bridgeHandler);
+            RemoteCommandMessageListener messageListener = new RemoteCommandMessageListener(this);
+            nodeManager.getNodeMessageSubscriber().addListener(messageListener);
         }
     }
 

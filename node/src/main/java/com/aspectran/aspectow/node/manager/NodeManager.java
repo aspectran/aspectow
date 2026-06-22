@@ -53,6 +53,8 @@ public class NodeManager {
 
     private final GroupInfoHolder groupInfoHolder;
 
+    private final ClusterEventListener clusterEventListener;
+
     private RedisConnectionPool redisConnectionPool;
 
     private NodeRegistry nodeRegistry;
@@ -80,6 +82,7 @@ public class NodeManager {
         this.clusterConfig = clusterConfig;
         this.nodeInfoHolder = nodeInfoHolder;
         this.groupInfoHolder = groupInfoHolder;
+        this.clusterEventListener = new NodeClusterEventListener(this);
     }
 
     /**
@@ -247,62 +250,12 @@ public class NodeManager {
      * @param clusterEventSubscriber the cluster event subscriber
      */
     protected void setClusterEventSubscriber(ClusterEventSubscriber clusterEventSubscriber) {
+        if (this.clusterEventSubscriber != null) {
+            this.clusterEventSubscriber.removeListener(this.clusterEventListener);
+        }
         this.clusterEventSubscriber = clusterEventSubscriber;
         if (clusterEventSubscriber != null) {
-            clusterEventSubscriber.addListener(new ClusterEventListener() {
-                @Override
-                public void onJoined(NodeInfo info) {
-                    if (nodeId.equals(info.getId())) {
-                        return;
-                    }
-                    // 1. Validate Token
-                    try {
-                        validateToken(info.getToken());
-                    } catch (Exception e) {
-                        logger.warn("Rejected join request from node '{}' due to invalid token", info.getId());
-                        return;
-                    }
-
-                    if (clusterConfig.isGatewayMode()) {
-                        NodeInfo existingInfo = nodeInfoHolder.getNodeInfo(info.getId());
-                        if (existingInfo != null) {
-                            // 2. Partial update for Gateway Mode: keep static config, update dynamic state
-                            // Create a new NodeInfo instance to ensure atomic update for readers
-                            NodeInfo newInfo = existingInfo.copyWithUpdatedState(info);
-                            nodeInfoHolder.putNodeInfo(newInfo);
-                            if (logger.isDebugEnabled()) {
-                                logger.debug("Updated dynamic state for joined node: {}", info.getId());
-                            }
-                        } else {
-                            // 3. Full update for dynamic join
-                            nodeInfoHolder.putNodeInfo(info);
-                            if (logger.isDebugEnabled()) {
-                                logger.debug("Added new node info for joined node: {}", info.getId());
-                            }
-                        }
-                    }
-                }
-
-                @Override
-                public void onLeft(String leftNodeId) {
-                    if (nodeId.equals(leftNodeId)) {
-                        return;
-                    }
-                    if (clusterConfig.isGatewayMode()) {
-                        NodeInfo existingInfo = nodeInfoHolder.getNodeInfo(leftNodeId);
-                        if (existingInfo != null) {
-                            // Clone and update status to 'offline' for atomic update
-                            NodeInfo newInfo = existingInfo.copy();
-                            newInfo.setStatus("offline");
-
-                            nodeInfoHolder.putNodeInfo(newInfo);
-                            if (logger.isDebugEnabled()) {
-                                logger.debug("Set node status to 'offline' for left node: {}", leftNodeId);
-                            }
-                        }
-                    }
-                }
-            });
+            clusterEventSubscriber.addListener(this.clusterEventListener);
         }
     }
 
@@ -379,6 +332,7 @@ public class NodeManager {
             }
         }
         if (clusterEventSubscriber != null) {
+            clusterEventSubscriber.removeListener(clusterEventListener);
             try {
                 clusterEventSubscriber.stop();
             } catch (Exception e) {
