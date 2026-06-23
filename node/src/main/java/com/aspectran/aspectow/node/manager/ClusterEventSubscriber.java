@@ -76,18 +76,14 @@ public class ClusterEventSubscriber extends RedisPubSubAdapter<String, String> {
     }
 
     @Override
-    public void message(@NonNull String channel, String message) {
-        if (!channel.equals(NodeMessageProtocol.getClusterEventsChannel(clusterId))) {
-            return;
-        }
-
+    public void message(@NonNull String channel, @NonNull String message) {
         if (message.startsWith(MESSAGE_JOINED)) {
             String aponData = message.substring(7);
             try {
                 NodeInfo info = new NodeInfo();
                 info.readFrom(aponData);
                 for (ClusterEventListener listener : listeners) {
-                    listener.onJoined(info);
+                    listener.onNodeJoined(info);
                 }
             } catch (IOException e) {
                 logger.warn("Failed to parse JOINED event data", e);
@@ -95,7 +91,7 @@ public class ClusterEventSubscriber extends RedisPubSubAdapter<String, String> {
         } else if (message.startsWith(MESSAGE_LEFT)) {
             String leftNodeId = message.substring(5);
             for (ClusterEventListener listener : listeners) {
-                listener.onLeft(leftNodeId);
+                listener.onNodeLeft(leftNodeId);
             }
         }
     }

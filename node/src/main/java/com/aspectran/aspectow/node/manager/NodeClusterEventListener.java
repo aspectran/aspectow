@@ -36,7 +36,7 @@ public class NodeClusterEventListener implements ClusterEventListener {
     }
 
     @Override
-    public void onJoined(@NonNull NodeInfo info) {
+    public void onNodeJoined(@NonNull NodeInfo info) {
         if (nodeManager.getNodeId().equals(info.getId())) {
             return;
         }
@@ -69,7 +69,7 @@ public class NodeClusterEventListener implements ClusterEventListener {
     }
 
     @Override
-    public void onLeft(String leftNodeId) {
+    public void onNodeLeft(String leftNodeId) {
         if (nodeManager.getNodeId().equals(leftNodeId)) {
             return;
         }

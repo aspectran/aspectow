@@ -446,7 +446,7 @@ public class SchedulerManager implements ApplicationAdapterAware, InitializableB
     }
 
     @Override
-    public void onJoined(NodeInfo info) {
+    public void onNodeJoined(NodeInfo info) {
         if (sessionBridgeMap.isEmpty()) {
             return;
         }
@@ -469,7 +469,7 @@ public class SchedulerManager implements ApplicationAdapterAware, InitializableB
     }
 
     @Override
-    public void onLeft(String leftNodeId) {
+    public void onNodeLeft(String leftNodeId) {
         if (sessionBridgeMap.isEmpty()) {
             return;
         }

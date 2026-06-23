@@ -98,6 +98,7 @@ public class NodeConsoleHelper {
                     long lastPulse = Long.parseLong(pulseStr);
                     alive = (now - lastPulse <= timeout);
                 } catch (NumberFormatException ignored) {
+                    // ignore
                 }
             }
             result.add(createNodeMap(info, alive, includeEndpoint));

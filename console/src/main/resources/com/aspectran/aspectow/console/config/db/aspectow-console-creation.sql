@@ -1,2 +1,2 @@
-CREATE SCHEMA IF NOT EXISTS appmon;
+CREATE SCHEMA IF NOT EXISTS console;
 RUNSCRIPT FROM 'classpath:com/aspectran/aspectow/console/config/db/aspectow-console-schema-h2.sql';

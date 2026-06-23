@@ -131,7 +131,7 @@ public class NodeGatewayEndpoint extends SimplifiedEndpoint implements ClusterEv
      * @param nodeInfo the node information of the joined node
      */
     @Override
-    public void onJoined(NodeInfo nodeInfo) {
+    public void onNodeJoined(NodeInfo nodeInfo) {
         NodeResponseParameters params = new NodeResponseParameters();
         params.setHeader("joined");
         params.setNode(nodeInfo);
@@ -144,7 +144,7 @@ public class NodeGatewayEndpoint extends SimplifiedEndpoint implements ClusterEv
      * @param nodeId the ID of the node that left
      */
     @Override
-    public void onLeft(String nodeId) {
+    public void onNodeLeft(String nodeId) {
         NodeInfo nodeInfo = new NodeInfo();
         nodeInfo.setId(nodeId);
         nodeInfo.setStatus("offline");

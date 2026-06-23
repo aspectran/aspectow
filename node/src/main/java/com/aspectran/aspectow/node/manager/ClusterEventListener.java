@@ -28,12 +28,12 @@ public interface ClusterEventListener {
      * Called when a new node has joined the cluster.
      * @param nodeInfo the information of the joined node
      */
-    void onJoined(NodeInfo nodeInfo);
+    void onNodeJoined(NodeInfo nodeInfo);
 
     /**
      * Called when a node has left the cluster.
      * @param nodeId the ID of the node that left
      */
-    void onLeft(String nodeId);
+    void onNodeLeft(String nodeId);
 
 }

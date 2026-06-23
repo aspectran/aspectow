@@ -46,8 +46,6 @@ public class NodeMessageSubscriber extends RedisPubSubAdapter<String, String> {
 
     private StatefulRedisPubSubConnection<String, String> pubSubConnection;
 
-    private String subscribePattern;
-
     /**
      * Constructs a new NodeMessageSubscriber.
      * @param clusterId the cluster ID
@@ -82,15 +80,6 @@ public class NodeMessageSubscriber extends RedisPubSubAdapter<String, String> {
      */
     public void removeListener(NodeMessageListener listener) {
         listeners.remove(listener);
-    }
-
-    /**
-     * Sets the Redis Pub/Sub pattern to subscribe to.
-     * If not set, the default node-specific pattern will be used.
-     * @param subscribePattern the subscription pattern
-     */
-    public void setSubscribePattern(String subscribePattern) {
-        this.subscribePattern = subscribePattern;
     }
 
     @Override
@@ -146,10 +135,9 @@ public class NodeMessageSubscriber extends RedisPubSubAdapter<String, String> {
         this.pubSubConnection = connectionPool.getPubSubConnection();
         this.pubSubConnection.addListener(this);
 
-        String pattern = (subscribePattern != null ? subscribePattern :
-                NodeMessageProtocol.getClusterSubscriptionPattern(clusterId, nodeId));
-        this.pubSubConnection.sync().psubscribe(pattern);
-        logger.info("NodeMessageSubscriber initialized and subscribed to pattern: {}", pattern);
+        String subscribePattern = NodeMessageProtocol.getClusterSubscriptionPattern(clusterId, nodeId);
+        this.pubSubConnection.sync().psubscribe(subscribePattern);
+        logger.info("NodeMessageSubscriber initialized and subscribed to pattern: {}", subscribePattern);
     }
 
     /**
