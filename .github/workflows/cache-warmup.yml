@@ -1,0 +1,42 @@
+name: AppMon Resources Cache Warmup
+
+on:
+  schedule:
+    # Run periodically every hour
+    - cron: '0 * * * *'
+  workflow_dispatch: # Allow manual execution if needed
+
+jobs:
+  warmup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v7
+
+      - name: Run Dynamic Cache Warmup
+        run: |
+          PROPERTIES_FILE="appmon-demo/app/config/appmon/appmon-assets-prod.properties"
+          
+          if [ -f "$PROPERTIES_FILE" ]; then
+            base_url=$(grep "^url=" "$PROPERTIES_FILE" | cut -d'=' -f2- | tr -d '\r\n ')
+            version=$(grep "^cacheBustingVersion=" "$PROPERTIES_FILE" | cut -d'=' -f2- | tr -d '\r\n ')
+          else
+            echo "Properties file not found!"
+            exit 1
+          fi
+          
+          domain=$(echo "$base_url" | grep -oE "https?://[^/]+")
+          path_part=$(echo "$base_url" | sed -e "s|https\?://[^/]\+/||")
+          
+          echo "Target directory: assets/$path_part"
+          echo "Cache Version: $version"
+          
+          # Collect all files under assets/$path_part and send curl requests
+          find "assets/$path_part" -type f ! -path '*/.*' | while read -r file; do
+            rel_path="${file#assets/}"
+            url="${domain}/${rel_path}?v=${version}"
+            
+            echo -n "Warmup URL: $url -> "
+            status_code=$(curl -I -s -o /dev/null -w "%{http_code}" "$url")
+            echo "Status: $status_code"
+          done
