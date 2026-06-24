@@ -20,6 +20,9 @@
  * 
  * @param {string} text - The raw APON format string.
  * @returns {string} The syntax-highlighted HTML string.
+ *
+ * @version 1.0
+ * @last-modified 2026-06-24
  */
 function highlightApon(text) {
     if (!text) return '';
