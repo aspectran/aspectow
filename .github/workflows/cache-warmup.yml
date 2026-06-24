@@ -1,19 +1,21 @@
-name: AppMon Resources Cache Warmup
+name: AppMon Resources Cache Purge & Warmup
 
 on:
-  schedule:
-    # Run periodically every hour
-    - cron: '0 * * * *'
-  workflow_dispatch: # Allow manual execution if needed
+  push:
+    branches:
+      - main
+    paths:
+      - 'assets/**'
+  workflow_dispatch:
 
 jobs:
-  warmup:
+  purge-and-warmup:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v7
 
-      - name: Run Dynamic Cache Warmup
+      - name: Run jsDelivr Purge & Warmup
         run: |
           PROPERTIES_FILE="appmon-demo/app/config/appmon/appmon-assets-prod.properties"
           
@@ -25,18 +27,28 @@ jobs:
             exit 1
           fi
           
-          domain=$(echo "$base_url" | grep -oE "https?://[^/]+")
-          path_part=$(echo "$base_url" | sed -e "s|https\?://[^/]\+/||")
+          cdnPath=$(echo "$base_url" | sed -e "s|https\?://cdn.jsdelivr.net/||")
+          targetDir=$(echo "$cdnPath" | sed -e "s|gh/[^/]\+/[^/]\+@\?[^/]\+/||")
           
-          echo "Target directory: assets/$path_part"
+          echo "Target directory: $targetDir"
+          echo "Target CDN Path: $cdnPath"
           echo "Cache Version: $version"
           
-          # Collect all files under assets/$path_part and send curl requests
-          find "assets/$path_part" -type f ! -path '*/.*' | while read -r file; do
-            rel_path="${file#assets/}"
-            url="${domain}/${rel_path}?v=${version}"
+          # Find all files under assets/$path_part and send Purge & Warmup requests
+          find "$targetDir" -type f ! -path '*/.*' | while read -r file; do
+            # 1. jsDelivr Purge API call
+            purge_url="https://purge.jsdelivr.net/gh/aspectran/aspectow@main/${file}"
+            echo -n "Purging jsDelivr Cache: $purge_url -> "
+            purge_status=$(curl -s -o /dev/null -w "%{http_code}" "$purge_url")
+            echo "Status: $purge_status"
             
-            echo -n "Warmup URL: $url -> "
-            status_code=$(curl -I -s -o /dev/null -w "%{http_code}" "$url")
-            echo "Status: $status_code"
+            sleep 0.5
+            
+            # 2. jsDelivr Warmup call
+            jsdelivr_url="https://cdn.jsdelivr.net/gh/aspectran/aspectow@main/${file}?v=${version}"
+            echo -n "Warming up jsDelivr: $jsdelivr_url -> "
+            warmup_status=$(curl -I -s -o /dev/null -w "%{http_code}" "$jsdelivr_url")
+            echo "Status: $warmup_status"
+            
+            echo "------------------------------------------------"
           done
