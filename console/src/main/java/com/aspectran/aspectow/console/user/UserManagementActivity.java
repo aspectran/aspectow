@@ -17,6 +17,7 @@ package com.aspectran.aspectow.console.user;
 
 import com.aspectran.aspectow.console.auth.UserInfo;
 import com.aspectran.aspectow.console.common.db.model.LoginHistory;
+import com.aspectran.aspectow.console.common.db.model.Permission;
 import com.aspectran.aspectow.console.common.db.model.Role;
 import com.aspectran.aspectow.console.common.db.model.User;
 import com.aspectran.aspectow.console.common.service.UserService;
@@ -64,12 +65,14 @@ public class UserManagementActivity {
     public Map<String, Object> list() {
         List<User> userList = userService.getUserList();
         List<Role> roleList = userService.getRoleList();
+        List<Permission> permissionList = userService.getPermissionList();
         return Map.of(
             "title", "Users",
             "style", "user-management-page",
             "group", "accounts-menu",
             "userList", userList,
-            "roleList", roleList
+            "roleList", roleList,
+            "permissionList", permissionList
         );
     }
 
@@ -149,6 +152,22 @@ public class UserManagementActivity {
         }
         userService.deleteUser(userId);
         return new SuccessResponse("Deleted").ok();
+    }
+
+    /**
+     * Saves permission mapping for a specific role.
+     * @param roleId the role ID
+     * @param permIds the array of permission IDs to associate with the role
+     * @return a {@link RestResponse} representing success or failure of the operation
+     */
+    @RequestToPost("/role/save-permissions")
+    public RestResponse saveRolePermissions(Long roleId, Long[] permIds) {
+        if (roleId == null) {
+            return new FailureResponse().setError("required", "Role ID is required.");
+        }
+        List<Long> permIdList = (permIds != null ? List.of(permIds) : null);
+        userService.updateRolePermissions(roleId, permIdList);
+        return new SuccessResponse("Role permissions updated").ok();
     }
 
 }

@@ -95,6 +95,15 @@
         select * from asc_permission
     </select>
 
+    <insert id="insertRolePermission">
+        insert into asc_role_permission (role_id, perm_id)
+        values (#{roleId}, #{permId})
+    </insert>
+
+    <delete id="deleteRolePermissions" parameterType="long">
+        delete from asc_role_permission where role_id = #{roleId}
+    </delete>
+
     <insert id="insertLoginHistory" parameterType="com.aspectran.aspectow.console.common.db.model.LoginHistory">
         insert into asc_login_history (username, ip_address, user_agent, success_yn)
         values (#{username}, #{ipAddress}, #{userAgent}, #{successYn})

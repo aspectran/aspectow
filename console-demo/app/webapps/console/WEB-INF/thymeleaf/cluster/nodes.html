@@ -28,102 +28,108 @@
 </head>
 <body>
     <th:block layout:fragment="content">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <div>
-                <h2 class="fw-bold mb-1">Cluster Nodes</h2>
-                <p class="text-muted mb-0">Monitor and manage all active instances in the cluster.</p>
-            </div>
-            <button class="btn btn-outline-primary btn-sm" onclick="location.reload()">
-                <i class="bi bi-arrow-clockwise"></i> Refresh
-            </button>
-        </div>
-
-        <th:block th:if="${page.clusterMode == 'gateway' and page.groups != null}">
-            <ul class="nav nav-pills mb-4" id="clusterTabs" role="tablist">
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="all-tab" data-bs-toggle="pill" data-bs-target="#all-nodes" type="button" role="tab">All Nodes</button>
-                </li>
-                <li class="nav-item" role="presentation" th:each="group : ${page.groups}">
-                    <button class="nav-link" th:id="${group.id} + '-tab'" data-bs-toggle="pill" th:data-bs-target="'#group-' + ${group.id}" type="button" role="tab" th:text="${group.title}">Group Title</button>
-                </li>
-            </ul>
-
-            <div class="tab-content" id="clusterTabContent">
-                <div class="tab-pane fade show active" id="all-nodes" role="tabpanel">
-                    <div class="row g-4">
-                        <th:block th:each="nodeItem : ${page.nodes}">
-                            <div class="col-md-6 col-lg-4">
-                                <th:block th:insert="~{::node-card(nodeInfo=${nodeItem})}"></th:block>
-                            </div>
-                        </th:block>
-                    </div>
+        <div th:if="${session.USER_INFO.hasRole('SUPER_ADMIN') || session.USER_INFO.hasRole('ADMIN')}">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="fw-bold mb-1">Cluster Nodes</h2>
+                    <p class="text-muted mb-0">Monitor and manage all active instances in the cluster.</p>
                 </div>
-                <div class="tab-pane fade" th:each="group : ${page.groups}" th:id="'group-' + ${group.id}" role="tabpanel">
-                    <div class="mb-3 px-1" th:if="${group.description}">
-                        <p class="text-muted small mb-0" th:text="${group.description}">Group Description</p>
-                    </div>
-                    <div class="row g-4">
-                        <th:block th:if="${page.groupedNodes != null}" th:each="nodeItem : ${page.groupedNodes[group.id]}">
-                            <div class="col-md-6 col-lg-4">
-                                <th:block th:insert="~{::node-card(nodeInfo=${nodeItem})}"></th:block>
-                            </div>
-                        </th:block>
-                    </div>
-                </div>
+                <button class="btn btn-outline-primary btn-sm" onclick="location.reload()">
+                    <i class="bi bi-arrow-clockwise"></i> Refresh
+                </button>
             </div>
-        </th:block>
 
-        <th:block th:if="${page.clusterMode != 'gateway' or page.groups == null}">
-            <div class="row g-4">
-                <th:block th:each="nodeItem : ${page.nodes}">
-                    <div class="col-md-6 col-lg-4">
-                        <th:block th:insert="~{::node-card(nodeInfo=${nodeItem})}"></th:block>
-                    </div>
-                </th:block>
-            </div>
-        </th:block>
+            <th:block th:if="${page.clusterMode == 'gateway' and page.groups != null}">
+                <ul class="nav nav-pills mb-4" id="clusterTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="all-tab" data-bs-toggle="pill" data-bs-target="#all-nodes" type="button" role="tab">All Nodes</button>
+                    </li>
+                    <li class="nav-item" role="presentation" th:each="group : ${page.groups}">
+                        <button class="nav-link" th:id="${group.id} + '-tab'" data-bs-toggle="pill" th:data-bs-target="'#group-' + ${group.id}" type="button" role="tab" th:text="${group.title}">Group Title</button>
+                    </li>
+                </ul>
 
-        <!-- Fragment for node card -->
-        <th:block th:fragment="node-card(nodeInfo)">
-            <div class="card node-card p-4 h-100" th:if="${nodeInfo != null}">
-                <div class="d-flex justify-content-between align-items-start mb-3">
-                    <div>
-                        <h5 class="fw-bold mb-0" th:text="${nodeInfo.title}">Node Title</h5>
-                        <span class="badge bg-secondary node-id-badge mt-1" th:text="${nodeInfo.id}">node-id</span>
+                <div class="tab-content" id="clusterTabContent">
+                    <div class="tab-pane fade show active" id="all-nodes" role="tabpanel">
+                        <div class="row g-4">
+                            <th:block th:each="nodeItem : ${page.nodes}">
+                                <div class="col-md-6 col-lg-4">
+                                    <th:block th:insert="~{::node-card(nodeInfo=${nodeItem})}"></th:block>
+                                </div>
+                            </th:block>
+                        </div>
                     </div>
-                    <div class="d-flex flex-column align-items-end">
-                        <div class="d-flex align-items-center gap-2">
-                            <span class="status-dot" th:classappend="${nodeInfo.status == 'live' ? 'bg-success' : (nodeInfo.status == 'stopping' ? 'bg-warning' : 'bg-danger')}"></span>
-                            <span class="small fw-bold text-uppercase" th:classappend="${nodeInfo.status == 'live' ? 'text-success' : (nodeInfo.status == 'stopping' ? 'text-warning' : 'text-danger')}" th:text="${nodeInfo.status}">LIVE</span>
+                    <div class="tab-pane fade" th:each="group : ${page.groups}" th:id="'group-' + ${group.id}" role="tabpanel">
+                        <div class="mb-3 px-1" th:if="${group.description}">
+                            <p class="text-muted small mb-0" th:text="${group.description}">Group Description</p>
+                        </div>
+                        <div class="row g-4">
+                            <th:block th:if="${page.groupedNodes != null}" th:each="nodeItem : ${page.groupedNodes[group.id]}">
+                                <div class="col-md-6 col-lg-4">
+                                    <th:block th:insert="~{::node-card(nodeInfo=${nodeItem})}"></th:block>
+                                </div>
+                            </th:block>
                         </div>
                     </div>
                 </div>
+            </th:block>
 
-                <div class="border-top pt-3">
-                    <div class="row g-2 small">
-                        <div class="col-5 text-muted">Host Address</div>
-                        <div class="col-7 text-end fw-medium" th:text="${nodeInfo.host}">127.0.0.1</div>
+            <th:block th:if="${page.clusterMode != 'gateway' or page.groups == null}">
+                <div class="row g-4">
+                    <th:block th:each="nodeItem : ${page.nodes}">
+                        <div class="col-md-6 col-lg-4">
+                            <th:block th:insert="~{::node-card(nodeInfo=${nodeItem})}"></th:block>
+                        </div>
+                    </th:block>
+                </div>
+            </th:block>
 
-                        <div class="col-5 text-muted">Service Port</div>
-                        <div class="col-7 text-end fw-medium" th:text="${nodeInfo.port}">8080</div>
+            <!-- Fragment for node card -->
+            <th:block th:fragment="node-card(nodeInfo)">
+                <div class="card node-card p-4 h-100" th:if="${nodeInfo != null}">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <h5 class="fw-bold mb-0" th:text="${nodeInfo.title}">Node Title</h5>
+                            <span class="badge bg-secondary node-id-badge mt-1" th:text="${nodeInfo.id}">node-id</span>
+                        </div>
+                        <div class="d-flex flex-column align-items-end">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="status-dot" th:classappend="${nodeInfo.status == 'live' ? 'bg-success' : (nodeInfo.status == 'stopping' ? 'bg-warning' : 'bg-danger')}"></span>
+                                <span class="small fw-bold text-uppercase" th:classappend="${nodeInfo.status == 'live' ? 'text-success' : (nodeInfo.status == 'stopping' ? 'text-warning' : 'text-danger')}" th:text="${nodeInfo.status}">LIVE</span>
+                            </div>
+                        </div>
+                    </div>
 
-                        <th:block th:if="${page.clusterMode == 'gateway'}">
-                            <div class="col-5 text-muted">Node Group</div>
-                            <div class="col-7 text-end fw-medium" th:text="${nodeInfo.group ?: 'N/A'}">Group</div>
-                        </th:block>
+                    <div class="border-top pt-3">
+                        <div class="row g-2 small">
+                            <div class="col-5 text-muted">Host Address</div>
+                            <div class="col-7 text-end fw-medium" th:text="${nodeInfo.host}">127.0.0.1</div>
+
+                            <div class="col-5 text-muted">Service Port</div>
+                            <div class="col-7 text-end fw-medium" th:text="${nodeInfo.port}">8080</div>
+
+                            <th:block th:if="${page.clusterMode == 'gateway'}">
+                                <div class="col-5 text-muted">Node Group</div>
+                                <div class="col-7 text-end fw-medium" th:text="${nodeInfo.group ?: 'N/A'}">Group</div>
+                            </th:block>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 d-flex gap-2">
+                        <a th:href="@{/cluster/commands(nodeId=${nodeInfo.id})}" class="btn btn-sm btn-outline-secondary flex-grow-1">
+                            <i class="bi bi-terminal"></i> Commands
+                        </a>
+                        <a href="javascript:void(0)" th:onclick="openAppMon([[${nodeInfo.id}]])" class="btn btn-sm btn-outline-secondary flex-grow-1">
+                            <i class="bi bi-activity"></i> Metrics
+                        </a>
                     </div>
                 </div>
-
-                <div class="mt-4 d-flex gap-2">
-                    <a th:href="@{/cluster/commands(nodeId=${nodeInfo.id})}" class="btn btn-sm btn-outline-secondary flex-grow-1">
-                        <i class="bi bi-terminal"></i> Commands
-                    </a>
-                    <a href="javascript:void(0)" th:onclick="openAppMon([[${nodeInfo.id}]])" class="btn btn-sm btn-outline-secondary flex-grow-1">
-                        <i class="bi bi-activity"></i> Metrics
-                    </a>
-                </div>
-            </div>
-        </th:block>
+            </th:block>
+        </div>
+        <div th:unless="${session.USER_INFO.hasRole('SUPER_ADMIN') || session.USER_INFO.hasRole('ADMIN')}" class="alert alert-danger my-4">
+            <h4 class="alert-heading"><i class="bi bi-exclamation-triangle-fill"></i> Access Denied</h4>
+            <p class="mb-0">You do not have permission to access this page.</p>
+        </div>
     </th:block>
 
     <th:block layout:fragment="script">

@@ -16,6 +16,7 @@
 package com.aspectran.aspectow.console.common.service;
 
 import com.aspectran.aspectow.console.common.db.model.LoginHistory;
+import com.aspectran.aspectow.console.common.db.model.Permission;
 import com.aspectran.aspectow.console.common.db.model.Role;
 import com.aspectran.aspectow.console.common.db.model.User;
 
@@ -51,6 +52,26 @@ public interface UserService {
      * @return the list of roles
      */
     List<Role> getRoleList();
+
+    /**
+     * Retrieves all permissions.
+     * @return the list of permissions
+     */
+    List<Permission> getPermissionList();
+
+    /**
+     * Retrieves permissions associated with a specific role.
+     * @param roleId the role ID
+     * @return the list of permissions
+     */
+    List<Permission> getPermissionsByRoleId(Long roleId);
+
+    /**
+     * Updates the permissions assigned to a role.
+     * @param roleId the role ID
+     * @param permIds the list of permission IDs to assign
+     */
+    void updateRolePermissions(Long roleId, List<Long> permIds);
 
     /**
      * Creates a new user with assigned roles.

@@ -124,6 +124,21 @@ public interface AccountMapper {
     List<Permission> getPermissionList();
 
     /**
+     * Maps a permission to a specific role.
+     * @param roleId the role ID
+     * @param permId the permission ID
+     * @return the number of affected rows
+     */
+    int insertRolePermission(Long roleId, Long permId);
+
+    /**
+     * Removes all permission assignments for a specific role.
+     * @param roleId the role ID
+     * @return the number of affected rows
+     */
+    int deleteRolePermissions(Long roleId);
+
+    /**
      * Records a login attempt in the history log.
      * @param history the login history record
      * @return the number of affected rows
@@ -217,6 +232,16 @@ public interface AccountMapper {
         @Override
         public List<Permission> getPermissionList() {
             return mapper().getPermissionList();
+        }
+
+        @Override
+        public int insertRolePermission(Long roleId, Long permId) {
+            return mapper().insertRolePermission(roleId, permId);
+        }
+
+        @Override
+        public int deleteRolePermissions(Long roleId) {
+            return mapper().deleteRolePermissions(roleId);
         }
 
         @Override

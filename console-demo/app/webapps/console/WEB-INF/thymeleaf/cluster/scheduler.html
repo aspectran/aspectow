@@ -98,81 +98,87 @@
 </head>
 <body>
     <th:block layout:fragment="content">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <div>
-                <h2 class="fw-bold mb-1">Scheduler Manager</h2>
-                <p class="text-muted mb-0">Monitor and control scheduled jobs across the cluster.</p>
-            </div>
-            <div class="d-flex flex-column gap-1 align-items-end">
+        <div th:if="${session.USER_INFO.hasRole('SUPER_ADMIN') || session.USER_INFO.hasRole('ADMIN')}">
+            <div class="d-flex justify-content-between align-items-center mb-4">
                 <div>
-                    <span class="text-muted small">Target Mode:</span>
-                    <span class="fw-bold text-primary" th:text="${page.clusterMode?.toUpperCase() ?: 'GATEWAY'}">GATEWAY</span>
+                    <h2 class="fw-bold mb-1">Scheduler Manager</h2>
+                    <p class="text-muted mb-0">Monitor and control scheduled jobs across the cluster.</p>
                 </div>
-                <div>
-                    <span class="text-muted small">Distributed Lock:</span>
-                    <span th:if="${page.hasJobLockProvider}" class="badge bg-success-subtle text-success border border-success-subtle">ENABLED</span>
-                    <span th:unless="${page.hasJobLockProvider}" class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">DISABLED</span>
+                <div class="d-flex flex-column gap-1 align-items-end">
+                    <div>
+                        <span class="text-muted small">Target Mode:</span>
+                        <span class="fw-bold text-primary" th:text="${page.clusterMode?.toUpperCase() ?: 'GATEWAY'}">GATEWAY</span>
+                    </div>
+                    <div>
+                        <span class="text-muted small">Distributed Lock:</span>
+                        <span th:if="${page.hasJobLockProvider}" class="badge bg-success-subtle text-success border border-success-subtle">ENABLED</span>
+                        <span th:unless="${page.hasJobLockProvider}" class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">DISABLED</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card target-selector mb-4">
+                <div class="row align-items-center g-3">
+                    <div class="col-auto">
+                        <label class="fw-bold small text-muted text-uppercase">Target Node</label>
+                    </div>
+                    <div class="col-md-4">
+                        <select id="node-selector" class="form-select form-select-sm">
+                            <!-- Dynamic options -->
+                        </select>
+                    </div>
+                    <div class="col-auto">
+                        <button id="refresh-btn" class="btn btn-outline-primary btn-sm px-3">
+                            <i class="bi bi-arrow-clockwise me-1"></i> Refresh
+                        </button>
+                    </div>
+                    <div class="col text-end">
+                        <span id="connection-indicator" class="status-pill bg-secondary text-white">CONNECTING...</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Summary Section -->
+            <div class="row g-4 mb-4">
+                <div class="col-md-3">
+                    <div class="card shadow-sm p-3">
+                        <div class="small text-muted text-uppercase fw-bold">Active Schedules</div>
+                        <div class="h3 fw-bold mb-0" id="stat-active-schedules">-</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card shadow-sm p-3">
+                        <div class="small text-muted text-uppercase fw-bold">Active Jobs</div>
+                        <div class="h3 fw-bold mb-0" id="stat-active-jobs">-</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card shadow-sm p-3 text-warning">
+                        <div class="small text-uppercase fw-bold">Isolated Items</div>
+                        <div class="h3 fw-bold mb-0" id="stat-isolated">-</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card shadow-sm p-3 text-info">
+                        <div class="small text-uppercase fw-bold">Target Node</div>
+                        <div class="h3 fw-bold mb-0 text-truncate" id="stat-current-node">-</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content Area -->
+            <div id="scheduler-container">
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2 text-muted">Connecting to node and fetching data...</p>
                 </div>
             </div>
         </div>
-
-        <div class="card target-selector mb-4">
-            <div class="row align-items-center g-3">
-                <div class="col-auto">
-                    <label class="fw-bold small text-muted text-uppercase">Target Node</label>
-                </div>
-                <div class="col-md-4">
-                    <select id="node-selector" class="form-select form-select-sm">
-                        <!-- Dynamic options -->
-                    </select>
-                </div>
-                <div class="col-auto">
-                    <button id="refresh-btn" class="btn btn-outline-primary btn-sm px-3">
-                        <i class="bi bi-arrow-clockwise me-1"></i> Refresh
-                    </button>
-                </div>
-                <div class="col text-end">
-                    <span id="connection-indicator" class="status-pill bg-secondary text-white">CONNECTING...</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Summary Section -->
-        <div class="row g-4 mb-4">
-            <div class="col-md-3">
-                <div class="card shadow-sm p-3">
-                    <div class="small text-muted text-uppercase fw-bold">Active Schedules</div>
-                    <div class="h3 fw-bold mb-0" id="stat-active-schedules">-</div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card shadow-sm p-3">
-                    <div class="small text-muted text-uppercase fw-bold">Active Jobs</div>
-                    <div class="h3 fw-bold mb-0" id="stat-active-jobs">-</div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card shadow-sm p-3 text-warning">
-                    <div class="small text-uppercase fw-bold">Isolated Items</div>
-                    <div class="h3 fw-bold mb-0" id="stat-isolated">-</div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card shadow-sm p-3 text-info">
-                    <div class="small text-uppercase fw-bold">Target Node</div>
-                    <div class="h3 fw-bold mb-0 text-truncate" id="stat-current-node">-</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Content Area -->
-        <div id="scheduler-container">
-            <div class="text-center py-5">
-                <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">Loading...</span>
-                </div>
-                <p class="mt-2 text-muted">Connecting to node and fetching data...</p>
-            </div>
+        <div th:unless="${session.USER_INFO.hasRole('SUPER_ADMIN') || session.USER_INFO.hasRole('ADMIN')}" class="alert alert-danger my-4">
+            <h4 class="alert-heading"><i class="bi bi-exclamation-triangle-fill"></i> Access Denied</h4>
+            <p class="mb-0">You do not have permission to access this page.</p>
         </div>
     </th:block>
 

@@ -17,6 +17,7 @@ package com.aspectran.aspectow.console.common.service;
 
 import com.aspectran.aspectow.console.common.db.mapper.AccountMapper;
 import com.aspectran.aspectow.console.common.db.model.LoginHistory;
+import com.aspectran.aspectow.console.common.db.model.Permission;
 import com.aspectran.aspectow.console.common.db.model.Role;
 import com.aspectran.aspectow.console.common.db.model.User;
 import com.aspectran.core.component.bean.annotation.Autowired;
@@ -55,6 +56,28 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<Role> getRoleList() {
         return accountMapper.getRoleList();
+    }
+
+    @Override
+    public List<Permission> getPermissionList() {
+        return accountMapper.getPermissionList();
+    }
+
+    @Override
+    public List<Permission> getPermissionsByRoleId(Long roleId) {
+        return accountMapper.getPermissionsByRoleId(roleId);
+    }
+
+    @Override
+    public void updateRolePermissions(Long roleId, List<Long> permIds) {
+        if (roleId != null) {
+            accountMapper.deleteRolePermissions(roleId);
+            if (permIds != null) {
+                for (Long permId : permIds) {
+                    accountMapper.insertRolePermission(roleId, permId);
+                }
+            }
+        }
     }
 
     @Override

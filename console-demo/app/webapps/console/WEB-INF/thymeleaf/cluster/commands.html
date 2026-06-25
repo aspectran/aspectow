@@ -84,91 +84,97 @@
 </head>
 <body>
     <th:block layout:fragment="content">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <div>
-                <h2 class="fw-bold mb-0">Remote Commands</h2>
-            </div>
-            <div class="d-flex gap-1 align-items-center">
+        <div th:if="${session.USER_INFO.hasRole('SUPER_ADMIN') || session.USER_INFO.hasRole('ADMIN')}">
+            <div class="d-flex justify-content-between align-items-center mb-4">
                 <div>
-                    <span class="text-muted small">Target Mode:</span>
-                    <span class="fw-bold text-primary" th:text="${page.clusterMode.toUpperCase()}">GATEWAY</span>
+                    <h2 class="fw-bold mb-0">Remote Commands</h2>
                 </div>
-            </div>
-        </div>
-
-        <div class="card target-selector">
-            <div class="row align-items-center g-3">
-                <div class="col-auto">
-                    <label class="fw-bold small text-muted text-uppercase">Target Nodes</label>
-                </div>
-                <div class="col-md-4">
-                    <select id="target-type" class="form-select form-select-sm" onchange="onTargetTypeChange()">
-                        <option value="all" th:selected="${page.targetNodeId == null}">All Nodes in Cluster</option>
-                        <option value="group" th:if="${page.clusterMode == 'gateway'}">Specific Group</option>
-                        <option value="node" th:selected="${page.targetNodeId != null}">Individual Node</option>
-                    </select>
-                </div>
-                <div class="col-md-4" id="target-value-container">
-                    <select id="target-value" class="form-select form-select-sm">
-                        <!-- Dynamic options -->
-                    </select>
-                </div>
-                <div class="col text-end">
-                    <span id="connection-indicator" class="status-pill bg-secondary text-white">CONNECTING...</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="command-container">
-            <!-- Left: History -->
-            <div class="card history-panel">
-                <div class="p-3 bg-body-tertiary border-bottom d-flex justify-content-between align-items-center">
-                    <h6 class="fw-bold mb-0">Command History</h6>
-                    <button class="btn btn-sm btn-outline-secondary" onclick="clearHistory()">Clear</button>
-                </div>
-                <div class="history-list" id="history-list">
-                    <div class="text-center text-muted mt-5">No recent commands.</div>
+                <div class="d-flex gap-1 align-items-center">
+                    <div>
+                        <span class="text-muted small">Target Mode:</span>
+                        <span class="fw-bold text-primary" th:text="${page.clusterMode.toUpperCase()}">GATEWAY</span>
+                    </div>
                 </div>
             </div>
 
-            <!-- Right: Editor & Result -->
-            <div class="editor-panel">
-                <div class="card shadow-sm">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h6 class="fw-bold mb-0">New Command Payload</h6>
-                            <div class="dropdown">
-                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                    Load Template
-                                </button>
-                                <ul class="dropdown-menu dropdown-menu-end">
-                                    <li><a class="dropdown-item" href="#" onclick="loadTemplate('sysinfo')">System Info</a></li>
-                                    <li><a class="dropdown-item" href="#" onclick="loadTemplate('polling')">Polling Interval</a></li>
-                                    <li><a class="dropdown-item" href="#" onclick="loadTemplate('translet')">Execute Translet</a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item" href="#" onclick="loadTemplate('restart')">Restart Daemon</a></li>
-                                </ul>
+            <div class="card target-selector">
+                <div class="row align-items-center g-3">
+                    <div class="col-auto">
+                        <label class="fw-bold small text-muted text-uppercase">Target Nodes</label>
+                    </div>
+                    <div class="col-md-4">
+                        <select id="target-type" class="form-select form-select-sm" onchange="onTargetTypeChange()">
+                            <option value="all" th:selected="${page.targetNodeId == null}">All Nodes in Cluster</option>
+                            <option value="group" th:if="${page.clusterMode == 'gateway'}">Specific Group</option>
+                            <option value="node" th:selected="${page.targetNodeId != null}">Individual Node</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4" id="target-value-container">
+                        <select id="target-value" class="form-select form-select-sm">
+                            <!-- Dynamic options -->
+                        </select>
+                    </div>
+                    <div class="col text-end">
+                        <span id="connection-indicator" class="status-pill bg-secondary text-white">CONNECTING...</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="command-container">
+                <!-- Left: History -->
+                <div class="card history-panel">
+                    <div class="p-3 bg-body-tertiary border-bottom d-flex justify-content-between align-items-center">
+                        <h6 class="fw-bold mb-0">Command History</h6>
+                        <button class="btn btn-sm btn-outline-secondary" onclick="clearHistory()">Clear</button>
+                    </div>
+                    <div class="history-list" id="history-list">
+                        <div class="text-center text-muted mt-5">No recent commands.</div>
+                    </div>
+                </div>
+
+                <!-- Right: Editor & Result -->
+                <div class="editor-panel">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="fw-bold mb-0">New Command Payload</h6>
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                        Load Template
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li><a class="dropdown-item" href="#" onclick="loadTemplate('sysinfo')">System Info</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="loadTemplate('polling')">Polling Interval</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="loadTemplate('translet')">Execute Translet</a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item" href="#" onclick="loadTemplate('restart')">Restart Daemon</a></li>
+                                    </ul>
+                                </div>
                             </div>
-                        </div>
-                        <textarea id="command-editor" class="card command-editor" spellcheck="false">command: sysinfo
+                            <textarea id="command-editor" class="card command-editor" spellcheck="false">command: sysinfo
 arguments: {
     item: { value: mem }
 }</textarea>
-                        <div class="d-flex justify-content-end mt-3">
-                            <button class="btn btn-primary px-4" onclick="dispatchCommand()">
-                                <i class="bi bi-send-fill me-2"></i> Dispatch Command
-                            </button>
+                            <div class="d-flex justify-content-end mt-3">
+                                <button class="btn btn-primary px-4" onclick="dispatchCommand()">
+                                    <i class="bi bi-send-fill me-2"></i> Dispatch Command
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card result-panel">
+                        <h6 class="fw-bold mb-3 border-bottom pb-2">Command Result</h6>
+                        <div id="result-view" class="text-muted small font-monospace">
+                            Select a command from history or dispatch a new one to see results.
                         </div>
                     </div>
                 </div>
-
-                <div class="card result-panel">
-                    <h6 class="fw-bold mb-3 border-bottom pb-2">Command Result</h6>
-                    <div id="result-view" class="text-muted small font-monospace">
-                        Select a command from history or dispatch a new one to see results.
-                    </div>
-                </div>
             </div>
+        </div>
+        <div th:unless="${session.USER_INFO.hasRole('SUPER_ADMIN') || session.USER_INFO.hasRole('ADMIN')}" class="alert alert-danger my-4">
+            <h4 class="alert-heading"><i class="bi bi-exclamation-triangle-fill"></i> Access Denied</h4>
+            <p class="mb-0">You do not have permission to access this page.</p>
         </div>
     </th:block>
 

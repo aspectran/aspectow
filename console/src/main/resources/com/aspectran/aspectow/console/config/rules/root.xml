@@ -17,6 +17,7 @@
             <setting name="format.dateFormat" value="yyyy-MM-dd"/>
             <setting name="format.dateTimeFormat" value="yyyy-MM-dd HH:mm:ss"/>
             <setting name="format.nullWritable" value="true"/>
+            <setting name="response.defaultContentType" value="application/json"/>
         </settings>
     </aspect>
 

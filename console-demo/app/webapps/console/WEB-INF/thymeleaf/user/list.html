@@ -7,9 +7,14 @@
 <th:block layout:fragment="content">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h4 class="mb-0"><i class="bi bi-people me-2"></i> User Management</h4>
-        <button type="button" class="btn btn-primary" onclick="openUserModal()">
-            <i class="bi bi-person-plus"></i> New User
-        </button>
+        <div class="d-flex gap-2" th:if="${session.USER_INFO.hasPermission('USER_MANAGE')}">
+            <button type="button" class="btn btn-outline-secondary" onclick="openRoleModal()">
+                <i class="bi bi-shield-lock"></i> Role Permissions
+            </button>
+            <button type="button" class="btn btn-primary" onclick="openUserModal()">
+                <i class="bi bi-person-plus"></i> New User
+            </button>
+        </div>
     </div>
 
     <div class="card shadow-sm overflow-hidden">
@@ -25,7 +30,7 @@
                         <th class="text-muted small text-uppercase">Roles</th>
                         <th class="text-muted small text-uppercase">Status</th>
                         <th class="text-muted small text-uppercase">Last Login</th>
-                        <th class="text-end pe-3 text-muted small text-uppercase">Actions</th>
+                        <th th:if="${session.USER_INFO.hasPermission('USER_MANAGE')}" class="text-end pe-3 text-muted small text-uppercase">Actions</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -44,7 +49,7 @@
                                   th:text="${user.status}">NORMAL</span>
                         </td>
                         <td class="small text-muted" th:text="${user.lastLoginAt != null ? #temporals.format(user.lastLoginAt, 'yyyy-MM-dd HH:mm:ss') : '-'}">2023-10-01</td>
-                        <td class="text-end pe-3">
+                        <td th:if="${session.USER_INFO.hasPermission('USER_MANAGE')}" class="text-end pe-3">
                             <div class="d-flex justify-content-end flex-wrap gap-1">
                                 <button class="btn btn-sm btn-outline-secondary"
                                         th:onclick="openUserModal([[${user.userId}]], [[${user.username}]], [[${user.nickname}]], [[${user.email}]], [[${user.status}]], [[${user.roles != null ? user.roles.![roleId] : null}]])">
@@ -57,10 +62,49 @@
                         </td>
                     </tr>
                     <tr th:if="${#lists.isEmpty(page.userList)}">
-                        <td colspan="8" class="text-center py-4 text-muted">No users found.</td>
+                        <td th:colspan="${session.USER_INFO.hasPermission('USER_MANAGE') ? 8 : 7}" class="text-center py-4 text-muted">No users found.</td>
                     </tr>
                     </tbody>
                 </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Role Modal -->
+    <div class="modal fade" id="roleModal" tabindex="-1" aria-labelledby="roleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form id="roleForm" th:action="@{/user/role/save-permissions}" method="post">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="roleModalLabel">Role Permissions</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="roleSelect" class="form-label">Select Role</label>
+                            <select class="form-select" id="roleSelect" name="roleId" onchange="onRoleChange(this.value)">
+                                <option value="">-- Choose a Role --</option>
+                                <option th:each="role : ${page.roleList}" th:value="${role.roleId}" th:text="${role.roleName}">ADMIN</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Permissions</label>
+                            <div class="border rounded p-3 bg-light" style="max-height: 250px; overflow-y: auto;">
+                                <div class="form-check mb-2" th:each="perm : ${page.permissionList}">
+                                    <input class="form-check-input perm-checkbox" type="checkbox" name="permIds" th:value="${perm.permId}" th:id="'perm_' + ${perm.permId}">
+                                    <label class="form-check-label" th:for="'perm_' + ${perm.permId}">
+                                        <strong th:text="${perm.permCode}">MONITOR_VIEW</strong>
+                                        <span class="text-muted d-block small" th:text="${perm.description}">Allows viewing monitor graphs</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary" id="saveRolePermsBtn" disabled>Save Changes</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -129,9 +173,13 @@
 <th:block layout:fragment="script">
     <script th:inline="javascript">
         let userModal;
+        let roleModal;
+        const roleList = /*[[${page.roleList}]]*/ [];
+        const permissionList = /*[[${page.permissionList}]]*/ [];
         
         $(function() {
             userModal = new bootstrap.Modal('#userModal');
+            roleModal = new bootstrap.Modal('#roleModal');
             
             const $userForm = $('#userForm');
             $userForm.on('submit', function(e) {
@@ -150,6 +198,27 @@
                     },
                     error: function(xhr) {
                         alert('System error occurred while saving user');
+                    }
+                });
+            });
+
+            const $roleForm = $('#roleForm');
+            $roleForm.on('submit', function(e) {
+                e.preventDefault();
+                $.ajax({
+                    url: $roleForm.attr('action'),
+                    type: 'POST',
+                    data: $roleForm.serialize(),
+                    success: function(res) {
+                        if (res.success) {
+                            roleModal.hide();
+                            location.reload();
+                        } else {
+                            alert('Error saving permissions: ' + res.error.message);
+                        }
+                    },
+                    error: function(xhr) {
+                        alert('System error occurred while saving permissions');
                     }
                 });
             });
@@ -198,6 +267,29 @@
                     error: function(xhr) {
                         alert('System error occurred while deleting user');
                     }
+                });
+            }
+        }
+        function openRoleModal() {
+            $('#roleForm')[0].reset();
+            $('#roleSelect').val('');
+            $('.perm-checkbox').prop('checked', false);
+            $('#saveRolePermsBtn').prop('disabled', true);
+            roleModal.show();
+        }
+
+        function onRoleChange(roleId) {
+            $('.perm-checkbox').prop('checked', false);
+            if (!roleId) {
+                $('#saveRolePermsBtn').prop('disabled', true);
+                return;
+            }
+            $('#saveRolePermsBtn').prop('disabled', false);
+
+            const selectedRole = roleList.find(r => r.roleId == roleId);
+            if (selectedRole && selectedRole.permissions) {
+                selectedRole.permissions.forEach(perm => {
+                    $(`#perm_${perm.permId}`).prop('checked', true);
                 });
             }
         }
