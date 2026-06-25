@@ -16,9 +16,11 @@
 package com.aspectran.aspectow.console.scheduler;
 
 import com.aspectran.aspectow.appmon.common.auth.AppMonTokenIssuer;
+import com.aspectran.aspectow.console.auth.UserInfo;
 import com.aspectran.aspectow.console.cluster.NodeConsoleHelper;
 import com.aspectran.aspectow.node.config.NodeInfo;
 import com.aspectran.aspectow.node.manager.NodeManager;
+import com.aspectran.core.activity.Translet;
 import com.aspectran.core.component.bean.annotation.Action;
 import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Component;
@@ -58,19 +60,24 @@ public class SchedulerActivity {
 
     /**
      * Displays the scheduler management page.
+     * @param translet the current translet
      * @param nodeId the node ID
      * @return a map of attributes for rendering the view
      */
     @Request("/")
     @Dispatch("cluster/scheduler")
     @Action("page")
-    public Map<String, Object> scheduler(String nodeId) {
+    public Map<String, Object> scheduler(Translet translet, String nodeId) {
         String clusterMode = nodeManager.getClusterConfig().getMode();
         List<Map<String, Object>> nodes = nodeConsoleHelper.getNodes(true);
         NodeInfo nodeInfo = (nodeId != null ? nodeManager.getNodeInfoHolder().getNodeInfo(nodeId) : null);
         if (nodeInfo == null) {
             nodeInfo = nodeManager.getNodeInfoHolder().getNodeInfo(nodeManager.getNodeId());
         }
+
+        UserInfo userInfo = translet.getSessionAdapter().getAttribute(UserInfo.USERINFO_KEY);
+        boolean isDemo = (userInfo != null && userInfo.hasRole("DEMO"));
+
         return Map.of(
                 "title", "Scheduler Manager",
                 "style", "scheduler-page",
@@ -79,7 +86,7 @@ public class SchedulerActivity {
                 "myNodeId", nodeManager.getNodeId(),
                 "nodes", nodes,
                 "node", nodeConsoleHelper.createNodeMap(nodeInfo, true, true),
-                "token", AppMonTokenIssuer.issueToken(30),
+                "token", AppMonTokenIssuer.issueToken(30, isDemo),
                 "hasJobLockProvider", (CoreServiceHolder.getJobLockProvider() != null)
         );
     }

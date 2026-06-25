@@ -15,6 +15,8 @@
  */
 package com.aspectran.aspectow.console.commands.bridge.polling;
 
+import com.aspectran.aspectow.console.auth.UserInfo;
+import com.aspectran.daemon.command.CommandParameters;
 import com.aspectran.aspectow.node.management.commands.CommandRequestParameters;
 import com.aspectran.aspectow.node.management.commands.RemoteCommandManager;
 import com.aspectran.aspectow.node.management.commands.bridge.CommandBridge;
@@ -149,6 +151,22 @@ public class PollingCommandBridge extends AbstractComponent implements CommandBr
 
         if (request.getCommand() == null) {
             return new FailureResponse().setError("command_required", "Command is required");
+        }
+
+        UserInfo userInfo = translet.getSessionAdapter().getAttribute(UserInfo.USERINFO_KEY);
+        boolean isDemo = (userInfo != null && userInfo.hasRole("DEMO"));
+        if (isDemo) {
+            CommandParameters commandParameters = request.getCommand();
+            String commandName = commandParameters.getString("command");
+            String transletName = commandParameters.getString("translet");
+
+            if (!"sysinfo".equals(commandName) && !"translet".equals(commandName)) {
+                return new FailureResponse().setError("forbidden", "Only 'sysinfo' and 'translet' commands are allowed in the demo environment.");
+            }
+
+            if ("translet".equals(commandName) && !"sample/commands/hello".equals(transletName)) {
+                return new FailureResponse().setError("forbidden", "Only 'sample/commands/hello' translet can be executed in the demo environment.");
+            }
         }
 
         try {

@@ -58,20 +58,38 @@ public class AccessControlAspect {
         boolean hasAccess = true;
 
         if (requestName.startsWith("/user")) {
-            hasAccess = (userInfo.hasPermission("USER_MANAGE") || userInfo.hasRole("SUPER_ADMIN"));
+            if (requestName.equals("/user/login-history")) {
+                hasAccess = true;
+            } else if (userInfo.hasRole("DEMO")) {
+                if (requestName.equals("/user/save") ||
+                        requestName.equals("/user/delete") ||
+                        requestName.equals("/user/role/save-permissions")) {
+                    hasAccess = false;
+                } else {
+                    hasAccess = true;
+                }
+            } else {
+                hasAccess = (userInfo.hasPermission("USER_MANAGE") || userInfo.hasRole("SUPER_ADMIN"));
+            }
+        } else if (requestName.startsWith("/cluster/commands") ||
+                requestName.startsWith("/commands")) {
+            hasAccess = (userInfo.hasPermission("COMMAND_EXECUTE") || userInfo.hasRole("SUPER_ADMIN"));
         } else if (requestName.startsWith("/cluster") ||
                 requestName.startsWith("/scheduler") ||
-                requestName.startsWith("/commands") ||
                 requestName.startsWith("/vault")) {
-            hasAccess = (userInfo.hasRole("SUPER_ADMIN") || userInfo.hasRole("ADMIN"));
+            hasAccess = (userInfo.hasRole("SUPER_ADMIN") ||
+                    userInfo.hasRole("ADMIN") ||
+                    userInfo.hasRole("DEMO"));
         } else if (requestName.startsWith("/appmon")) {
             hasAccess = (userInfo.hasPermission("MONITOR_VIEW") ||
                     userInfo.hasRole("SUPER_ADMIN") ||
-                    userInfo.hasRole("ADMIN"));
+                    userInfo.hasRole("ADMIN") ||
+                    userInfo.hasRole("DEMO"));
         } else if (requestName.startsWith("/framework")) {
             hasAccess = (userInfo.hasRole("SUPER_ADMIN") ||
                     userInfo.hasRole("ADMIN") ||
-                    userInfo.hasRole("VIEWER"));
+                    userInfo.hasRole("VIEWER") ||
+                    userInfo.hasRole("DEMO"));
         }
 
         if (!hasAccess) {

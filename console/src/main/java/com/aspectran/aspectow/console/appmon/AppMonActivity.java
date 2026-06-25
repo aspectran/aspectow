@@ -30,6 +30,8 @@ import com.aspectran.core.component.bean.annotation.RequestToGet;
 import com.aspectran.utils.StringUtils;
 import com.aspectran.web.activity.response.DefaultRestResponse;
 import com.aspectran.web.activity.response.RestResponse;
+import com.aspectran.core.activity.Translet;
+import com.aspectran.aspectow.console.auth.UserInfo;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -99,7 +101,7 @@ public class AppMonActivity {
     }
 
     @RequestToGet("/config/data")
-    public RestResponse getConfigData(String appsToSubscribe) {
+    public RestResponse getConfigData(Translet translet, String appsToSubscribe) {
         Map<String, Object> settings = Map.of(
                 "counterPersistInterval", appMonManager.getCounterPersistInterval(),
                 "clusterMode", appMonManager.getClusterMode()
@@ -136,8 +138,11 @@ public class AppMonActivity {
             nodeInfoList.sort(Comparator.comparing(NodeInfo::getId, Comparator.nullsLast(String::compareTo)));
         }
 
+        UserInfo userInfo = translet.getSessionAdapter().getAttribute(UserInfo.USERINFO_KEY);
+        boolean isDemo = (userInfo != null && userInfo.hasRole("DEMO"));
+
         Map<String, Object> data = Map.of(
-                "token", AppMonTokenIssuer.issueToken(30),
+                "token", AppMonTokenIssuer.issueToken(30, isDemo),
                 "myNodeId", appMonManager.getNodeId(),
                 "myGroupId", appMonManager.getGroupId(),
                 "appsToSubscribe", StringUtils.join(verifiedAppIds, ","),

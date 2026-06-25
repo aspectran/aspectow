@@ -84,7 +84,7 @@
 </head>
 <body>
     <th:block layout:fragment="content">
-        <div th:if="${session.USER_INFO.hasRole('SUPER_ADMIN') || session.USER_INFO.hasRole('ADMIN')}">
+        <div th:if="${session.USER_INFO.hasPermission('COMMAND_EXECUTE') || session.USER_INFO.hasRole('SUPER_ADMIN')}">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div>
                     <h2 class="fw-bold mb-0">Remote Commands</h2>
@@ -144,10 +144,10 @@
                                     </button>
                                     <ul class="dropdown-menu dropdown-menu-end">
                                         <li><a class="dropdown-item" href="#" onclick="loadTemplate('sysinfo')">System Info</a></li>
-                                        <li><a class="dropdown-item" href="#" onclick="loadTemplate('polling')">Polling Interval</a></li>
+                                        <li th:if="${!session.USER_INFO.hasRole('DEMO')}"><a class="dropdown-item" href="#" onclick="loadTemplate('polling')">Polling Interval</a></li>
                                         <li><a class="dropdown-item" href="#" onclick="loadTemplate('translet')">Execute Translet</a></li>
-                                        <li><hr class="dropdown-divider"></li>
-                                        <li><a class="dropdown-item" href="#" onclick="loadTemplate('restart')">Restart Daemon</a></li>
+                                        <li th:if="${!session.USER_INFO.hasRole('DEMO')}"><hr class="dropdown-divider"></li>
+                                        <li th:if="${!session.USER_INFO.hasRole('DEMO')}"><a class="dropdown-item" href="#" onclick="loadTemplate('restart')">Restart Daemon</a></li>
                                     </ul>
                                 </div>
                             </div>
@@ -172,7 +172,7 @@ arguments: {
                 </div>
             </div>
         </div>
-        <div th:unless="${session.USER_INFO.hasRole('SUPER_ADMIN') || session.USER_INFO.hasRole('ADMIN')}" class="alert alert-danger my-4">
+        <div th:unless="${session.USER_INFO.hasPermission('COMMAND_EXECUTE') || session.USER_INFO.hasRole('SUPER_ADMIN')}" class="alert alert-danger my-4">
             <h4 class="alert-heading"><i class="bi bi-exclamation-triangle-fill"></i> Access Denied</h4>
             <p class="mb-0">You do not have permission to access this page.</p>
         </div>
@@ -183,6 +183,7 @@ arguments: {
         <script th:inline="javascript">
             const basePath = [[@{/}]].replace(/\/$/, '');
             const clusterMode = [[${page.clusterMode}]];
+            const isDemoUser = /*[[${session.USER_INFO.hasRole('DEMO')}]]*/ false;
             const myNodeId = [[${page.myNodeId}]];
             const targetNodeId = [[${page.targetNodeId}]];
             let nodes = [[${page.nodes}]];
@@ -335,6 +336,31 @@ arguments: {
             function dispatchCommand() {
                 const apon = $('#command-editor').val().trim();
                 if (!apon) return;
+
+                if (isDemoUser) {
+                    let commandVal = '';
+                    let transletVal = '';
+                    const lines = apon.split('\n');
+                    for (let line of lines) {
+                        line = line.trim();
+                        if (line.startsWith('command:')) {
+                            commandVal = line.substring(8).trim().replace(/['"]/g, '');
+                        }
+                        if (line.startsWith('translet:')) {
+                            transletVal = line.substring(9).trim().replace(/['"]/g, '');
+                        }
+                    }
+
+                    if (commandVal !== 'sysinfo' && commandVal !== 'translet') {
+                        alert('Demo users are only allowed to execute "sysinfo" or "translet" commands.');
+                        return;
+                    }
+
+                    if (commandVal === 'translet' && transletVal !== 'sample/commands/hello') {
+                        alert('Only "sample/commands/hello" translet can be executed in the demo environment.');
+                        return;
+                    }
+                }
 
                 const targetType = $('#target-type').val();
                 const targetValue = $('#target-value').val();

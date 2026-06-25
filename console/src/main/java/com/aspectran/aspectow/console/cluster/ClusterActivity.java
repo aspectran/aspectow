@@ -16,9 +16,11 @@
 package com.aspectran.aspectow.console.cluster;
 
 import com.aspectran.aspectow.appmon.common.auth.AppMonTokenIssuer;
+import com.aspectran.aspectow.console.auth.UserInfo;
 import com.aspectran.aspectow.node.config.GroupInfo;
 import com.aspectran.aspectow.node.config.NodeInfo;
 import com.aspectran.aspectow.node.manager.NodeManager;
+import com.aspectran.core.activity.Translet;
 import com.aspectran.core.component.bean.annotation.Action;
 import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Component;
@@ -63,7 +65,7 @@ public class ClusterActivity {
     @Request("/nodes")
     @Dispatch("cluster/nodes")
     @Action("page")
-    public Map<String, Object> listNodes() {
+    public Map<String, Object> listNodes(Translet translet) {
         String clusterMode = nodeManager.getClusterConfig().getMode();
         List<Map<String, Object>> nodes = nodeConsoleHelper.getNodes(false);
         NodeInfo nodeInfo = nodeManager.getNodeInfoHolder().getNodeInfo(nodeManager.getNodeId());
@@ -75,7 +77,10 @@ public class ClusterActivity {
         model.put("clusterMode", clusterMode);
         model.put("nodes", nodes);
         model.put("node", nodeConsoleHelper.createNodeMap(nodeInfo, true, true));
-        model.put("token", AppMonTokenIssuer.issueToken(30));
+
+        UserInfo userInfo = translet.getSessionAdapter().getAttribute(UserInfo.USERINFO_KEY);
+        boolean isDemo = (userInfo != null && userInfo.hasRole("DEMO"));
+        model.put("token", AppMonTokenIssuer.issueToken(30, isDemo));
 
         if (nodeManager.getClusterConfig().isGatewayMode()) {
             List<GroupInfo> groupInfos = nodeManager.getGroupInfoList();
@@ -91,8 +96,8 @@ public class ClusterActivity {
                 model.put("groups", groups);
 
                 Map<String, List<Map<String, Object>>> groupedNodes = nodes.stream()
-                        .filter(n -> n.get("group") != null)
-                        .collect(Collectors.groupingBy(n -> (String) n.get("group")));
+                         .filter(n -> n.get("group") != null)
+                         .collect(Collectors.groupingBy(n -> (String) n.get("group")));
                 model.put("groupedNodes", groupedNodes);
             }
         }
@@ -104,8 +109,10 @@ public class ClusterActivity {
      * @return the issued token
      */
     @Request("/token")
-    public RestResponse refreshToken() {
-        return new SuccessResponse(AppMonTokenIssuer.issueToken(30)).ok();
+    public RestResponse refreshToken(Translet translet) {
+        UserInfo userInfo = translet.getSessionAdapter().getAttribute(UserInfo.USERINFO_KEY);
+        boolean isDemo = (userInfo != null && userInfo.hasRole("DEMO"));
+        return new SuccessResponse(AppMonTokenIssuer.issueToken(30, isDemo)).ok();
     }
 
 }

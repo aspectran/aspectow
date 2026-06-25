@@ -80,6 +80,8 @@ public class WebsocketCommandBridge extends SimplifiedEndpoint implements Comman
         String token = session.getPathParameters().get("token");
         try {
             AppMonTokenIssuer.validateToken(token);
+            boolean isDemo = AppMonTokenIssuer.isDemoToken(token);
+            session.getUserProperties().put("isDemo", isDemo);
             return true;
         } catch (InvalidPBTokenException e) {
             logger.warn("WebSocket connection rejected: invalid or expired token");
@@ -176,6 +178,25 @@ public class WebsocketCommandBridge extends SimplifiedEndpoint implements Comman
     private void execute(Session session, @NonNull CommandRequestParameters request) {
         CommandParameters commandParameters = request.getCommand();
         if (commandParameters != null) {
+            Boolean isDemo = (Boolean) session.getUserProperties().get("isDemo");
+            if (isDemo != null && isDemo) {
+                String commandName = commandParameters.getString("command");
+                String transletName = commandParameters.getString("translet");
+
+                if (!"sysinfo".equals(commandName) && !"translet".equals(commandName)) {
+                    CommandResponseParameters response = new CommandResponseParameters()
+                            .setError("Only 'sysinfo' and 'translet' commands are allowed in the demo environment.");
+                    sendText(session, response.toString());
+                    return;
+                }
+
+                if ("translet".equals(commandName) && !"sample/commands/hello".equals(transletName)) {
+                    CommandResponseParameters response = new CommandResponseParameters()
+                            .setError("Only 'sample/commands/hello' translet can be executed in the demo environment.");
+                    sendText(session, response.toString());
+                    return;
+                }
+            }
             request.setSessionId(session.getId());
             try {
                 remoteCommandManager.process(request);

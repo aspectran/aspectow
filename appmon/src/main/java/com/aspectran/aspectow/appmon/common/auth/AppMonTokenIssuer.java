@@ -30,6 +30,8 @@ public final class AppMonTokenIssuer {
 
     private static final String MAX_AGE_PARAM = "maxAgeInSeconds";
 
+    private static final String IS_DEMO_PARAM = "isDemo";
+
     private static final int DEFAULT_MAX_AGE = 1800; // 30 minutes
 
     private AppMonTokenIssuer() {
@@ -41,8 +43,19 @@ public final class AppMonTokenIssuer {
      * @return the generated token
      */
     public static String issueToken(int maxAgeInSeconds) {
+        return issueToken(maxAgeInSeconds, false);
+    }
+
+    /**
+     * Issues a time-limited token with a specified expiration time and demo flag.
+     * @param maxAgeInSeconds the maximum age of the token in seconds
+     * @param isDemo the flag indicating if the token is for a demo user
+     * @return the generated token
+     */
+    public static String issueToken(int maxAgeInSeconds, boolean isDemo) {
         Parameters payload = new VariableParameters();
         payload.putValue(MAX_AGE_PARAM, maxAgeInSeconds);
+        payload.putValue(IS_DEMO_PARAM, isDemo);
         return TimeLimitedPBTokenIssuer.createToken(payload, 1000L * maxAgeInSeconds);
     }
 
@@ -63,6 +76,24 @@ public final class AppMonTokenIssuer {
             return DEFAULT_MAX_AGE;
         }
         return maxAgeInSeconds;
+    }
+
+    /**
+     * Checks if the given token is issued for a demo user.
+     * @param token the token to check
+     * @return {@code true} if the token is for a demo user; {@code false} otherwise
+     */
+    public static boolean isDemoToken(String token) {
+        try {
+            Parameters payload = TimeLimitedPBTokenIssuer.parseToken(token);
+            if (payload != null) {
+                Boolean isDemo = payload.getBoolean(IS_DEMO_PARAM);
+                return (isDemo != null && isDemo);
+            }
+        } catch (Exception e) {
+            // ignore
+        }
+        return false;
     }
 
 }

@@ -176,6 +176,7 @@
         let roleModal;
         const roleList = /*[[${page.roleList}]]*/ [];
         const permissionList = /*[[${page.permissionList}]]*/ [];
+        const isDemoUser = /*[[${session.USER_INFO.hasRole('DEMO')}]]*/ false;
         
         $(function() {
             userModal = new bootstrap.Modal('#userModal');
@@ -184,6 +185,11 @@
             const $userForm = $('#userForm');
             $userForm.on('submit', function(e) {
                 e.preventDefault();
+                if (isDemoUser) {
+                    alert('Modifying users is not allowed in the demo environment.');
+                    userModal.hide();
+                    return;
+                }
                 $.ajax({
                     url: $userForm.attr('action'),
                     type: 'POST',
@@ -205,6 +211,11 @@
             const $roleForm = $('#roleForm');
             $roleForm.on('submit', function(e) {
                 e.preventDefault();
+                if (isDemoUser) {
+                    alert('Modifying role permissions is not allowed in the demo environment.');
+                    roleModal.hide();
+                    return;
+                }
                 $.ajax({
                     url: $roleForm.attr('action'),
                     type: 'POST',
@@ -252,6 +263,10 @@
         }
 
         function deleteUser(id) {
+            if (isDemoUser) {
+                alert('Deleting users is not allowed in the demo environment.');
+                return;
+            }
             if (confirm('Are you sure you want to delete this user?')) {
                 $.ajax({
                     url: /*[[@{/user/delete}]]*/ '/user/delete',

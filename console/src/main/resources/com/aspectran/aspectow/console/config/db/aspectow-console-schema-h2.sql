@@ -92,15 +92,21 @@ comment on table asc_vault is 'Vault (Encrypted Tokens)';
 insert IGNORE into asc_role (role_name, description) values ('SUPER_ADMIN', 'Super administrator with full access');
 insert IGNORE into asc_role (role_name, description) values ('ADMIN', 'Administrator with limited management access');
 insert IGNORE into asc_role (role_name, description) values ('VIEWER', 'User with read-only access');
+insert IGNORE into asc_role (role_name, description) values ('DEMO', 'Demo user with simulation access');
 
 insert IGNORE into asc_permission (perm_code, description) values ('MONITOR_VIEW', 'Access to monitoring dashboard');
 insert IGNORE into asc_permission (perm_code, description) values ('MONITOR_CONTROL', 'Control monitoring settings');
 insert IGNORE into asc_permission (perm_code, description) values ('USER_MANAGE', 'Manage users and roles');
+insert IGNORE into asc_permission (perm_code, description) values ('COMMAND_EXECUTE', 'Execute remote commands');
 
 -- Map permissions to SUPER_ADMIN
 insert IGNORE into asc_role_permission (role_id, perm_id) select 1, perm_id from asc_permission;
+-- Map permissions to ADMIN
+insert IGNORE into asc_role_permission (role_id, perm_id) select 2, perm_id from asc_permission where perm_code in ('MONITOR_VIEW', 'COMMAND_EXECUTE');
 -- Map permissions to VIEWER
 insert IGNORE into asc_role_permission (role_id, perm_id) select 3, perm_id from asc_permission where perm_code = 'MONITOR_VIEW';
+-- Map permissions to DEMO
+insert IGNORE into asc_role_permission (role_id, perm_id) select 4, perm_id from asc_permission;
 
 -- Initial Super Admin user (password: admin123)
 insert IGNORE into asc_user (username, password, nickname, email) values ('admin', 'admin123', 'Super Admin', 'admin@aspectow.com');
