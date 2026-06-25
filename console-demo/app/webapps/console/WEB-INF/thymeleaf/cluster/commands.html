@@ -80,6 +80,31 @@
             max-width: 100%;
             overflow-x: auto;
         }
+        .node-header {
+            display: inline-block;
+            padding: 4px 10px;
+            margin-bottom: -1px;
+            position: relative;
+            z-index: 1;
+            border: 1px solid var(--bs-border-color);
+            border-bottom: none;
+            border-top-left-radius: 6px;
+            border-top-right-radius: 6px;
+            font-size: 0.85rem;
+            background-color: var(--bs-body-bg);
+        }
+        .node-header.text-success {
+            border-color: var(--bs-success-border-subtle);
+            border-bottom: none;
+            background-color: var(--bs-success-bg-subtle);
+            color: var(--bs-success-text-emphasis) !important;
+        }
+        .node-header.text-danger {
+            border-color: var(--bs-danger-border-subtle);
+            border-bottom: none;
+            background-color: var(--bs-danger-bg-subtle);
+            color: var(--bs-danger-text-emphasis) !important;
+        }
     </style>
 </head>
 <body>
@@ -380,7 +405,7 @@ arguments: {
                     target: targetDisplay,
                     content: apon,
                     status: 'queued',
-                    result: null
+                    result: []
                 };
 
                 commandHistory.unshift(newCmd);
@@ -409,7 +434,10 @@ arguments: {
                 }
 
                 commandHistory.forEach((cmd, index) => {
-                    const statusClass = cmd.status === 'completed' ? 'bg-success' : (cmd.status === 'failed' ? 'bg-danger' : 'bg-warning');
+                    let statusClass = 'bg-warning';
+                    if (cmd.status === 'completed') statusClass = 'bg-success text-white';
+                    else if (cmd.status === 'failed') statusClass = 'bg-danger text-white';
+                    else if (cmd.status === 'partial') statusClass = 'bg-info text-white';
                     const $item = $(`
                         <div class="history-item ${index === 0 ? 'active' : ''}" onclick="showDetail('${cmd.id}')">
                             <div class="d-flex justify-content-between align-items-start mb-1">
@@ -440,18 +468,76 @@ arguments: {
                 const $view = $('#result-view');
                 $view.empty();
 
+                let resultHtml = '';
+                if (cmd.status === 'queued' && (!cmd.result || cmd.result.length === 0)) {
+                    resultHtml = '<pre class="bg-dark text-light p-3 rounded">Wait for response...</pre>';
+                } else if (!cmd.result || cmd.result.length === 0) {
+                    resultHtml = '<pre class="bg-dark text-light p-3 rounded">No result.</pre>';
+                } else {
+                    resultHtml = '<div class="node-results-wrapper">';
+                    cmd.result.forEach((res, idx) => {
+                        const isFailed = res.isFailed || res.error;
+                        const headerColor = isFailed ? 'text-danger' : 'text-success';
+                        const headerHtml = res.nodeId ? `<div class="node-header ms-3 fw-bold ${headerColor}">[Node: ${res.nodeId}]</div>` : '';
+                        const bodyText = res.text + (res.error ? `[ERROR] ${res.error}\n` : '');
+
+                        resultHtml += `
+                            <div class="node-result-item">
+                                ${headerHtml}
+                                <pre class="bg-body mb-2 p-3 rounded border border-secondary" style="max-width: 100%; overflow-x: auto;">${bodyText}</pre>
+                            </div>
+                        `;
+                    });
+                    resultHtml += '</div>';
+                }
+
                 const $detail = $(`
                     <div class="mb-3">
                         <div class="text-muted mb-1 small text-uppercase fw-bold">Target & Payload:</div>
-                        <div class="p-2 bg-dark rounded-top border-bottom border-secondary small text-warning">Target: ${cmd.target}</div>
+                        <div class="px-3 py-2 bg-dark rounded-top border-bottom border-secondary small text-warning">Target: ${cmd.target}</div>
                         <pre class="bg-dark text-info p-3 rounded-bottom">${cmd.content}</pre>
                     </div>
                     <div>
-                        <div class="text-muted mb-1 small text-uppercase fw-bold">Execution Result:</div>
-                        <pre class="bg-dark text-light p-3 rounded">${cmd.result || (cmd.status === 'queued' ? 'Wait for response...' : 'No result.')}</pre>
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <div class="text-muted small text-uppercase fw-bold">Execution Result:</div>
+                            ${cmd.result && cmd.result.length > 0 ? `
+                                <button class="btn btn-xs btn-outline-secondary" onclick="copyEntireResult('${cmd.id}', this)" style="padding: 2px 6px; font-size: 0.75rem;">
+                                    <i class="bi bi-clipboard me-1"></i>Copy All
+                                </button>
+                            ` : ''}
+                        </div>
+                        <div class="result-render-container">${resultHtml}</div>
                     </div>
                 `);
                 $view.append($detail);
+            }
+
+            function copyEntireResult(id, btn) {
+                const cmd = commandHistory.find(c => c.id === id);
+                if (!cmd || !cmd.result || cmd.result.length === 0) return;
+
+                const text = cmd.result.map(res => {
+                    let nodeText = "";
+                    if (res.nodeId) {
+                        nodeText += `[Node: ${res.nodeId}]\n`;
+                    }
+                    nodeText += res.text;
+                    if (res.error) {
+                        nodeText += `[ERROR] ${res.error}\n`;
+                    }
+                    return nodeText;
+                }).join('\n');
+
+                navigator.clipboard.writeText(text).then(() => {
+                    const $btn = $(btn);
+                    const originalHtml = $btn.html();
+                    $btn.html('<i class="bi bi-check2 me-1"></i>Copied!').removeClass('btn-outline-secondary').addClass('btn-success text-white');
+                    setTimeout(() => {
+                        $btn.html(originalHtml).removeClass('btn-success text-white').addClass('btn-outline-secondary');
+                    }, 2000);
+                }).catch(err => {
+                    console.error('Failed to copy text: ', err);
+                });
             }
 
             function clearHistory() {
@@ -514,10 +600,17 @@ arguments: {
                             if (cmd.status === 'queued') {
                                 if (cmd.content.includes('command: restart')) {
                                     cmd.status = 'completed';
-                                    cmd.result = 'Restart command dispatched. Connection lost as expected.';
+                                    cmd.result = [{
+                                        nodeId: null,
+                                        text: 'Restart command dispatched. Connection lost as expected.'
+                                    }];
                                 } else {
                                     cmd.status = 'failed';
-                                    cmd.result = 'Connection closed before response was received.';
+                                    cmd.result = [{
+                                        nodeId: null,
+                                        text: 'Connection closed before response was received.',
+                                        error: 'Connection closed'
+                                    }];
                                 }
                                 changed = true;
                             }
@@ -547,42 +640,51 @@ arguments: {
                             if (changed) {
                                 updateHistoryUI();
                             }
-                            // Refresh target node list & status UI
                             onTargetTypeChange(true);
                             return;
                         }
 
                         if (header === 'nodeLeft') {
-                            // Refresh target node list & status UI
                             onTargetTypeChange(true);
                             return;
                         }
 
                         const target = commandHistory.find(c => c.id === requestId) || commandHistory.find(c => c.status === 'queued');
                         if (target) {
-                            let nodeResult = "";
-                            if (nodeId) {
-                                nodeResult += `[Node: ${nodeId}]\n`;
-                            }
+                            let text = "";
+                            let hasFailed = false;
+
                             if (result !== undefined && result !== null) {
-                                nodeResult += result + "\n";
+                                text = result + "\n";
                                 if (result.includes('[FAILED]')) {
-                                    target.status = 'failed';
-                                } else if (target.status !== 'failed') {
-                                    target.status = 'completed';
+                                    hasFailed = true;
                                 }
-                            } else if (target.status !== 'failed') {
-                                target.status = 'completed';
-                            }
-                            if (error) {
-                                nodeResult += "[ERROR] " + error;
                             }
 
-                            if (target.result) {
-                                target.result += "\n" + nodeResult;
+                            const nodeResult = {
+                                nodeId: nodeId || null,
+                                text: text,
+                                error: error || null,
+                                isFailed: hasFailed
+                            };
+
+                            if (target.result && Array.isArray(target.result)) {
+                                target.result.push(nodeResult);
                             } else {
-                                target.result = nodeResult;
+                                target.result = [nodeResult];
                             }
+
+                            const hasSuccessNode = target.result.some(r => !r.isFailed && !r.error);
+                            const hasFailedNode = target.result.some(r => r.isFailed || r.error);
+
+                            if (hasSuccessNode && hasFailedNode) {
+                                target.status = 'partial';
+                            } else if (hasFailedNode) {
+                                target.status = 'failed';
+                            } else {
+                                target.status = 'completed';
+                            }
+
                             updateHistoryUI();
                         }
                     }
