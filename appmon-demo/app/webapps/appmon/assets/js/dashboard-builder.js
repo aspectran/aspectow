@@ -201,7 +201,15 @@ class DashboardBuilder {
         const onFailed = (node) => {
             this.changeNodeState(node, true);
             if (node.endpoint.mode === "polling" && node.subscribeAttempts < 1) {
+                const currentClient = this.clients[node.index];
+                if (currentClient && currentClient.constructor.name === "PollingClient") {
+                    return;
+                }
                 setTimeout(() => {
+                    const currentClientAsync = this.clients[node.index];
+                    if (currentClientAsync && currentClientAsync.constructor.name === "PollingClient") {
+                        return;
+                    }
                     const viewer = this.viewers[node.index];
                     const client = new PollingClient(node, viewer, onSubscribed, onClosed, onFailed, this.isGatewayMode);
                     if (this.isGatewayMode) {

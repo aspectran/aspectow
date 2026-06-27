@@ -196,4 +196,13 @@ public class PollingSchedulerBridge extends AbstractComponent implements Schedul
         sessionManager.push(schedulerSession, message);
     }
 
+    /**
+     * Simple ping-pong endpoint for node status verification.
+     * @return a {@link RestResponse} containing "pong"
+     */
+    @RequestToGet("/ping")
+    public RestResponse ping() {
+        return new SuccessResponse("pong").ok();
+    }
+
 }

@@ -214,6 +214,7 @@ arguments: {
             let nodes = [[${page.nodes}]];
 
             let consoleClient = null;
+            let consoleClients = {};
             let commandHistory = [];
             const templates = {
                 sysinfo: 'command: sysinfo\narguments: {\n    item: { value: mem }\n    item: { value: props }\n}',
@@ -312,6 +313,9 @@ arguments: {
                         checkSelectedNodeStatus(currentNodeId);
                     }
                 }
+                if (clusterMode === 'direct') {
+                    updateConnectionIndicatorForDirectMode();
+                }
             }
 
             function updateUrl(nodeId) {
@@ -326,25 +330,48 @@ arguments: {
 
             function checkSelectedNodeStatus(nodeId) {
                 const nodeInfo = nodes.find(n => n.id === nodeId);
-                if (nodeInfo && nodeInfo.status && nodeInfo.status.toUpperCase() === 'DEAD') {
-                    $('#connection-indicator').text("TARGET DEAD").removeClass("bg-success bg-warning bg-secondary").addClass("bg-danger");
-                    $('#result-view').html(`
-                        <div class="text-center py-4">
-                            <i class="bi bi-exclamation-octagon fs-2 text-danger mb-2"></i>
-                            <h6 class="fw-bold">Target Node Unreachable</h6>
-                            <p class="text-muted small">Node <strong>${nodeId}</strong> is currently DEAD.</p>
-                            <button class="btn btn-xs btn-outline-primary" onclick="onTargetTypeChange(true)">
-                                <i class="bi bi-arrow-clockwise"></i> Refresh Status
-                            </button>
-                        </div>
-                    `);
-                    return false;
-                } else {
-                    if (consoleClient && consoleClient.established) {
-                        $('#connection-indicator').text("CONNECTED").removeClass("bg-danger bg-warning bg-secondary").addClass("bg-success");
+                const isDead = nodeInfo && nodeInfo.status && nodeInfo.status.toUpperCase() === 'DEAD';
+
+                if (clusterMode === 'gateway') {
+                    if (isDead) {
+                        renderUnreachableError(nodeId);
+                        return false;
+                    } else {
+                        if (consoleClient && consoleClient.established) {
+                            $('#connection-indicator').text("CONNECTED").removeClass("bg-danger bg-warning bg-secondary").addClass("bg-success");
+                        }
+                        return true;
                     }
-                    return true;
+                } else {
+                    const client = consoleClients[nodeId];
+                    if (client && client.established) {
+                        $('#connection-indicator').text("CONNECTED").removeClass("bg-danger bg-warning bg-secondary").addClass("bg-success");
+                        return true;
+                    } else if (client && !client.manualClose && client.retryCount < client.options.maxRetries) {
+                        $('#connection-indicator').text("CONNECTING...").removeClass("bg-success bg-danger").addClass("bg-warning");
+                        return true;
+                    } else if (client) {
+                        renderUnreachableError(nodeId);
+                        return false;
+                    } else {
+                        $('#connection-indicator').text("CONNECTING...").removeClass("bg-success bg-danger bg-warning").addClass("bg-secondary");
+                        return true;
+                    }
                 }
+            }
+
+            function renderUnreachableError(nodeId) {
+                $('#connection-indicator').text("NODE DEAD").removeClass("bg-success bg-warning bg-secondary").addClass("bg-danger");
+                $('#result-view').html(`
+                    <div class="text-center py-4">
+                        <i class="bi bi-exclamation-octagon fs-2 text-danger mb-2"></i>
+                        <h6 class="fw-bold">Target Node Unreachable</h6>
+                        <p class="text-muted small">Node <strong>${nodeId}</strong> is currently DEAD.</p>
+                        <button class="btn btn-xs btn-outline-primary" onclick="onTargetTypeChange(true)">
+                            <i class="bi bi-arrow-clockwise"></i> Refresh Status
+                        </button>
+                    </div>
+                `);
             }
 
             function resetDeadStatus() {
@@ -411,16 +438,36 @@ arguments: {
                 commandHistory.unshift(newCmd);
                 updateHistoryUI();
                 
-                if (consoleClient) {
-                    const message = {
-                        header: "execute",
-                        requestId: cmdId,
-                        command: apon
-                    };
-                    if (targetType === 'node') message.targetNodeId = targetValue;
-                    if (targetType === 'group') message.targetGroup = targetValue;
-                    if (targetType === 'all') message.targetAll = true;
-                    consoleClient.sendMessage(message);
+                const message = {
+                    header: "execute",
+                    requestId: cmdId,
+                    command: apon
+                };
+                if (targetType === 'node') message.targetNodeId = targetValue;
+                if (targetType === 'group') message.targetGroup = targetValue;
+                if (targetType === 'all') message.targetAll = true;
+
+                if (clusterMode === 'gateway') {
+                    if (consoleClient) {
+                        consoleClient.sendMessage(message);
+                    }
+                } else {
+                    let targetsToSend = [];
+                    if (targetType === 'node') {
+                        targetsToSend.push(targetValue);
+                    } else if (targetType === 'group') {
+                        targetsToSend = nodes.filter(n => n.group === targetValue).map(n => n.id);
+                    } else {
+                        targetsToSend = nodes.map(n => n.id);
+                    }
+
+                    targetsToSend.forEach(id => {
+                        const client = consoleClients[id];
+                        if (client && client.established) {
+                            const nodeMsg = Object.assign({}, message, { targetNodeId: id });
+                            client.sendMessage(nodeMsg);
+                        }
+                    });
                 }
             }
 
@@ -546,26 +593,47 @@ arguments: {
                 $('#result-view').html('<div class="text-muted small">History cleared.</div>');
             }
 
-            $(function() {
-                onTargetTypeChange();
+            function initConsoleClients(token) {
+                if (consoleClient) {
+                    consoleClient.stop();
+                    consoleClient = null;
+                }
+                for (let id in consoleClients) {
+                    consoleClients[id].stop();
+                }
+                consoleClients = {};
 
-                $('#target-value').on('change', function() {
-                    const type = $('#target-type').val();
-                    if (type === 'node') {
-                        const nodeId = $(this).val();
-                        updateUrl(nodeId);
-                        checkSelectedNodeStatus(nodeId);
-                    }
-                });
+                if (clusterMode === 'gateway') {
+                    const targetNode = nodes.find(n => n.id === (targetNodeId || myNodeId));
+                    const nodeInfo = {
+                        id: targetNodeId || myNodeId,
+                        port: targetNode ? targetNode.port : null,
+                        endpoint: {
+                            path: basePath + "/nodes/" + (targetNodeId || myNodeId)
+                        }
+                    };
+                    consoleClient = createConsoleClient(nodeInfo, token);
+                    consoleClient.start('commands');
+                } else {
+                    nodes.forEach(n => {
+                        const nodeInfo = {
+                            id: n.id,
+                            port: n.port,
+                            endpoint: {
+                                path: basePath + "/nodes/" + n.id
+                            }
+                        };
+                        const client = createConsoleClient(nodeInfo, token);
+                        client.start('commands');
+                        consoleClients[n.id] = client;
+                    });
+                    updateConnectionIndicatorForDirectMode();
+                }
+            }
 
-                const nodeInfo = {
-                    id: targetNodeId || myNodeId,
-                    endpoint: {
-                        path: basePath + "/nodes/" + (targetNodeId || myNodeId)
-                    }
-                };
-
-                consoleClient = new ConsoleClient(nodeInfo, {
+            function createConsoleClient(nodeInfo, token) {
+                return new ConsoleClient(nodeInfo, {
+                    token: token,
                     onBeforeConnect: () => {
                         return fetch(basePath + "/cluster/token", {
                                 headers: { 'Accept': 'application/json' }
@@ -578,21 +646,47 @@ arguments: {
                             });
                     },
                     onEstablished: () => {
-                        $('#connection-indicator').text("CONNECTED").removeClass("bg-secondary bg-danger bg-warning").addClass("bg-success");
-                        const type = $('#target-type').val();
-                        const val = $('#target-value').val();
-                        if (type === 'node' && val) {
-                            checkSelectedNodeStatus(val);
+                        const targetNode = nodes.find(n => n.id === nodeInfo.id);
+                        if (targetNode) {
+                            targetNode.status = 'LIVE';
+                        }
+
+                        if (clusterMode === 'gateway') {
+                            $('#connection-indicator').text("CONNECTED").removeClass("bg-secondary bg-danger bg-warning").addClass("bg-success");
+                            const type = $('#target-type').val();
+                            const val = $('#target-value').val();
+                            if (type === 'node' && val) {
+                                checkSelectedNodeStatus(val);
+                            }
+                        } else {
+                            updateConnectionIndicatorForDirectMode();
+                            doTargetTypeChange();
                         }
                     },
                     onRetry: (count, max) => {
-                        $('#connection-indicator').text(`RECONNECTING (${count}/${max})...`).removeClass("bg-success bg-danger").addClass("bg-warning");
+                        if (clusterMode === 'gateway') {
+                            $('#connection-indicator').text(`RECONNECTING (${count}/${max})...`).removeClass("bg-success bg-danger").addClass("bg-warning");
+                        } else {
+                            updateConnectionIndicatorForDirectMode();
+                        }
                     },
                     onClose: (event) => {
-                        if (event.code === 1003) {
-                            $('#connection-indicator').text("SESSION EXPIRED").removeClass("bg-success bg-warning").addClass("bg-danger");
+                        const targetNode = nodes.find(n => n.id === nodeInfo.id);
+                        if (targetNode) {
+                            if (clusterMode === 'direct') {
+                                targetNode.status = 'DEAD';
+                            }
+                        }
+
+                        if (clusterMode === 'gateway') {
+                            if (event.code === 1003) {
+                                $('#connection-indicator').text("SESSION EXPIRED").removeClass("bg-success bg-warning").addClass("bg-danger");
+                            } else {
+                                $('#connection-indicator').text("DISCONNECTED").removeClass("bg-success bg-warning").addClass("bg-danger");
+                            }
                         } else {
-                            $('#connection-indicator').text("DISCONNECTED").removeClass("bg-success bg-warning").addClass("bg-danger");
+                            updateConnectionIndicatorForDirectMode();
+                            doTargetTypeChange();
                         }
 
                         let changed = false;
@@ -607,7 +701,7 @@ arguments: {
                                 } else {
                                     cmd.status = 'failed';
                                     cmd.result = [{
-                                        nodeId: null,
+                                        nodeId: nodeInfo.id,
                                         text: 'Connection closed before response was received.',
                                         error: 'Connection closed'
                                     }];
@@ -617,6 +711,19 @@ arguments: {
                         });
                         if (changed) {
                             updateHistoryUI();
+                        }
+                    },
+                    onFailed: () => {
+                        const targetNode = nodes.find(n => n.id === nodeInfo.id);
+                        if (targetNode) {
+                            targetNode.status = 'DEAD';
+                        }
+
+                        if (clusterMode === 'gateway') {
+                            renderUnreachableError(nodeInfo.id);
+                        } else {
+                            updateConnectionIndicatorForDirectMode();
+                            doTargetTypeChange();
                         }
                     },
                     onMessage: (response) => {
@@ -689,8 +796,81 @@ arguments: {
                         }
                     }
                 });
+            }
 
-                consoleClient.start('commands');
+            function updateConnectionIndicatorForDirectMode() {
+                const targetType = $('#target-type').val();
+                const targetValue = $('#target-value').val();
+                
+                let targetNodes = [];
+                if (targetType === 'node') {
+                    if (targetValue) targetNodes.push(targetValue);
+                } else if (targetType === 'group') {
+                    targetNodes = nodes.filter(n => n.group === targetValue).map(n => n.id);
+                } else {
+                    targetNodes = nodes.map(n => n.id);
+                }
+
+                if (targetNodes.length === 0) {
+                    $('#connection-indicator').text("NO TARGET").removeClass("bg-success bg-warning bg-danger").addClass("bg-secondary");
+                    return;
+                }
+
+                let connectedCount = 0;
+                let connectingCount = 0;
+                let disconnectedCount = 0;
+
+                targetNodes.forEach(id => {
+                    const client = consoleClients[id];
+                    if (client) {
+                        if (client.established) {
+                            connectedCount++;
+                        } else if (client.retryCount > 0) {
+                            connectingCount++;
+                        } else {
+                            disconnectedCount++;
+                        }
+                    }
+                });
+
+                if (connectedCount === targetNodes.length) {
+                    $('#connection-indicator').text("CONNECTED").removeClass("bg-secondary bg-danger bg-warning").addClass("bg-success");
+                } else if (connectedCount > 0) {
+                    $('#connection-indicator').text(`PARTIALLY CONNECTED (${connectedCount}/${targetNodes.length})`).removeClass("bg-success bg-danger bg-secondary").addClass("bg-warning");
+                } else if (connectingCount > 0) {
+                    $('#connection-indicator').text("CONNECTING...").removeClass("bg-success bg-danger bg-success").addClass("bg-warning");
+                } else {
+                    $('#connection-indicator').text("DISCONNECTED").removeClass("bg-success bg-warning bg-secondary").addClass("bg-danger");
+                }
+            }
+
+            $(function() {
+                onTargetTypeChange();
+
+                $('#target-value').on('change', function() {
+                    const type = $('#target-type').val();
+                    if (type === 'node') {
+                        const nodeId = $(this).val();
+                        updateUrl(nodeId);
+                        checkSelectedNodeStatus(nodeId);
+                    }
+                    if (clusterMode === 'direct') {
+                        updateConnectionIndicatorForDirectMode();
+                    }
+                });
+
+                fetch(basePath + "/cluster/token", {
+                        headers: { 'Accept': 'application/json' }
+                    })
+                    .then(response => response.json())
+                    .then(res => {
+                        const token = res.success ? res.data : null;
+                        initConsoleClients(token);
+                    })
+                    .catch(err => {
+                        console.error("Failed to fetch initial token:", err);
+                        initConsoleClients(null);
+                    });
             });
         </script>
     </th:block>

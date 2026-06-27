@@ -190,53 +190,8 @@
                     }
                 }
 
-                if (clusterMode === 'direct') {
-                    const nodes = [[${page.nodes}]];
-                    nodes.forEach(n => {
-                        const node = {
-                            id: n.id,
-                            endpoint: {
-                                path: basePath + "/nodes/" + n.id,
-                                token: token
-                            }
-                        };
-                        const client = new ConsoleClient(node, {
-                            onBeforeConnect: () => {
-                                return fetch(basePath + "/cluster/token", {
-                                        headers: { 'Accept': 'application/json' }
-                                    })
-                                    .then(response => response.json())
-                                    .then(res => res.success ? res.data : null)
-                                    .catch(err => {
-                                        console.error("Failed to fetch new token:", err);
-                                        return null;
-                                    });
-                            },
-                            onOpen: () => {
-                                node.status = 'live';
-                                updateNodeStatus(node);
-                            },
-                            onClose: () => {
-                                if (!isUnloading) {
-                                    node.status = 'offline';
-                                    updateNodeStatus(node);
-                                }
-                            },
-                            onMessage: (response) => {
-                                if (isUnloading) return;
-                                if (response.error) {
-                                    console.error("Received error message:", response.error);
-                                    return;
-                                }
-                                if (response.node) updateNodeStatus(response.node);
-                            }
-                        });
-                        client.start('');
-                    });
-                } else {
-                    const node = [[${page.node}]];
-                    node.endpoint.path = basePath + "/nodes/" + node.id;
-                    const client = new ConsoleClient(node, {
+                function createConsoleClient(node) {
+                    return new ConsoleClient(node, {
                         onBeforeConnect: () => {
                             return fetch(basePath + "/cluster/token", {
                                     headers: { 'Accept': 'application/json' }
@@ -248,6 +203,16 @@
                                     return null;
                                 });
                         },
+                        onOpen: () => {
+                            node.status = 'live';
+                            updateNodeStatus(node);
+                        },
+                        onClose: () => {
+                            if (!isUnloading) {
+                                node.status = 'offline';
+                                updateNodeStatus(node);
+                            }
+                        },
                         onMessage: (response) => {
                             if (isUnloading) return;
                             if (response.error) {
@@ -257,6 +222,25 @@
                             if (response.node) updateNodeStatus(response.node);
                         }
                     });
+                }
+
+                if (clusterMode === 'direct') {
+                    const nodes = [[${page.nodes}]];
+                    nodes.forEach(n => {
+                        const node = {
+                            id: n.id,
+                            port: n.port,
+                            endpoint: {
+                                path: basePath + "/nodes/" + n.id
+                            }
+                        };
+                        const client = createConsoleClient(node);
+                        client.start('');
+                    });
+                } else {
+                    const node = [[${page.node}]];
+                    node.endpoint.path = basePath + "/nodes/" + node.id;
+                    const client = createConsoleClient(node);
                     client.start('');
                 }
             });

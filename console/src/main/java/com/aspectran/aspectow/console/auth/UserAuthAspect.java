@@ -42,7 +42,8 @@ import java.util.Map;
 @Joinpoint(
         pointcut = {
                 "+: /**",
-                "-: /auth/**"
+                "-: /auth/**",
+                "-: /nodes/**/ping"
         }
 )
 public class UserAuthAspect {

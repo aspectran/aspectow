@@ -41,7 +41,8 @@ import org.jspecify.annotations.NonNull;
         pointcut = {
                 "+: /**",
                 "-: /auth/**",
-                "-: /"
+                "-: /",
+                "-: /nodes/**/ping"
         }
 )
 public class AccessControlAspect {

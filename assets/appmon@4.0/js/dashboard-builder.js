@@ -148,7 +148,15 @@ class DashboardBuilder {
         const onFailed = (node) => {
             this.changeNodeState(node, true);
             if (node.endpoint.mode !== "websocket" && node.subscribeAttempts < 1) {
+                const currentClient = this.clients[nodeIndex];
+                if (currentClient && currentClient.constructor.name === "PollingClient") {
+                    return;
+                }
                 setTimeout(() => {
+                    const currentClientAsync = this.clients[nodeIndex];
+                    if (currentClientAsync && currentClientAsync.constructor.name === "PollingClient") {
+                        return;
+                    }
                     const client = new PollingClient(node, viewer, onSubscribed, onPrimary, onClosed, onFailed, isGatewayMode);
                     if (isGatewayMode) {
                         this.sharedClient = client;

@@ -43,6 +43,9 @@ class WebsocketClient extends BaseClient {
     openSocket() {
         this.closeSocket(false);
         const url = new URL(this.node.endpoint.path + "/appmon/websocket/" + this.node.endpoint.token, location.href);
+        if (this.node.port && (location.hostname === "localhost" || location.hostname === "127.0.0.1")) {
+            url.port = this.node.port;
+        }
         url.protocol = url.protocol.replace("https:", "wss:").replace("http:", "ws:");
 
         console.log("connecting to websocket:", url.href);

@@ -115,6 +115,11 @@ class ConsoleClient {
 
     endpointPath() {
         let path = this.node.endpoint.path;
+        if (this.node.port && (location.hostname === "localhost" || location.hostname === "127.0.0.1")) {
+            const url = new URL(path, location.href);
+            url.port = this.node.port;
+            path = url.origin + url.pathname;
+        }
         if (this.activityPath) {
             const p = (path.endsWith('/') ? path : path + '/');
             const a = (this.activityPath.startsWith('/') ? this.activityPath.substring(1) : this.activityPath);

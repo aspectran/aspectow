@@ -200,7 +200,16 @@
                     .then(res => {
                         if (res.success) {
                             nodes = res.data;
+                            if (consoleClient && consoleClient.established) {
+                                const current = nodes.find(n => n.id === currentNodeId);
+                                if (current) {
+                                    current.status = 'LIVE';
+                                }
+                            }
                             renderNodeSelector();
+                            if (clusterMode === 'direct') {
+                                checkDirectNodesHealth();
+                            }
                             return res.data;
                         } else {
                             throw new Error(res.error ? res.error.message : "Failed to refresh node list");
@@ -242,7 +251,8 @@
                     nodes.forEach(n => {
                         const title = n.title ? n.title + ' (' + n.id + ')' : n.id;
                         const option = new Option(title, n.id);
-                        if (n.status && n.status.toUpperCase() === 'DEAD') {
+                        const isMainNode = (n.id === currentNodeId);
+                        if (n.status && n.status.toUpperCase() === 'DEAD' && (isMainNode || n.healthChecked)) {
                             $(option).addClass('text-danger');
                             option.text += ' [DEAD]';
                         }
@@ -269,26 +279,18 @@
                 updateStats('-', '-', '-', nodeId);
 
                 const nodeInfo = nodes.find(n => n.id === nodeId);
-                if (nodeInfo && nodeInfo.status && nodeInfo.status.toUpperCase() === 'DEAD') {
-                    $('#connection-indicator').text("NODE DEAD").removeClass("bg-success bg-warning bg-secondary").addClass("bg-danger");
-                    $('#scheduler-container').html(`
-                        <div class="text-center py-5">
-                            <i class="bi bi-exclamation-triangle fs-1 text-danger mb-3"></i>
-                            <h5 class="fw-bold">Node Unreachable</h5>
-                            <p class="text-muted">The target node <strong>${nodeId}</strong> is currently in DEAD state.</p>
-                            <button class="btn btn-sm btn-outline-primary mt-2" onclick="connectToNode('${nodeId}', true)">
-                                <i class="bi bi-arrow-clockwise me-1"></i> Try Again
-                            </button>
-                        </div>
-                    `);
+                if (clusterMode === 'gateway' && nodeInfo && nodeInfo.status && nodeInfo.status.toUpperCase() === 'DEAD') {
+                    showDeadNodeError(nodeId);
                     return;
                 }
 
                 $('#connection-indicator').text("CONNECTING...").removeClass("bg-success bg-danger bg-warning").addClass("bg-secondary");
                 $('#scheduler-container').html('<div class="text-center py-5"><div class="spinner-border text-primary"></div><p class="mt-2 text-muted">Fetching data from ' + nodeId + '...</p></div>');
 
+                const targetNode = nodes.find(n => n.id === nodeId);
                 const node = {
                     id: nodeId,
+                    port: targetNode ? targetNode.port : null,
                     endpoint: {
                         path: basePath + "/nodes/" + nodeId
                     }
@@ -314,6 +316,10 @@
                         handleMessage(response);
                     },
                     onEstablished: () => {
+                        if (nodeInfo) {
+                            nodeInfo.status = 'LIVE';
+                            renderNodeSelector();
+                        }
                         $('#connection-indicator').text("CONNECTED").removeClass("bg-secondary bg-danger bg-warning").addClass("bg-success");
                         const request = {
                             header: "execute",
@@ -326,11 +332,36 @@
                         $('#connection-indicator').text(`RECONNECTING (${count}/${max})...`).removeClass("bg-success bg-danger").addClass("bg-warning");
                     },
                     onClose: (event) => {
+                        if (clusterMode === 'direct' && nodeInfo) {
+                            nodeInfo.status = 'DEAD';
+                            renderNodeSelector();
+                        }
                         $('#connection-indicator').text(event.code === 1003 ? "SESSION EXPIRED" : "DISCONNECTED")
                             .removeClass("bg-success bg-warning").addClass("bg-danger");
+                    },
+                    onFailed: () => {
+                        if (nodeInfo) {
+                            nodeInfo.status = 'DEAD';
+                            renderNodeSelector();
+                        }
+                        showDeadNodeError(nodeId);
                     }
                 });
                 consoleClient.start('scheduler');
+            }
+
+            function showDeadNodeError(nodeId) {
+                $('#connection-indicator').text("NODE DEAD").removeClass("bg-success bg-warning bg-secondary").addClass("bg-danger");
+                $('#scheduler-container').html(`
+                    <div class="text-center py-5">
+                        <i class="bi bi-exclamation-triangle fs-1 text-danger mb-3"></i>
+                        <h5 class="fw-bold">Node Unreachable</h5>
+                        <p class="text-muted">The target node <strong>${nodeId}</strong> is currently in DEAD state.</p>
+                        <button class="btn btn-sm btn-outline-primary mt-2" onclick="connectToNode('${nodeId}', true)">
+                            <i class="bi bi-arrow-clockwise me-1"></i> Try Again
+                        </button>
+                    </div>
+                `);
             }
 
             function handleMessage(response) {
@@ -747,9 +778,38 @@
                 consoleClient.sendMessage(request);
             }
 
+            function checkDirectNodesHealth() {
+                if (clusterMode !== 'direct') return;
+
+                nodes.forEach(n => {
+                    if (n.id === currentNodeId) return;
+
+                    let path = basePath + "/nodes/" + n.id + "/scheduler/ping";
+                    if (n.port && (location.hostname === "localhost" || location.hostname === "127.0.0.1")) {
+                        const url = new URL(path, location.href);
+                        url.port = n.port;
+                        path = url.origin + url.pathname;
+                    }
+
+                    fetch(path, { method: 'GET' })
+                        .then(res => {
+                            n.status = 'LIVE';
+                            n.healthChecked = true;
+                            renderNodeSelector();
+                        })
+                        .catch(err => {
+                            console.warn("Health check failed for node:", n.id, err);
+                            n.status = 'DEAD';
+                            n.healthChecked = true;
+                            renderNodeSelector();
+                        });
+                });
+            }
+
             $(function() {
                 renderNodeSelector();
                 connectToNode(currentNodeId);
+                checkDirectNodesHealth();
 
                 $('#node-selector').on('change', function() {
                     const nodeId = $(this).val();

@@ -26,6 +26,12 @@ class PollingClient extends BaseClient {
         this.pendingCommands = [];
         this.pollingTimer = null;
         this.stopped = false;
+
+        if (this.node.port && (location.hostname === "localhost" || location.hostname === "127.0.0.1")) {
+            const url = new URL(this.node.endpoint.path, location.href);
+            url.port = this.node.port;
+            this.node.endpoint.path = url.origin + url.pathname;
+        }
     }
 
     addClusterViewer(nodeId, viewer) {
