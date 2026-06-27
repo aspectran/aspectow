@@ -33,6 +33,7 @@ import com.aspectran.web.support.rest.response.FailureResponse;
 import com.aspectran.web.support.rest.response.SuccessResponse;
 import org.jspecify.annotations.NonNull;
 
+import com.aspectran.aspectow.appmon.common.auth.AppMonTokenIssuer;
 import java.util.Map;
 
 import static com.aspectran.aspectow.node.management.scheduler.bridge.SchedulerBroker.CATEGORY_SCHEDULER;
@@ -100,6 +101,13 @@ public class PollingSchedulerBridge extends AbstractComponent implements Schedul
      */
     @Request("/polling/subscribe")
     public RestResponse subscribe(@NonNull Translet translet) {
+        String token = translet.getParameter("token");
+        try {
+            AppMonTokenIssuer.validateToken(token);
+        } catch (Exception e) {
+            return new FailureResponse().forbidden();
+        }
+
         String targetNodeId = translet.getParameter("targetNodeId");
         if (!StringUtils.hasText(targetNodeId)) {
             return new FailureResponse("Target node ID is required");
@@ -125,7 +133,7 @@ public class PollingSchedulerBridge extends AbstractComponent implements Schedul
      * @param translet the current translet
      * @return a {@link RestResponse} containing the list of new messages or error message
      */
-    @RequestToGet("/polling/pull")
+    @Request("/polling/pull")
     public RestResponse pull(@NonNull Translet translet) {
         PollingSchedulerSession session = sessionManager.getSession(translet);
         if (session == null) {
@@ -142,7 +150,7 @@ public class PollingSchedulerBridge extends AbstractComponent implements Schedul
      * @param request the scheduler request parameters containing the command
      * @return a {@link RestResponse} representing success or failure of the push operation
      */
-    @RequestToPost("/polling/push")
+    @Request("/polling/push")
     public RestResponse push(@NonNull Translet translet, @NonNull SchedulerRequestParameters request) {
         PollingSchedulerSession session = sessionManager.getSession(translet);
         if (session == null) {
@@ -165,6 +173,15 @@ public class PollingSchedulerBridge extends AbstractComponent implements Schedul
         } catch (Exception e) {
             return new FailureResponse().setError("error", e.getMessage());
         }
+    }
+
+    /**
+     * Simple ping-pong endpoint for node status verification.
+     * @return a {@link RestResponse} containing "pong"
+     */
+    @Request("/ping")
+    public RestResponse ping() {
+        return new SuccessResponse("pong").ok();
     }
 
     /**
@@ -194,15 +211,6 @@ public class PollingSchedulerBridge extends AbstractComponent implements Schedul
     @Override
     public void bridge(@NonNull SchedulerSession schedulerSession, String message) {
         sessionManager.push(schedulerSession, message);
-    }
-
-    /**
-     * Simple ping-pong endpoint for node status verification.
-     * @return a {@link RestResponse} containing "pong"
-     */
-    @RequestToGet("/ping")
-    public RestResponse ping() {
-        return new SuccessResponse("pong").ok();
     }
 
 }

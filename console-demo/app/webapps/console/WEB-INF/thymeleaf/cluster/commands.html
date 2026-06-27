@@ -609,7 +609,8 @@ arguments: {
                         id: targetNodeId || myNodeId,
                         port: targetNode ? targetNode.port : null,
                         endpoint: {
-                            path: basePath + "/nodes/" + (targetNodeId || myNodeId)
+                            path: basePath + "/nodes/" + (targetNodeId || myNodeId),
+                            mode: (targetNode && targetNode.endpoint ? targetNode.endpoint.mode : null)
                         }
                     };
                     consoleClient = createConsoleClient(nodeInfo, token);
@@ -620,7 +621,8 @@ arguments: {
                             id: n.id,
                             port: n.port,
                             endpoint: {
-                                path: basePath + "/nodes/" + n.id
+                                path: basePath + "/nodes/" + n.id,
+                                mode: (n.endpoint ? n.endpoint.mode : null)
                             }
                         };
                         const client = createConsoleClient(nodeInfo, token);
@@ -739,7 +741,10 @@ arguments: {
                                 if (cmd.status === 'queued' && cmd.content.includes('command: restart')) {
                                     if (cmd.target.includes(nodeId)) {
                                         cmd.status = 'completed';
-                                        cmd.result = 'Node restarted and rejoined the cluster.';
+                                        cmd.result = [{
+                                            nodeId: nodeId,
+                                            text: 'Node restarted and rejoined the cluster.'
+                                        }];
                                         changed = true;
                                     }
                                 }

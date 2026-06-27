@@ -43,7 +43,8 @@ import java.util.Map;
         pointcut = {
                 "+: /**",
                 "-: /auth/**",
-                "-: /nodes/**/ping"
+                "-: /nodes/**/ping",
+                "-: /nodes/**/polling/**"
         }
 )
 public class UserAuthAspect {

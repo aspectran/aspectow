@@ -35,6 +35,7 @@ import com.aspectran.web.support.rest.response.FailureResponse;
 import com.aspectran.web.support.rest.response.SuccessResponse;
 import org.jspecify.annotations.NonNull;
 
+import com.aspectran.aspectow.appmon.common.auth.AppMonTokenIssuer;
 import java.util.Map;
 
 import static com.aspectran.aspectow.node.management.commands.bridge.CommandBroker.CATEGORY_COMMANDS;
@@ -103,6 +104,13 @@ public class PollingCommandBridge extends AbstractComponent implements CommandBr
      */
     @Request("/polling/subscribe")
     public RestResponse subscribe(@NonNull Translet translet) {
+        String token = translet.getParameter("token");
+        try {
+            AppMonTokenIssuer.validateToken(token);
+        } catch (Exception e) {
+            return new FailureResponse().forbidden();
+        }
+
         String targetNodeId = translet.getParameter("targetNodeId");
         if (!StringUtils.hasText(targetNodeId)) {
             return new FailureResponse("Target node ID is required");
@@ -125,7 +133,7 @@ public class PollingCommandBridge extends AbstractComponent implements CommandBr
      * @param translet the current translet
      * @return the RestResponse containing the array of new messages
      */
-    @RequestToGet("/polling/pull")
+    @Request("/polling/pull")
     public RestResponse pull(@NonNull Translet translet) {
         PollingCommandSession session = pollingSessionManager.getSession(translet);
         if (session == null) {
@@ -142,7 +150,7 @@ public class PollingCommandBridge extends AbstractComponent implements CommandBr
      * @param request the command request parameters
      * @return a success message or failure response
      */
-    @RequestToPost("/polling/push")
+    @Request("/polling/push")
     public RestResponse push(@NonNull Translet translet, @NonNull CommandRequestParameters request) {
         PollingCommandSession session = pollingSessionManager.getSession(translet);
         if (session == null) {

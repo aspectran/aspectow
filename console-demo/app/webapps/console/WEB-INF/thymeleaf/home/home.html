@@ -216,7 +216,7 @@
                         return;
                     }
 
-                    let path = basePath + "/nodes/" + n.id + "/scheduler/ping";
+                    let path = basePath + "/nodes/" + n.id + "/ping";
                     if (n.port && (location.hostname === "localhost" || location.hostname === "127.0.0.1")) {
                         const url = new URL(path, location.href);
                         url.port = n.port;

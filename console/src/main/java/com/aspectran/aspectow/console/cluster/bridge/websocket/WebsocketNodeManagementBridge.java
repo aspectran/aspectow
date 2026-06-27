@@ -16,16 +16,14 @@
 package com.aspectran.aspectow.console.cluster.bridge.websocket;
 
 import com.aspectran.aspectow.appmon.common.auth.AppMonTokenIssuer;
-import com.aspectran.aspectow.node.config.NodeInfo;
 import com.aspectran.aspectow.node.management.nodes.NodeRequestParameters;
 import com.aspectran.aspectow.node.management.nodes.NodeResponseParameters;
-import com.aspectran.aspectow.node.manager.ClusterEventListener;
-import com.aspectran.aspectow.node.manager.ClusterEventSubscriber;
+import com.aspectran.aspectow.node.management.nodes.RemoteNodeManager;
+import com.aspectran.aspectow.node.management.nodes.bridge.NodeBridge;
+import com.aspectran.aspectow.node.management.nodes.bridge.NodeSession;
 import com.aspectran.aspectow.node.manager.NodeManager;
 import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Component;
-import com.aspectran.core.component.bean.annotation.Destroy;
-import com.aspectran.core.component.bean.annotation.Initialize;
 import com.aspectran.utils.StringUtils;
 import com.aspectran.utils.apon.JsonToParameters;
 import com.aspectran.utils.security.InvalidPBTokenException;
@@ -40,7 +38,7 @@ import org.slf4j.LoggerFactory;
 import static com.aspectran.aspectow.node.manager.NodeMessageProtocol.NODES_BASE_PATH;
 
 /**
- * NodeGatewayEndpoint provides real-time, bidirectional communication for cluster node management.
+ * WebsocketNodeManagementBridge provides real-time, bidirectional communication for cluster node management.
  *
  * <p>Created: 2026-04-19</p>
  */
@@ -49,42 +47,23 @@ import static com.aspectran.aspectow.node.manager.NodeMessageProtocol.NODES_BASE
         value = NODES_BASE_PATH + "/{nodeId}/websocket/{token}",
         configurator = AspectranConfigurator.class
 )
-public class NodeGatewayEndpoint extends SimplifiedEndpoint implements ClusterEventListener {
+public class WebsocketNodeManagementBridge extends SimplifiedEndpoint implements NodeBridge {
 
-    private static final Logger logger = LoggerFactory.getLogger(NodeGatewayEndpoint.class);
+    private static final Logger logger = LoggerFactory.getLogger(WebsocketNodeManagementBridge.class);
+
+    private final RemoteNodeManager remoteNodeManager;
 
     private final NodeManager nodeManager;
 
     /**
-     * Constructs a new {@code NodeGatewayEndpoint} with the specified node manager.
+     * Constructs a new {@code WebsocketNodeManagementBridge} with the specified remote node manager and node manager.
+     * @param remoteNodeManager the remote node manager
      * @param nodeManager the node manager
      */
     @Autowired
-    public NodeGatewayEndpoint(NodeManager nodeManager) {
+    public WebsocketNodeManagementBridge(RemoteNodeManager remoteNodeManager, NodeManager nodeManager) {
+        this.remoteNodeManager = remoteNodeManager;
         this.nodeManager = nodeManager;
-    }
-
-    /**
-     * Registers this endpoint as a cluster event listener when initialized.
-     */
-    @Initialize
-    public void registerListener() {
-        ClusterEventSubscriber subscriber = nodeManager.getClusterEventSubscriber();
-        if (subscriber != null) {
-            subscriber.addListener(this);
-            logger.info("NodeGatewayEndpoint registered as ClusterEventListener");
-        }
-    }
-
-    /**
-     * Unregisters this endpoint as a cluster event listener when destroyed.
-     */
-    @Destroy
-    public void unregisterListener() {
-        ClusterEventSubscriber subscriber = nodeManager.getClusterEventSubscriber();
-        if (subscriber != null) {
-            subscriber.removeListener(this);
-        }
     }
 
     /**
@@ -121,38 +100,12 @@ public class NodeGatewayEndpoint extends SimplifiedEndpoint implements ClusterEv
      */
     @Override
     protected void onSessionRemoved(@NonNull Session session) {
-        String nodeId = session.getPathParameters().get("nodeId");
-        logger.info("Node management session removed: {} (nodeId: {})", session.getId(), nodeId);
-    }
-
-    /**
-     * Invoked when a new node joins the cluster.
-     * Broadcasts the join event to all subscribed sessions.
-     * @param nodeInfo the node information of the joined node
-     */
-    @Override
-    public void onNodeJoined(NodeInfo nodeInfo) {
-        NodeResponseParameters params = new NodeResponseParameters();
-        params.setHeader("joined");
-        params.setNode(nodeInfo);
-        broadcast(params.toString());
-    }
-
-    /**
-     * Invoked when a node leaves the cluster.
-     * Broadcasts the leave event to all subscribed sessions.
-     * @param nodeId the ID of the node that left
-     */
-    @Override
-    public void onNodeLeft(String nodeId) {
-        NodeInfo nodeInfo = new NodeInfo();
-        nodeInfo.setId(nodeId);
-        nodeInfo.setStatus("offline");
-
-        NodeResponseParameters params = new NodeResponseParameters();
-        params.setHeader("left");
-        params.setNode(nodeInfo);
-        broadcast(params.toString());
+        remoteNodeManager.unregisterSession(session.getId());
+        WebsocketNodeSession nodeSession = new WebsocketNodeSession(session);
+        remoteNodeManager.getBroker().unsubscribe(nodeSession);
+        if (logger.isDebugEnabled()) {
+            logger.debug("Node management WebSocket session removed: {} (Total: {})", session.getId(), countSessions());
+        }
     }
 
     private void handleMessage(Session session, String message) {
@@ -165,7 +118,7 @@ public class NodeGatewayEndpoint extends SimplifiedEndpoint implements ClusterEv
 
             String header = request.getHeader();
             if ("subscribe".equals(header)) {
-                subscribe(session);
+                subscribe(session, request);
             } else if ("established".equals(header)) {
                 established(session);
             } else if ("ping".equals(header)) {
@@ -185,17 +138,54 @@ public class NodeGatewayEndpoint extends SimplifiedEndpoint implements ClusterEv
         sendText(session, response.toString());
     }
 
-    private void subscribe(Session session) {
+    private void subscribe(Session session, @NonNull NodeRequestParameters request) {
+        String targetNodeId = request.getTargetNodeId();
+        if (!StringUtils.hasText(targetNodeId)) {
+            NodeResponseParameters response = new NodeResponseParameters()
+                    .setError("Target node is required");
+            sendText(session, response.toString());
+            return;
+        }
+
+        WebsocketNodeSession nodeSession = new WebsocketNodeSession(session);
+        nodeSession.setNodeId(targetNodeId);
+
         if (addSession(session)) {
+            remoteNodeManager.registerSession(session.getId(), this);
+            remoteNodeManager.getBroker().subscribe(nodeSession);
             NodeResponseParameters response = new NodeResponseParameters()
                     .setHeader("subscribed");
             sendText(session, response.toString());
+            if (logger.isDebugEnabled()) {
+                logger.debug("ConsoleClient joined node management: session {}, targetNodeId: {}",
+                        session.getId(), nodeSession.getNodeId());
+            }
         }
     }
 
     private void established(@NonNull Session session) {
         String nodeId = session.getPathParameters().get("nodeId");
         logger.info("Node management session established: {} (nodeId: {})", session.getId(), nodeId);
+    }
+
+    @Override
+    public NodeSession findNodeSession(String sessionId) {
+        Session session = findSession(sessionId);
+        return (session != null ? new WebsocketNodeSession(session) : null);
+    }
+
+    @Override
+    public void bridge(String message) {
+        if (message != null) {
+            broadcast(message);
+        }
+    }
+
+    @Override
+    public void bridge(@NonNull NodeSession session, String message) {
+        if (message != null && session instanceof WebsocketNodeSession websocketNodeSession) {
+            sendText(websocketNodeSession.getSession(), message);
+        }
     }
 
 }

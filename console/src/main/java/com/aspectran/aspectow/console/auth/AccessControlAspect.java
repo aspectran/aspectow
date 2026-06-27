@@ -42,7 +42,8 @@ import org.jspecify.annotations.NonNull;
                 "+: /**",
                 "-: /auth/**",
                 "-: /",
-                "-: /nodes/**/ping"
+                "-: /nodes/**/ping",
+                "-: /nodes/**/polling/**"
         }
 )
 public class AccessControlAspect {

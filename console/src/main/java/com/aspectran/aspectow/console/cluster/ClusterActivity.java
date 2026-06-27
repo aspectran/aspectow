@@ -68,7 +68,7 @@ public class ClusterActivity {
     @Action("page")
     public Map<String, Object> listNodes(@NonNull Translet translet) {
         String clusterMode = nodeManager.getClusterConfig().getMode();
-        List<Map<String, Object>> nodes = nodeConsoleHelper.getNodes(false);
+        List<Map<String, Object>> nodes = nodeConsoleHelper.getNodes(true);
         NodeInfo nodeInfo = nodeManager.getNodeInfoHolder().getNodeInfo(nodeManager.getNodeId());
 
         Map<String, Object> model = new HashMap<>();

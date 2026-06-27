@@ -133,6 +133,10 @@ class ConsoleClient {
      * @private
      */
     connect() {
+        if (this.node.endpoint && this.node.endpoint.mode === 'polling') {
+            this.switchToPolling();
+            return;
+        }
         this.mode = 'websocket';
         this.closeSocket(false);
 
@@ -222,8 +226,13 @@ class ConsoleClient {
     startPolling() {
         this.stopPolling();
 
-        const subscribeUrl = this.endpointPath() + "/polling/subscribe?targetNodeId=" + this.node.id;
+        let subscribeUrl = this.endpointPath() + "/polling/subscribe?targetNodeId=" + this.node.id;
+        const token = (this.node.endpoint ? this.node.endpoint.token : null) || this.options.token;
+        if (token) {
+            subscribeUrl += "&token=" + encodeURIComponent(token);
+        }
         fetch(subscribeUrl, {
+            credentials: 'include',
             headers: {
                 'Accept': 'application/json'
             }
@@ -243,6 +252,13 @@ class ConsoleClient {
                         console.log("polling interval:", this.options.pollingInterval);
                     }
                     this.establish(primaryNodeId);
+                    if (this.options.onOpen) {
+                        try {
+                            this.options.onOpen();
+                        } catch (e) {
+                            console.error(this.node.id, "Error in onOpen callback:", e);
+                        }
+                    }
                     this.poll();
                 } else {
                     throw new Error(res.error.message);
@@ -259,6 +275,7 @@ class ConsoleClient {
 
         const pullUrl = this.endpointPath() + "/polling/pull";
         fetch(pullUrl, {
+            credentials: 'include',
             headers: {
                 'Accept': 'application/json'
             }
@@ -274,7 +291,14 @@ class ConsoleClient {
                     if (res.data) {
                         res.data.forEach(msg => {
                             try {
-                                const response = JSON.parse(msg);
+                                // Clean unescaped control characters before parsing JSON
+                                const cleaned = msg.replace(/[\u0000-\u001f]/g, function(ch) {
+                                    if (ch === '\n') return '\\n';
+                                    if (ch === '\r') return '\\r';
+                                    if (ch === '\t') return '\\t';
+                                    return '';
+                                });
+                                const response = JSON.parse(cleaned);
                                 try {
                                     this.handleMessage(response);
                                 } catch (ex) {
@@ -346,6 +370,7 @@ class ConsoleClient {
         if (this.mode !== 'polling' || this.manualClose) return;
         fetch(this.endpointPath() + "/polling/push", {
             method: 'POST',
+            credentials: 'include',
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json'

@@ -292,7 +292,8 @@
                     id: nodeId,
                     port: targetNode ? targetNode.port : null,
                     endpoint: {
-                        path: basePath + "/nodes/" + nodeId
+                        path: basePath + "/nodes/" + nodeId,
+                        mode: (targetNode && targetNode.endpoint ? targetNode.endpoint.mode : null)
                     }
                 };
 
@@ -663,41 +664,52 @@
             }
 
             function prependLogLines(loggingGroup, logLines) {
+                console.log("prependLogLines called:", loggingGroup, logLines);
                 const $container = $(`#log-viewer-${loggingGroup}`);
                 if ($container.length === 0) return;
 
-                if (!logLines || logLines.length === 0) {
-                    $container.data('no-more-logs', true);
-                    $container.find('.loading-logs').remove();
+                try {
+                    if (typeof logLines === 'string') {
+                        try {
+                            logLines = JSON.parse(logLines);
+                        } catch (e) {
+                            console.error("Failed to parse logLines string:", e);
+                        }
+                    }
+
+                    if (!logLines || logLines.length === 0) {
+                        $container.data('no-more-logs', true);
+                        return;
+                    }
+
+                    if ($container.find('.text-muted').length > 0) {
+                        $container.empty();
+                    }
+
+                    const scrollHeightBefore = $container[0].scrollHeight;
+                    
+                    // Add all lines at once
+                    const $fragment = $(document.createDocumentFragment());
+                    logLines.forEach(line => {
+                        $fragment.append($('<p class="log-line"></p>').text(line));
+                    });
+                    
+                    const $loading = $container.find('.loading-logs');
+                    if ($loading.length > 0) {
+                        $loading.after($fragment);
+                    } else {
+                        $container.prepend($fragment);
+                    }
+
+                    // Adjust scroll to maintain position
+                    const scrollHeightAfter = $container[0].scrollHeight;
+                    $container.scrollTop($container.scrollTop() + (scrollHeightAfter - scrollHeightBefore));
+                } catch (err) {
+                    console.error("Error prepending log lines:", err);
+                } finally {
                     $container.data('loading', false);
-                    return;
+                    $container.find('.loading-logs').remove();
                 }
-
-                if ($container.find('.text-muted').length > 0) {
-                    $container.empty();
-                }
-
-                const scrollHeightBefore = $container[0].scrollHeight;
-                
-                // Add all lines at once
-                const $fragment = $(document.createDocumentFragment());
-                logLines.forEach(line => {
-                    $fragment.append($('<p class="log-line"></p>').text(line));
-                });
-                
-                const $loading = $container.find('.loading-logs');
-                if ($loading.length > 0) {
-                    $loading.after($fragment);
-                } else {
-                    $container.prepend($fragment);
-                }
-
-                // Adjust scroll to maintain position
-                const scrollHeightAfter = $container[0].scrollHeight;
-                $container.scrollTop($container.scrollTop() + (scrollHeightAfter - scrollHeightBefore));
-
-                $container.data('loading', false);
-                $container.find('.loading-logs').remove();
             }
 
             function onLogScroll(container, loggingGroup) {
