@@ -68,6 +68,7 @@ public class HomeActivity {
         model.put("include", "home");
         model.put("style", "dashboard-page");
         model.put("clusterMode", clusterMode);
+        model.put("myNodeId", nodeManager.getNodeId());
         model.put("nodes", nodes);
 
         if (nodeManager.getClusterConfig().isGatewayMode()) {

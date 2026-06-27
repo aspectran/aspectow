@@ -28,6 +28,7 @@ import com.aspectran.core.component.bean.annotation.Dispatch;
 import com.aspectran.core.component.bean.annotation.Request;
 import com.aspectran.web.activity.response.RestResponse;
 import com.aspectran.web.support.rest.response.SuccessResponse;
+import org.jspecify.annotations.NonNull;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -65,7 +66,7 @@ public class ClusterActivity {
     @Request("/nodes")
     @Dispatch("cluster/nodes")
     @Action("page")
-    public Map<String, Object> listNodes(Translet translet) {
+    public Map<String, Object> listNodes(@NonNull Translet translet) {
         String clusterMode = nodeManager.getClusterConfig().getMode();
         List<Map<String, Object>> nodes = nodeConsoleHelper.getNodes(false);
         NodeInfo nodeInfo = nodeManager.getNodeInfoHolder().getNodeInfo(nodeManager.getNodeId());
@@ -109,7 +110,7 @@ public class ClusterActivity {
      * @return the issued token
      */
     @Request("/token")
-    public RestResponse refreshToken(Translet translet) {
+    public RestResponse refreshToken(@NonNull Translet translet) {
         UserInfo userInfo = translet.getSessionAdapter().getAttribute(UserInfo.USERINFO_KEY);
         boolean isDemo = (userInfo != null && userInfo.hasRole("DEMO"));
         return new SuccessResponse(AppMonTokenIssuer.issueToken(30, isDemo)).ok();

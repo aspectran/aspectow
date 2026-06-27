@@ -29,7 +29,7 @@ import org.jspecify.annotations.NonNull;
  * Aspect to handle CORS requests during local development.
  */
 @Component
-@Profile("dev")
+@Profile("direct")
 @Aspect(id = "devCorsAspect")
 @Joinpoint(
         pointcut = {

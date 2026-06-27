@@ -132,7 +132,7 @@
 
             <!-- Fragment for node card -->
             <th:block th:fragment="node-card(nodeInfo)">
-                <div class="card h-100 shadow-sm border-primary-subtle bg-body-tertiary" th:if="${nodeInfo != null}">
+                <div th:id="'node-card-' + ${nodeInfo.id}" class="card h-100 shadow-sm border-primary-subtle bg-body-tertiary" th:if="${nodeInfo != null}">
                     <div class="card-body p-3">
                         <div class="d-flex align-items-center mb-2">
                             <div class="status-indicator me-2" th:classappend="${nodeInfo.status == 'live' ? 'bg-success' : (nodeInfo.status == 'stopping' ? 'bg-warning' : 'bg-danger')}" style="width: 10px; height: 10px; border-radius: 50%;"></div>
@@ -198,6 +198,61 @@
                 </div>
             </div>
         </div>
+
+        <!-- Script for checking direct nodes health -->
+        <script th:inline="javascript">
+            /*<![CDATA[*/
+            const clusterMode = [[${page.clusterMode}]];
+            const nodes = [[${page.nodes}]];
+            const myNodeId = [[${page.myNodeId}]];
+            const basePath = [[@{/}]].replace(/\/$/, '');
+
+            function checkDirectNodesHealth() {
+                if (clusterMode !== 'direct' || !nodes) return;
+
+                nodes.forEach(n => {
+                    if (n.id === myNodeId) {
+                        updateNodeStatusUI(n.id, 'live');
+                        return;
+                    }
+
+                    let path = basePath + "/nodes/" + n.id + "/scheduler/ping";
+                    if (n.port && (location.hostname === "localhost" || location.hostname === "127.0.0.1")) {
+                        const url = new URL(path, location.href);
+                        url.port = n.port;
+                        path = url.origin + url.pathname;
+                    }
+
+                    fetch(path, { method: 'GET' })
+                        .then(res => {
+                            updateNodeStatusUI(n.id, 'live');
+                        })
+                        .catch(err => {
+                            console.warn("Health check failed for node:", n.id, err);
+                            updateNodeStatusUI(n.id, 'dead');
+                        });
+                });
+            }
+
+            function updateNodeStatusUI(nodeId, status) {
+                const $indicator = $('#node-card-' + nodeId + ' .status-indicator');
+                if ($indicator.length) {
+                    $indicator.removeClass('bg-success bg-warning bg-danger');
+                    if (status === 'live') {
+                        $indicator.addClass('bg-success');
+                    } else if (status === 'stopping') {
+                        $indicator.addClass('bg-warning');
+                    } else {
+                        $indicator.addClass('bg-danger');
+                    }
+                }
+            }
+
+            $(function() {
+                checkDirectNodesHealth();
+            });
+            /*]]>*/
+        </script>
     </th:block>
 </body>
 </html>
