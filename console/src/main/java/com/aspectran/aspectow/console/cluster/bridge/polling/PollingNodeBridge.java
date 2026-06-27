@@ -15,6 +15,7 @@
  */
 package com.aspectran.aspectow.console.cluster.bridge.polling;
 
+import com.aspectran.aspectow.appmon.common.auth.AppMonTokenIssuer;
 import com.aspectran.aspectow.node.management.nodes.RemoteNodeManager;
 import com.aspectran.aspectow.node.management.nodes.bridge.NodeBridge;
 import com.aspectran.aspectow.node.management.nodes.bridge.NodeBroker;
@@ -24,36 +25,33 @@ import com.aspectran.core.component.AbstractComponent;
 import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Component;
 import com.aspectran.core.component.bean.annotation.Request;
-import com.aspectran.core.component.bean.annotation.RequestToGet;
 import com.aspectran.utils.StringUtils;
 import com.aspectran.web.activity.response.RestResponse;
 import com.aspectran.web.support.rest.response.FailureResponse;
 import com.aspectran.web.support.rest.response.SuccessResponse;
 import org.jspecify.annotations.NonNull;
 
-import com.aspectran.aspectow.appmon.common.auth.AppMonTokenIssuer;
 import java.util.Map;
 
-import static com.aspectran.aspectow.node.management.nodes.bridge.NodeBroker.CATEGORY_NODES;
 import static com.aspectran.aspectow.node.manager.NodeMessageProtocol.NODES_BASE_PATH;
 
 /**
- * PollingNodeManagementBridge manages client sessions for HTTP long-polling
+ * PollingNodeBridge manages client sessions for HTTP long-polling
  * to distribute cluster node status and join/left events.
  */
 @Component(NODES_BASE_PATH + "/${thisNodeId}")
-public class PollingNodeManagementBridge extends AbstractComponent implements NodeBridge {
+public class PollingNodeBridge extends AbstractComponent implements NodeBridge {
 
     private final PollingSessionManager pollingSessionManager;
 
     private final RemoteNodeManager remoteNodeManager;
 
     /**
-     * Constructs a new {@code PollingNodeManagementBridge} with the specified remote node manager.
+     * Constructs a new {@code PollingNodeBridge} with the specified remote node manager.
      * @param remoteNodeManager the remote node manager
      */
     @Autowired
-    public PollingNodeManagementBridge(RemoteNodeManager remoteNodeManager) {
+    public PollingNodeBridge(RemoteNodeManager remoteNodeManager) {
         this.remoteNodeManager = remoteNodeManager;
         this.pollingSessionManager = new PollingSessionManager(this);
     }

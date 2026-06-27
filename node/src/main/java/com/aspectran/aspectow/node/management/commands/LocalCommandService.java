@@ -18,11 +18,14 @@ package com.aspectran.aspectow.node.management.commands;
 import com.aspectran.aspectow.node.manager.NodeManager;
 import com.aspectran.core.service.CoreService;
 import com.aspectran.core.service.CoreServiceHolder;
+import com.aspectran.daemon.command.CommandParameters;
 import com.aspectran.daemon.command.CommandResult;
 import com.aspectran.daemon.service.DefaultDaemonService;
 import com.aspectran.daemon.service.DefaultDaemonServiceBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.lang.reflect.Method;
 
 /**
  * LocalCommandService handles the actual execution of daemon commands
@@ -76,17 +79,17 @@ public class LocalCommandService {
 
     /**
      * Executes a daemon command on the local node.
-     * @param commandData the command payload in APON/JSON format
+     * @param commandParameters the command payload in APON/JSON format
      * @return the execution result
      */
-    public CommandResult execute(String commandData) {
+    public CommandResult execute(CommandParameters commandParameters) {
         if (daemonService == null) {
             setupDaemonService();
         }
 
         if (daemonService != null) {
             try {
-                CommandResult commandResult = daemonService.execute(commandData);
+                CommandResult commandResult = daemonService.execute(commandParameters);
                 if (!commandResult.isSuccess() && commandResult.getError() != null) {
                     logger.error("Local command execution failed: {}", commandResult.getError());
                 }
@@ -103,7 +106,7 @@ public class LocalCommandService {
 
     /**
      * Executes a node control command (e.g. pause, resume) on the local node.
-     * @param command the node control command
+     * @param command the command payload parameters
      * @return the execution result
      */
     public CommandResult executeControl(String command) {
@@ -115,7 +118,7 @@ public class LocalCommandService {
                     if (service.getClass().getName().endsWith("WebService") ||
                             service.getClass().getSimpleName().contains("WebService")) {
                         try {
-                            java.lang.reflect.Method getContextNameMethod = service.getClass().getMethod("getContextName");
+                            Method getContextNameMethod = service.getClass().getMethod("getContextName");
                             String contextName = (String) getContextNameMethod.invoke(service);
                             if ("console".equals(contextName)) {
                                 continue;
@@ -145,7 +148,7 @@ public class LocalCommandService {
                     if (service.getClass().getName().endsWith("WebService") ||
                             service.getClass().getSimpleName().contains("WebService")) {
                         try {
-                            java.lang.reflect.Method getContextNameMethod = service.getClass().getMethod("getContextName");
+                            Method getContextNameMethod = service.getClass().getMethod("getContextName");
                             String contextName = (String) getContextNameMethod.invoke(service);
                             if ("console".equals(contextName)) {
                                 continue;

@@ -31,6 +31,7 @@ class BaseClient {
         this.onClosed = onClosed;
         this.onFailed = onFailed;
         this.onNodeJoined = null;
+        this.onNodeStatusChanged = null;
         this.onNodeLeft = null;
         this.onRequireRebuild = null;
         this.isGatewayMode = isGatewayMode;

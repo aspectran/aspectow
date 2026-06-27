@@ -137,6 +137,11 @@ public abstract class AppMonManagerBuilder {
                         public void onNodeLeft(String leftNodeId) {
                             appMonManager.getMessageRelayManager().nodeLeft(leftNodeId);
                         }
+
+                        @Override
+                        public void onNodeStatusChanged(NodeInfo info) {
+                            appMonManager.getMessageRelayManager().nodeStatusChanged(info);
+                        }
                     };
                     nodeManager.getClusterEventSubscriber().addListener(clusterEventListener);
                     appMonManager.setClusterEventListener(clusterEventListener);

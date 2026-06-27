@@ -88,4 +88,29 @@ public class NodeClusterEventListener implements ClusterEventListener {
         }
     }
 
+    @Override
+    public void onNodeStatusChanged(@NonNull NodeInfo info) {
+        if (nodeManager.getNodeId().equals(info.getId())) {
+            return;
+        }
+        // Validate Token
+        try {
+            nodeManager.validateToken(info.getToken());
+        } catch (Exception e) {
+            logger.warn("Rejected status change request from node '{}' due to invalid token", info.getId());
+            return;
+        }
+
+        if (nodeManager.getClusterConfig().isGatewayMode()) {
+            NodeInfo existingInfo = nodeManager.getNodeInfoHolder().getNodeInfo(info.getId());
+            if (existingInfo != null) {
+                NodeInfo newInfo = existingInfo.copyWithUpdatedState(info);
+                nodeManager.getNodeInfoHolder().putNodeInfo(newInfo);
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Updated status for node: {}", info.getId());
+                }
+            }
+        }
+    }
+
 }

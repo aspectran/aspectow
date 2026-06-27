@@ -32,6 +32,7 @@ import java.util.concurrent.TimeUnit;
 
 import static com.aspectran.aspectow.node.manager.ClusterEventSubscriber.MESSAGE_JOINED;
 import static com.aspectran.aspectow.node.manager.ClusterEventSubscriber.MESSAGE_LEFT;
+import static com.aspectran.aspectow.node.manager.ClusterEventSubscriber.MESSAGE_STATUS_CHANGED;
 
 /**
  * Responsible for reporting the current node's status to the cluster registry.
@@ -114,7 +115,7 @@ public class NodeReporter {
         getNodeInfo().setStatus(status);
         try {
             registerNode();
-            broadcastJoin();
+            broadcastStatusChanged();
         } catch (Exception e) {
             logger.error("Failed to update and broadcast node status: {}", status, e);
         }
@@ -152,11 +153,23 @@ public class NodeReporter {
 
     private void broadcastJoin() {
         try {
+            getNodeInfo().setToken(nodeManager.generateToken());
             String aponData = new AponWriter().nullWritable(false).write(getNodeInfo()).toString();
             String channel = NodeMessageProtocol.getClusterEventsChannel(getClusterConfig().getId());
             nodeManager.getNodeMessagePublisher().asyncPublish(channel, MESSAGE_JOINED + aponData);
         } catch (Exception e) {
             logger.error("Failed to broadcast join event for node '{}'", getNodeInfo().getId(), e);
+        }
+    }
+
+    private void broadcastStatusChanged() {
+        try {
+            getNodeInfo().setToken(nodeManager.generateToken());
+            String aponData = new AponWriter().nullWritable(false).write(getNodeInfo()).toString();
+            String channel = NodeMessageProtocol.getClusterEventsChannel(getClusterConfig().getId());
+            nodeManager.getNodeMessagePublisher().asyncPublish(channel, MESSAGE_STATUS_CHANGED + aponData);
+        } catch (Exception e) {
+            logger.error("Failed to broadcast statusChanged event for node '{}'", getNodeInfo().getId(), e);
         }
     }
 

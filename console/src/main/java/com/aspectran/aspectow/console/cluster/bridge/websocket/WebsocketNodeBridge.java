@@ -21,7 +21,6 @@ import com.aspectran.aspectow.node.management.nodes.NodeResponseParameters;
 import com.aspectran.aspectow.node.management.nodes.RemoteNodeManager;
 import com.aspectran.aspectow.node.management.nodes.bridge.NodeBridge;
 import com.aspectran.aspectow.node.management.nodes.bridge.NodeSession;
-import com.aspectran.aspectow.node.manager.NodeManager;
 import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Component;
 import com.aspectran.utils.StringUtils;
@@ -38,7 +37,7 @@ import org.slf4j.LoggerFactory;
 import static com.aspectran.aspectow.node.manager.NodeMessageProtocol.NODES_BASE_PATH;
 
 /**
- * WebsocketNodeManagementBridge provides real-time, bidirectional communication for cluster node management.
+ * WebsocketNodeBridge provides real-time, bidirectional communication for cluster node management.
  *
  * <p>Created: 2026-04-19</p>
  */
@@ -47,23 +46,19 @@ import static com.aspectran.aspectow.node.manager.NodeMessageProtocol.NODES_BASE
         value = NODES_BASE_PATH + "/{nodeId}/websocket/{token}",
         configurator = AspectranConfigurator.class
 )
-public class WebsocketNodeManagementBridge extends SimplifiedEndpoint implements NodeBridge {
+public class WebsocketNodeBridge extends SimplifiedEndpoint implements NodeBridge {
 
-    private static final Logger logger = LoggerFactory.getLogger(WebsocketNodeManagementBridge.class);
+    private static final Logger logger = LoggerFactory.getLogger(WebsocketNodeBridge.class);
 
     private final RemoteNodeManager remoteNodeManager;
 
-    private final NodeManager nodeManager;
-
     /**
-     * Constructs a new {@code WebsocketNodeManagementBridge} with the specified remote node manager and node manager.
+     * Constructs a new {@code WebsocketNodeBridge} with the specified remote node manager and node manager.
      * @param remoteNodeManager the remote node manager
-     * @param nodeManager the node manager
      */
     @Autowired
-    public WebsocketNodeManagementBridge(RemoteNodeManager remoteNodeManager, NodeManager nodeManager) {
+    public WebsocketNodeBridge(RemoteNodeManager remoteNodeManager) {
         this.remoteNodeManager = remoteNodeManager;
-        this.nodeManager = nodeManager;
     }
 
     /**

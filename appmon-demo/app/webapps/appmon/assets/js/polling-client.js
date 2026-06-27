@@ -177,6 +177,11 @@ class PollingClient extends BaseClient {
                             if (this.onNodeJoined) this.onNodeJoined(nodeInfo);
                             return;
                         }
+                        if (message.startsWith(":node:statusChanged:")) {
+                            const nodeInfo = JSON.parse(message.substring(20));
+                            if (this.onNodeStatusChanged) this.onNodeStatusChanged(nodeInfo);
+                            return;
+                        }
                         if (message === ":node:left") {
                             if (this.onNodeLeft) this.onNodeLeft(nodeId);
                             return;

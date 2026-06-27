@@ -47,7 +47,7 @@ public class PollingSessionManager extends AbstractComponent {
 
     private final Map<String, PollingNodeSession> sessions = new CopyOnWriteMap<>();
 
-    private final PollingNodeManagementBridge bridge;
+    private final PollingNodeBridge bridge;
 
     private final BroadcastMessageBuffer broadcastMessageBuffer;
 
@@ -55,7 +55,7 @@ public class PollingSessionManager extends AbstractComponent {
      * Instantiates a new {@code PollingSessionManager} with the specified node bridge.
      * @param bridge the polling node management bridge associated with this manager
      */
-    public PollingSessionManager(PollingNodeManagementBridge bridge) {
+    public PollingSessionManager(PollingNodeBridge bridge) {
         this.bridge = bridge;
         this.broadcastMessageBuffer = new BroadcastMessageBuffer();
     }

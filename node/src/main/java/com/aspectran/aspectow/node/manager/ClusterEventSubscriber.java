@@ -41,6 +41,8 @@ public class ClusterEventSubscriber extends RedisPubSubAdapter<String, String> {
 
     public static final String MESSAGE_LEFT = "LEFT:";
 
+    public static final String MESSAGE_STATUS_CHANGED = "STATUS_CHANGED:";
+
     private final String clusterId;
 
     private final RedisConnectionPool connectionPool;
@@ -92,6 +94,17 @@ public class ClusterEventSubscriber extends RedisPubSubAdapter<String, String> {
             String leftNodeId = message.substring(5);
             for (ClusterEventListener listener : listeners) {
                 listener.onNodeLeft(leftNodeId);
+            }
+        } else if (message.startsWith(MESSAGE_STATUS_CHANGED)) {
+            String aponData = message.substring(15);
+            try {
+                NodeInfo info = new NodeInfo();
+                info.readFrom(aponData);
+                for (ClusterEventListener listener : listeners) {
+                    listener.onNodeStatusChanged(info);
+                }
+            } catch (IOException e) {
+                logger.warn("Failed to parse STATUS_CHANGED event data", e);
             }
         }
     }

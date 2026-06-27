@@ -217,6 +217,7 @@ class DashboardBuilder {
                         client.addClusterViewer(node.id, viewer);
                         client.addClusterNode(node, onSubscribed);
                         client.onNodeJoined = onNodeJoined;
+                        client.onNodeStatusChanged = onNodeStatusChanged;
                         client.onNodeLeft = onNodeLeft;
                         client.onRequireRebuild = onRequireRebuild;
                     }
@@ -229,6 +230,14 @@ class DashboardBuilder {
 
         const onNodeJoined = (node) => {
             this.showNewNodeNotification(node.id);
+        };
+
+        const onNodeStatusChanged = (node) => {
+            const existing = this.nodes.find(n => n.id === node.id);
+            if (existing) {
+                existing.status = node.status;
+                this.changeNodeState(existing);
+            }
         };
 
         const onNodeLeft = (nodeId) => {
@@ -278,6 +287,7 @@ class DashboardBuilder {
             client.addClusterViewer(node.id, viewer);
             client.addClusterNode(node, onSubscribed);
             client.onNodeJoined = onNodeJoined;
+            client.onNodeStatusChanged = onNodeStatusChanged;
             client.onNodeLeft = onNodeLeft;
             client.onRequireRebuild = onRequireRebuild;
         }

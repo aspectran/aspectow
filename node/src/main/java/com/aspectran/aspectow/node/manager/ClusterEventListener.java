@@ -36,4 +36,12 @@ public interface ClusterEventListener {
      */
     void onNodeLeft(String nodeId);
 
+    /**
+     * Called when a node's status has changed.
+     * @param nodeInfo the information of the node with updated status
+     */
+    default void onNodeStatusChanged(NodeInfo nodeInfo) {
+        // Default no-op implementation
+    }
+
 }

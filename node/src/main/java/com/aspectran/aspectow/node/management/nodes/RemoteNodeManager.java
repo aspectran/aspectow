@@ -199,4 +199,27 @@ public class RemoteNodeManager implements InitializableBean, DisposableBean, Clu
         }
     }
 
+    @Override
+    public void onNodeStatusChanged(NodeInfo info) {
+        if (sessionBridgeMap.isEmpty()) {
+            return;
+        }
+        try {
+            NodeResponseParameters response = new NodeResponseParameters();
+            response.setHeader("statusChanged");
+            response.setNode(info);
+            String message = response.toString();
+            for (Map.Entry<String, NodeBridge> entry : sessionBridgeMap.entrySet()) {
+                String sessionId = entry.getKey();
+                NodeBridge bridge = entry.getValue();
+                NodeSession session = bridge.findNodeSession(sessionId);
+                if (session != null) {
+                    bridge.bridge(session, message);
+                }
+            }
+        } catch (Exception e) {
+            logger.error("Failed to broadcast statusChanged event of node {}", info.getId(), e);
+        }
+    }
+
 }

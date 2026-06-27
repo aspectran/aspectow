@@ -152,6 +152,16 @@ public class MessageRelayManager {
         }
     }
 
+    public void nodeStatusChanged(@NonNull NodeInfo info) {
+        if (!isSameNode(info.getId())) {
+            JsonBuilder jsonBuilder = new JsonBuilder()
+                    .nullWritable(false)
+                    .prettyPrint(false)
+                    .put(info);
+            relayLocally(info.getId() + "::node:statusChanged:" + jsonBuilder.toString());
+        }
+    }
+
     public void nodeLeft(String nodeId) {
         if (!isSameNode(nodeId)) {
             relayLocally(nodeId + "::node:left");

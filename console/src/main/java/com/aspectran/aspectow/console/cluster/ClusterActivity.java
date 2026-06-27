@@ -19,6 +19,8 @@ import com.aspectran.aspectow.appmon.common.auth.AppMonTokenIssuer;
 import com.aspectran.aspectow.console.auth.UserInfo;
 import com.aspectran.aspectow.node.config.GroupInfo;
 import com.aspectran.aspectow.node.config.NodeInfo;
+import com.aspectran.aspectow.node.management.commands.CommandRequestParameters;
+import com.aspectran.aspectow.node.management.commands.RemoteCommandManager;
 import com.aspectran.aspectow.node.manager.NodeManager;
 import com.aspectran.core.activity.Translet;
 import com.aspectran.core.component.bean.annotation.Action;
@@ -26,15 +28,10 @@ import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Component;
 import com.aspectran.core.component.bean.annotation.Dispatch;
 import com.aspectran.core.component.bean.annotation.Request;
+import com.aspectran.daemon.command.CommandParameters;
 import com.aspectran.web.activity.response.RestResponse;
 import com.aspectran.web.support.rest.response.FailureResponse;
 import com.aspectran.web.support.rest.response.SuccessResponse;
-import com.aspectran.aspectow.node.management.commands.CommandRequestParameters;
-import com.aspectran.aspectow.node.management.commands.RemoteCommandManager;
-import com.aspectran.daemon.command.CommandParameters;
-import com.aspectran.web.service.DefaultWebService;
-import com.aspectran.core.service.CoreService;
-import com.aspectran.core.service.CoreServiceHolder;
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -145,11 +142,11 @@ public class ClusterActivity {
                 CommandRequestParameters commandRequest = new CommandRequestParameters();
                 commandRequest.setHeader("execute");
                 commandRequest.setTargetNodeId(nodeId);
-                
+
                 CommandParameters commandParams = new CommandParameters();
                 commandParams.readFrom("command: restart");
                 commandRequest.setCommand(commandParams);
-                
+
                 remoteCommandManager.process(commandRequest);
                 return new SuccessResponse("Restart command dispatched to " + nodeId).ok();
             } catch (Exception e) {
@@ -173,11 +170,11 @@ public class ClusterActivity {
                 CommandRequestParameters commandRequest = new CommandRequestParameters();
                 commandRequest.setHeader("execute");
                 commandRequest.setTargetNodeId(nodeId);
-                
+
                 CommandParameters commandParams = new CommandParameters();
                 commandParams.readFrom("command: pause");
                 commandRequest.setCommand(commandParams);
-                
+
                 remoteCommandManager.process(commandRequest);
                 return new SuccessResponse("Pause command dispatched to " + nodeId).ok();
             } catch (Exception e) {
@@ -201,11 +198,11 @@ public class ClusterActivity {
                 CommandRequestParameters commandRequest = new CommandRequestParameters();
                 commandRequest.setHeader("execute");
                 commandRequest.setTargetNodeId(nodeId);
-                
+
                 CommandParameters commandParams = new CommandParameters();
                 commandParams.readFrom("command: resume");
                 commandRequest.setCommand(commandParams);
-                
+
                 remoteCommandManager.process(commandRequest);
                 return new SuccessResponse("Resume command dispatched to " + nodeId).ok();
             } catch (Exception e) {
