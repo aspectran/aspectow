@@ -27,8 +27,7 @@ import com.aspectran.core.component.bean.annotation.Component;
 import com.aspectran.core.component.bean.annotation.Destroy;
 import com.aspectran.core.component.bean.annotation.Initialize;
 import com.aspectran.core.component.bean.annotation.Qualifier;
-import com.aspectran.core.component.bean.annotation.RequestToGet;
-import com.aspectran.core.component.bean.annotation.RequestToPost;
+import com.aspectran.core.component.bean.annotation.Request;
 import com.aspectran.core.component.bean.annotation.Transform;
 import com.aspectran.core.context.rule.type.FormatType;
 import com.aspectran.utils.Assert;
@@ -93,7 +92,7 @@ public class PollingMessageRelayer implements MessageRelayer {
      * @return a map containing the app info, and initial messages
      * @throws IOException if an I/O error occurs
      */
-    @RequestToPost("/polling/subscribe")
+    @Request("/polling/subscribe")
     @Transform(FormatType.JSON)
     public Map<String, Object> subscribe(@NonNull Translet translet) throws IOException {
         String nodeId = translet.getParameter("nodeId");
@@ -135,7 +134,7 @@ public class PollingMessageRelayer implements MessageRelayer {
      * @return a map containing the new token and any new messages
      * @throws IOException if an I/O error occurs
      */
-    @RequestToGet("/polling/pull")
+    @Request("/polling/pull")
     @Transform(FormatType.JSON)
     public Map<String, Object> pull(
             @NonNull Translet translet, @Qualifier("commands[]") String[] commands) throws IOException {
@@ -216,7 +215,7 @@ public class PollingMessageRelayer implements MessageRelayer {
      * @param speed the desired speed multiplier (1 for fast)
      * @return a map containing the new polling interval
      */
-    @RequestToPost("/polling/interval")
+    @Request("/polling/interval")
     @Transform(FormatType.JSON)
     public Map<String, Object> pollingInterval(@NonNull Translet translet, int speed) {
         PollingRelaySession relaySession = pollingSessionManager.getSession(translet);

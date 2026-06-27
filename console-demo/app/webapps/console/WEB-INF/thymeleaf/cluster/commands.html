@@ -607,7 +607,7 @@ arguments: {
                     const targetNode = nodes.find(n => n.id === (targetNodeId || myNodeId));
                     const nodeInfo = {
                         id: targetNodeId || myNodeId,
-                        port: targetNode ? targetNode.port : null,
+                        port: null,
                         endpoint: {
                             path: basePath + "/nodes/" + (targetNodeId || myNodeId),
                             mode: (targetNode && targetNode.endpoint ? targetNode.endpoint.mode : null)
