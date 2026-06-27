@@ -94,8 +94,8 @@
                         </div>
                         <div class="d-flex flex-column align-items-end">
                             <div class="d-flex align-items-center gap-2">
-                                <span class="status-dot" th:classappend="${nodeInfo.status == 'live' ? 'bg-success' : (nodeInfo.status == 'stopping' ? 'bg-warning' : 'bg-danger')}"></span>
-                                <span class="small fw-bold text-uppercase" th:classappend="${nodeInfo.status == 'live' ? 'text-success' : (nodeInfo.status == 'stopping' ? 'text-warning' : 'text-danger')}" th:text="${nodeInfo.status}">LIVE</span>
+                                <span class="status-dot" th:classappend="${nodeInfo.status == 'live' ? 'bg-success' : (nodeInfo.status == 'paused' ? 'bg-warning' : (nodeInfo.status == 'stopping' ? 'bg-warning' : 'bg-danger'))}"></span>
+                                <span class="small fw-bold text-uppercase" th:classappend="${nodeInfo.status == 'live' ? 'text-success' : (nodeInfo.status == 'paused' ? 'text-warning' : (nodeInfo.status == 'stopping' ? 'text-warning' : 'text-danger'))}" th:text="${nodeInfo.status}">LIVE</span>
                             </div>
                         </div>
                     </div>
@@ -122,6 +122,29 @@
                         <a href="javascript:void(0)" th:onclick="openAppMon([[${nodeInfo.id}]])" class="btn btn-sm btn-outline-secondary flex-grow-1">
                             <i class="bi bi-activity"></i> Metrics
                         </a>
+                        <div class="btn-group flex-grow-1" th:if="${session.USER_INFO.hasPermission('NODE_MANAGE') || session.USER_INFO.hasRole('SUPER_ADMIN') || session.USER_INFO.hasRole('DEMO')}">
+                            <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle w-100" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-gear"></i> Actions
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                                <li th:if="${nodeInfo.status == 'live'}">
+                                    <a class="dropdown-item text-warning animate-color" href="javascript:void(0)" th:onclick="pauseNode([[${nodeInfo.id}]])">
+                                        <i class="bi bi-pause-fill me-1"></i> Pause Node
+                                    </a>
+                                </li>
+                                <li th:if="${nodeInfo.status == 'paused'}">
+                                    <a class="dropdown-item text-success animate-color" href="javascript:void(0)" th:onclick="resumeNode([[${nodeInfo.id}]])">
+                                        <i class="bi bi-play-fill me-1"></i> Resume Node
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item text-danger animate-color" href="javascript:void(0)" th:onclick="restartNode([[${nodeInfo.id}]])">
+                                        <i class="bi bi-power me-1"></i> Restart Node
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </th:block>
@@ -149,6 +172,105 @@
                     popup.focus();
                 } else {
                     alert("Please allow popups for this site.");
+                }
+            }
+
+             function restartNode(nodeId) {
+                if (confirm("Are you sure you want to restart node '" + nodeId + "'?")) {
+                    const url = basePath + "/cluster/nodes/" + nodeId + "/restart";
+                    fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json'
+                        }
+                    })
+                    .then(response => {
+                        if (response.status === 403) {
+                            throw new Error("Access Denied: Demo users are not allowed to restart nodes.");
+                        }
+                        if (!response.ok) {
+                            throw new Error("HTTP error " + response.status);
+                        }
+                        return response.json();
+                    })
+                    .then(res => {
+                        if (res.success) {
+                            alert("Restart command dispatched successfully.");
+                            location.reload();
+                        } else {
+                            alert("Failed to dispatch restart command: " + (res.error ? res.error.message : "Unknown error"));
+                        }
+                    })
+                    .catch(err => {
+                        console.error("Error dispatching restart command:", err);
+                        alert(err.message || "Error communicating with the server.");
+                    });
+                }
+            }
+
+            function pauseNode(nodeId) {
+                if (confirm("Are you sure you want to pause node '" + nodeId + "'?")) {
+                    const url = basePath + "/cluster/nodes/" + nodeId + "/pause";
+                    fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json'
+                        }
+                    })
+                    .then(response => {
+                        if (response.status === 403) {
+                            throw new Error("Access Denied: Demo users are not allowed to pause nodes.");
+                        }
+                        if (!response.ok) {
+                            throw new Error("HTTP error " + response.status);
+                        }
+                        return response.json();
+                    })
+                    .then(res => {
+                        if (res.success) {
+                            alert("Pause command dispatched successfully.");
+                            location.reload();
+                        } else {
+                            alert("Failed to dispatch pause command: " + (res.error ? res.error.message : "Unknown error"));
+                        }
+                    })
+                    .catch(err => {
+                        console.error("Error dispatching pause command:", err);
+                        alert(err.message || "Error communicating with the server.");
+                    });
+                }
+            }
+
+            function resumeNode(nodeId) {
+                if (confirm("Are you sure you want to resume node '" + nodeId + "'?")) {
+                    const url = basePath + "/cluster/nodes/" + nodeId + "/resume";
+                    fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json'
+                        }
+                    })
+                    .then(response => {
+                        if (response.status === 403) {
+                            throw new Error("Access Denied: Demo users are not allowed to resume nodes.");
+                        }
+                        if (!response.ok) {
+                            throw new Error("HTTP error " + response.status);
+                        }
+                        return response.json();
+                    })
+                    .then(res => {
+                        if (res.success) {
+                            alert("Resume command dispatched successfully.");
+                            location.reload();
+                        } else {
+                            alert("Failed to dispatch resume command: " + (res.error ? res.error.message : "Unknown error"));
+                        }
+                    })
+                    .catch(err => {
+                        console.error("Error dispatching resume command:", err);
+                        alert(err.message || "Error communicating with the server.");
+                    });
                 }
             }
 
@@ -182,9 +304,9 @@
                         const status = node.status;
                         if (status) {
                             $dot.removeClass('bg-success bg-warning bg-danger')
-                                .addClass(status === 'live' ? 'bg-success' : (status === 'stopping' ? 'bg-warning' : 'bg-danger'));
+                                .addClass(status === 'live' ? 'bg-success' : (status === 'paused' ? 'bg-warning' : (status === 'stopping' ? 'bg-warning' : 'bg-danger')));
                             $statusText.removeClass('text-success text-warning text-danger')
-                                .addClass(status === 'live' ? 'text-success' : (status === 'stopping' ? 'text-warning' : 'text-danger'))
+                                .addClass(status === 'live' ? 'text-success' : (status === 'paused' ? 'text-warning' : (status === 'stopping' ? 'text-warning' : 'text-danger')))
                                 .text(status.toUpperCase());
                         }
                     } else {
@@ -206,7 +328,9 @@
                                 });
                         },
                         onOpen: () => {
-                            node.status = 'live';
+                            if (node.status !== 'paused' && node.status !== 'stopping') {
+                                node.status = 'live';
+                            }
                             updateNodeStatus(node);
                         },
                         onClose: () => {
@@ -237,6 +361,7 @@
                         const node = {
                             id: n.id,
                             port: n.port,
+                            status: n.status,
                             endpoint: {
                                 path: basePath + "/nodes/" + n.id,
                                 mode: (n.endpoint ? n.endpoint.mode : null)
@@ -246,6 +371,7 @@
                         client.start('');
                     });
                 } else {
+                    node.status = [[${page.node.status}]];
                     node.endpoint.path = basePath + "/nodes/" + node.id;
                     const client = createConsoleClient(node);
                     client.start('');

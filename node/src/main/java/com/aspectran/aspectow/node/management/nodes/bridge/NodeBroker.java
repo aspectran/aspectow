@@ -27,31 +27,14 @@ import org.slf4j.LoggerFactory;
  */
 public class NodeBroker {
 
-    private static final Logger logger = LoggerFactory.getLogger(NodeBroker.class);
-
     public static final String CATEGORY_NODES = "nodes";
-
-    public static final String CONTROL_SUBSCRIBE = "subscribe:";
-
-    public static final String CONTROL_RELEASE = "release:";
-
-    public static final String CONTROL_REQUEST = "request:";
-
-    public static final String DELIMITER = ":";
-
-    private final RemoteNodeManager nodeManager;
-
-    private final NodeMessagePublisher messagePublisher;
 
     private final SubscriptionRegistry subscriptionRegistry = new SubscriptionRegistry();
 
     /**
      * Instantiates a new NodeBroker.
-     * @param nodeManager the remote node manager
      */
-    public NodeBroker(@NonNull RemoteNodeManager nodeManager) {
-        this.nodeManager = nodeManager;
-        this.messagePublisher = nodeManager.getMessagePublisher();
+    public NodeBroker() {
     }
 
     /**
@@ -61,21 +44,7 @@ public class NodeBroker {
     public synchronized void subscribe(@NonNull NodeSession session) {
         if (session.isValid()) {
             subscriptionRegistry.addLocalSubscription(session.getId());
-            String targetNodeId = session.getNodeId();
-            if (nodeManager.isGatewayMode() && !nodeManager.isSameNode(targetNodeId)) {
-                publishControl(targetNodeId, CONTROL_SUBSCRIBE + nodeManager.getNodeId() + DELIMITER + session.getId());
-            }
         }
-    }
-
-    /**
-     * Subscribes a remote node to node events.
-     * @param nodeId the remote node ID
-     * @param sessionId the remote session ID
-     */
-    public synchronized void subscribeRemotely(String nodeId, String sessionId) {
-        logger.info("Received node subscribe request from node: {}, session: {}", nodeId, sessionId);
-        subscriptionRegistry.addRemoteSubscription(nodeId);
     }
 
     /**
@@ -84,29 +53,6 @@ public class NodeBroker {
      */
     public synchronized void unsubscribe(@NonNull NodeSession session) {
         subscriptionRegistry.removeLocalSubscription(session.getId());
-        String targetNodeId = session.getNodeId();
-        if (nodeManager.isGatewayMode() && !nodeManager.isSameNode(targetNodeId)) {
-            publishControl(targetNodeId, CONTROL_RELEASE + nodeManager.getNodeId() + DELIMITER + session.getId());
-        }
-    }
-
-    /**
-     * Unsubscribes a remote node from node events.
-     * @param nodeId the remote node ID
-     */
-    public synchronized void unsubscribeRemotely(String nodeId) {
-        logger.info("Received node unsubscribe request from node: {}", nodeId);
-        subscriptionRegistry.removeRemoteSubscription(nodeId);
-    }
-
-    private void publishControl(String targetNodeId, String message) {
-        if (messagePublisher != null) {
-            try {
-                messagePublisher.publishControl(CATEGORY_NODES, targetNodeId, message);
-            } catch (Exception e) {
-                logger.error("Failed to publish control message to Redis", e);
-            }
-        }
     }
 
 }

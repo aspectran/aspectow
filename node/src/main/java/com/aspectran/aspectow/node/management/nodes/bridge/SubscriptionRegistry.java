@@ -30,8 +30,6 @@ public class SubscriptionRegistry {
 
     private final Set<String> localSubscriptions = ConcurrentHashMap.newKeySet();
 
-    private final Set<String> remoteSubscriptions = ConcurrentHashMap.newKeySet();
-
     /**
      * Adds a local subscription by session ID.
      * @param sessionId the session identifier
@@ -49,43 +47,10 @@ public class SubscriptionRegistry {
     }
 
     /**
-     * Adds a remote subscription by node ID.
-     * @param nodeId the node identifier
-     */
-    public void addRemoteSubscription(@NonNull String nodeId) {
-        remoteSubscriptions.add(nodeId);
-    }
-
-    /**
-     * Removes a remote subscription by node ID.
-     * @param nodeId the node identifier
-     */
-    public void removeRemoteSubscription(@NonNull String nodeId) {
-        remoteSubscriptions.remove(nodeId);
-    }
-
-    /**
-     * Returns whether there are any active local or remote subscriptions.
-     * @return true if there are active subscriptions, false otherwise
-     */
-    public boolean isInUse() {
-        return (!localSubscriptions.isEmpty() || !remoteSubscriptions.isEmpty());
-    }
-
-    /**
-     * Returns whether there are any active local subscriptions.
-     * @return true if there are active local subscriptions, false otherwise
-     */
-    public boolean isInUseLocally() {
-        return !localSubscriptions.isEmpty();
-    }
-
-    /**
      * Clears all local and remote subscriptions.
      */
     public void clear() {
         localSubscriptions.clear();
-        remoteSubscriptions.clear();
     }
 
 }

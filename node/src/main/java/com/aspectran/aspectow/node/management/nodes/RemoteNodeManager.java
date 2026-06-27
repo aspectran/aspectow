@@ -55,7 +55,7 @@ public class RemoteNodeManager implements InitializableBean, DisposableBean, Clu
     public RemoteNodeManager(@NonNull NodeManager nodeManager) {
         this.nodeManager = nodeManager;
         this.messagePublisher = nodeManager.getNodeMessagePublisher();
-        this.broker = new NodeBroker(this);
+        this.broker = new NodeBroker();
     }
 
     @Override

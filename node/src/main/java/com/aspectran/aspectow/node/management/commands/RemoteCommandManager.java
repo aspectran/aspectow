@@ -65,7 +65,7 @@ public class RemoteCommandManager implements InitializableBean, DisposableBean, 
     public RemoteCommandManager(@NonNull NodeManager nodeManager) {
         this.nodeManager = nodeManager;
         this.messagePublisher = nodeManager.getNodeMessagePublisher();
-        this.localCommandService = new LocalCommandService();
+        this.localCommandService = new LocalCommandService(nodeManager);
         this.broker = new CommandBroker(this);
     }
 
@@ -209,7 +209,13 @@ public class RemoteCommandManager implements InitializableBean, DisposableBean, 
                 CommandParameters commandParameters = request.getCommand();
                 if (commandParameters != null) {
                     logger.debug("Executing local daemon command: {}", commandParameters);
-                    CommandResult result = localCommandService.execute(commandParameters.toString());
+                    CommandResult result;
+                    String commandName = commandParameters.getCommandName();
+                    if ("pause".equalsIgnoreCase(commandName) || "resume".equalsIgnoreCase(commandName)) {
+                        result = localCommandService.executeControl(commandName);
+                    } else {
+                        result = localCommandService.execute(commandParameters.toString());
+                    }
                     if (result != null) {
                         CommandResponseParameters response = new CommandResponseParameters()
                                 .setHeader("result")
@@ -262,7 +268,12 @@ public class RemoteCommandManager implements InitializableBean, DisposableBean, 
     private CommandResult execute(@NonNull CommandRequestParameters request) {
         CommandParameters commandParameters = request.getCommand();
         if (commandParameters != null) {
-            return localCommandService.execute(commandParameters.toString());
+            String commandName = commandParameters.getCommandName();
+            if ("pause".equalsIgnoreCase(commandName) || "resume".equalsIgnoreCase(commandName)) {
+                return localCommandService.executeControl(commandName);
+            } else {
+                return localCommandService.execute(commandParameters.toString());
+            }
         }
         return null;
     }

@@ -106,6 +106,20 @@ public class NodeReporter {
         unregisterNode();
     }
 
+    /**
+     * Updates the status of the node in the cluster registry and broadcasts the change.
+     * @param status the new status (e.g. "live", "paused")
+     */
+    public void updateStatus(String status) {
+        getNodeInfo().setStatus(status);
+        try {
+            registerNode();
+            broadcastJoin();
+        } catch (Exception e) {
+            logger.error("Failed to update and broadcast node status: {}", status, e);
+        }
+    }
+
     private void registerNode() throws IOException {
         String key = NodeMessageProtocol.getNodesHashKey(getClusterConfig().getId());
 

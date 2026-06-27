@@ -15,6 +15,7 @@
  */
 package com.aspectran.aspectow.node.management.commands;
 
+import com.aspectran.aspectow.node.manager.NodeManager;
 import com.aspectran.core.service.CoreService;
 import com.aspectran.core.service.CoreServiceHolder;
 import com.aspectran.daemon.command.CommandResult;
@@ -31,7 +32,13 @@ public class LocalCommandService {
 
     private static final Logger logger = LoggerFactory.getLogger(LocalCommandService.class);
 
+    private final NodeManager nodeManager;
+
     private DefaultDaemonService daemonService;
+
+    public LocalCommandService(NodeManager nodeManager) {
+        this.nodeManager = nodeManager;
+    }
 
     private synchronized void setupDaemonService() {
         if (daemonService != null) {
@@ -92,6 +99,79 @@ public class LocalCommandService {
             logger.warn("DaemonService is not available for local command processing");
             return new CommandResult(false, "[FAILED] Local DaemonService is not available");
         }
+    }
+
+    /**
+     * Executes a node control command (e.g. pause, resume) on the local node.
+     * @param command the node control command
+     * @return the execution result
+     */
+    public CommandResult executeControl(String command) {
+        if (command != null) {
+            String commandTrimmed = command.trim();
+            if ("pause".equalsIgnoreCase(commandTrimmed)) {
+                boolean found = false;
+                for (CoreService service : CoreServiceHolder.getAllServices()) {
+                    if (service.getClass().getName().endsWith("WebService") ||
+                            service.getClass().getSimpleName().contains("WebService")) {
+                        try {
+                            java.lang.reflect.Method getContextNameMethod = service.getClass().getMethod("getContextName");
+                            String contextName = (String) getContextNameMethod.invoke(service);
+                            if ("console".equals(contextName)) {
+                                continue;
+                            }
+                        } catch (Exception ignored) {
+                            // ignore
+                        }
+                        try {
+                            service.getServiceLifeCycle().pause();
+                            found = true;
+                        } catch (Exception e) {
+                            logger.error("Failed to pause WebService: {}", service.getServiceName(), e);
+                        }
+                    }
+                }
+                if (found) {
+                    if (nodeManager != null && nodeManager.getNodeReporter() != null) {
+                        nodeManager.getNodeReporter().updateStatus("paused");
+                    }
+                    return new CommandResult(true, "[SUCCESS] Web service has been paused");
+                } else {
+                    return new CommandResult(false, "[FAILED] WebService instance not found");
+                }
+            } else if ("resume".equalsIgnoreCase(commandTrimmed)) {
+                boolean found = false;
+                for (CoreService service : CoreServiceHolder.getAllServices()) {
+                    if (service.getClass().getName().endsWith("WebService") ||
+                            service.getClass().getSimpleName().contains("WebService")) {
+                        try {
+                            java.lang.reflect.Method getContextNameMethod = service.getClass().getMethod("getContextName");
+                            String contextName = (String) getContextNameMethod.invoke(service);
+                            if ("console".equals(contextName)) {
+                                continue;
+                            }
+                        } catch (Exception ignored) {
+                            // ignore
+                        }
+                        try {
+                            service.getServiceLifeCycle().resume();
+                            found = true;
+                        } catch (Exception e) {
+                            logger.error("Failed to resume WebService: {}", service.getServiceName(), e);
+                        }
+                    }
+                }
+                if (found) {
+                    if (nodeManager != null && nodeManager.getNodeReporter() != null) {
+                        nodeManager.getNodeReporter().updateStatus("live");
+                    }
+                    return new CommandResult(true, "[SUCCESS] Web service has been resumed");
+                } else {
+                    return new CommandResult(false, "[FAILED] WebService instance not found");
+                }
+            }
+        }
+        return new CommandResult(false, "[FAILED] Unknown node control command: " + command);
     }
 
 }

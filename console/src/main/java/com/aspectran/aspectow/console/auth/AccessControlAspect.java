@@ -76,6 +76,9 @@ public class AccessControlAspect {
         } else if (requestName.startsWith("/cluster/commands") ||
                 requestName.startsWith("/commands")) {
             hasAccess = (userInfo.hasPermission("COMMAND_EXECUTE") || userInfo.hasRole("SUPER_ADMIN"));
+        } else if (requestName.startsWith("/cluster/nodes/") &&
+                (requestName.endsWith("/restart") || requestName.endsWith("/pause") || requestName.endsWith("/resume"))) {
+            hasAccess = ((userInfo.hasPermission("NODE_MANAGE") && !userInfo.hasRole("DEMO")) || userInfo.hasRole("SUPER_ADMIN"));
         } else if (requestName.startsWith("/cluster") ||
                 requestName.startsWith("/scheduler") ||
                 requestName.startsWith("/vault")) {

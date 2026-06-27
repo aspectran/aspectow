@@ -27,8 +27,17 @@ import com.aspectran.core.component.bean.annotation.Component;
 import com.aspectran.core.component.bean.annotation.Dispatch;
 import com.aspectran.core.component.bean.annotation.Request;
 import com.aspectran.web.activity.response.RestResponse;
+import com.aspectran.web.support.rest.response.FailureResponse;
 import com.aspectran.web.support.rest.response.SuccessResponse;
+import com.aspectran.aspectow.node.management.commands.CommandRequestParameters;
+import com.aspectran.aspectow.node.management.commands.RemoteCommandManager;
+import com.aspectran.daemon.command.CommandParameters;
+import com.aspectran.web.service.DefaultWebService;
+import com.aspectran.core.service.CoreService;
+import com.aspectran.core.service.CoreServiceHolder;
 import org.jspecify.annotations.NonNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -44,19 +53,26 @@ import java.util.stream.Collectors;
 @Component("/cluster")
 public class ClusterActivity {
 
+    private static final Logger logger = LoggerFactory.getLogger(ClusterActivity.class);
+
     private final NodeManager nodeManager;
 
     private final NodeConsoleHelper nodeConsoleHelper;
 
+    private final RemoteCommandManager remoteCommandManager;
+
     /**
-     * Constructs a new {@code ClusterActivity} with the specified node manager and node console helper.
+     * Constructs a new {@code ClusterActivity} with the specified node manager,
+     * node console helper, and remote command manager.
      * @param nodeManager the node manager
      * @param nodeConsoleHelper the node console helper
+     * @param remoteCommandManager the remote command manager
      */
     @Autowired
-    public ClusterActivity(NodeManager nodeManager, NodeConsoleHelper nodeConsoleHelper) {
+    public ClusterActivity(NodeManager nodeManager, NodeConsoleHelper nodeConsoleHelper, RemoteCommandManager remoteCommandManager) {
         this.nodeManager = nodeManager;
         this.nodeConsoleHelper = nodeConsoleHelper;
+        this.remoteCommandManager = remoteCommandManager;
     }
 
     /**
@@ -114,6 +130,90 @@ public class ClusterActivity {
         UserInfo userInfo = translet.getSessionAdapter().getAttribute(UserInfo.USERINFO_KEY);
         boolean isDemo = (userInfo != null && userInfo.hasRole("DEMO"));
         return new SuccessResponse(AppMonTokenIssuer.issueToken(30, isDemo)).ok();
+    }
+
+    /**
+     * Dispatches a restart command to a specific node using RemoteCommandManager.
+     * @param translet the active translet
+     * @return the REST response indicating success or failure
+     */
+    @Request("/nodes/${nodeId}/restart")
+    public RestResponse restartNode(@NonNull Translet translet) {
+        String nodeId = translet.getParameter("nodeId");
+        if (nodeId != null) {
+            try {
+                CommandRequestParameters commandRequest = new CommandRequestParameters();
+                commandRequest.setHeader("execute");
+                commandRequest.setTargetNodeId(nodeId);
+                
+                CommandParameters commandParams = new CommandParameters();
+                commandParams.readFrom("command: restart");
+                commandRequest.setCommand(commandParams);
+                
+                remoteCommandManager.process(commandRequest);
+                return new SuccessResponse("Restart command dispatched to " + nodeId).ok();
+            } catch (Exception e) {
+                return new FailureResponse().setError("error", "Failed to dispatch restart command: " + e.getMessage());
+            }
+        } else {
+            return new FailureResponse().setError("error", "Missing nodeId parameter");
+        }
+    }
+
+    /**
+     * Dispatches a pause command to a specific node using RemoteCommandManager.
+     * @param translet the active translet
+     * @return the REST response indicating success or failure
+     */
+    @Request("/nodes/${nodeId}/pause")
+    public RestResponse pauseNode(@NonNull Translet translet) {
+        String nodeId = translet.getParameter("nodeId");
+        if (nodeId != null) {
+            try {
+                CommandRequestParameters commandRequest = new CommandRequestParameters();
+                commandRequest.setHeader("execute");
+                commandRequest.setTargetNodeId(nodeId);
+                
+                CommandParameters commandParams = new CommandParameters();
+                commandParams.readFrom("command: pause");
+                commandRequest.setCommand(commandParams);
+                
+                remoteCommandManager.process(commandRequest);
+                return new SuccessResponse("Pause command dispatched to " + nodeId).ok();
+            } catch (Exception e) {
+                return new FailureResponse().setError("error", "Failed to dispatch pause command: " + e.getMessage());
+            }
+        } else {
+            return new FailureResponse().setError("error", "Missing nodeId parameter");
+        }
+    }
+
+    /**
+     * Dispatches a resume command to a specific node using RemoteCommandManager.
+     * @param translet the active translet
+     * @return the REST response indicating success or failure
+     */
+    @Request("/nodes/${nodeId}/resume")
+    public RestResponse resumeNode(@NonNull Translet translet) {
+        String nodeId = translet.getParameter("nodeId");
+        if (nodeId != null) {
+            try {
+                CommandRequestParameters commandRequest = new CommandRequestParameters();
+                commandRequest.setHeader("execute");
+                commandRequest.setTargetNodeId(nodeId);
+                
+                CommandParameters commandParams = new CommandParameters();
+                commandParams.readFrom("command: resume");
+                commandRequest.setCommand(commandParams);
+                
+                remoteCommandManager.process(commandRequest);
+                return new SuccessResponse("Resume command dispatched to " + nodeId).ok();
+            } catch (Exception e) {
+                return new FailureResponse().setError("error", "Failed to dispatch resume command: " + e.getMessage());
+            }
+        } else {
+            return new FailureResponse().setError("error", "Missing nodeId parameter");
+        }
     }
 
 }

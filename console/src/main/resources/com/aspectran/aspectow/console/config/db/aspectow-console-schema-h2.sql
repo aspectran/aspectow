@@ -97,12 +97,13 @@ insert IGNORE into asc_role (role_name, description) values ('DEMO', 'Demo user 
 insert IGNORE into asc_permission (perm_code, description) values ('MONITOR_VIEW', 'Access to monitoring dashboard');
 insert IGNORE into asc_permission (perm_code, description) values ('MONITOR_CONTROL', 'Control monitoring settings');
 insert IGNORE into asc_permission (perm_code, description) values ('USER_MANAGE', 'Manage users and roles');
+insert IGNORE into asc_permission (perm_code, description) values ('NODE_MANAGE', 'Manage and restart cluster nodes');
 insert IGNORE into asc_permission (perm_code, description) values ('COMMAND_EXECUTE', 'Execute remote commands');
 
 -- Map permissions to SUPER_ADMIN
 insert IGNORE into asc_role_permission (role_id, perm_id) select 1, perm_id from asc_permission;
 -- Map permissions to ADMIN
-insert IGNORE into asc_role_permission (role_id, perm_id) select 2, perm_id from asc_permission where perm_code in ('MONITOR_VIEW', 'COMMAND_EXECUTE');
+insert IGNORE into asc_role_permission (role_id, perm_id) select 2, perm_id from asc_permission where perm_code in ('MONITOR_VIEW', 'COMMAND_EXECUTE', 'NODE_MANAGE');
 -- Map permissions to VIEWER
 insert IGNORE into asc_role_permission (role_id, perm_id) select 3, perm_id from asc_permission where perm_code = 'MONITOR_VIEW';
 -- Map permissions to DEMO
