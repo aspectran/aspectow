@@ -47,7 +47,11 @@
 
     <update id="updateUser" parameterType="com.aspectran.aspectow.console.common.db.model.User">
         update asc_user
-        set nickname = #{nickname},
+        set
+        <if test="password != null and password != ''">
+            password = #{password},
+        </if>
+            nickname = #{nickname},
             email = #{email},
             status = #{status},
             updated_at = current_timestamp
@@ -116,6 +120,5 @@
         </if>
         order by history_id desc
     </select>
-
 
 </mapper>

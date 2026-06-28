@@ -22,6 +22,9 @@ import com.aspectran.aspectow.console.common.db.model.Role;
 import com.aspectran.aspectow.console.common.db.model.User;
 import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Component;
+import com.aspectran.utils.PBEncryptionUtils;
+import com.aspectran.utils.StringUtils;
+import org.jspecify.annotations.NonNull;
 
 import java.util.List;
 
@@ -81,7 +84,10 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void createUser(User user, List<Long> roleIds) {
+    public void createUser(@NonNull User user, List<Long> roleIds) {
+        if (StringUtils.hasText(user.getPassword())) {
+            user.setPassword(PBEncryptionUtils.encrypt(user.getPassword()));
+        }
         accountMapper.insertUser(user);
         if (roleIds != null && user.getUserId() != null) {
             for (Long roleId : roleIds) {
@@ -91,7 +97,10 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void updateUser(User user, List<Long> roleIds) {
+    public void updateUser(@NonNull User user, List<Long> roleIds) {
+        if (StringUtils.hasText(user.getPassword())) {
+            user.setPassword(PBEncryptionUtils.encrypt(user.getPassword()));
+        }
         accountMapper.updateUser(user);
         if (roleIds != null) {
             accountMapper.deleteUserRoles(user.getUserId());
