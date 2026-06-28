@@ -22,8 +22,11 @@ import com.aspectran.aspectow.console.common.db.model.Role;
 import com.aspectran.aspectow.console.common.db.model.User;
 import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Component;
-import com.aspectran.utils.PBEncryptionUtils;
+import com.aspectran.core.component.bean.aware.ActivityContextAware;
+import com.aspectran.core.context.ActivityContext;
+import com.aspectran.core.context.env.Environment;
 import com.aspectran.utils.StringUtils;
+import org.jasypt.util.password.StrongPasswordEncryptor;
 import org.jspecify.annotations.NonNull;
 
 import java.util.List;
@@ -32,9 +35,13 @@ import java.util.List;
  * Implementation of the UserService.
  */
 @Component
-public class UserServiceImpl implements UserService {
+public class UserServiceImpl implements UserService, ActivityContextAware {
+
+    private final StrongPasswordEncryptor passwordEncryptor = new StrongPasswordEncryptor();
 
     private final AccountMapper accountMapper;
+
+    private Environment environment;
 
     @Autowired
     public UserServiceImpl(AccountMapper accountMapper) {
@@ -49,6 +56,29 @@ public class UserServiceImpl implements UserService {
     @Override
     public User getUserByUsername(String username) {
         return accountMapper.getUserByUsername(username);
+    }
+
+    @Override
+    public void setActivityContext(@NonNull ActivityContext context) {
+        this.environment = context.getEnvironment();
+    }
+
+    @Override
+    public boolean checkPassword(String password, String dbPassword) {
+        if (password == null || dbPassword == null) {
+            return false;
+        }
+        try {
+            if (passwordEncryptor.checkPassword(password, dbPassword)) {
+                return true;
+            }
+        } catch (Exception e) {
+            // Ignore exception and fallback to plain text check for h2 profile
+        }
+        if (environment != null && environment.acceptsProfiles("h2")) {
+            return dbPassword.equals(password);
+        }
+        return false;
     }
 
     @Override
@@ -86,7 +116,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public void createUser(@NonNull User user, List<Long> roleIds) {
         if (StringUtils.hasText(user.getPassword())) {
-            user.setPassword(PBEncryptionUtils.encrypt(user.getPassword()));
+            user.setPassword(passwordEncryptor.encryptPassword(user.getPassword()));
         }
         accountMapper.insertUser(user);
         if (roleIds != null && user.getUserId() != null) {
@@ -99,7 +129,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public void updateUser(@NonNull User user, List<Long> roleIds) {
         if (StringUtils.hasText(user.getPassword())) {
-            user.setPassword(PBEncryptionUtils.encrypt(user.getPassword()));
+            user.setPassword(passwordEncryptor.encryptPassword(user.getPassword()));
         }
         accountMapper.updateUser(user);
         if (roleIds != null) {

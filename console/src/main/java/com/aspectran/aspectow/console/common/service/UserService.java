@@ -42,6 +42,14 @@ public interface UserService {
     User getUserByUsername(String username);
 
     /**
+     * Checks if the given password matches the password stored in the database.
+     * @param password the password entered by the user
+     * @param dbPassword the password stored in the database
+     * @return true if the passwords match, false otherwise
+     */
+    boolean checkPassword(String password, String dbPassword);
+
+    /**
      * Retrieves all users.
      * @return the list of users
      */

@@ -28,7 +28,6 @@ import com.aspectran.core.component.bean.annotation.Dispatch;
 import com.aspectran.core.component.bean.annotation.Redirect;
 import com.aspectran.core.component.bean.annotation.Request;
 import com.aspectran.core.component.bean.annotation.RequestToPost;
-import com.aspectran.utils.PBEncryptionUtils;
 import com.aspectran.utils.StringUtils;
 import com.aspectran.web.activity.response.RestResponse;
 import com.aspectran.web.support.http.HttpHeaders;
@@ -74,7 +73,7 @@ public class LoginActivity {
         String userAgent = translet.getRequestAdapter().getHeader(HttpHeaders.USER_AGENT);
 
         User user = userService.getUserByUsername(username);
-        if (user != null && checkPassword(translet, password, user.getPassword())) {
+        if (user != null && userService.checkPassword(password, user.getPassword())) {
             if (!"NORMAL".equals(user.getStatus())) {
                 userService.recordLogin(username, remoteAddr, userAgent, false);
                 return new FailureResponse().setError("locked", "Account is " + user.getStatus());
@@ -117,28 +116,6 @@ public class LoginActivity {
     public void logout(@NonNull Translet translet) {
         SessionAdapter sessionAdapter = translet.getSessionAdapter();
         sessionAdapter.removeAttribute(UserInfo.USERINFO_KEY);
-    }
-
-    /**
-     * Checks if the given password matches the password stored in the database.
-     * If the active profile is "h2", it accepts both plain text and encrypted passwords.
-     * @param translet the translet
-     * @param password the password entered by the user
-     * @param dbPassword the password stored in the database
-     * @return true if the passwords match, false otherwise
-     */
-    private boolean checkPassword(Translet translet, String password, String dbPassword) {
-        if (password == null || dbPassword == null) {
-            return false;
-        }
-        if (translet.getEnvironment().acceptsProfiles("h2") && dbPassword.equals(password)) {
-            return true;
-        }
-        try {
-            return PBEncryptionUtils.decrypt(dbPassword).equals(password);
-        } catch (Exception e) {
-            return false;
-        }
     }
 
     /**
