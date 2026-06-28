@@ -52,7 +52,7 @@ import static com.aspectran.aspectow.node.manager.NodeMessageProtocol.NODES_BASE
  *
  * <p>Created: 2020. 12. 24.</p>
  */
-@Component(NODES_BASE_PATH + "/${thisNodeId}/appmon")
+@Component(NODES_BASE_PATH + "/${nodeId}/appmon")
 public class PollingMessageRelayer implements MessageRelayer {
 
     private static final Logger logger = LoggerFactory.getLogger(PollingMessageRelayer.class);

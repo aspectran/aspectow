@@ -29,11 +29,11 @@ import java.util.concurrent.TimeUnit;
  */
 public class PollingNodeSession implements NodeSession {
 
-    private static final int DEFAULT_POLLING_INTERVAL = 2000;
+    private static final int DEFAULT_POLLING_INTERVAL = 3000;
 
-    private static final int MIN_POLLING_INTERVAL = 500;
+    private static final int MIN_POLLING_INTERVAL = 1000;
 
-    private static final int MAX_POLLING_INTERVAL = 5000;
+    private static final int MAX_POLLING_INTERVAL = 10000;
 
     private static final int SESSION_TIMEOUT_THRESHOLD = 30000;
 

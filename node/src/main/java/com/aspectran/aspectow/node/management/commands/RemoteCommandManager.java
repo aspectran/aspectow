@@ -205,9 +205,10 @@ public class RemoteCommandManager implements InitializableBean, DisposableBean, 
 
     private void executeLocally(@NonNull CommandRequestParameters request) {
         Thread.ofVirtual().start(() -> {
-            try {
-                CommandParameters commandParameters = request.getCommand();
-                if (commandParameters != null) {
+            setVirtualThreadName(request);
+            CommandParameters commandParameters = request.getCommand();
+            if (commandParameters != null) {
+                try {
                     logger.debug("Executing local daemon command: {}", commandParameters);
                     CommandResult result;
                     String commandName = commandParameters.getCommandName();
@@ -225,9 +226,9 @@ public class RemoteCommandManager implements InitializableBean, DisposableBean, 
                                 .setError(result.getError());
                         bridge(request.getSessionId(), response.toString());
                     }
+                } catch (Exception e) {
+                    logger.error("Failed to execute local daemon command", e);
                 }
-            } catch (Exception e) {
-                logger.error("Failed to execute local daemon command", e);
             }
         });
     }
@@ -236,11 +237,9 @@ public class RemoteCommandManager implements InitializableBean, DisposableBean, 
      * Processes an incoming message received from the cluster relay.
      * @param request the command request parameters
      */
-    public void executeRemotely(CommandRequestParameters request) {
-        if (request == null) {
-            return;
-        }
+    public void executeRemotely(@NonNull CommandRequestParameters request) {
         Thread.ofVirtual().start(() -> {
+            setVirtualThreadName(request);
             try {
                 CommandResult result = execute(request);
                 if (result != null && messagePublisher != null) {
@@ -276,6 +275,22 @@ public class RemoteCommandManager implements InitializableBean, DisposableBean, 
             }
         }
         return null;
+    }
+
+    private void setVirtualThreadName(@NonNull CommandRequestParameters request) {
+        CommandParameters commandParameters = request.getCommand();
+        if (commandParameters != null) {
+            String commandName = commandParameters.getCommandName();
+            String reqId = request.getRequestId();
+            String idSuffix;
+            if (reqId != null && !reqId.isEmpty()) {
+                idSuffix = (reqId.length() > 8) ? reqId.substring(reqId.length() - 8) : reqId;
+            } else {
+                idSuffix = "v" + Thread.currentThread().threadId();
+            }
+            String threadName = "cmd-" + commandName + "#" + idSuffix;
+            Thread.currentThread().setName(threadName);
+        }
     }
 
     /**

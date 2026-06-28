@@ -23,8 +23,6 @@ import org.jspecify.annotations.NonNull;
  */
 public class NodeBroker {
 
-    public static final String CATEGORY_NODES = "nodes";
-
     private final SubscriptionRegistry subscriptionRegistry = new SubscriptionRegistry();
 
     /**

@@ -16,7 +16,7 @@
 package com.aspectran.aspectow.console.scheduler.bridge.polling;
 
 import com.aspectran.aspectow.appmon.common.auth.AppMonTokenIssuer;
-import com.aspectran.aspectow.node.management.scheduler.SchedulerManager;
+import com.aspectran.aspectow.node.management.scheduler.RemoteSchedulerManager;
 import com.aspectran.aspectow.node.management.scheduler.SchedulerRequestParameters;
 import com.aspectran.aspectow.node.management.scheduler.bridge.SchedulerBridge;
 import com.aspectran.aspectow.node.management.scheduler.bridge.SchedulerBroker;
@@ -41,20 +41,20 @@ import static com.aspectran.aspectow.node.manager.NodeMessageProtocol.NODES_BASE
  * PollingSchedulerBridge manages client sessions for HTTP long-polling
  * and uses a central message buffer to distribute scheduler management results.
  */
-@Component(NODES_BASE_PATH + "/${thisNodeId}/" + CATEGORY_SCHEDULER)
+@Component(NODES_BASE_PATH + "/${nodeId}/" + CATEGORY_SCHEDULER)
 public class PollingSchedulerBridge extends AbstractComponent implements SchedulerBridge {
 
     private final PollingSessionManager sessionManager;
 
-    private final SchedulerManager schedulerManager;
+    private final RemoteSchedulerManager remoteSchedulerManager;
 
     /**
      * Constructs a new {@code PollingSchedulerBridge} with the specified scheduler manager.
-     * @param schedulerManager the scheduler manager to handle scheduler operations
+     * @param remoteSchedulerManager the scheduler manager to handle scheduler operations
      */
     @Autowired
-    public PollingSchedulerBridge(SchedulerManager schedulerManager) {
-        this.schedulerManager = schedulerManager;
+    public PollingSchedulerBridge(RemoteSchedulerManager remoteSchedulerManager) {
+        this.remoteSchedulerManager = remoteSchedulerManager;
         this.sessionManager = new PollingSessionManager(this);
     }
 
@@ -80,8 +80,8 @@ public class PollingSchedulerBridge extends AbstractComponent implements Schedul
      * Gets the associated scheduler manager.
      * @return the scheduler manager
      */
-    public SchedulerManager getSchedulerManager() {
-        return schedulerManager;
+    public RemoteSchedulerManager getRemoteSchedulerManager() {
+        return remoteSchedulerManager;
     }
 
     /**
@@ -89,7 +89,7 @@ public class PollingSchedulerBridge extends AbstractComponent implements Schedul
      * @return the scheduler broker
      */
     public SchedulerBroker getBroker() {
-        return schedulerManager.getBroker();
+        return remoteSchedulerManager.getBroker();
     }
 
     /**
@@ -114,15 +114,15 @@ public class PollingSchedulerBridge extends AbstractComponent implements Schedul
         PollingSchedulerSession schedulerSession = sessionManager.getSession(translet);
         if (schedulerSession == null) {
             schedulerSession = sessionManager.createSession(translet);
-            schedulerManager.registerSession(schedulerSession.getId(), this);
+            remoteSchedulerManager.registerSession(schedulerSession.getId(), this);
         }
         schedulerSession.setNodeId(targetNodeId);
 
-        schedulerManager.getBroker().subscribe(schedulerSession);
+        remoteSchedulerManager.getBroker().subscribe(schedulerSession);
 
         return new SuccessResponse(Map.of(
                 "pollingInterval", schedulerSession.getPollingInterval(),
-                "nodeId", schedulerManager.getNodeId()
+                "nodeId", remoteSchedulerManager.getNodeId()
                 )).ok();
     }
 
@@ -164,9 +164,9 @@ public class PollingSchedulerBridge extends AbstractComponent implements Schedul
         }
 
         try {
-            request.setNodeId(schedulerManager.getNodeId());
+            request.setNodeId(remoteSchedulerManager.getNodeId());
             request.setSessionId(session.getId());
-            schedulerManager.process(request);
+            remoteSchedulerManager.process(request);
             return new SuccessResponse("Scheduler command initiated successfully").ok();
         } catch (Exception e) {
             return new FailureResponse().setError("error", e.getMessage());

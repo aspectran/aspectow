@@ -39,7 +39,7 @@ import static com.aspectran.aspectow.node.manager.NodeMessageProtocol.NODES_BASE
  * PollingNodeBridge manages client sessions for HTTP long-polling
  * to distribute cluster node status and join/left events.
  */
-@Component(NODES_BASE_PATH + "/${thisNodeId}")
+@Component(NODES_BASE_PATH + "/${nodeId}")
 public class PollingNodeBridge extends AbstractComponent implements NodeBridge {
 
     private final PollingSessionManager pollingSessionManager;

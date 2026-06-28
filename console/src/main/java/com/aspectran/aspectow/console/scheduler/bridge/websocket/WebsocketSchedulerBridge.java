@@ -16,7 +16,7 @@
 package com.aspectran.aspectow.console.scheduler.bridge.websocket;
 
 import com.aspectran.aspectow.appmon.common.auth.AppMonTokenIssuer;
-import com.aspectran.aspectow.node.management.scheduler.SchedulerManager;
+import com.aspectran.aspectow.node.management.scheduler.RemoteSchedulerManager;
 import com.aspectran.aspectow.node.management.scheduler.SchedulerRequestParameters;
 import com.aspectran.aspectow.node.management.scheduler.SchedulerResponseParameters;
 import com.aspectran.aspectow.node.management.scheduler.bridge.SchedulerBridge;
@@ -50,15 +50,15 @@ public class WebsocketSchedulerBridge extends SimplifiedEndpoint implements Sche
 
     private static final Logger logger = LoggerFactory.getLogger(WebsocketSchedulerBridge.class);
 
-    private final SchedulerManager schedulerManager;
+    private final RemoteSchedulerManager remoteSchedulerManager;
 
     /**
      * Constructs a new {@code WebsocketSchedulerBridge} with the specified scheduler manager.
-     * @param schedulerManager the scheduler manager to handle scheduler operations
+     * @param remoteSchedulerManager the scheduler manager to handle scheduler operations
      */
     @Autowired
-    public WebsocketSchedulerBridge(SchedulerManager schedulerManager) {
-        this.schedulerManager = schedulerManager;
+    public WebsocketSchedulerBridge(RemoteSchedulerManager remoteSchedulerManager) {
+        this.remoteSchedulerManager = remoteSchedulerManager;
     }
 
     /**
@@ -99,7 +99,7 @@ public class WebsocketSchedulerBridge extends SimplifiedEndpoint implements Sche
 
         try {
             SchedulerRequestParameters request = JsonToParameters.from(message, SchedulerRequestParameters.class);
-            request.setNodeId(schedulerManager.getNodeId());
+            request.setNodeId(remoteSchedulerManager.getNodeId());
             request.setSessionId(session.getId());
             String header = request.getHeader();
             if ("execute".equals(header)) {
@@ -126,9 +126,9 @@ public class WebsocketSchedulerBridge extends SimplifiedEndpoint implements Sche
      */
     @Override
     protected void onSessionRemoved(@NonNull Session session) {
-        schedulerManager.unregisterSession(session.getId());
+        remoteSchedulerManager.unregisterSession(session.getId());
         WebsocketSchedulerSession schedulerSession = new WebsocketSchedulerSession(session);
-        schedulerManager.getBroker().unsubscribe(schedulerSession);
+        remoteSchedulerManager.getBroker().unsubscribe(schedulerSession);
         logger.debug("Scheduler WebSocket session removed: {}", session.getId());
     }
 
@@ -145,10 +145,10 @@ public class WebsocketSchedulerBridge extends SimplifiedEndpoint implements Sche
         schedulerSession.setNodeId(targetNodeId);
 
         if (addSession(session)) {
-            schedulerManager.registerSession(session.getId(), this);
+            remoteSchedulerManager.registerSession(session.getId(), this);
             SchedulerResponseParameters response = new SchedulerResponseParameters()
                     .setHeader("subscribed")
-                    .setNodeId(schedulerManager.getNodeId());
+                    .setNodeId(remoteSchedulerManager.getNodeId());
             sendText(session, response.toString());
             if (logger.isDebugEnabled()) {
                 logger.debug("ConsoleClient joined scheduler management: session {}, targetNodeId: {}",
@@ -159,7 +159,7 @@ public class WebsocketSchedulerBridge extends SimplifiedEndpoint implements Sche
 
     private void established(@NonNull Session session) {
         WebsocketSchedulerSession schedulerSession = new WebsocketSchedulerSession(session);
-        schedulerManager.getBroker().subscribe(schedulerSession);
+        remoteSchedulerManager.getBroker().subscribe(schedulerSession);
         if (logger.isDebugEnabled()) {
             logger.debug("Scheduler management session established: session {}", session.getId());
         }
@@ -179,7 +179,7 @@ public class WebsocketSchedulerBridge extends SimplifiedEndpoint implements Sche
             return;
         }
         try {
-            schedulerManager.process(request);
+            remoteSchedulerManager.process(request);
         } catch (Exception e) {
             logger.error("Failed to execute scheduler request from session {}", session.getId(), e);
             SchedulerResponseParameters response = new SchedulerResponseParameters()

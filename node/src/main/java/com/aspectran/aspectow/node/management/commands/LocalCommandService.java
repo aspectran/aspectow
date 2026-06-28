@@ -119,7 +119,7 @@ public class LocalCommandService {
                             service.getClass().getSimpleName().contains("WebService")) {
                         try {
                             Method getContextNameMethod = service.getClass().getMethod("getContextName");
-                            String contextName = (String) getContextNameMethod.invoke(service);
+                            String contextName = (String)getContextNameMethod.invoke(service);
                             if ("console".equals(contextName)) {
                                 continue;
                             }
@@ -149,7 +149,7 @@ public class LocalCommandService {
                             service.getClass().getSimpleName().contains("WebService")) {
                         try {
                             Method getContextNameMethod = service.getClass().getMethod("getContextName");
-                            String contextName = (String) getContextNameMethod.invoke(service);
+                            String contextName = (String)getContextNameMethod.invoke(service);
                             if ("console".equals(contextName)) {
                                 continue;
                             }

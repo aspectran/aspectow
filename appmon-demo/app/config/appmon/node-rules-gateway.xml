@@ -21,7 +21,7 @@
         </properties>
     </bean>
 
-    <bean id="schedulerManager" class="com.aspectran.aspectow.node.management.scheduler.SchedulerManager"/>
+    <bean id="schedulerManager" class="com.aspectran.aspectow.node.management.scheduler.RemoteSchedulerManager"/>
 
     <bean id="remoteCommandManager" class="com.aspectran.aspectow.node.management.commands.RemoteCommandManager"/>
 

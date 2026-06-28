@@ -48,13 +48,14 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * SchedulerManager orchestrates scheduler management across the cluster.
+ * RemoteSchedulerManager orchestrates scheduler management across the cluster.
  * It manages local execution, remote dispatching via Redis, and broadcasting
  * results to connected clients.
  */
-public class SchedulerManager implements ApplicationAdapterAware, InitializableBean, DisposableBean, ClusterEventListener {
+public class RemoteSchedulerManager implements ApplicationAdapterAware, InitializableBean,
+        DisposableBean, ClusterEventListener {
 
-    private static final Logger logger = LoggerFactory.getLogger(SchedulerManager.class);
+    private static final Logger logger = LoggerFactory.getLogger(RemoteSchedulerManager.class);
 
     public static final String OP_SERVICES = "services";
 
@@ -83,11 +84,11 @@ public class SchedulerManager implements ApplicationAdapterAware, InitializableB
     private RemoteSchedulerMessageListener bridgeHandler;
 
     /**
-     * Constructs a new SchedulerManager.
+     * Constructs a new RemoteSchedulerManager.
      * @param nodeManager the node manager
      */
     @Autowired
-    public SchedulerManager(@NonNull NodeManager nodeManager) {
+    public RemoteSchedulerManager(@NonNull NodeManager nodeManager) {
         this.nodeManager = nodeManager;
         this.messagePublisher = nodeManager.getNodeMessagePublisher();
         this.localSchedulerService = new LocalSchedulerService();
@@ -104,12 +105,12 @@ public class SchedulerManager implements ApplicationAdapterAware, InitializableB
     }
 
     /**
-     * Initializes the scheduler manager and registers message listeners.
+     * Initializes the remote scheduler manager and registers message listeners.
      * @throws Exception if initialization fails
      */
     @Override
     public void initialize() throws Exception {
-        logger.info("Initializing SchedulerManager for node: {}", getNodeId());
+        logger.info("Initializing RemoteSchedulerManager for node: {}", getNodeId());
 
         if (nodeManager.getNodeMessageSubscriber() != null) {
             this.bridgeHandler = new RemoteSchedulerMessageListener(this);

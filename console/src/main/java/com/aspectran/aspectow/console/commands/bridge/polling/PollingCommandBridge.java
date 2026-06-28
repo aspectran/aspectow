@@ -43,7 +43,7 @@ import static com.aspectran.aspectow.node.manager.NodeMessageProtocol.NODES_BASE
  * PollingCommandBridge manages client sessions for HTTP long-polling
  * and uses a central message buffer to distribute command results.
  */
-@Component(NODES_BASE_PATH + "/${thisNodeId}/" + CATEGORY_COMMANDS)
+@Component(NODES_BASE_PATH + "/${nodeId}/" + CATEGORY_COMMANDS)
 public class PollingCommandBridge extends AbstractComponent implements CommandBridge {
 
     private final PollingSessionManager pollingSessionManager;

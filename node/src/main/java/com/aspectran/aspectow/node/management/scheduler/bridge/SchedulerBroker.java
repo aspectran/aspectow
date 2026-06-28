@@ -15,7 +15,7 @@
  */
 package com.aspectran.aspectow.node.management.scheduler.bridge;
 
-import com.aspectran.aspectow.node.management.scheduler.SchedulerManager;
+import com.aspectran.aspectow.node.management.scheduler.RemoteSchedulerManager;
 import com.aspectran.aspectow.node.manager.NodeMessagePublisher;
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
@@ -41,7 +41,7 @@ public class SchedulerBroker {
 
     public static final String DELIMITER = ":";
 
-    private final SchedulerManager schedulerManager;
+    private final RemoteSchedulerManager remoteSchedulerManager;
 
     private final NodeMessagePublisher messagePublisher;
 
@@ -49,11 +49,11 @@ public class SchedulerBroker {
 
     /**
      * Constructs a new SchedulerBroker.
-     * @param schedulerManager the scheduler manager to associate with this broker
+     * @param remoteSchedulerManager the scheduler manager to associate with this broker
      */
-    public SchedulerBroker(@NonNull SchedulerManager schedulerManager) {
-        this.schedulerManager = schedulerManager;
-        this.messagePublisher = schedulerManager.getMessagePublisher();
+    public SchedulerBroker(@NonNull RemoteSchedulerManager remoteSchedulerManager) {
+        this.remoteSchedulerManager = remoteSchedulerManager;
+        this.messagePublisher = remoteSchedulerManager.getMessagePublisher();
     }
 
     /**
@@ -65,15 +65,15 @@ public class SchedulerBroker {
         if (session.isValid()) {
             subscriptionRegistry.addSession(session.getId());
             String targetNodeId = session.getNodeId();
-            if (schedulerManager.isSameNode(targetNodeId)) {
+            if (remoteSchedulerManager.isSameNode(targetNodeId)) {
                 boolean alreadyInUse = subscriptionRegistry.isInUse();
                 subscriptionRegistry.addLocalSubscription(session.getId());
                 if (!alreadyInUse) {
-                    schedulerManager.startExporters();
+                    remoteSchedulerManager.startExporters();
                 }
                 return true;
-            } else if (schedulerManager.isGatewayMode()) {
-                publishControl(targetNodeId, CONTROL_SUBSCRIBE + schedulerManager.getNodeId() + DELIMITER + session.getId());
+            } else if (remoteSchedulerManager.isGatewayMode()) {
+                publishControl(targetNodeId, CONTROL_SUBSCRIBE + remoteSchedulerManager.getNodeId() + DELIMITER + session.getId());
             }
         }
         return false;
@@ -89,7 +89,7 @@ public class SchedulerBroker {
         boolean alreadyInUse = subscriptionRegistry.isInUse();
         subscriptionRegistry.addRemoteSubscription(nodeId);
         if (!alreadyInUse) {
-            schedulerManager.startExporters();
+            remoteSchedulerManager.startExporters();
         }
     }
 
@@ -100,12 +100,12 @@ public class SchedulerBroker {
     public synchronized void unsubscribe(@NonNull SchedulerSession session) {
         subscriptionRegistry.removeLocalSubscription(session.getId());
         String targetNodeId = session.getNodeId();
-        if (schedulerManager.isSameNode(targetNodeId)) {
+        if (remoteSchedulerManager.isSameNode(targetNodeId)) {
             if (!subscriptionRegistry.isInUse()) {
-                schedulerManager.stopExporters();
+                remoteSchedulerManager.stopExporters();
             }
-        } else if (schedulerManager.isGatewayMode()) {
-            publishControl(targetNodeId, CONTROL_UNSUBSCRIBE + schedulerManager.getNodeId() + DELIMITER + session.getId());
+        } else if (remoteSchedulerManager.isGatewayMode()) {
+            publishControl(targetNodeId, CONTROL_UNSUBSCRIBE + remoteSchedulerManager.getNodeId() + DELIMITER + session.getId());
         }
     }
 
@@ -117,7 +117,7 @@ public class SchedulerBroker {
         logger.info("Received scheduler release request from node: {}", nodeId);
         subscriptionRegistry.removeRemoteSubscription(nodeId);
         if (!subscriptionRegistry.isInUse()) {
-            schedulerManager.stopExporters();
+            remoteSchedulerManager.stopExporters();
         }
     }
 
@@ -158,7 +158,7 @@ public class SchedulerBroker {
     public void bridgeLog(String nodeId, String message, boolean locally) {
         Set<String> sessionIds = subscriptionRegistry.getAllSessionIds();
         for (String sid : sessionIds) {
-            schedulerManager.bridge(nodeId, sid, message);
+            remoteSchedulerManager.bridge(nodeId, sid, message);
         }
 
         if (locally) {
@@ -178,7 +178,7 @@ public class SchedulerBroker {
     public void bridge(String message, boolean locally) {
         Set<String> sessionIds = subscriptionRegistry.getAllSessionIds();
         for (String sid : sessionIds) {
-            schedulerManager.bridge(sid, message);
+            remoteSchedulerManager.bridge(sid, message);
         }
 
         if (locally) {

@@ -73,11 +73,10 @@ public class RemoteCommandMessageListener implements NodeMessageListener {
             CommandRequestParameters request = new CommandRequestParameters();
             try {
                 request.readFrom(requestData);
+                remoteCommandManager.executeRemotely(request);
             } catch (AponParseException e) {
                 logger.error("Failed to parse remote command request parameters: {}", requestData, e);
             }
-
-            remoteCommandManager.executeRemotely(request);
         }
     }
 

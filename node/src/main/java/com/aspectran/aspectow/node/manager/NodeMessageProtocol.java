@@ -26,8 +26,6 @@ public abstract class NodeMessageProtocol {
 
     public static final String NODES_BASE_PATH = "/nodes";
 
-    public static final String CATEGORY_CLUSTER = "cluster";
-
     public static final String TYPE_NODES = "nodes";
 
     public static final String TYPE_PULSE = "pulse";

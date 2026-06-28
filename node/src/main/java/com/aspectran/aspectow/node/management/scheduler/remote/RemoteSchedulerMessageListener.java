@@ -15,7 +15,7 @@
  */
 package com.aspectran.aspectow.node.management.scheduler.remote;
 
-import com.aspectran.aspectow.node.management.scheduler.SchedulerManager;
+import com.aspectran.aspectow.node.management.scheduler.RemoteSchedulerManager;
 import com.aspectran.aspectow.node.management.scheduler.SchedulerRequestParameters;
 import com.aspectran.aspectow.node.management.scheduler.SchedulerResponseParameters;
 import com.aspectran.aspectow.node.management.scheduler.bridge.SchedulerBroker;
@@ -34,14 +34,14 @@ public class RemoteSchedulerMessageListener implements NodeMessageListener {
 
     private static final Logger logger = LoggerFactory.getLogger(RemoteSchedulerMessageListener.class);
 
-    private final SchedulerManager schedulerManager;
+    private final RemoteSchedulerManager remoteSchedulerManager;
 
     /**
      * Constructs a new RemoteSchedulerMessageListener.
-     * @param schedulerManager the scheduler manager
+     * @param remoteSchedulerManager the scheduler manager
      */
-    public RemoteSchedulerMessageListener(SchedulerManager schedulerManager) {
-        this.schedulerManager = schedulerManager;
+    public RemoteSchedulerMessageListener(RemoteSchedulerManager remoteSchedulerManager) {
+        this.remoteSchedulerManager = remoteSchedulerManager;
     }
 
     @Override
@@ -66,9 +66,9 @@ public class RemoteSchedulerMessageListener implements NodeMessageListener {
             }
 
             if (message.startsWith(SchedulerBroker.CONTROL_SUBSCRIBE)) {
-                schedulerManager.getBroker().subscribeRemotely(requesterNodeId, sessionId);
+                remoteSchedulerManager.getBroker().subscribeRemotely(requesterNodeId, sessionId);
             } else if (message.startsWith(SchedulerBroker.CONTROL_UNSUBSCRIBE)) {
-                schedulerManager.getBroker().unsubscribeRemotely(requesterNodeId);
+                remoteSchedulerManager.getBroker().unsubscribeRemotely(requesterNodeId);
             }
         } else if (message.startsWith(SchedulerBroker.CONTROL_REQUEST)) {
             String requestData = message.substring(SchedulerBroker.CONTROL_REQUEST.length());
@@ -79,7 +79,7 @@ public class RemoteSchedulerMessageListener implements NodeMessageListener {
                 logger.error("Failed to parse scheduler request parameters: {}", requestData, e);
             }
 
-            schedulerManager.processRemotely(request);
+            remoteSchedulerManager.processRemotely(request);
         }
     }
 
@@ -88,9 +88,9 @@ public class RemoteSchedulerMessageListener implements NodeMessageListener {
         try {
             SchedulerResponseParameters response = JsonToParameters.from(message, SchedulerResponseParameters.class);
             if ("log".equals(response.getHeader())) {
-                schedulerManager.bridgeLogRemotely(response.getNodeId(), message);
+                remoteSchedulerManager.bridgeLogRemotely(response.getNodeId(), message);
             } else {
-                schedulerManager.bridgeRemotely(message);
+                remoteSchedulerManager.bridgeRemotely(message);
             }
         } catch (Exception e) {
             logger.error("Failed to parse scheduler response: {}", message, e);
@@ -100,7 +100,7 @@ public class RemoteSchedulerMessageListener implements NodeMessageListener {
     @Override
     public void onRelayMessage(String nodeId, String sessionId, @NonNull String message) {
         try {
-            schedulerManager.bridge(sessionId, message);
+            remoteSchedulerManager.bridge(sessionId, message);
         } catch (Exception e) {
             logger.error("Failed to parse scheduler response: {}", message, e);
         }
