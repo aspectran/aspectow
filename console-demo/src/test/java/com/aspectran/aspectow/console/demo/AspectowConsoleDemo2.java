@@ -51,7 +51,7 @@ public class AspectowConsoleDemo2 {
             System.setProperty("tow.context.console.session.cookieName", "JSESSIONID2");
             System.setProperty("aspectow.console.config.db.h2.path_explicit", "~/aspectow-console-demo2");
             System.setProperty("aspectow.appmon.config.db.h2.path_explicit", "~/aspectow-console-demo-appmon2");
-            System.setProperty("aspectran.profiles.active", "gateway");
+            System.setProperty("aspectran.profiles.active", "dev,gateway");
 
             JLineAspectranShell.main(new String[] { root.getCanonicalPath(), "config/aspectran-config.apon" });
         } catch (IOException e) {

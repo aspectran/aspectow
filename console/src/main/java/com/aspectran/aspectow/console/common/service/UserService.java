@@ -43,11 +43,19 @@ public interface UserService {
 
     /**
      * Checks if the given password matches the password stored in the database.
+     * @param user the user object from the database
      * @param password the password entered by the user
-     * @param dbPassword the password stored in the database
      * @return true if the passwords match, false otherwise
      */
-    boolean checkPassword(String password, String dbPassword);
+    boolean checkPassword(User user, String password);
+
+    /**
+     * Checks if the user is required to change their password (e.g. initial setup).
+     * @param user the user object
+     * @param password the password entered by the user
+     * @return true if password change is required, false otherwise
+     */
+    boolean isPasswordChangeRequired(User user, String password);
 
     /**
      * Retrieves all users.

@@ -29,6 +29,7 @@ import com.aspectran.utils.StringUtils;
 import org.jasypt.util.password.StrongPasswordEncryptor;
 import org.jspecify.annotations.NonNull;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -64,8 +65,12 @@ public class UserServiceImpl implements UserService, ActivityContextAware {
     }
 
     @Override
-    public boolean checkPassword(String password, String dbPassword) {
-        if (password == null || dbPassword == null) {
+    public boolean checkPassword(User user, String password) {
+        if (user == null || password == null) {
+            return false;
+        }
+        String dbPassword = user.getPassword();
+        if (dbPassword == null) {
             return false;
         }
         try {
@@ -73,10 +78,53 @@ public class UserServiceImpl implements UserService, ActivityContextAware {
                 return true;
             }
         } catch (Exception e) {
-            // Ignore exception and fallback to plain text check for h2 profile
+            // Ignore exception and fallback to plain text checks
         }
-        if (environment != null && environment.acceptsProfiles("h2")) {
+
+        // 1. check if the user is a SUPER_ADMIN and created within 1 hour
+        boolean isSuperAdmin = user.getRoles() != null &&
+                user.getRoles().stream().anyMatch(role -> "SUPER_ADMIN".equals(role.getRoleName()));
+        if (isSuperAdmin) {
+            LocalDateTime createdAt = user.getCreatedAt();
+            if (createdAt != null && createdAt.plusHours(1).isAfter(LocalDateTime.now())) {
+                return dbPassword.equals(password);
+            }
+        }
+
+        // 2. fallback to dev profile check
+        if (environment != null && environment.acceptsProfiles("dev")) {
             return dbPassword.equals(password);
+        }
+        return false;
+    }
+
+    @Override
+    public boolean isPasswordChangeRequired(User user, String password) {
+        if (user == null || password == null) {
+            return false;
+        }
+        String dbPassword = user.getPassword();
+        if (dbPassword == null) {
+            return false;
+        }
+
+        // If the password matches using the one-way hash, it is already hashed
+        try {
+            if (passwordEncryptor.checkPassword(password, dbPassword)) {
+                return false;
+            }
+        } catch (Exception e) {
+            // Ignore
+        }
+
+        // If it is plain text, SUPER_ADMIN, and within 1 hour, it requires a change
+        boolean isSuperAdmin = user.getRoles() != null &&
+                user.getRoles().stream().anyMatch(role -> "SUPER_ADMIN".equals(role.getRoleName()));
+        if (isSuperAdmin && dbPassword.equals(password)) {
+            LocalDateTime createdAt = user.getCreatedAt();
+            if (createdAt != null && createdAt.plusHours(1).isAfter(LocalDateTime.now())) {
+                return true;
+            }
         }
         return false;
     }

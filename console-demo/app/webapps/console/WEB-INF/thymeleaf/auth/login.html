@@ -37,6 +37,37 @@
                 </form>
             </div>
         </div>
+
+        <!-- Password Setup Modal -->
+        <div class="modal fade" id="setup-password-modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="setupPasswordModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title fw-bold" id="setupPasswordModalLabel">Setup Administrator Password</h5>
+                    </div>
+                    <form id="setup-password-form">
+                        <div class="modal-body text-start p-4">
+                            <p class="text-muted mb-4">For security, you must set a new password for the administrator account within 1 hour of installation.</p>
+                            <input type="hidden" id="setup-username" name="username">
+                            <input type="hidden" id="setup-current-password" name="currentPassword">
+                            
+                            <div class="form-floating mb-3">
+                                <input type="password" class="form-control" id="new-password" name="newPassword" placeholder="New Password" required minlength="4">
+                                <label for="new-password">New Password</label>
+                            </div>
+                            <div class="form-floating mb-3">
+                                <input type="password" class="form-control" id="confirm-password" placeholder="Confirm Password" required minlength="4">
+                                <label for="confirm-password">Confirm Password</label>
+                            </div>
+                            <div id="setup-error-message" class="alert alert-danger d-none" role="alert"></div>
+                        </div>
+                        <div class="modal-footer p-3">
+                            <button type="submit" class="btn btn-primary w-100 btn-lg">Save Password & Login</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
 
     <th:block layout:fragment="script">
@@ -57,12 +88,52 @@
                             if (response.success) {
                                 location.href = [[@{/}]];
                             } else {
-                                let message = (response.error ? response.error.message : 'Login failed');
-                                $error.text(message).removeClass('d-none');
+                                if (response.error && response.error.code === 'setup_required') {
+                                    $('#setup-username').val($('#username').val());
+                                    $('#setup-current-password').val($('#password').val());
+                                    const modal = new bootstrap.Modal(document.getElementById('setup-password-modal'));
+                                    modal.show();
+                                } else {
+                                    let message = (response.error ? response.error.message : 'Login failed');
+                                    $error.text(message).removeClass('d-none');
+                                }
                             }
                         },
                         error: function() {
                             $error.text('An error occurred. Please try again.').removeClass('d-none');
+                        }
+                    });
+                });
+
+                $('#setup-password-form').on('submit', function(e) {
+                    e.preventDefault();
+                    const $setupError = $('#setup-error-message');
+                    $setupError.addClass('d-none');
+
+                    const newPassword = $('#new-password').val();
+                    const confirmPassword = $('#confirm-password').val();
+
+                    if (newPassword !== confirmPassword) {
+                        $setupError.text('Passwords do not match.').removeClass('d-none');
+                        return;
+                    }
+
+                    $.ajax({
+                        url: [[@{/auth/setup-password}]],
+                        type: 'POST',
+                        data: $(this).serialize(),
+                        dataType: 'json',
+                        success: function(response) {
+                            if (response.success) {
+                                $('#password').val(newPassword);
+                                $('#login-form').submit();
+                            } else {
+                                let message = (response.error ? response.error.message : 'Failed to update password');
+                                $setupError.text(message).removeClass('d-none');
+                            }
+                        },
+                        error: function() {
+                            $setupError.text('An error occurred. Please try again.').removeClass('d-none');
                         }
                     });
                 });

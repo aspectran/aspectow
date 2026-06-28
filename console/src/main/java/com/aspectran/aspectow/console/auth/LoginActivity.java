@@ -73,7 +73,10 @@ public class LoginActivity {
         String userAgent = translet.getRequestAdapter().getHeader(HttpHeaders.USER_AGENT);
 
         User user = userService.getUserByUsername(username);
-        if (user != null && userService.checkPassword(password, user.getPassword())) {
+        if (user != null && userService.checkPassword(user, password)) {
+            if (userService.isPasswordChangeRequired(user, password)) {
+                return new FailureResponse().setError("setup_required", "Administrator password setup is required.");
+            }
             if (!"NORMAL".equals(user.getStatus())) {
                 userService.recordLogin(username, remoteAddr, userAgent, false);
                 return new FailureResponse().setError("locked", "Account is " + user.getStatus());
@@ -109,6 +112,22 @@ public class LoginActivity {
             userService.recordLogin(username, remoteAddr, userAgent, false);
             return new FailureResponse().setError("invalid", "Invalid username or password.");
         }
+    }
+
+    @RequestToPost("/setup-password")
+    public RestResponse setupPassword(String username, String currentPassword, String newPassword) {
+        if (StringUtils.isEmpty(username) || StringUtils.isEmpty(currentPassword) || StringUtils.isEmpty(newPassword)) {
+            return new FailureResponse().setError("required", "All fields are required.");
+        }
+        User user = userService.getUserByUsername(username);
+        if (user != null && userService.checkPassword(user, currentPassword)) {
+            if (userService.isPasswordChangeRequired(user, currentPassword)) {
+                user.setPassword(newPassword);
+                userService.updateUser(user, null);
+                return new SuccessResponse("Password updated successfully.").ok();
+            }
+        }
+        return new FailureResponse().setError("invalid", "Invalid request.");
     }
 
     @Request("/logout")
