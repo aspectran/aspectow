@@ -29,6 +29,11 @@
     <name>Aspectow Node Manager</name>
     <description>A core library for cluster node management, status monitoring, and mediating inter-node communication within the Aspectow platform.</description>
 
+    <properties>
+        <main.basedir>${project.parent.basedir}</main.basedir>
+        <automatic.module.name>com.aspectran.aspectow.node</automatic.module.name>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>
