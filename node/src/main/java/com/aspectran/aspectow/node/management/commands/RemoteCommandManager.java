@@ -160,13 +160,13 @@ public class RemoteCommandManager implements InitializableBean, DisposableBean, 
     public void process(@NonNull CommandRequestParameters request) {
         if (request.isTargetAll()) {
             for (NodeInfo nodeInfo : nodeManager.getNodeInfoList()) {
-                process(nodeInfo.getId(), request);
+                process(nodeInfo.getId(), request.copy());
             }
         } else if (StringUtils.hasText(request.getTargetGroup())) {
             String targetGroup = request.getTargetGroup();
             for (NodeInfo nodeInfo : nodeManager.getNodeInfoList()) {
                 if (targetGroup.equals(nodeInfo.getGroup())) {
-                    process(nodeInfo.getId(), request);
+                    process(nodeInfo.getId(), request.copy());
                 }
             }
         } else {
@@ -217,7 +217,7 @@ public class RemoteCommandManager implements InitializableBean, DisposableBean, 
                     } else {
                         result = localCommandService.execute(commandParameters);
                     }
-                    if (result != null) {
+                    if (result != null && request.getSessionId() != null) {
                         CommandResponseParameters response = new CommandResponseParameters()
                                 .setHeader("result")
                                 .setNodeId(getNodeId())
