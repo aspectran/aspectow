@@ -67,8 +67,7 @@ public class NodeReporter {
      * @throws Exception if an error occurs during startup
      */
     public void start() throws Exception {
-        logger.info("Initializing NodeReporter for cluster: {}, node: {}",
-                getClusterConfig().getId(), getNodeInfo().getId());
+        logger.info("Initializing NodeReporter for cluster: {}, node: {}", getClusterConfig().getId(), getNodeInfo().getId());
 
         getNodeInfo().setStatus("live");
 

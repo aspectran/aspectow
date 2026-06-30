@@ -26,7 +26,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * <p>Created: 2026-05-02</p>
  */
-public class SubscriptionRegistry {
+class SubscriptionRegistry {
 
     private final Set<String> localSubscriptions = ConcurrentHashMap.newKeySet();
 
