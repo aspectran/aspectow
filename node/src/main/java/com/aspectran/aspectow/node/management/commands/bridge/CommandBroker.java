@@ -37,8 +37,6 @@ public class CommandBroker {
 
     public static final String CONTROL_REQUEST = "request:";
 
-    public static final String DELIMITER = ":";
-
     private final RemoteCommandManager commandManager;
 
     private final NodeMessagePublisher messagePublisher;
@@ -63,7 +61,7 @@ public class CommandBroker {
             subscriptionRegistry.addLocalSubscription(session.getId());
             String targetNodeId = session.getNodeId();
             if (commandManager.isGatewayMode() && !commandManager.isSameNode(targetNodeId)) {
-                publishControl(targetNodeId, CONTROL_SUBSCRIBE + commandManager.getNodeId() + DELIMITER + session.getId());
+                publishControl(targetNodeId, CONTROL_SUBSCRIBE + commandManager.getNodeId() + ":" + session.getId());
             }
         }
     }
@@ -86,7 +84,7 @@ public class CommandBroker {
         subscriptionRegistry.removeLocalSubscription(session.getId());
         String targetNodeId = session.getNodeId();
         if (commandManager.isGatewayMode() && !commandManager.isSameNode(targetNodeId)) {
-            publishControl(targetNodeId, CONTROL_RELEASE + commandManager.getNodeId() + DELIMITER + session.getId());
+            publishControl(targetNodeId, CONTROL_RELEASE + commandManager.getNodeId() + ":" + session.getId());
         }
     }
 

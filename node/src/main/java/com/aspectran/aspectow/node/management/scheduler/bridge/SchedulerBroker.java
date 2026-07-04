@@ -39,8 +39,6 @@ public class SchedulerBroker {
 
     public static final String CONTROL_REQUEST = "request:";
 
-    public static final String DELIMITER = ":";
-
     private final RemoteSchedulerManager remoteSchedulerManager;
 
     private final NodeMessagePublisher messagePublisher;
@@ -73,7 +71,7 @@ public class SchedulerBroker {
                 }
                 return true;
             } else if (remoteSchedulerManager.isGatewayMode()) {
-                publishControl(targetNodeId, CONTROL_SUBSCRIBE + remoteSchedulerManager.getNodeId() + DELIMITER + session.getId());
+                publishControl(targetNodeId, CONTROL_SUBSCRIBE + remoteSchedulerManager.getNodeId() + ":" + session.getId());
             }
         }
         return false;
@@ -105,7 +103,7 @@ public class SchedulerBroker {
                 remoteSchedulerManager.stopExporters();
             }
         } else if (remoteSchedulerManager.isGatewayMode()) {
-            publishControl(targetNodeId, CONTROL_UNSUBSCRIBE + remoteSchedulerManager.getNodeId() + DELIMITER + session.getId());
+            publishControl(targetNodeId, CONTROL_UNSUBSCRIBE + remoteSchedulerManager.getNodeId() + ":" + session.getId());
         }
     }
 

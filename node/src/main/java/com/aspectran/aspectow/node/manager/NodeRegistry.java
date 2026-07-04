@@ -79,7 +79,9 @@ public class NodeRegistry {
      */
     public Map<String, String> getAllNodes() {
         String key = NodeMessageProtocol.getNodesHashKey(clusterId);
-        logger.debug("Retrieving all nodes from Redis hash: {}", key);
+        if (logger.isTraceEnabled()) {
+            logger.trace("Retrieving all nodes from Redis hash: {}", key);
+        }
         try (StatefulRedisConnection<String, String> connection = connectionPool.getConnection()) {
             return connection.sync().hgetall(key);
         } catch (Exception e) {
@@ -94,7 +96,9 @@ public class NodeRegistry {
      */
     public Map<String, String> getAllGroups() {
         String key = NodeMessageProtocol.getGroupsHashKey(clusterId);
-        logger.debug("Retrieving all groups from Redis hash: {}", key);
+        if (logger.isTraceEnabled()) {
+            logger.trace("Retrieving all groups from Redis hash: {}", key);
+        }
         try (StatefulRedisConnection<String, String> connection = connectionPool.getConnection()) {
             return connection.sync().hgetall(key);
         } catch (Exception e) {
@@ -111,7 +115,9 @@ public class NodeRegistry {
     public Map<String, String> getAllApps(String groupId) {
         String key = NodeMessageProtocol.getAppsHashKey(clusterId, groupId);
         String orderKey = NodeMessageProtocol.getAppsOrderKey(clusterId, groupId);
-        logger.debug("Retrieving all apps for group: {} from Redis hash: {}", groupId, key);
+        if (logger.isTraceEnabled()) {
+            logger.trace("Retrieving all apps for group: {} from Redis hash: {}", groupId, key);
+        }
         try (StatefulRedisConnection<String, String> connection = connectionPool.getConnection()) {
             var sync = connection.sync();
             List<String> order = sync.lrange(orderKey, 0, -1);
@@ -162,7 +168,9 @@ public class NodeRegistry {
      */
     public String getNode(String nodeId) {
         String key = NodeMessageProtocol.getNodesHashKey(clusterId);
-        logger.debug("Retrieving node info for: {} from {}", nodeId, key);
+        if (logger.isTraceEnabled()) {
+            logger.trace("Retrieving node info for: {} from {}", nodeId, key);
+        }
         try (StatefulRedisConnection<String, String> connection = connectionPool.getConnection()) {
             return connection.sync().hget(key, nodeId);
         } catch (Exception e) {

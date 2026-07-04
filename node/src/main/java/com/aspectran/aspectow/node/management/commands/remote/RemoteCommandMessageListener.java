@@ -52,7 +52,7 @@ public class RemoteCommandMessageListener implements NodeMessageListener {
         if (message.startsWith(CommandBroker.CONTROL_SUBSCRIBE) || message.startsWith(CommandBroker.CONTROL_RELEASE)) {
             String requesterNodeId = null;
             String sessionId = null;
-            String[] parts = message.split(CommandBroker.DELIMITER);
+            String[] parts = message.split(":");
             if (parts.length >= 2) {
                 requesterNodeId = parts[1];
             }

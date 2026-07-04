@@ -54,7 +54,7 @@ public class RemoteSchedulerMessageListener implements NodeMessageListener {
         if (message.startsWith(SchedulerBroker.CONTROL_SUBSCRIBE) || message.startsWith(SchedulerBroker.CONTROL_UNSUBSCRIBE)) {
             String requesterNodeId = null;
             String sessionId = null;
-            String[] parts = message.split(SchedulerBroker.DELIMITER);
+            String[] parts = message.split(":");
             if (parts.length >= 2) {
                 requesterNodeId = parts[1];
             }
