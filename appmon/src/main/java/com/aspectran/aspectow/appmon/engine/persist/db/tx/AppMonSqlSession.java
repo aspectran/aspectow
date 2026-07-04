@@ -21,7 +21,7 @@ import com.aspectran.core.component.bean.annotation.Profile;
 import com.aspectran.mybatis.DefaultSqlSessionAgent;
 
 /**
- * A {@link DefaultSqlSessionAgent} for handling simple, auto-committing database sessions.
+ * A {@link AppMonSqlSession} for handling simple, auto-committing database sessions.
  * This agent is advised by {@link AppMonTxAspect} to manage transactions.
  *
  * <p>Created: 2025. 2. 15.</p>
@@ -37,6 +37,14 @@ public class AppMonSqlSession extends DefaultSqlSessionAgent {
     public AppMonSqlSession() {
         super("appmonTxAspect");
         setSqlSessionFactoryBeanId("appmonSqlSessionFactory");
+    }
+
+    /**
+     * Instantiates a new AppMonSqlSession.
+     * @param txAspectId the ID of the aspect that provides the SqlSessionAdvice
+     */
+    public AppMonSqlSession(String txAspectId) {
+        super(txAspectId);
     }
 
 }

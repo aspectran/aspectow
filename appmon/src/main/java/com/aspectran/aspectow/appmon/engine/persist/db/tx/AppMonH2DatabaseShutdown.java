@@ -45,7 +45,7 @@ public final class AppMonH2DatabaseShutdown {
     private final SqlSessionFactory sqlSessionFactory;
 
     /**
-     * Instantiates a new H2DatabaseShutdown.
+     * Instantiates a new AppMonH2DatabaseShutdown.
      * @param sqlSessionFactory the MyBatis SqlSessionFactory
      */
     @Autowired(required = false)
