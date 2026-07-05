@@ -75,7 +75,7 @@ public class RemoteCommandManager implements InitializableBean, DisposableBean, 
 
         // Register a listener for command relay messages (commands and results) from Redis
         if (nodeManager.getNodeMessageSubscriber() != null) {
-            this.messageListener = new RemoteCommandMessageListener(this);
+            messageListener = new RemoteCommandMessageListener(this);
             nodeManager.getNodeMessageSubscriber().addListener(this.messageListener);
         }
 
@@ -87,8 +87,8 @@ public class RemoteCommandManager implements InitializableBean, DisposableBean, 
 
     @Override
     public void destroy() {
-        if (nodeManager.getNodeMessageSubscriber() != null && this.messageListener != null) {
-            nodeManager.getNodeMessageSubscriber().removeListener(this.messageListener);
+        if (nodeManager.getNodeMessageSubscriber() != null && messageListener != null) {
+            nodeManager.getNodeMessageSubscriber().removeListener(messageListener);
         }
         if (nodeManager.getClusterEventSubscriber() != null) {
             nodeManager.getClusterEventSubscriber().removeListener(this);

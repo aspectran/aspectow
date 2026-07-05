@@ -244,7 +244,6 @@ public class NodeRegistry {
             RedisCommands<String, String> sync = connection.sync();
             sync.hdel(nodesKey, nodeId);
             sync.hdel(pulsesKey, nodeId);
-
             cleanupOrphanedGroups(sync);
         } catch (Exception e) {
             logger.error("Failed to remove node '{}' and metadata from cluster '{}'", nodeId, clusterId, e);
