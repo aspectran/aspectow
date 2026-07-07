@@ -25,7 +25,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * A thread-safe buffer for storing and retrieving node management messages for polling clients.
  */
-public class BroadcastMessageBuffer {
+class BroadcastMessageBuffer {
 
     private final AtomicInteger lineCounter = new AtomicInteger(0);
 

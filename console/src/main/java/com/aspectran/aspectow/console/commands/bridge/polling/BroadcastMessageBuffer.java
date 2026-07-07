@@ -28,7 +28,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  * <p>Created: 2020. 12. 24.</p>
  */
-public class BroadcastMessageBuffer {
+class BroadcastMessageBuffer {
 
     private final AtomicInteger lineCounter = new AtomicInteger(0);
 

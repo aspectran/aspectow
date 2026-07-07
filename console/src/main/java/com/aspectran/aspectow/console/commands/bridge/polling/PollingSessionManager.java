@@ -36,7 +36,7 @@ import java.util.Map;
  * Manages {@link PollingCommandSession} instances for the polling command bridge.
  * It handles session creation, retrieval, and expiration.
  */
-public class PollingSessionManager extends AbstractComponent {
+class PollingSessionManager extends AbstractComponent {
 
     private static final String SESSION_ID_COOKIE_NAME = PollingSessionManager.class.getName() + ".SESSION_ID";
 

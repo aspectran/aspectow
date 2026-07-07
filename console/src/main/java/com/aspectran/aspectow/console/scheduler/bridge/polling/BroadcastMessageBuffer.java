@@ -26,7 +26,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * A thread-safe buffer for storing and retrieving scheduler messages for polling clients.
  * It allows multiple clients to pull messages from the point they last read.
  */
-public class BroadcastMessageBuffer {
+class BroadcastMessageBuffer {
 
     private final AtomicInteger lineCounter = new AtomicInteger(0);
 

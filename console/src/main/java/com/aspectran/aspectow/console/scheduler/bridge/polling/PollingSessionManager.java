@@ -36,7 +36,7 @@ import java.util.Map;
  * Manages {@link PollingSchedulerSession} instances for the polling scheduler bridge.
  * It handles session creation, retrieval, and expiration.
  */
-public class PollingSessionManager extends AbstractComponent {
+class PollingSessionManager extends AbstractComponent {
 
     private static final String SESSION_ID_COOKIE_NAME = PollingSessionManager.class.getName() + ".SESSION_ID";
 
