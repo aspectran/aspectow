@@ -27,6 +27,8 @@ import com.aspectran.aspectow.node.redis.RedisConnectionPool;
 import com.aspectran.aspectow.node.redis.RedisConnectionPoolConfig;
 import com.aspectran.aspectow.node.redis.RedisScheduledJobLockProvider;
 import com.aspectran.core.context.ActivityContext;
+import com.aspectran.core.context.rule.ScheduleRule;
+import com.aspectran.core.context.rule.type.TriggerType;
 import com.aspectran.core.service.CoreServiceHolder;
 import com.aspectran.utils.Assert;
 import com.aspectran.utils.PBEncryptionUtils;
@@ -232,6 +234,17 @@ public abstract class NodeManagerBuilder {
             }
             CoreServiceHolder.setJobLockProvider(jobLockProvider);
             logger.info("Registered RedisScheduledJobLockProvider for cluster-wide job locking");
+
+            if (context.getScheduleRuleRegistry() != null) {
+                for (ScheduleRule scheduleRule : context.getScheduleRuleRegistry().getScheduleRules()) {
+                    if (scheduleRule.getTriggerType() == TriggerType.SIMPLE && !scheduleRule.isIsolated()) {
+                        logger.warn("Schedule '{}' is configured with a SIMPLE trigger but is not isolated. " +
+                                "Simple triggers cannot be locked reliably across multiple nodes due to potential time drift. " +
+                                "It will be forced to execute in isolated mode.", scheduleRule.getId());
+                        scheduleRule.setIsolated(true);
+                    }
+                }
+            }
         }
         return nodeManager;
     }
