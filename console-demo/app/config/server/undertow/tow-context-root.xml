@@ -28,6 +28,7 @@
                 <property name="sessionTrackingModes" type="set">
                     <value>#{class:jakarta.servlet.SessionTrackingMode^COOKIE}</value>
                 </property>
+                <property name="name" value="%{system:tow.context.root.session.cookieName:JSESSIONID}"/>
                 <property name="path" value="/"/>
             </bean>
         </property>

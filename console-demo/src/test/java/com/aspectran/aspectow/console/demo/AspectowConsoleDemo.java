@@ -48,7 +48,8 @@ public class AspectowConsoleDemo {
             System.setProperty(TEMP_PATH_PROPERTY, tempDir.getCanonicalPath());
             System.setProperty(COMMANDS_PATH_PROPERTY, cmdDir.getCanonicalPath());
             System.setProperty("tow.server.listener.http.port", "8082");
-            System.setProperty("tow.context.console.session.cookieName", "JSESSIONID");
+            System.setProperty("tow.context.root.session.cookieName", "JSESSIONID-8082");
+            System.setProperty("tow.context.console.session.cookieName", "JSESSIONID-8082");
             System.setProperty("aspectow.console.config.db.h2.path_explicit", "~/aspectow-console-demo");
             System.setProperty("aspectow.appmon.config.db.h2.path_explicit", "~/aspectow-console-demo-appmon");
             System.setProperty("aspectran.profiles.active", "dev,gateway");
