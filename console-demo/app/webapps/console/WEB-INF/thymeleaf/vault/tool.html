@@ -20,7 +20,7 @@
 
     <div class="row">
         <div class="col-lg-5">
-            <div class="card shadow-sm overflow-hidden mb-4">
+            <div class="card shadow-sm overflow-hidden">
                 <div class="card-header bg-body-tertiary">
                     <h6 class="mb-0 small fw-bold">Encryption/Decryption Execution</h6>
                 </div>
@@ -44,6 +44,9 @@
                         <div class="mb-3">
                             <label for="salt" class="form-label small">Salt (Optional)</label>
                             <input type="text" class="form-control form-control-sm font-monospace" id="salt" name="salt">
+                            <div class="form-text text-muted" style="font-size: 0.75rem;">
+                                AES-based algorithms require at least 16 characters. Legacy algorithms require at least 8 characters.
+                            </div>
                         </div>
                         <hr class="my-3">
                         <div class="mb-3">
@@ -154,7 +157,10 @@
                                 output: res.data
                             });
                         } else {
-                            const msg = (res.error && res.error.message) ? res.error.message : 'Unknown error';
+                            let msg = (res.error && res.error.message) ? res.error.message : 'Unknown error';
+                            if (msg.indexOf('salt larger than set') !== -1) {
+                                msg = 'The provided salt is too short for the selected algorithm.\n(AES-based: min 16 chars, Legacy: min 8 chars)';
+                            }
                             alert('Error: ' + msg);
                         }
                     },
