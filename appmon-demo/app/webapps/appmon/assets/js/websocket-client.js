@@ -134,7 +134,7 @@ class WebsocketClient extends BaseClient {
             this.notifyClosed();
             if (event.code === 1003) {
                 console.warn("Websocket connection refused: ", event.code);
-                this.viewer.printErrorMessage("Socket connection refused by server.");
+                this.printErrorMessage("Socket connection refused by server.");
                 if (this.onRequireRebuild) {
                     setTimeout(() => this.onRequireRebuild(), 1000);
                 }
@@ -142,12 +142,12 @@ class WebsocketClient extends BaseClient {
             }
             if (event.code === 1011) {
                 console.log("Websocket connection closed: ", event.code);
-                this.viewer.printErrorMessage("Websocket connection closed due to server error.");
+                this.printErrorMessage("Websocket connection closed due to server error.");
                 return;
             }
             if (event.code === 1000 || this.retryCount === 0) {
                 console.log("Websocket connection closed: ", event.code);
-                this.viewer.printMessage("Websocket connection closed.");
+                this.printMessage("Websocket connection closed.");
             }
             if (event.code !== 1000) {
                 setTimeout(() => this.reconnect(), 1000);
@@ -158,9 +158,9 @@ class WebsocketClient extends BaseClient {
             console.error(this.node.id, "websocket error:", event);
             if (!this.handshakeSuccessful && this.node.endpoint.mode !== "polling") {
                 this.node.endpoint.mode = "polling";
-                this.viewer.printErrorMessage("WebSocket is not supported. Switching to polling mode.");
+                this.printErrorMessage("WebSocket is not supported. Switching to polling mode.");
             } else {
-                this.viewer.printErrorMessage("Could not connect to the WebSocket server.");
+                this.printErrorMessage("Could not connect to the WebSocket server.");
             }
             this.notifyFailed();
         };

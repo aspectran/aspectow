@@ -19,7 +19,7 @@
  * Provides common functionality for connection management and retries.
  *
  * @version 4.0
- * @last-modified 2026-05-22
+ * @last-modified 2026-07-11
  */
 class BaseClient {
     constructor(node, viewer, onSubscribed, onClosed, onFailed, isGatewayMode) {
@@ -86,6 +86,32 @@ class BaseClient {
         }
     }
 
+    printMessage(message) {
+        if (this.isGatewayMode) {
+            for (let id in this.clusterViewers) {
+                const viewer = this.clusterViewers[id];
+                if (viewer) {
+                    viewer.printMessage(message);
+                }
+            }
+        } else {
+            this.viewer.printMessage(message);
+        }
+    }
+
+    printErrorMessage(message) {
+        if (this.isGatewayMode) {
+            for (let id in this.clusterViewers) {
+                const viewer = this.clusterViewers[id];
+                if (viewer) {
+                    viewer.printErrorMessage(message);
+                }
+            }
+        } else {
+            this.viewer.printErrorMessage(message);
+        }
+    }
+
     /**
      * Starts the client connection.
      * @param {string} [appsToSubscribe] - Names of apps to subscribe.
@@ -147,13 +173,13 @@ class BaseClient {
             const retryInterval = (this.retryInterval * this.retryCount) + (this.node.index * 200) + this.node.random1000;
             const status = "(" + this.retryCount + "/" + this.maxRetries + ", interval=" + retryInterval + ")";
             console.log(this.node.id, "trying to reconnect", status);
-            this.viewer.printMessage("Trying to reconnect... " + status);
+            this.printMessage("Trying to reconnect... " + status);
             setTimeout(() => {
                 this.start(this.appsToSubscribe, this.nodeToSubscribe);
             }, retryInterval);
         } else {
             console.log(this.node.id, "abort reconnect attempt");
-            this.viewer.printMessage("Max connection attempts exceeded.");
+            this.printMessage("Max connection attempts exceeded.");
             this.notifyFailed();
         }
     }

@@ -18,7 +18,7 @@
  * HTTP Polling implementation of the AppMon client.
  *
  * @version 4.0
- * @last-modified 2026-05-22
+ * @last-modified 2026-07-11
  */
 class PollingClient extends BaseClient {
     constructor(node, viewer, onSubscribed, onClosed, onFailed, isGatewayMode = false) {
@@ -83,13 +83,13 @@ class PollingClient extends BaseClient {
                     }
                 } else {
                     console.log(this.node.id, "connection failed");
-                    this.viewer.printErrorMessage("Connection failed.");
+                    this.printErrorMessage("Connection failed.");
                     this.reconnect();
                 }
             },
             error: (xhr, status, error) => {
                 console.log(this.node.id, "connection failed", error);
-                this.viewer.printErrorMessage("Connection failed.");
+                this.printErrorMessage("Connection failed.");
                 this.reconnect();
             }
         });
@@ -118,7 +118,7 @@ class PollingClient extends BaseClient {
                     }, this.node.endpoint.pollingInterval);
                 } else {
                     console.log(this.node.id, "connection lost");
-                    this.viewer.printErrorMessage("Connection lost.");
+                    this.printErrorMessage("Connection lost.");
                     this.notifyClosed();
                     this.reconnect();
                 }
@@ -126,7 +126,7 @@ class PollingClient extends BaseClient {
             error: (xhr, status, error) => {
                 if (this.stopped) return;
                 console.log(this.node.id, "connection lost", error);
-                this.viewer.printErrorMessage("Connection lost.");
+                this.printErrorMessage("Connection lost.");
                 this.notifyClosed();
                 this.reconnect();
             }
