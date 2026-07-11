@@ -16,6 +16,7 @@
 package com.aspectran.aspectow.console.common.service;
 
 import com.aspectran.aspectow.console.common.db.model.Vault;
+import com.aspectran.aspectow.console.common.pagination.PageInfo;
 
 import java.util.List;
 
@@ -33,9 +34,10 @@ public interface VaultService {
 
     /**
      * Retrieves a list of all vault entities.
+     * @param pageInfo the pagination info
      * @return a list of {@code Vault} objects representing the stored vault entries
      */
-    List<Vault> getVaultList();
+    List<Vault> getVaultList(PageInfo pageInfo);
 
     /**
      * Creates a new vault entry and encrypts the specified plain text.

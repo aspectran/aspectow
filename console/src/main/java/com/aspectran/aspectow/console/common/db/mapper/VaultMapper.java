@@ -17,11 +17,13 @@ package com.aspectran.aspectow.console.common.db.mapper;
 
 import com.aspectran.aspectow.console.common.db.model.Vault;
 import com.aspectran.aspectow.console.common.db.tx.ConsoleSqlMapperProvider;
+import com.aspectran.aspectow.console.common.pagination.PageInfo;
 import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Bean;
 import com.aspectran.core.component.bean.annotation.Component;
 import com.aspectran.mybatis.SqlMapperAccess;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -40,9 +42,16 @@ public interface VaultMapper {
 
     /**
      * Retrieves all vaults.
+     * @param pageInfo the pagination info
      * @return the list of vaults
      */
-    List<Vault> getVaultList();
+    List<Vault> getVaultList(@Param("pageInfo") PageInfo pageInfo);
+
+    /**
+     * Retrieves the total count of vaults.
+     * @return the total count of vaults
+     */
+    long getVaultCount();
 
     /**
      * Inserts a new vault.
@@ -87,8 +96,13 @@ public interface VaultMapper {
         }
 
         @Override
-        public List<Vault> getVaultList() {
-            return mapper().getVaultList();
+        public List<Vault> getVaultList(PageInfo pageInfo) {
+            return mapper().getVaultList(pageInfo);
+        }
+
+        @Override
+        public long getVaultCount() {
+            return mapper().getVaultCount();
         }
 
         @Override

@@ -17,6 +17,7 @@ package com.aspectran.aspectow.console.common.service;
 
 import com.aspectran.aspectow.console.common.db.mapper.VaultMapper;
 import com.aspectran.aspectow.console.common.db.model.Vault;
+import com.aspectran.aspectow.console.common.pagination.PageInfo;
 import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Component;
 import com.aspectran.utils.PBEncryptionUtils;
@@ -54,8 +55,12 @@ public class VaultServiceImpl implements VaultService {
     }
 
     @Override
-    public List<Vault> getVaultList() {
-        return vaultMapper.getVaultList();
+    public List<Vault> getVaultList(PageInfo pageInfo) {
+        List<Vault> vaultList = vaultMapper.getVaultList(pageInfo);
+        if (pageInfo != null) {
+            pageInfo.setTotalElements(vaultList.size(), () -> vaultMapper.getVaultCount());
+        }
+        return vaultList;
     }
 
     @Override

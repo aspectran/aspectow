@@ -16,7 +16,9 @@
 package com.aspectran.aspectow.console.vault;
 
 import com.aspectran.aspectow.console.common.db.model.Vault;
+import com.aspectran.aspectow.console.common.pagination.PageInfo;
 import com.aspectran.aspectow.console.common.service.VaultService;
+import com.aspectran.core.activity.Translet;
 import com.aspectran.core.component.bean.annotation.Action;
 import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Component;
@@ -50,13 +52,15 @@ public class VaultActivity {
     @Request("/")
     @Dispatch("vault/list")
     @Action("page")
-    public Map<String, Object> list() {
-        List<Vault> vaultList = vaultService.getVaultList();
+    public Map<String, Object> list(@NonNull Translet translet) {
+        PageInfo pageInfo = PageInfo.of(translet, "vault_list_page_size");
+        List<Vault> vaultList = vaultService.getVaultList(pageInfo);
         return Map.of(
             "title", "Vault",
             "style", "vault-page",
             "group", "security-menu",
             "vaultList", vaultList,
+            "pageInfo", pageInfo,
             "encryptionAlgorithm", PBEncryptionUtils.getAlgorithm(),
             "encryptionSalt", StringUtils.nullToEmpty(PBEncryptionUtils.getSalt()),
             "now", LocalDateTime.now()

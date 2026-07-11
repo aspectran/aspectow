@@ -38,6 +38,13 @@
 
     <select id="getUserList" resultMap="UserResultMap">
         select * from asc_user order by user_id desc
+        <if test="pageInfo != null">
+            limit #{pageInfo.size} offset #{pageInfo.offset}
+        </if>
+    </select>
+
+    <select id="getUserCount" resultType="long">
+        select count(*) from asc_user
     </select>
 
     <insert id="insertUser" parameterType="com.aspectran.aspectow.console.common.db.model.User" useGeneratedKeys="true" keyProperty="userId">
@@ -113,12 +120,22 @@
         values (#{username}, #{ipAddress}, #{userAgent}, #{successYn})
     </insert>
 
-    <select id="getLoginHistoryList" parameterType="string" resultType="com.aspectran.aspectow.console.common.db.model.LoginHistory">
+    <select id="getLoginHistoryList" resultType="com.aspectran.aspectow.console.common.db.model.LoginHistory">
         select * from asc_login_history
         <if test="username != null and username != ''">
             where username = #{username}
         </if>
         order by history_id desc
+        <if test="pageInfo != null">
+            limit #{pageInfo.size} offset #{pageInfo.offset}
+        </if>
+    </select>
+
+    <select id="getLoginHistoryCount" resultType="long">
+        select count(*) from asc_login_history
+        <if test="username != null and username != ''">
+            where username = #{username}
+        </if>
     </select>
 
 </mapper>

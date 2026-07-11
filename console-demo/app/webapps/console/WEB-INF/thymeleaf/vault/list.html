@@ -3,19 +3,38 @@
       xmlns:th="https://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{templates/default}">
+<head>
+    <th:block layout:fragment="style">
+        <style>
+            @media (min-width: 768px) {
+                .border-start-md {
+                    border-left: var(--bs-border-width) var(--bs-border-style) var(--bs-border-color) !important;
+                }
+            }
+        </style>
+    </th:block>
+</head>
 <body>
 <th:block layout:fragment="content">
-    <div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-3">
         <h4 class="mb-0"><i class="bi bi-safe me-2"></i> Vault Management</h4>
-        <div class="d-flex align-items-center gap-3">
-            <div class="form-check form-switch mb-0">
+        <div class="d-flex flex-wrap align-items-center gap-2 gap-md-3">
+            <select class="form-select form-select-sm" id="pageSizeSelect" style="width: auto;">
+                <option value="auto">Auto (Fit Height)</option>
+                <option value="10">10 per page</option>
+                <option value="20">20 per page</option>
+                <option value="30">30 per page</option>
+                <option value="50">50 per page</option>
+                <option value="100">100 per page</option>
+            </select>
+            <div class="form-check form-switch mb-0 me-2">
                 <input class="form-check-input" type="checkbox" id="hideExpired" onchange="filterExpired()">
                 <label class="form-check-label small text-muted" for="hideExpired">Hide Expired</label>
             </div>
-            <a th:href="@{/vault/tool}" class="btn btn-outline-primary">
+            <a th:href="@{/vault/tool}" class="btn btn-sm btn-outline-primary">
                 <i class="bi bi-tools"></i> Vault Tool
             </a>
-            <button type="button" class="btn btn-primary" onclick="openVaultModal()">
+            <button type="button" class="btn btn-sm btn-primary" onclick="openVaultModal()">
                 <i class="bi bi-plus-lg"></i> New Token
             </button>
         </div>
@@ -27,11 +46,11 @@
         </div>
         <div class="card-body py-2">
             <div class="row align-items-center">
-                <div class="col-md-4">
+                <div class="col-md-4 mb-2 mb-md-0">
                     <label class="small text-muted mb-0">Algorithm</label>
                     <div class="fw-bold font-monospace text-primary" th:text="${page.encryptionAlgorithm}">PBEWITHHMACSHA256ANDAES_128</div>
                 </div>
-                <div class="col-md-4 border-start">
+                <div class="col-md-4 border-start-md mb-2 mb-md-0">
                     <label class="small text-muted mb-0">Password</label>
                     <div class="d-flex align-items-center">
                         <input type="text" class="form-control form-control-sm font-monospace border-0 bg-transparent p-0 fw-bold text-primary"
@@ -41,7 +60,7 @@
                         </button>
                     </div>
                 </div>
-                <div class="col-md-4 border-start">
+                <div class="col-md-4 border-start-md">
                     <label class="small text-muted mb-0">Salt</label>
                     <div class="fw-bold font-monospace text-primary" th:text="${#strings.isEmpty(page.encryptionSalt) ? '(none)' : page.encryptionSalt}">salt_value</div>
                 </div>
@@ -49,7 +68,7 @@
         </div>
     </div>
 
-    <div class="card shadow-sm overflow-hidden">
+    <div class="card shadow-sm overflow-hidden mb-4">
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-hover table-striped mb-0 align-middle" id="vaultTable">
@@ -113,6 +132,49 @@
             </div>
         </div>
     </div>
+
+    <!-- Pagination -->
+    <nav th:if="${page.pageInfo.totalPages > 1}" aria-label="Page navigation">
+        <ul class="pagination justify-content-center">
+            <li class="page-item">
+                <a th:if="${page.pageInfo.number > 1}" th:href="@{/vault/(page=1, size=${page.pageInfo.size})}" title="First"
+                   class="page-link">First</a>
+                <span th:unless="${page.pageInfo.number > 1}" title="First" class="page-link disabled">First</span>
+            </li>
+            <li class="page-item">
+                <a th:if="${page.pageInfo.number > 5 and page.pageInfo.number % 5 == 1}"
+                   th:href="@{/vault/(page=${page.pageInfo.number - 1}, size=${page.pageInfo.size})}" title="Previous"
+                   class="page-link">&laquo;</a>
+                <a th:if="${page.pageInfo.number > 5 and page.pageInfo.number % 5 != 1}"
+                   th:href="@{/vault/(page=${page.pageInfo.number - 5}, size=${page.pageInfo.size})}" title="Previous"
+                   class="page-link">&laquo;</a>
+                <span th:unless="${page.pageInfo.number > 5}" title="Previous" class="page-link disabled">&laquo;</span>
+            </li>
+            <li class="page-item"
+                th:if="${i <= page.pageInfo.totalPages}"
+                th:each="i: ${#numbers.sequence(page.pageInfo.number - (page.pageInfo.number - 1) % 5, page.pageInfo.number - (page.pageInfo.number - 1) % 5 + 4)}">
+                <a th:if="${page.pageInfo.number != i}" th:href="@{/vault/(page=${i}, size=${page.pageInfo.size})}"
+                   th:text="${i}" class="page-link"></a>
+                <span th:if="${page.pageInfo.number == i}" th:text="${i}" class="page-link active"></span>
+            </li>
+            <li class="page-item">
+                <a th:if="${page.pageInfo.number < page.pageInfo.totalPages - 5 and page.pageInfo.number % 5 == 0}"
+                   th:href="@{/vault/(page=${page.pageInfo.number + 1}, size=${page.pageInfo.size})}"
+                   title="Next" class="page-link">&raquo;</a>
+                <a th:if="${page.pageInfo.number < page.pageInfo.totalPages - 5 and page.pageInfo.number % 5 != 0}"
+                   th:href="@{/vault/(page=${page.pageInfo.number + 5}, size=${page.pageInfo.size})}"
+                   title="Next" class="page-link">&raquo;</a>
+                <a th:if="${page.pageInfo.number >= page.pageInfo.totalPages - 5 and page.pageInfo.number < page.pageInfo.totalPages - (page.pageInfo.totalPages - 1) % 5}"
+                   th:href="@{/vault/(page=${page.pageInfo.totalPages}, size=${page.pageInfo.size})}" title="Next" class="page-link">&raquo;</a>
+                <span th:if="${page.pageInfo.number >= page.pageInfo.totalPages - (page.pageInfo.totalPages - 1) % 5}" title="Next" class="page-link disabled">&raquo;</span>
+            </li>
+            <li class="page-item">
+                <a th:if="${page.pageInfo.number < page.pageInfo.totalPages}" th:href="@{/vault/(page=${page.pageInfo.totalPages}, size=${page.pageInfo.size})}"
+                   title="Last" class="page-link">Last</a>
+                <span th:unless="${page.pageInfo.number < page.pageInfo.totalPages}" title="Last" class="page-link disabled">Last</span>
+            </li>
+        </ul>
+    </nav>
 
     <!-- Vault Modal -->
     <div class="modal fade" id="vaultModal" tabindex="-1" aria-labelledby="vaultModalLabel" aria-hidden="true">
@@ -186,8 +248,92 @@
     <script th:inline="javascript">
         let vaultModal;
         let verifyModal;
-        
+
+        function setCookie(name, value, days) {
+            let expires = "";
+            if (days) {
+                const date = new Date();
+                date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+                expires = "; expires=" + date.toUTCString();
+            }
+            document.cookie = name + "=" + (value || "")  + expires + "; path=/; SameSite=Lax";
+        }
+
+        function getCookie(name) {
+            const nameEQ = name + "=";
+            const ca = document.cookie.split(';');
+            for(let i=0; i < ca.length; i++) {
+                let c = ca[i];
+                while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+                if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+            }
+            return null;
+        }
+
+        function calculateAutoPageSize() {
+            const reservedHeight = 360;
+            const rowHeight = 49;
+            const availableHeight = window.innerHeight - reservedHeight;
+            let count = Math.floor(availableHeight / rowHeight);
+            if (count < 5) count = 5;
+            if (count > 50) count = 50;
+            return count;
+        }
+
         $(function() {
+            const sizeCookieKey = 'vault_list_page_size';
+            const modeCookieKey = 'vault_list_page_size_mode';
+            
+            const urlParams = new URLSearchParams(window.location.search);
+            const currentSizeParam = urlParams.get('size');
+            const renderedSize = [[${page.pageInfo.size}]];
+            
+            let savedMode = getCookie(modeCookieKey) || 'auto';
+            let savedSize = getCookie(sizeCookieKey);
+
+            if (currentSizeParam) {
+                if (savedMode === 'manual') {
+                    if (savedSize !== currentSizeParam) {
+                        setCookie(sizeCookieKey, currentSizeParam, 365);
+                    }
+                }
+                $('#pageSizeSelect').val(savedMode === 'auto' ? 'auto' : currentSizeParam);
+            } else {
+                if (savedMode === 'auto') {
+                    $('#pageSizeSelect').val('auto');
+                    
+                    const optimalSize = calculateAutoPageSize();
+                    if (optimalSize !== renderedSize) {
+                        setCookie(sizeCookieKey, optimalSize, 365);
+                        setCookie(modeCookieKey, 'auto', 365);
+                        
+                        urlParams.set('size', optimalSize);
+                        window.location.search = urlParams.toString();
+                        return;
+                    }
+                } else {
+                    $('#pageSizeSelect').val(renderedSize);
+                }
+            }
+
+            $('#pageSizeSelect').on('change', function() {
+                const val = $(this).val();
+                
+                if (val === 'auto') {
+                    setCookie(modeCookieKey, 'auto', 365);
+                    const optimalSize = calculateAutoPageSize();
+                    setCookie(sizeCookieKey, optimalSize, 365);
+                    urlParams.set('size', optimalSize);
+                } else {
+                    setCookie(modeCookieKey, 'manual', 365);
+                    setCookie(sizeCookieKey, val, 365);
+                    urlParams.set('size', val);
+                }
+                
+                urlParams.set('page', '1');
+                window.location.search = urlParams.toString();
+            });
+
             vaultModal = new bootstrap.Modal('#vaultModal');
             verifyModal = new bootstrap.Modal('#verifyModal');
             

@@ -19,6 +19,7 @@ import com.aspectran.aspectow.console.common.db.model.LoginHistory;
 import com.aspectran.aspectow.console.common.db.model.Permission;
 import com.aspectran.aspectow.console.common.db.model.Role;
 import com.aspectran.aspectow.console.common.db.model.User;
+import com.aspectran.aspectow.console.common.pagination.PageInfo;
 
 import java.util.List;
 
@@ -59,9 +60,10 @@ public interface UserService {
 
     /**
      * Retrieves all users.
+     * @param pageInfo the pagination info
      * @return the list of users
      */
-    List<User> getUserList();
+    List<User> getUserList(PageInfo pageInfo);
 
     /**
      * Retrieves all roles.
@@ -121,8 +123,9 @@ public interface UserService {
     /**
      * Retrieves the login history for a specific user.
      * @param username the username of the user
+     * @param pageInfo the pagination info
      * @return the list of login history records
      */
-    List<LoginHistory> getLoginHistoryList(String username);
+    List<LoginHistory> getLoginHistoryList(String username, PageInfo pageInfo);
 
 }

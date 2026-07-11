@@ -20,11 +20,13 @@ import com.aspectran.aspectow.console.common.db.model.Permission;
 import com.aspectran.aspectow.console.common.db.model.Role;
 import com.aspectran.aspectow.console.common.db.model.User;
 import com.aspectran.aspectow.console.common.db.tx.ConsoleSqlMapperProvider;
+import com.aspectran.aspectow.console.common.pagination.PageInfo;
 import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Bean;
 import com.aspectran.core.component.bean.annotation.Component;
 import com.aspectran.mybatis.SqlMapperAccess;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -50,9 +52,16 @@ public interface AccountMapper {
 
     /**
      * Retrieves a list of all users.
+     * @param pageInfo the pagination info
      * @return the list of users
      */
-    List<User> getUserList();
+    List<User> getUserList(@Param("pageInfo") PageInfo pageInfo);
+
+    /**
+     * Retrieves the total count of users.
+     * @return the total count of users
+     */
+    long getUserCount();
 
     /**
      * Inserts a new user record into the database.
@@ -148,9 +157,17 @@ public interface AccountMapper {
     /**
      * Retrieves the login history for a specific user.
      * @param username the username
+     * @param pageInfo the pagination info
      * @return the list of login history records
      */
-    List<LoginHistory> getLoginHistoryList(String username);
+    List<LoginHistory> getLoginHistoryList(@Param("username") String username, @Param("pageInfo") PageInfo pageInfo);
+
+    /**
+     * Retrieves the total count of login history records for a specific user.
+     * @param username the username
+     * @return the total count
+     */
+    long getLoginHistoryCount(@Param("username") String username);
 
     /**
      * Data Access Object (DAO) for {@link AccountMapper}.
@@ -180,8 +197,13 @@ public interface AccountMapper {
         }
 
         @Override
-        public List<User> getUserList() {
-            return mapper().getUserList();
+        public List<User> getUserList(PageInfo pageInfo) {
+            return mapper().getUserList(pageInfo);
+        }
+
+        @Override
+        public long getUserCount() {
+            return mapper().getUserCount();
         }
 
         @Override
@@ -250,8 +272,13 @@ public interface AccountMapper {
         }
 
         @Override
-        public List<LoginHistory> getLoginHistoryList(String username) {
-            return mapper().getLoginHistoryList(username);
+        public List<LoginHistory> getLoginHistoryList(String username, PageInfo pageInfo) {
+            return mapper().getLoginHistoryList(username, pageInfo);
+        }
+
+        @Override
+        public long getLoginHistoryCount(String username) {
+            return mapper().getLoginHistoryCount(username);
         }
     }
 

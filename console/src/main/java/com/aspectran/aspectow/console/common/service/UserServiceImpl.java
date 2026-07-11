@@ -20,6 +20,7 @@ import com.aspectran.aspectow.console.common.db.model.LoginHistory;
 import com.aspectran.aspectow.console.common.db.model.Permission;
 import com.aspectran.aspectow.console.common.db.model.Role;
 import com.aspectran.aspectow.console.common.db.model.User;
+import com.aspectran.aspectow.console.common.pagination.PageInfo;
 import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Component;
 import com.aspectran.core.component.bean.aware.ActivityContextAware;
@@ -130,8 +131,12 @@ public class UserServiceImpl implements UserService, ActivityContextAware {
     }
 
     @Override
-    public List<User> getUserList() {
-        return accountMapper.getUserList();
+    public List<User> getUserList(PageInfo pageInfo) {
+        List<User> userList = accountMapper.getUserList(pageInfo);
+        if (pageInfo != null) {
+            pageInfo.setTotalElements(userList.size(), () -> accountMapper.getUserCount());
+        }
+        return userList;
     }
 
     @Override
@@ -207,8 +212,12 @@ public class UserServiceImpl implements UserService, ActivityContextAware {
     }
 
     @Override
-    public List<LoginHistory> getLoginHistoryList(String username) {
-        return accountMapper.getLoginHistoryList(username);
+    public List<LoginHistory> getLoginHistoryList(String username, PageInfo pageInfo) {
+        List<LoginHistory> historyList = accountMapper.getLoginHistoryList(username, pageInfo);
+        if (pageInfo != null) {
+            pageInfo.setTotalElements(historyList.size(), () -> accountMapper.getLoginHistoryCount(username));
+        }
+        return historyList;
     }
 
 }

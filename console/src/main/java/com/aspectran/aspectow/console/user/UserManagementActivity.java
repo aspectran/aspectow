@@ -21,6 +21,7 @@ import com.aspectran.aspectow.console.common.db.model.Permission;
 import com.aspectran.aspectow.console.common.db.model.Role;
 import com.aspectran.aspectow.console.common.db.model.User;
 import com.aspectran.aspectow.console.common.service.UserService;
+import com.aspectran.aspectow.console.common.pagination.PageInfo;
 import com.aspectran.core.activity.Translet;
 import com.aspectran.core.component.bean.annotation.Action;
 import com.aspectran.core.component.bean.annotation.Autowired;
@@ -62,8 +63,9 @@ public class UserManagementActivity {
     @Request("/")
     @Dispatch("user/list")
     @Action("page")
-    public Map<String, Object> list() {
-        List<User> userList = userService.getUserList();
+    public Map<String, Object> list(@NonNull Translet translet) {
+        PageInfo pageInfo = PageInfo.of(translet, "user_list_page_size");
+        List<User> userList = userService.getUserList(pageInfo);
         List<Role> roleList = userService.getRoleList();
         List<Permission> permissionList = userService.getPermissionList();
         return Map.of(
@@ -72,7 +74,8 @@ public class UserManagementActivity {
             "group", "accounts-menu",
             "userList", userList,
             "roleList", roleList,
-            "permissionList", permissionList
+            "permissionList", permissionList,
+            "pageInfo", pageInfo
         );
     }
 
@@ -94,12 +97,14 @@ public class UserManagementActivity {
             targetUsername = userInfo.getUsername();
         }
 
-        List<LoginHistory> historyList = userService.getLoginHistoryList(targetUsername);
+        PageInfo pageInfo = PageInfo.of(translet, "login_history_page_size");
+        List<LoginHistory> historyList = userService.getLoginHistoryList(targetUsername, pageInfo);
         return Map.of(
             "title", "Login History",
             "style", "login-history-page",
             "group", "accounts-menu",
             "historyList", historyList,
+            "pageInfo", pageInfo,
             "username", (targetUsername != null ? targetUsername : "")
         );
     }

@@ -21,6 +21,13 @@
 
     <select id="getVaultList" resultMap="VaultResultMap">
         select * from asc_vault order by vault_id desc
+        <if test="pageInfo != null">
+            limit #{pageInfo.size} offset #{pageInfo.offset}
+        </if>
+    </select>
+
+    <select id="getVaultCount" resultType="long">
+        select count(*) from asc_vault
     </select>
 
     <insert id="insertVault" parameterType="com.aspectran.aspectow.console.common.db.model.Vault" useGeneratedKeys="true" keyProperty="vaultId">
