@@ -19,7 +19,7 @@
  * In Gateway Mode, it manages a single physical connection for the entire cluster.
  *
  * @version 4.0
- * @last-modified 2026-05-22
+ * @last-modified 2026-07-11
  */
 class WebsocketClient extends BaseClient {
     constructor(node, viewer, onSubscribed, onClosed, onFailed, isGatewayMode) {
@@ -27,6 +27,7 @@ class WebsocketClient extends BaseClient {
         this.heartbeatInterval = 50000;
         this.heartbeatTimer = null;
         this.socket = null;
+        this.handshakeSuccessful = false;
         this.pendingMessages = [];
     }
 
@@ -38,6 +39,7 @@ class WebsocketClient extends BaseClient {
 
     stop() {
         this.closeSocket();
+        this.handshakeSuccessful = false;
     }
 
     openSocket() {
@@ -50,10 +52,9 @@ class WebsocketClient extends BaseClient {
 
         console.log("connecting to websocket:", url.href);
         this.socket = new WebSocket(url.href);
-        let handshakeSuccessful = false;
 
         this.socket.onopen = () => {
-            handshakeSuccessful = true;
+            this.handshakeSuccessful = true;
             console.log(this.node.id, "websocket connected");
             this.pendingMessages.push("WebSocket connection successful");
 
@@ -122,7 +123,7 @@ class WebsocketClient extends BaseClient {
         };
 
         this.socket.onclose = (event) => {
-            const wasHandshakeSuccessful = handshakeSuccessful;
+            const wasHandshakeSuccessful = this.handshakeSuccessful;
             this.closeSocket(true);
 
             if (!wasHandshakeSuccessful) {
@@ -155,7 +156,7 @@ class WebsocketClient extends BaseClient {
 
         this.socket.onerror = (event) => {
             console.error(this.node.id, "websocket error:", event);
-            if (!handshakeSuccessful && this.node.endpoint.mode !== "polling") {
+            if (!this.handshakeSuccessful && this.node.endpoint.mode !== "polling") {
                 this.node.endpoint.mode = "polling";
                 this.viewer.printErrorMessage("WebSocket is not supported. Switching to polling mode.");
             } else {
