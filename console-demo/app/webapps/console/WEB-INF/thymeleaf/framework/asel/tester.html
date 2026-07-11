@@ -5,6 +5,25 @@
       layout:decorate="~{templates/default}">
 <body>
 <th:block layout:fragment="content">
+    <style>
+        /* Java Syntax Highlighting */
+        .java-code .hl-keyword { color: #d73a49; font-weight: bold; }
+        .java-code .hl-annotation { color: #953b02; }
+        .java-code .hl-class { color: #6f42c1; }
+        .java-code .hl-method { color: #005cc5; }
+        .java-code .hl-string { color: #032f62; }
+        .java-code .hl-number { color: #005cc5; }
+        .java-code .hl-type { color: #e36209; }
+
+        /* Dark mode compatibility */
+        [data-bs-theme="dark"] .java-code .hl-keyword { color: #ff7b72; font-weight: bold; }
+        [data-bs-theme="dark"] .java-code .hl-annotation { color: #d2a8ff; }
+        [data-bs-theme="dark"] .java-code .hl-class { color: #d2a8ff; }
+        [data-bs-theme="dark"] .java-code .hl-method { color: #d2a8ff; }
+        [data-bs-theme="dark"] .java-code .hl-string { color: #a5d6ff; }
+        [data-bs-theme="dark"] .java-code .hl-number { color: #79c0ff; }
+        [data-bs-theme="dark"] .java-code .hl-type { color: #ff7b72; }
+    </style>
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h4 class="mb-0"><i class="bi bi-braces-asterisk me-2"></i> AsEL Tester</h4>
         <a href="https://aspectran.com/en/docs/guides/introduce-asel/" target="_blank" class="btn btn-outline-info btn-sm">
@@ -135,7 +154,7 @@
     <div class="row mt-4">
         <div class="col-12">
             <div class="card shadow-sm overflow-hidden">
-                <div class="card-header bg-scondary py-2 d-flex justify-content-between align-items-center">
+                <div class="card-header bg-body-secondary py-2 d-flex justify-content-between align-items-center">
                     <h6 class="mb-0 small fw-bold"><i class="bi bi-info-square me-2"></i> Sandbox Context Information</h6>
                     <span class="badge bg-primary" style="font-size: 0.65rem;">AVAILABLE DATA</span>
                 </div>
@@ -144,37 +163,37 @@
                         <div class="col-lg-6">
                             <label class="small text-muted fw-bold mb-2 text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.5px;">Bean: <code>#{aselTestBean}</code> (Java Source)</label>
                             <div class="p-3 border rounded bg-body" style="max-height: 568px; overflow-y: auto;">
-<pre class="mb-0 font-monospace" style="font-size: 0.8rem; line-height: 1.5;">
-<span style="color: #d73a49;">@Component</span>
-<span style="color: #d73a49;">@Bean</span>(<span style="color: #4e89cd;">"aselTestBean"</span>)
-<span style="color: #d73a49;">public class</span> <span style="color: #6f42c1;">AselTestBean</span> {
+<pre class="mb-0 font-monospace java-code" style="font-size: 0.8rem; line-height: 1.5;">
+<span class="hl-annotation">@Component</span>
+<span class="hl-annotation">@Bean</span>(<span class="hl-string">"aselTestBean"</span>)
+<span class="hl-keyword">public class</span> <span class="hl-class">AselTestBean</span> {
 
-    <span style="color: #d73a49;">public</span> String <span style="color: #6f42c1;">getName</span>() {
-        <span style="color: #d73a49;">return</span> <span style="color: #4e89cd;">"AsEL Expression Tester"</span>;
+    <span class="hl-keyword">public</span> <span class="hl-type">String</span> <span class="hl-method">getName</span>() {
+        <span class="hl-keyword">return</span> <span class="hl-string">"AsEL Expression Tester"</span>;
     }
 
-    <span style="color: #d73a49;">public int</span> <span style="color: #6f42c1;">getValue</span>() {
-        <span style="color: #d73a49;">return</span> <span style="color: #005cc5;">12345</span>;
+    <span class="hl-keyword">public</span> <span class="hl-type">int</span> <span class="hl-method">getValue</span>() {
+        <span class="hl-keyword">return</span> <span class="hl-number">12345</span>;
     }
 
-    <span style="color: #d73a49;">public boolean</span> <span style="color: #6f42c1;">isAvailable</span>() {
-        <span style="color: #d73a49;">return true</span>;
+    <span class="hl-keyword">public</span> <span class="hl-type">boolean</span> <span class="hl-method">isAvailable</span>() {
+        <span class="hl-keyword">return</span> <span class="hl-keyword">true</span>;
     }
 
-    <span style="color: #d73a49;">public</span> LocalDateTime <span style="color: #6f42c1;">getServerTime</span>() {
-        <span style="color: #d73a49;">return</span> LocalDateTime.now();
+    <span class="hl-keyword">public</span> <span class="hl-type">LocalDateTime</span> <span class="hl-method">getServerTime</span>() {
+        <span class="hl-keyword">return</span> <span class="hl-class">LocalDateTime</span>.now();
     }
 
-    <span style="color: #d73a49;">public</span> List&lt;String&gt; <span style="color: #6f42c1;">getTags</span>() {
-        <span style="color: #d73a49;">return</span> List.of(<span style="color: #4e89cd;">"aspectran"</span>, <span style="color: #4e89cd;">"asel"</span>, <span style="color: #4e89cd;">"expression"</span>);
+    <span class="hl-keyword">public</span> <span class="hl-type">List</span>&lt;<span class="hl-type">String</span>&gt; <span class="hl-method">getTags</span>() {
+        <span class="hl-keyword">return</span> <span class="hl-class">List</span>.of(<span class="hl-string">"aspectran"</span>, <span class="hl-string">"asel"</span>, <span class="hl-string">"expression"</span>);
     }
 
-    <span style="color: #d73a49;">public</span> Map&lt;String, Object&gt; <span style="color: #6f42c1;">getMetadata</span>() {
-        <span style="color: #d73a49;">return</span> Map.of(<span style="color: #4e89cd;">"version"</span>, <span style="color: #4e89cd;">"1.0.0"</span>, <span style="color: #4e89cd;">"environment"</span>, <span style="color: #4e89cd;">"console"</span>);
+    <span class="hl-keyword">public</span> <span class="hl-type">Map</span>&lt;<span class="hl-type">String</span>, <span class="hl-type">Object</span>&gt; <span class="hl-method">getMetadata</span>() {
+        <span class="hl-keyword">return</span> <span class="hl-class">Map</span>.of(<span class="hl-string">"version"</span>, <span class="hl-string">"1.0.0"</span>, <span class="hl-string">"environment"</span>, <span class="hl-string">"console"</span>);
     }
 
-    <span style="color: #d73a49;">public</span> String <span style="color: #6f42c1;">greet</span>(String user) {
-        <span style="color: #d73a49;">return</span> <span style="color: #4e89cd;">"Hello, "</span> + user + <span style="color: #4e89cd;">"! Welcome to AsEL."</span>;
+    <span class="hl-keyword">public</span> <span class="hl-type">String</span> <span class="hl-method">greet</span>(<span class="hl-type">String</span> user) {
+        <span class="hl-keyword">return</span> <span class="hl-string">"Hello, "</span> + user + <span class="hl-string">"! Welcome to AsEL."</span>;
     }
 }
 </pre>
