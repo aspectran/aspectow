@@ -1,6 +1,9 @@
 context: {
     name: appmon
-    rules: classpath:com/aspectran/aspectow/appmon/config/rules/root.xml
+    rules: [
+        classpath:com/aspectran/aspectow/appmon/config/rules/root.xml
+        /config/appmon/appmon-rules.xml
+    ]
     scan: [
         com.aspectran.aspectow.appmon.anatomy
         com.aspectran.aspectow.appmon.common

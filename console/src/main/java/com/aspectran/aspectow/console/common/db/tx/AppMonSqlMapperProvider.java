@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.aspectran.aspectow.appmon.engine.persist.db.tx;
+package com.aspectran.aspectow.console.common.db.tx;
 
 import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Bean;
 import com.aspectran.core.component.bean.annotation.Component;
-import com.aspectran.core.component.bean.annotation.Profile;
 import com.aspectran.core.component.bean.annotation.Qualifier;
 import com.aspectran.mybatis.SqlMapperProvider;
 import org.apache.ibatis.session.SqlSession;
@@ -31,13 +30,12 @@ import org.apache.ibatis.session.SqlSession;
  */
 @Component
 @Bean(id = "appMonSqlMapperProvider", lazyDestroy = true)
-@Profile("(!console-integrated, !appmon.ext-persistence)")
 public class AppMonSqlMapperProvider implements SqlMapperProvider {
 
     private final SqlSession sqlSession;
 
     @Autowired
-    public AppMonSqlMapperProvider(@Qualifier("appmonSqlSession") SqlSession sqlSession) {
+    public AppMonSqlMapperProvider(@Qualifier("consoleSqlSession") SqlSession sqlSession) {
         this.sqlSession = sqlSession;
     }
 

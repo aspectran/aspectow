@@ -2,6 +2,7 @@ context: {
     name: console
     rules: [
         classpath:com/aspectran/aspectow/console/config/rules/root.xml
+        /config/console/node-rules.xml
         /config/appmon/appmon-rules.xml
     ]
     scan: [

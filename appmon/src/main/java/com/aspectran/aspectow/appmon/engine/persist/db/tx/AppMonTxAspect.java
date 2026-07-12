@@ -45,7 +45,7 @@ import org.apache.ibatis.session.SqlSessionFactory;
  */
 @Component
 @Bean(lazyDestroy = true)
-@Profile("!appmon.ext-persistence")
+@Profile("(!console-integrated, !appmon.ext-persistence)")
 @Scope(ScopeType.PROTOTYPE)
 @Aspect(
         id = "appmonTxAspect",

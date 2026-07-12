@@ -16,7 +16,6 @@
 package com.aspectran.aspectow.console.demo.test;
 
 import com.aspectran.aspectow.node.manager.NodeManager;
-import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Bean;
 import com.aspectran.core.component.bean.annotation.Component;
 import com.aspectran.core.component.bean.annotation.Job;
@@ -24,9 +23,10 @@ import com.aspectran.core.component.bean.annotation.Request;
 import com.aspectran.core.component.bean.annotation.Schedule;
 import com.aspectran.core.component.bean.annotation.SimpleTrigger;
 import com.aspectran.core.component.bean.annotation.Transform;
+import com.aspectran.core.context.ActivityContext;
 import com.aspectran.core.context.rule.type.FormatType;
 import com.aspectran.core.context.rule.type.MisfirePolicy;
-import org.jspecify.annotations.NonNull;
+import com.aspectran.core.service.CoreServiceHolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,7 +36,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * <p>Created: 2026. 6. 6.</p>
  */
 @Component
-@Bean
+@Bean(lazyInit = true)
 @Schedule(
         id = "countSchedule",
         scheduler = "testScheduler",
@@ -57,11 +57,10 @@ public class CountSchedule {
 
     private final AtomicInteger counter = new AtomicInteger(0);
 
-    private final String nodeId;
+    private String nodeId;
 
-    @Autowired
-    public CountSchedule(@NonNull NodeManager nodeManager) {
-        this.nodeId = nodeManager.getNodeId();
+    public CountSchedule() {
+        resolveNodeId();
     }
 
     @Request("test/schedule/count.job")
@@ -71,6 +70,16 @@ public class CountSchedule {
         String result = "NodeId: " + nodeId + ", Count: " + count;
         logger.info(result);
         return result;
+    }
+
+    private void resolveNodeId() {
+        ActivityContext context = CoreServiceHolder.findActivityContext("console");
+        if (context != null) {
+            NodeManager nodeManager = context.getBeanRegistry().getBean(NodeManager.class);
+            nodeId = nodeManager.getNodeId();
+        } else {
+            nodeId = "Unknown";
+        }
     }
 
 }

@@ -21,10 +21,10 @@
         </settings>
     </aspect>
 
+    <append resource="com/aspectran/aspectow/appmon/config/rules/scheduler.xml"/>
+    <!--    <append resource="com/aspectran/aspectow/appmon/config/rules/db.xml"/>-->
     <append resource="com/aspectran/aspectow/console/config/rules/db.xml"/>
     <append resource="com/aspectran/aspectow/console/config/rules/web.xml"/>
     <append resource="com/aspectran/aspectow/console/framework/asel-test-rules.xml"/>
-    <append resource="com/aspectran/aspectow/appmon/config/rules/scheduler.xml"/>
-    <append resource="com/aspectran/aspectow/appmon/config/rules/db.xml"/>
 
 </aspectran>

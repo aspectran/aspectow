@@ -1,12 +1,13 @@
 package com.aspectran.aspectow.appmon.engine.persist.db.mapper;
 
 import com.aspectran.aspectow.appmon.engine.persist.counter.EventCountVO;
-import com.aspectran.aspectow.appmon.engine.persist.db.tx.AppMonSqlMapperProvider;
 import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Bean;
 import com.aspectran.core.component.bean.annotation.Component;
 import com.aspectran.core.component.bean.annotation.Profile;
+import com.aspectran.core.component.bean.annotation.Qualifier;
 import com.aspectran.mybatis.SqlMapperAccess;
+import com.aspectran.mybatis.SqlMapperProvider;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -25,7 +26,7 @@ public class EventCountDao extends SqlMapperAccess<EventCountMapper> implements 
      * @param sqlMapperProvider the SQL mapper provider
      */
     @Autowired
-    public EventCountDao(AppMonSqlMapperProvider sqlMapperProvider) {
+    public EventCountDao(@Qualifier("appMonSqlMapperProvider") SqlMapperProvider sqlMapperProvider) {
         super(sqlMapperProvider, EventCountMapper.class);
     }
 
