@@ -82,29 +82,7 @@ public class LoginActivity {
                 return new FailureResponse().setError("locked", "Account is " + user.getStatus());
             }
 
-            UserInfo userInfo = new UserInfo();
-            userInfo.setUserId(user.getUserId());
-            userInfo.setUsername(user.getUsername());
-            userInfo.setNickname(user.getNickname());
-
-            Set<String> roles = new HashSet<>();
-            Set<String> permissions = new HashSet<>();
-            if (user.getRoles() != null) {
-                for (Role role : user.getRoles()) {
-                    roles.add(role.getRoleName());
-                    if (role.getPermissions() != null) {
-                        for (Permission perm : role.getPermissions()) {
-                            permissions.add(perm.getPermCode());
-                        }
-                    }
-                }
-            }
-            userInfo.setRoles(roles);
-            userInfo.setPermissions(permissions);
-
-            SessionAdapter sessionAdapter = translet.getSessionAdapter();
-            sessionAdapter.setAttribute(UserInfo.USERINFO_KEY, userInfo);
-            sessionAdapter.setMaxInactiveInterval(1800); // 30 min.
+            doLogin(translet, user);
 
             userService.recordLogin(username, remoteAddr, userAgent, true);
             return new SuccessResponse("OK").ok();
@@ -112,6 +90,32 @@ public class LoginActivity {
             userService.recordLogin(username, remoteAddr, userAgent, false);
             return new FailureResponse().setError("invalid", "Invalid username or password.");
         }
+    }
+
+    public void doLogin(@NonNull Translet translet, @NonNull User user) {
+        UserInfo userInfo = new UserInfo();
+        userInfo.setUserId(user.getUserId());
+        userInfo.setUsername(user.getUsername());
+        userInfo.setNickname(user.getNickname());
+
+        Set<String> roles = new HashSet<>();
+        Set<String> permissions = new HashSet<>();
+        if (user.getRoles() != null) {
+            for (Role role : user.getRoles()) {
+                roles.add(role.getRoleName());
+                if (role.getPermissions() != null) {
+                    for (Permission perm : role.getPermissions()) {
+                        permissions.add(perm.getPermCode());
+                    }
+                }
+            }
+        }
+        userInfo.setRoles(roles);
+        userInfo.setPermissions(permissions);
+
+        SessionAdapter sessionAdapter = translet.getSessionAdapter();
+        sessionAdapter.setAttribute(UserInfo.USERINFO_KEY, userInfo);
+        sessionAdapter.setMaxInactiveInterval(1800); // 30 min.
     }
 
     @RequestToPost("/setup-password")
@@ -140,7 +144,7 @@ public class LoginActivity {
     /**
      * Gets the remote address from the translet, considering the X-Forwarded-For header.
      */
-    private String getRemoteAddr(@NonNull Translet translet) {
+    public String getRemoteAddr(@NonNull Translet translet) {
         String remoteAddr = translet.getRequestAdapter().getHeader(HttpHeaders.X_FORWARDED_FOR);
         if (StringUtils.hasLength(remoteAddr)) {
             if (remoteAddr.contains(",")) {

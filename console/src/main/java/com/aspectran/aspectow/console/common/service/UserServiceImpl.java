@@ -23,8 +23,7 @@ import com.aspectran.aspectow.console.common.db.model.User;
 import com.aspectran.aspectow.console.common.pagination.PageInfo;
 import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Component;
-import com.aspectran.core.component.bean.aware.ActivityContextAware;
-import com.aspectran.core.context.ActivityContext;
+import com.aspectran.core.component.bean.aware.EnvironmentAware;
 import com.aspectran.core.context.env.Environment;
 import com.aspectran.utils.StringUtils;
 import org.jasypt.util.password.StrongPasswordEncryptor;
@@ -37,7 +36,7 @@ import java.util.List;
  * Implementation of the UserService.
  */
 @Component
-public class UserServiceImpl implements UserService, ActivityContextAware {
+public class UserServiceImpl implements UserService, EnvironmentAware {
 
     private final StrongPasswordEncryptor passwordEncryptor = new StrongPasswordEncryptor();
 
@@ -51,6 +50,11 @@ public class UserServiceImpl implements UserService, ActivityContextAware {
     }
 
     @Override
+    public void setEnvironment(Environment environment) {
+        this.environment = environment;
+    }
+
+    @Override
     public User getUserById(Long userId) {
         return accountMapper.getUserById(userId);
     }
@@ -58,11 +62,6 @@ public class UserServiceImpl implements UserService, ActivityContextAware {
     @Override
     public User getUserByUsername(String username) {
         return accountMapper.getUserByUsername(username);
-    }
-
-    @Override
-    public void setActivityContext(@NonNull ActivityContext context) {
-        this.environment = context.getEnvironment();
     }
 
     @Override
@@ -219,5 +218,4 @@ public class UserServiceImpl implements UserService, ActivityContextAware {
         }
         return historyList;
     }
-
 }

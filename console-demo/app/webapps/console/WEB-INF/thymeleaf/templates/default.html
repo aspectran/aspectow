@@ -22,6 +22,9 @@
             </button>
         </div>
         <nav class="nav-links">
+            <a th:href="@{/../}" class="nav-link">
+                <i class="bi bi-arrow-left-circle"></i> Back to Main
+            </a>
             <a th:href="@{/}" class="nav-link" th:classappend="${page.include == 'home' ? 'active' : ''}">
                 <i class="bi bi-house-door"></i> Home
             </a>
