@@ -21,7 +21,7 @@
     </aspect>
 
     <append resource="com/aspectran/aspectow/appmon/config/rules/scheduler.xml"/>
-    <append resource="com/aspectran/aspectow/appmon/config/rules/db.xml" profile="(!console-integrated, !appmon.ext-persistence)"/>
+    <append resource="com/aspectran/aspectow/appmon/config/rules/db.xml" profile="(appmon.standalone, !appmon.ext-persistence)"/>
     <append resource="com/aspectran/aspectow/appmon/config/rules/web.xml"/>
 
 </aspectran>

@@ -32,7 +32,7 @@ import org.jspecify.annotations.NonNull;
  * <p>Created: 2025-11-04</p>
  */
 @Component
-@Profile("!console-integrated")
+@Profile("appmon.standalone")
 @Bean("appMonCookieIssuer")
 public final class AppMonCookieIssuer {
 

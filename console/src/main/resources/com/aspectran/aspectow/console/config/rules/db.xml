@@ -46,6 +46,13 @@
                 <value>/config/console/aspectow-console.db-oracle.properties</value>
             </item>
         </properties>
+        <properties profile="![h2, mariadb, mysql, postgresql, oracle]">
+            <item name="locations" type="array">
+                <value>classpath:com/aspectran/aspectow/console/config/db/aspectow-console.db.properties</value>
+                <value>classpath:com/aspectran/aspectow/console/config/db/aspectow-console.db.system.properties</value>
+                <value>/config/console/aspectow-console.db.properties</value>
+            </item>
+        </properties>
     </bean>
 
     <bean id="consoleSqlSessionFactory" class="com.aspectran.mybatis.SqlSessionFactoryBean" lazyDestroy="true">

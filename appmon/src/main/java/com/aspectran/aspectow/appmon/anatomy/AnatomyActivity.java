@@ -44,7 +44,7 @@ import java.util.Set;
  * A controller that provides framework anatomy data for the viewer.
  */
 @Component
-@Profile("!console-integrated")
+@Profile("appmon.standalone")
 @Bean("anatomyActivity")
 public class AnatomyActivity {
 

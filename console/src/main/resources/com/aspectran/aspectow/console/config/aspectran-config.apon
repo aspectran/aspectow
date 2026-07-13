@@ -3,7 +3,7 @@ context: {
     rules: [
         classpath:com/aspectran/aspectow/console/config/rules/root.xml
         /config/console/node-rules.xml
-        /config/appmon/appmon-rules.xml
+        /config/console/appmon-rules.xml
     ]
     scan: [
         com.aspectran.aspectow.appmon.engine
@@ -20,7 +20,6 @@ context: {
     ]
     profiles: {
         base: [
-            console-integrated
             h2
         ]
         default: [

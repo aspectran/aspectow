@@ -40,7 +40,7 @@ import org.slf4j.LoggerFactory;
  * <p>Created: 2024-07-27</p>
  */
 @Component
-@Profile("!console-integrated")
+@Profile("appmon.standalone")
 @Aspect("appMonAuthCheckAspect")
 @Joinpoint(pointcut = {
         "+: /**",

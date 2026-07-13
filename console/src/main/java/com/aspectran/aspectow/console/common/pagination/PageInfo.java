@@ -180,7 +180,7 @@ public class PageInfo {
 
     @Override
     public String toString() {
-        return "PageInfo{" +
+        return "PageInfo {" +
                 "number=" + number +
                 ", size=" + size +
                 ", offset=" + offset +

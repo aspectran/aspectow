@@ -49,7 +49,7 @@ import java.util.stream.Collectors;
  * <p>Created: 2020/02/23</p>
  */
 @Component
-@Profile("!console-integrated")
+@Profile("appmon.standalone")
 public class DashboardActivity {
 
     private final AppMonManager appMonManager;

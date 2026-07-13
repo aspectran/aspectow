@@ -29,6 +29,9 @@ context: {
         com.aspectran.aspectow.appmon.demo
     ]
     profiles: {
+        base: [
+            appmon.standalone
+        ]
         default: [
             dev
         ]

@@ -28,7 +28,7 @@ import com.aspectran.mybatis.DefaultSqlSessionAgent;
  */
 @Component
 @Bean(id = "appmonSqlSession", lazyDestroy = true)
-@Profile("(!console-integrated, !appmon.ext-persistence)")
+@Profile("(appmon.standalone, !appmon.ext-persistence)")
 public class AppMonSqlSession extends DefaultSqlSessionAgent {
 
     /**

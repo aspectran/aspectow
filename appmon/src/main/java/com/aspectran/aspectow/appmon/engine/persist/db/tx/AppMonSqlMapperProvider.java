@@ -31,7 +31,7 @@ import org.apache.ibatis.session.SqlSession;
  */
 @Component
 @Bean(id = "appMonSqlMapperProvider", lazyDestroy = true)
-@Profile("(!console-integrated, !appmon.ext-persistence)")
+@Profile("(appmon.standalone, !appmon.ext-persistence)")
 public class AppMonSqlMapperProvider implements SqlMapperProvider {
 
     private final SqlSession sqlSession;

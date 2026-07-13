@@ -9,22 +9,22 @@
         </properties>
         <properties profile="prod">
             <item name="locations" type="array">
-                <value>/config/appmon/appmon-assets-prod.properties</value>
+                <value>/config/console/appmon-assets-prod.properties</value>
             </item>
         </properties>
         <properties profile="!prod">
             <item name="locations" type="array">
-                <value>/config/appmon/appmon-assets-dev.properties</value>
+                <value>/config/console/appmon-assets-dev.properties</value>
             </item>
         </properties>
     </bean>
 
     <bean class="com.aspectran.aspectow.appmon.engine.config.AppMonConfigResolver">
         <properties profile="!prod">
-            <item name="configLocation">/config/appmon/appmon-config.apon</item>
+            <item name="configLocation">/config/console/appmon-config.apon</item>
         </properties>
         <properties profile="prod">
-            <item name="configLocation">/config/appmon/appmon-config-prod.apon</item>
+            <item name="configLocation">/config/console/appmon-config-prod.apon</item>
         </properties>
     </bean>
 

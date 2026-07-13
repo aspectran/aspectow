@@ -37,7 +37,7 @@ import java.sql.SQLException;
  */
 @Component
 @Bean(lazyDestroy = true)
-@Profile("(!console-integrated, !appmon.ext-persistence)")
+@Profile("(appmon.standalone, !appmon.ext-persistence)")
 public final class AppMonH2DatabaseShutdown {
 
     private static final Logger logger = LoggerFactory.getLogger(AppMonH2DatabaseShutdown.class);

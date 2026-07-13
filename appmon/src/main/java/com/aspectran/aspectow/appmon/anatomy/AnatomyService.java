@@ -51,7 +51,7 @@ import java.util.stream.Collectors;
  * A service that provides framework anatomy data.
  */
 @Component
-@Profile("!console-integrated")
+@Profile("appmon.standalone")
 @Bean("anatomyService")
 public class AnatomyService {
 

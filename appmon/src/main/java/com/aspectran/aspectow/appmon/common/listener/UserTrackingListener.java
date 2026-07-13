@@ -40,7 +40,7 @@ import static com.aspectran.aspectow.appmon.engine.exporter.event.session.Sessio
  * <p>Created: 2024-12-13</p>
  */
 @Component
-@Profile("!console-integrated")
+@Profile("appmon.standalone")
 public class UserTrackingListener extends InstantActivitySupport implements SessionListener, InitializableBean {
 
     /**

@@ -46,6 +46,13 @@
                 <value>/config/appmon/appmon.db-oracle.properties</value>
             </item>
         </properties>
+        <properties profile="![h2, mariadb, mysql, postgresql, oracle]">
+            <item name="locations" type="array">
+                <value>classpath:com/aspectran/aspectow/appmon/config/db/appmon.db.properties</value>
+                <value>classpath:com/aspectran/aspectow/appmon/config/db/appmon.db.system.properties</value>
+                <value>/config/appmon/appmon.db.properties</value>
+            </item>
+        </properties>
     </bean>
 
     <bean id="appmonSqlSessionFactory" class="com.aspectran.mybatis.SqlSessionFactoryBean" lazyDestroy="true">

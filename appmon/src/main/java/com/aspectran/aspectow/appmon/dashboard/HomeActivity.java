@@ -39,7 +39,7 @@ import java.util.Map;
  * <p>Created: 2020/02/23</p>
  */
 @Component
-@Profile("!console-integrated")
+@Profile("appmon.standalone")
 public class HomeActivity {
 
     private final AppMonManager appMonManager;

@@ -12,6 +12,7 @@ context: {
     ]
     profiles: {
         base: [
+            appmon.standalone
             h2
         ]
         default: [
