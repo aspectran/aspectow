@@ -145,6 +145,17 @@ class DashboardBuilder {
                         }
                         this.changeGroup(initialGroupId);
                     }
+
+                    if (location.hash) {
+                        const appId = location.hash.substring(1);
+                        const targetApp = this.apps.find(app => app.id === appId);
+                        if (targetApp) {
+                            if (targetApp.group && targetApp.group !== this.currentGroupId) {
+                                this.changeGroup(targetApp.group);
+                            }
+                            this.changeApp(appId);
+                        }
+                    }
                 }
             },
             error: (xhr) => {
@@ -839,11 +850,7 @@ class DashboardBuilder {
                 }
             });
         });
-        let appId = this.changeApp();
-        if (appId && location.hash) {
-            const appId2 = location.hash.substring(1);
-            if (appId !== appId2) this.changeApp(appId2);
-        }
+        this.changeApp();
     }
 
     addGroupTab(groupInfo) {
