@@ -19,7 +19,7 @@
  * Responsible for assembling the dashboard UI based on configuration data.
  *
  * @version 4.0
- * @last-modified 2026-05-27
+ * @last-modified 2026-07-13
  */
 class DashboardBuilder {
     constructor(options = {}) {

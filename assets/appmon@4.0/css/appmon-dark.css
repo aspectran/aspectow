@@ -23,6 +23,9 @@
     canvas:not(.traffic-canvas) {
         filter: invert(1) hue-rotate(180deg);
     }
+    .node-bar {
+        border-color: #353b3e;
+    }
     .metrics-bar {
         background-color: #3b3f42;
     }
@@ -30,9 +33,6 @@
         border-bottom: 1px solid #353b3e;
         background-color: #24282b;
         box-shadow: none;
-    }
-    .monitoring-page .node-bar {
-        border-bottom: 1px solid #353b3e;
     }
     .node.metrics-bar .title {
         color: #677278;

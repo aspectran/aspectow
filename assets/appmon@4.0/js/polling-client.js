@@ -18,11 +18,11 @@
  * HTTP Polling implementation of the AppMon client.
  *
  * @version 4.0
- * @last-modified 2026-05-22
+ * @last-modified 2026-07-11
  */
 class PollingClient extends BaseClient {
-    constructor(node, viewer, onSubscribed, onPrimary, onClosed, onFailed, isGatewayMode = false) {
-        super(node, viewer, onSubscribed, onPrimary, onClosed, onFailed, isGatewayMode);
+    constructor(node, viewer, onSubscribed, onClosed, onFailed, isGatewayMode = false) {
+        super(node, viewer, onSubscribed, onClosed, onFailed, isGatewayMode);
         this.pendingCommands = [];
         this.pollingTimer = null;
         this.stopped = false;
@@ -32,14 +32,6 @@ class PollingClient extends BaseClient {
             url.port = this.node.port;
             this.node.endpoint.path = url.origin + url.pathname;
         }
-    }
-
-    addClusterViewer(nodeId, viewer) {
-        this.clusterViewers[nodeId] = viewer;
-    }
-
-    addClusterNode(node, onSubscribed, onPrimary) {
-        this.clusterNodes[node.id] = {node, onSubscribed, onPrimary};
     }
 
     start(appsToSubscribe, nodeToSubscribe) {
@@ -52,6 +44,7 @@ class PollingClient extends BaseClient {
     stop() {
         this.stopped = true;
         this.primary = false;
+        this.primaryNodeId = null;
         if (this.pollingTimer) {
             clearTimeout(this.pollingTimer);
             this.pollingTimer = null;
@@ -90,13 +83,13 @@ class PollingClient extends BaseClient {
                     }
                 } else {
                     console.log(this.node.id, "connection failed");
-                    this.viewer.printErrorMessage("Connection failed.");
+                    this.printErrorMessage("Connection failed.");
                     this.reconnect();
                 }
             },
             error: (xhr, status, error) => {
                 console.log(this.node.id, "connection failed", error);
-                this.viewer.printErrorMessage("Connection failed.");
+                this.printErrorMessage("Connection failed.");
                 this.reconnect();
             }
         });
@@ -125,16 +118,16 @@ class PollingClient extends BaseClient {
                     }, this.node.endpoint.pollingInterval);
                 } else {
                     console.log(this.node.id, "connection lost");
-                    this.viewer.printErrorMessage("Connection lost.");
-                    if (this.onClosed) this.onClosed(this.node);
+                    this.printErrorMessage("Connection lost.");
+                    this.notifyClosed();
                     this.reconnect();
                 }
             },
             error: (xhr, status, error) => {
                 if (this.stopped) return;
                 console.log(this.node.id, "connection lost", error);
-                this.viewer.printErrorMessage("Connection lost.");
-                if (this.onClosed) this.onClosed(this.node);
+                this.printErrorMessage("Connection lost.");
+                this.notifyClosed();
                 this.reconnect();
             }
         });
@@ -173,6 +166,28 @@ class PollingClient extends BaseClient {
                 const message = msg.substring(idx + 1);
 
                 if (this.primary) {
+                    if (this.isGatewayMode) {
+                        if (message.startsWith(":subscribed:")) {
+                            const alive = (message === ":subscribed:alive");
+                            this.establish(nodeId, false, alive);
+                            return;
+                        }
+                        if (message.startsWith(":node:joined:")) {
+                            const nodeInfo = JSON.parse(message.substring(13));
+                            if (this.onNodeJoined) this.onNodeJoined(nodeInfo);
+                            return;
+                        }
+                        if (message.startsWith(":node:statusChanged:")) {
+                            const nodeInfo = JSON.parse(message.substring(20));
+                            if (this.onNodeStatusChanged) this.onNodeStatusChanged(nodeInfo);
+                            return;
+                        }
+                        if (message === ":node:left") {
+                            if (this.onNodeLeft) this.onNodeLeft(nodeId);
+                            return;
+                        }
+                    }
+
                     // Data messages
                     const viewer = this.getViewer(nodeId);
                     if (viewer) {
@@ -188,7 +203,26 @@ class PollingClient extends BaseClient {
     }
 
     establish(nodeId, primary, alive) {
+        if (this.reconnecting && (!primary || !alive)) {
+            console.log("Reconnect attempt failed, node is not primary or alive");
+            if (this.onRequireRebuild) {
+                this.onRequireRebuild();
+            }
+            return;
+        }
+
         if (primary) {
+            // Passive Swap: If the server routed us to a different node than we expected
+            if (this.isGatewayMode && this.node.id !== nodeId) {
+                this.stop();
+                // Unknown node ID became primary!
+                // This happens in Autoscaling mode when the gateway instance restarts with a new ID.
+                if (this.onRequireRebuild) {
+                    console.log(this.node.id, "unknown node became primary, requesting full rebuild");
+                    this.onRequireRebuild();
+                }
+                return;
+            }
             this.primary = true;
             this.primaryNodeId = nodeId;
         }
@@ -197,22 +231,28 @@ class PollingClient extends BaseClient {
         if (config) {
             config.node.alive = !!alive;
             if (config.onSubscribed && !config.node.subscribed) {
-                config.onSubscribed(config.node);
+                config.onSubscribed(config.node, primary);
             }
         }
 
         const viewer = this.getViewer(nodeId);
         if (!alive) {
-            viewer.printMessage("Node '" + nodeId + "' not alive");
+            viewer.printErrorMessage("Node " + nodeId + " not alive");
         } else {
             viewer.printMessage("Polling every " + this.node.endpoint.pollingInterval + " milliseconds.");
         }
         if (primary) {
-            if (config && config.onPrimary) config.onPrimary(config.node);
+            if (this.isGatewayMode && this.reconnecting) {
+                for (let id in this.clusterNodes) {
+                    if (id !== nodeId) {
+                        this.connect(id);
+                    }
+                }
+            }
+            this.reconnecting = false;
             this.sendCommand(["command:established"], nodeId);
         }
     }
-
     sendCommand(options, nodeId) {
         if (options) {
             let arr = options.slice();

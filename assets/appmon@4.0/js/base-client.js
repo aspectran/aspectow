@@ -19,24 +19,28 @@
  * Provides common functionality for connection management and retries.
  *
  * @version 4.0
- * @last-modified 2026-05-22
+ * @last-modified 2026-07-11
  */
 class BaseClient {
-    constructor(node, viewer, onSubscribed, onPrimary, onClosed, onFailed, isGatewayMode) {
+    constructor(node, viewer, onSubscribed, onClosed, onFailed, isGatewayMode) {
         this.node = node;
         this.viewer = viewer;
         this.clusterViewers = {};
         this.clusterNodes = {};
         this.onSubscribed = onSubscribed;
-        this.onPrimary = onPrimary;
         this.onClosed = onClosed;
         this.onFailed = onFailed;
+        this.onNodeJoined = null;
+        this.onNodeStatusChanged = null;
+        this.onNodeLeft = null;
+        this.onRequireRebuild = null;
         this.isGatewayMode = isGatewayMode;
         this.nodeToSubscribe = null;
         this.appsToSubscribe = null;
         this.primary = false;
         this.primaryNodeId = node.id
         this.retryCount = 0;
+        this.reconnecting = false;
         this.maxRetries = 10;
         this.retryInterval = 5000;
     }
@@ -45,16 +49,67 @@ class BaseClient {
         this.clusterViewers[nodeId] = viewer;
     }
 
-    addClusterNode(node, onSubscribed, onPrimary) {
-        this.clusterNodes[node.id] = {node, onSubscribed, onPrimary};
+    addClusterNode(node, onSubscribed) {
+        this.clusterNodes[node.id] = {node, onSubscribed};
     }
 
     getViewer(nodeId) {
-        return this.isGatewayMode ? this.clusterViewers[nodeId] : this.viewer;
+        if (this.isGatewayMode && this.node.id !== nodeId) {
+            return this.clusterViewers[nodeId];
+        }
+        return this.viewer;
     }
 
     getNodeConfig (nodeId) {
         return this.isGatewayMode ? this.clusterNodes[nodeId] : this;
+    }
+
+    notifyClosed() {
+        if (this.isGatewayMode) {
+            for (let id in this.clusterNodes) {
+                const config = this.clusterNodes[id];
+                if (this.onClosed) this.onClosed(config.node);
+            }
+        } else {
+            if (this.onClosed) this.onClosed(this.node);
+        }
+    }
+
+    notifyFailed() {
+        if (this.isGatewayMode) {
+            for (let id in this.clusterNodes) {
+                const config = this.clusterNodes[id];
+                if (this.onFailed) this.onFailed(config.node);
+            }
+        } else {
+            if (this.onFailed) this.onFailed(this.node);
+        }
+    }
+
+    printMessage(message) {
+        if (this.isGatewayMode) {
+            for (let id in this.clusterViewers) {
+                const viewer = this.clusterViewers[id];
+                if (viewer) {
+                    viewer.printMessage(message);
+                }
+            }
+        } else {
+            this.viewer.printMessage(message);
+        }
+    }
+
+    printErrorMessage(message) {
+        if (this.isGatewayMode) {
+            for (let id in this.clusterViewers) {
+                const viewer = this.clusterViewers[id];
+                if (viewer) {
+                    viewer.printErrorMessage(message);
+                }
+            }
+        } else {
+            this.viewer.printErrorMessage(message);
+        }
     }
 
     /**
@@ -114,15 +169,18 @@ class BaseClient {
      */
     reconnect() {
         if (this.retryCount++ < this.maxRetries) {
+            this.reconnecting = true;
             const retryInterval = (this.retryInterval * this.retryCount) + (this.node.index * 200) + this.node.random1000;
             const status = "(" + this.retryCount + "/" + this.maxRetries + ", interval=" + retryInterval + ")";
             console.log(this.node.id, "trying to reconnect", status);
-            this.viewer.printMessage("Trying to reconnect... " + status);
-            setTimeout(() => this.start(this.appsToSubscribe, this.nodeToSubscribe), retryInterval);
+            this.printMessage("Trying to reconnect... " + status);
+            setTimeout(() => {
+                this.start(this.appsToSubscribe, this.nodeToSubscribe);
+            }, retryInterval);
         } else {
             console.log(this.node.id, "abort reconnect attempt");
-            this.viewer.printMessage("Max connection attempts exceeded.");
-            if (this.onFailed) this.onFailed(this.node);
+            this.printMessage("Max connection attempts exceeded.");
+            this.notifyFailed();
         }
     }
 }
