@@ -240,7 +240,11 @@ class DashboardBuilder {
         };
 
         const onNodeJoined = (node) => {
-            this.showNewNodeNotification(node.id);
+            this.groups.forEach(group => {
+                if (group.id === node.group) {
+                    this.showNewNodeNotification(node.id);
+                }
+            });
         };
 
         const onNodeStatusChanged = (node) => {
