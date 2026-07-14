@@ -19,7 +19,7 @@
  * Responsible for assembling the dashboard UI based on configuration data.
  *
  * @version 4.0
- * @last-modified 2026-07-13
+ * @last-modified 2026-07-14
  */
 class DashboardBuilder {
     constructor(options = {}) {
@@ -734,8 +734,11 @@ class DashboardBuilder {
             }
         }
         setTimeout(() => {
+            const activeNodesInGroup = this.nodes.filter(n => n.group === this.currentGroupId && n.active);
             this.nodes.forEach(node => {
-                if (node.active && node.alive) {
+                console.log("Refreshing node:", node);
+                const isVisible = (node.group === this.currentGroupId && (activeNodesInGroup.length === 0 || node.active));
+                if (isVisible && node.alive) {
                     this.viewers[node.index].setLoading(appId, true);
                     if (withLogs) this.clearConsole(node.index);
                     this.clients[node.index].refresh(options, node.id);
