@@ -7,7 +7,7 @@
         <properties profile="direct">
             <item name="configLocation">/config/console/node-config-test-direct.apon</item>
         </properties>
-        <properties profile="gateway">
+        <properties profile="!direct">
             <item name="configLocation">/config/console/node-config-test-gateway.apon</item>
         </properties>
     </bean>

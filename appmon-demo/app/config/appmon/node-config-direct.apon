@@ -1,6 +1,6 @@
 # Cluster-wide settings
 cluster: {
-    id: cluster1
+    id: console-demo-cluster1
     mode: direct  # direct or gateway
 }
 group: {
@@ -9,15 +9,15 @@ group: {
     description: This is group 1
 }
 node: {
-    id: node1
+    id: appmon-demo-node1
     group: group1
     title: Localhost(Websocket Mode)
     endpoint: {
-        mode: polling
+        mode: auto
     }
 }
 #node: {
-#    id: node2
+#    id: appmon-demo-node2
 #    group: group1
 #    title: Localhost(Polling Mode)
 #    endpoint: {

@@ -1,6 +1,6 @@
 # Cluster-wide settings
 cluster: {
-    id: cluster1
+    id: console-demo-cluster1
     mode: direct  # direct or gateway
 }
 node: {

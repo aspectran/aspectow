@@ -11,8 +11,9 @@ system: {
         # which is useful for performance monitoring and debugging.
         jboss.threads.eqe.statistics: true
         jboss.threads.eqe.statistics.active-count: true
-        aspectow.node.id: appmon-demo-1
+        aspectow.node.id: appmon-demo-node1
         aspectow.redis.uri: redis://132.226.17.47:6379/6
+        aspectran.profiles.base.appmon: appmon.standalone,h2,gateway
     }
 }
 context: {
@@ -29,13 +30,9 @@ context: {
         com.aspectran.aspectow.appmon.demo
     ]
     profiles: {
-        base: [
-            appmon.standalone
-        ]
         default: [
             dev
         ]
-        base: gateway
     }
     autoReload: {
         reloadMode: hard

@@ -16,9 +16,6 @@
 package com.aspectran.aspectow.appmon.common.auth;
 
 import com.aspectran.core.activity.Translet;
-import com.aspectran.core.component.bean.annotation.Bean;
-import com.aspectran.core.component.bean.annotation.Component;
-import com.aspectran.core.component.bean.annotation.Profile;
 import com.aspectran.utils.security.InvalidPBTokenException;
 import com.aspectran.web.support.util.WebUtils;
 import jakarta.servlet.http.Cookie;
@@ -31,9 +28,6 @@ import org.jspecify.annotations.NonNull;
  *
  * <p>Created: 2025-11-04</p>
  */
-@Component
-@Profile("appmon.standalone")
-@Bean("appMonCookieIssuer")
 public final class AppMonCookieIssuer {
 
     private static final String AUTH_TOKEN_NAME = "appmon-auth-token";

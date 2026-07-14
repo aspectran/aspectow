@@ -1,6 +1,6 @@
 # Cluster-wide settings
 cluster: {
-    id: cluster2
+    id: console-demo-cluster2
     mode: direct  # direct or gateway
     scheduler: {
         releasedOnUnlock: false
@@ -11,7 +11,7 @@ node: {
     title: Node-1
     port: 8082
     endpoint: {
-        mode: polling
+        mode: auto
     }
 }
 node: {
@@ -19,6 +19,6 @@ node: {
     title: Node-2
     port: 8092
     endpoint: {
-        mode: polling
+        mode: auto
     }
 }
