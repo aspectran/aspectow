@@ -23,12 +23,9 @@
         </div>
         <nav class="nav-links">
             <a th:href="@{/../}" class="nav-link">
-                <i class="bi bi-arrow-left-circle"></i> Back to Main
+                <i class="bi bi-arrow-left"></i> Back to Main
             </a>
-            <a th:href="@{/}" class="nav-link" th:classappend="${page.include == 'home' ? 'active' : ''}">
-                <i class="bi bi-house-door"></i> Home
-            </a>
-            
+
             <div class="mt-4 px-3 small text-muted text-uppercase fw-bold" style="font-size: 0.7rem; letter-spacing: 1px;">Management</div>
 
             <!-- Cluster Group -->
@@ -163,9 +160,15 @@
                 <button class="btn d-lg-none p-0" id="sidebar-toggle">
                     <i class="bi bi-list fs-3"></i>
                 </button>
+                <a th:href="@{/}" class="d-sm-none"><img src="https://assets.aspectran.com/img/aspectran-logo.svg" class="logo-img" alt="Aspectran"/></a>
                 <nav aria-label="breadcrumb" class="d-none d-sm-block">
                     <ol class="breadcrumb mb-0">
-                        <li class="breadcrumb-item"><a th:href="@{/}">Home</a></li>
+                        <li class="breadcrumb-item">
+                            <a th:href="@{/}">
+                                <img src="https://assets.aspectran.com/img/aspectran-logo.svg" class="logo-img d-lg-none" alt="Aspectran"/>
+                                <i class="bi bi-house-door me-1 d-none d-lg-block"></i>
+                            </a>
+                        </li>
                         <li th:if="${page.group == 'cluster-menu'}" class="breadcrumb-item">Cluster</li>
                         <li th:if="${page.group == 'security-menu'}" class="breadcrumb-item">Security</li>
                         <li th:if="${page.group == 'framework-menu'}" class="breadcrumb-item">Framework</li>
