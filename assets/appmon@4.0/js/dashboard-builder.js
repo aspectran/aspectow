@@ -19,7 +19,7 @@
  * Responsible for assembling the dashboard UI based on configuration data.
  *
  * @version 4.0
- * @last-modified 2026-07-14
+ * @last-modified 2026-07-15
  */
 class DashboardBuilder {
     constructor(options = {}) {
@@ -611,7 +611,7 @@ class DashboardBuilder {
         });
         $(document).off("click", ".session-box .panel.status .knob-bar")
             .on("click", ".session-box .panel.status .knob-bar", function() {
-                if ($("#navigation .title-bar").is(":visible")) $(this).parent().toggleClass("expanded");
+                $(this).parent().toggleClass("expanded");
             });
         $(document).off("click", ".session-box ul.sessions li")
             .on("click", ".session-box ul.sessions li", function() {
