@@ -33,7 +33,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import static com.aspectran.aspectow.appmon.engine.relay.CommandOptions.COMMAND_REFRESH;
 import static com.aspectran.aspectow.appmon.engine.relay.CommandOptions.COMMAND_SUBSCRIBE;
 import static com.aspectran.aspectow.appmon.engine.relay.CommandOptions.COMMAND_UNSUBSCRIBE;
 
@@ -349,6 +348,13 @@ public class MessageRelayManager {
         return true;
     }
 
+    /**
+     * Subscribes remotely to monitor an application based on the provided command options.
+     * This method ensures that the necessary exporters are started for the specified app
+     * and handles relaying any last known messages to the specified session, if applicable.
+     * @param commandOptions the command options containing details for the remote subscription,
+     *                       such as node ID, app ID, and session ID; must not be null
+     */
     public synchronized void subscribeRemotely(CommandOptions commandOptions) {
         Assert.notNull(commandOptions, "Command options must not be null");
         String nodeId = commandOptions.getNodeId();
@@ -407,6 +413,12 @@ public class MessageRelayManager {
         session.removeSubscribedApps();
     }
 
+    /**
+     * Removes a remote subscription based on the provided command options and stops
+     * exporters if the associated application is no longer in use.
+     * @param commandOptions the command options containing the details of the
+     *                       remote subscription to be removed; must not be null
+     */
     public synchronized void unsubscribeRemotely(CommandOptions commandOptions) {
         Assert.notNull(commandOptions, "Command options must not be null");
         String nodeId = commandOptions.getNodeId();
@@ -428,7 +440,6 @@ public class MessageRelayManager {
             return getNewMessages(session, commandOptions);
         }
         if (isGatewayMode()) {
-            commandOptions.setCommand(COMMAND_REFRESH);
             commandOptions.setNodeId(nodeId);
             commandOptions.setSessionId(session.getId());
             publishControl(targetNodeId, commandOptions);
@@ -474,6 +485,14 @@ public class MessageRelayManager {
         return messages;
     }
 
+    /**
+     * Retrieves the last known messages based on the provided command options.
+     * This method collects messages relevant to the specified criteria
+     * and returns them as a list of strings.
+     * @param commandOptions the command options specifying the criteria
+     *                       for retrieving the last messages
+     * @return a list of strings containing the last known messages
+     */
     public List<String> getLastMessages(@NonNull CommandOptions commandOptions) {
         List<String> messages = new ArrayList<>();
         collectLastMessages(messages, commandOptions);

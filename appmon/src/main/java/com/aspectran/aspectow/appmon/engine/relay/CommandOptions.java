@@ -226,10 +226,14 @@ public class CommandOptions extends DefaultParameters {
 
     /**
      * Sets the log file name.
-     * @param logName the log name
+     * @param logId the log name
      */
-    public void setLogId(String logName) {
-        putValue(CommandOptions.logId, logName);
+    public void setLogId(String logId) {
+        putValue(CommandOptions.logId, logId);
+    }
+
+    public boolean hasLogId() {
+        return hasValue(logId);
     }
 
     /**

@@ -135,8 +135,7 @@ public class LogExporter extends AbstractExporter {
     @Override
     public void readIfChanged(@NonNull List<String> messages, @NonNull CommandOptions commandOptions) {
         if (commandOptions.hasCommand(CommandOptions.COMMAND_LOAD_PREVIOUS)) {
-            if (!getName().equals(commandOptions.getLogId())) {
-                logger.warn("Log id mismatch, expected: {}, actual: {}", getName(), commandOptions.getLogId());
+            if (commandOptions.hasLogId() && !getName().equals(commandOptions.getLogId())) {
                 return;
             }
             try {

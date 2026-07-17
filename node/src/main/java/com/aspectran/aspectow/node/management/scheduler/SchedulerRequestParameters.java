@@ -41,8 +41,8 @@ public class SchedulerRequestParameters extends DefaultParameters {
     static {
         header = new ParameterKey("header", ValueType.STRING);
         nodeId = new ParameterKey("nodeId", ValueType.STRING);
-        sessionId = new ParameterKey("sessionId", ValueType.STRING);
         targetNodeId = new ParameterKey("targetNodeId", ValueType.STRING);
+        sessionId = new ParameterKey("sessionId", ValueType.STRING);
         command = new ParameterKey("command", ValueType.STRING);
         serviceName = new ParameterKey("serviceName", ValueType.STRING);
         scheduleId = new ParameterKey("scheduleId", ValueType.STRING);
@@ -105,22 +105,6 @@ public class SchedulerRequestParameters extends DefaultParameters {
     }
 
     /**
-     * Gets the session ID.
-     * @return the session ID
-     */
-    public String getSessionId() {
-        return getString(sessionId);
-    }
-
-    /**
-     * Sets the session ID.
-     * @param sessionId the session ID to set
-     */
-    public void setSessionId(String sessionId) {
-        putValue(SchedulerRequestParameters.sessionId, sessionId);
-    }
-
-    /**
      * Gets the target node ID.
      * @return the target node ID
      */
@@ -134,6 +118,22 @@ public class SchedulerRequestParameters extends DefaultParameters {
      */
     public void setTargetNodeId(String targetNodeId) {
         putValue(SchedulerRequestParameters.targetNodeId, targetNodeId);
+    }
+
+    /**
+     * Gets the session ID.
+     * @return the session ID
+     */
+    public String getSessionId() {
+        return getString(sessionId);
+    }
+
+    /**
+     * Sets the session ID.
+     * @param sessionId the session ID to set
+     */
+    public void setSessionId(String sessionId) {
+        putValue(SchedulerRequestParameters.sessionId, sessionId);
     }
 
     /**
