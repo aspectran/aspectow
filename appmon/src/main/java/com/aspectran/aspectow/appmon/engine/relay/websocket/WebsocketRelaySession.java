@@ -43,41 +43,72 @@ public class WebsocketRelaySession extends WrappedSession implements RelaySessio
         super(session);
     }
 
+    /**
+     * Returns the unique identifier of the WebSocket session.
+     * @return the session ID
+     */
     @Override
     public String getId() {
         return getSession().getId();
     }
 
+    /**
+     * Returns the time zone specified for this WebSocket session.
+     * @return the time zone ID
+     */
     @Override
     public String getTimeZone() {
         return (String)getSession().getUserProperties().get(TIME_ZONE_PROPERTY);
     }
 
+    /**
+     * Sets the time zone ID in the WebSocket session's user properties.
+     * @param timeZone the time zone ID
+     */
     public void setTimeZone(String timeZone) {
         getSession().getUserProperties().put(TIME_ZONE_PROPERTY, timeZone);
     }
 
+    /**
+     * Returns the array of application IDs subscribed to in this WebSocket session.
+     * @return an array of subscribed application IDs
+     */
     @Override
     public String[] getSubscribedApps() {
         return (String[])getSession().getUserProperties().get(SUBSCRIBED_APPS_PROPERTY);
     }
 
+    /**
+     * Sets the application IDs to subscribe to in the WebSocket session's user properties.
+     * @param appIds an array of application IDs to subscribe to
+     */
     @Override
     public void setSubscribedApps(String[] appIds) {
         Assert.notNull(appIds, "appIds must not be null");
         getSession().getUserProperties().put(SUBSCRIBED_APPS_PROPERTY, appIds);
     }
 
+    /**
+     * Removes the subscribed applications property from the WebSocket session.
+     */
     @Override
     public void removeSubscribedApps() {
         getSession().getUserProperties().remove(SUBSCRIBED_APPS_PROPERTY);
     }
 
+    /**
+     * Returns the application ID currently focused in this WebSocket session.
+     * @return the focused application ID, or {@code null} if none
+     */
     @Override
     public String getFocusedAppId() {
         return (String)getSession().getUserProperties().get(FOCUSED_APP_ID_PROPERTY);
     }
 
+    /**
+     * Sets the focused application ID in the WebSocket session's user properties.
+     * @param appId the focused application ID to set
+     */
     @Override
     public void setFocusedAppId(String appId) {
         if (StringUtils.hasText(appId)) {
@@ -87,6 +118,10 @@ public class WebsocketRelaySession extends WrappedSession implements RelaySessio
         }
     }
 
+    /**
+     * Checks if the underlying WebSocket session is open.
+     * @return {@code true} if the session is open, {@code false} otherwise
+     */
     @Override
     public boolean isValid() {
         return getSession().isOpen();

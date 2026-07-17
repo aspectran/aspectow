@@ -83,18 +83,35 @@ public class MessageRelayManager {
         this.messagePublisher = messagePublisher;
     }
 
+    /**
+     * Returns the node registry used for tracking active nodes in the cluster.
+     * @return the node registry
+     */
     public NodeRegistry getNodeRegistry() {
         return nodeRegistry;
     }
 
+    /**
+     * Returns the current node's identifier.
+     * @return the node ID
+     */
     public String getNodeId() {
         return nodeId;
     }
 
+    /**
+     * Returns the group identifier that this node belongs to.
+     * @return the group ID
+     */
     public String getGroupId() {
         return groupId;
     }
 
+    /**
+     * Checks if the given node ID matches this node's ID.
+     * @param targetNodeId the node ID to compare
+     * @return true if targetNodeId is equal to this node's ID, false otherwise
+     */
     public boolean isSameNode(String targetNodeId) {
         return (targetNodeId != null && targetNodeId.equals(this.nodeId));
     }
@@ -107,10 +124,19 @@ public class MessageRelayManager {
         return (messagePublisher != null);
     }
 
+    /**
+     * Registers a new client session with its corresponding message relayer.
+     * @param sessionId the session identifier
+     * @param messageRelayer the message relayer handling the session
+     */
     public void registerSession(String sessionId, MessageRelayer messageRelayer) {
         sessionRelayerMap.put(sessionId, messageRelayer);
     }
 
+    /**
+     * Unregisters a client session.
+     * @param sessionId the session identifier to unregister
+     */
     public void unregisterSession(String sessionId) {
         sessionRelayerMap.remove(sessionId);
     }
@@ -141,6 +167,11 @@ public class MessageRelayManager {
         }
     }
 
+    /**
+     * Handles the event when a new node joins the cluster.
+     * If the joining node is not the current node, it serializes its information and relays it locally.
+     * @param info the metadata of the joined node
+     */
     public void nodeJoined(@NonNull NodeInfo info) {
         if (!isSameNode(info.getId())) {
             JsonBuilder jsonBuilder = new JsonBuilder()
@@ -151,6 +182,11 @@ public class MessageRelayManager {
         }
     }
 
+    /**
+     * Handles the event when a node's status changes in the cluster.
+     * If the node is not the current node, it serializes its updated information and relays it locally.
+     * @param info the updated metadata of the node
+     */
     public void nodeStatusChanged(@NonNull NodeInfo info) {
         if (!isSameNode(info.getId())) {
             JsonBuilder jsonBuilder = new JsonBuilder()
@@ -161,6 +197,11 @@ public class MessageRelayManager {
         }
     }
 
+    /**
+     * Handles the event when a node leaves the cluster.
+     * If the leaving node is not the current node, it relays the event locally.
+     * @param nodeId the ID of the node that left
+     */
     public void nodeLeft(String nodeId) {
         if (!isSameNode(nodeId)) {
             relayLocally(nodeId + "::node:left");
@@ -429,6 +470,14 @@ public class MessageRelayManager {
         }
     }
 
+    /**
+     * Refreshes the data for a given session based on the command options.
+     * If the target is the current node, it retrieves new messages locally.
+     * Otherwise, in gateway mode, it forwards the refresh command to the target remote node.
+     * @param session the client session requesting the refresh
+     * @param commandOptions the command options indicating what data to refresh
+     * @return a list of new messages if processed locally; {@code null} otherwise
+     */
     @Nullable
     public List<String> refreshData(@NonNull RelaySession session, CommandOptions commandOptions) {
         Assert.notNull(commandOptions, "Command options must not be null");
@@ -447,6 +496,11 @@ public class MessageRelayManager {
         return null;
     }
 
+    /**
+     * Processes a data refresh request received from a remote node.
+     * It collects new messages locally and publishes them back to the requesting node and session.
+     * @param commandOptions the command options carrying the refresh request details
+     */
     public void refreshDataRemotely(CommandOptions commandOptions) {
         Assert.notNull(commandOptions, "Command options must not be null");
         if (isGatewayMode()) {

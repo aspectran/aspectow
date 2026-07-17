@@ -38,6 +38,12 @@ public class SubscriptionRegistry {
     /** session ID -> Array of subscribed app IDs */
     private final Map<String, String[]> sessionToApps = new ConcurrentHashMap<>();
 
+    /**
+     * Adds a local subscription for a specific session and its associated applications.
+     * Cleans up any existing subscriptions for the session before registration.
+     * @param sessionId the unique session ID of the subscriber
+     * @param subscribedApps an array of application IDs to subscribe to
+     */
     public void addLocalSubscription(String sessionId, String[] subscribedApps) {
         Assert.hasLength(sessionId, "sessionId must not be null or empty");
         Assert.notEmpty(subscribedApps, "subscribedApps must not be null or empty");
@@ -56,6 +62,10 @@ public class SubscriptionRegistry {
         }
     }
 
+    /**
+     * Removes all local subscriptions associated with the specified session.
+     * @param sessionId the unique session ID of the subscriber to remove
+     */
     public void removeLocalSubscription(String sessionId) {
         Assert.hasLength(sessionId, "sessionId must not be null or empty");
         String[] appIds = sessionToApps.remove(sessionId);
@@ -76,6 +86,11 @@ public class SubscriptionRegistry {
         }
     }
 
+    /**
+     * Adds a subscription from a remote node in the cluster for a specific application.
+     * @param nodeId the ID of the remote node
+     * @param appId the ID of the application being monitored by the remote node
+     */
     public void addRemoteSubscription(String nodeId, String appId) {
         Assert.hasLength(nodeId, "nodeId must not be null or empty");
         Assert.hasLength(appId, "appId must not be null or empty");
@@ -83,6 +98,11 @@ public class SubscriptionRegistry {
                 k -> ConcurrentHashMap.newKeySet()).add(nodeId);
     }
 
+    /**
+     * Removes a subscription from a remote node for a specific application.
+     * @param nodeId the ID of the remote node
+     * @param appId the ID of the application
+     */
     public void removeRemoteSubscription(String nodeId, String appId) {
         Assert.hasLength(nodeId, "nodeId must not be null or empty");
         Assert.hasLength(appId, "appId must not be null or empty");
@@ -95,11 +115,22 @@ public class SubscriptionRegistry {
         }
     }
 
+    /**
+     * Returns the set of remote node IDs that have subscribed to the given application.
+     * @param appId the application ID
+     * @return a set of remote node IDs, or {@code null} if none
+     */
     public Set<String> getNodeIdsRemotelySubscribedToApp(String appId) {
         Assert.hasLength(appId, "appId must not be null or empty");
         return remoteSubscriptions.get(appId);
     }
 
+    /**
+     * Checks if the specified application is currently in use (monitored) by either
+     * local sessions or remote nodes.
+     * @param appId the application ID
+     * @return true if the application is in use locally or remotely, false otherwise
+     */
     public boolean isAppInUse(String appId) {
         Assert.hasLength(appId, "appId must not be null or empty");
         Set<String> sessions = localSubscriptions.get(appId);
@@ -110,22 +141,40 @@ public class SubscriptionRegistry {
         return (nodes != null && !nodes.isEmpty());
     }
 
+    /**
+     * Checks if the specified application is currently in use (monitored) by any
+     * local sessions.
+     * @param appId the application ID
+     * @return true if the application is in use locally, false otherwise
+     */
     public boolean isAppInUseLocally(String appId) {
         Assert.hasLength(appId, "appId must not be null or empty");
         Set<String> sessions = localSubscriptions.get(appId);
         return (sessions != null && !sessions.isEmpty());
     }
 
+    /**
+     * Returns the set of local session IDs subscribed to the specified application.
+     * @param appId the application ID
+     * @return a set of local session IDs, or an empty set if none
+     */
     public Set<String> getSessionsSubscribedToApp(String appId) {
         Assert.hasLength(appId, "appId must not be null or empty");
         Set<String> sessions = localSubscriptions.get(appId);
         return (sessions != null ? sessions : Set.of());
     }
 
+    /**
+     * Returns the set of all active local session IDs.
+     * @return a set of session IDs
+     */
     public Set<String> getAllSessionIds() {
         return sessionToApps.keySet();
     }
 
+    /**
+     * Clears all local subscriptions, remote subscriptions, and session mappings.
+     */
     public void clear() {
         localSubscriptions.clear();
         remoteSubscriptions.clear();

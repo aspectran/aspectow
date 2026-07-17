@@ -76,18 +76,34 @@ public class PollingRelaySession implements RelaySession {
         return id;
     }
 
+    /**
+     * Returns the session timeout duration in milliseconds.
+     * @return the session timeout
+     */
     public int getSessionTimeout() {
         return sessionTimeout;
     }
 
+    /**
+     * Sets the session timeout duration in milliseconds.
+     * @param sessionTimeout the session timeout to set
+     */
     public void setSessionTimeout(int sessionTimeout) {
         this.sessionTimeout = Math.max(sessionTimeout, MIN_SESSION_TIMEOUT);
     }
 
+    /**
+     * Returns the polling interval in milliseconds.
+     * @return the polling interval
+     */
     public int getPollingInterval() {
         return pollingInterval;
     }
 
+    /**
+     * Sets the polling interval in milliseconds.
+     * @param pollingInterval the polling interval to set
+     */
     public void setPollingInterval(int pollingInterval) {
         this.pollingInterval = Math.max(pollingInterval, MIN_POLLING_INTERVAL);
     }
@@ -97,6 +113,10 @@ public class PollingRelaySession implements RelaySession {
         return timeZone;
     }
 
+    /**
+     * Sets the time zone ID for the session.
+     * @param timeZone the time zone ID
+     */
     public void setTimeZone(String timeZone) {
         this.timeZone = timeZone;
     }
@@ -205,6 +225,10 @@ public class PollingRelaySession implements RelaySession {
         }
     }
 
+    /**
+     * Acquires the session lock for thread-safe operations.
+     * @return the auto lock instance
+     */
     protected AutoLock lock() {
         return autoLock.lock();
     }
@@ -225,6 +249,9 @@ public class PollingRelaySession implements RelaySession {
 
         private final CyclicTimeout timer;
 
+        /**
+         * Constructs a new SessionExpiryTimer.
+         */
         SessionExpiryTimer() {
             timer = new CyclicTimeout(sessionManager.getScheduler()) {
                 @Override
@@ -234,16 +261,26 @@ public class PollingRelaySession implements RelaySession {
             };
         }
 
+        /**
+         * Schedules the expiration check after the specified delay.
+         * @param delay the delay in milliseconds
+         */
         public void schedule(long delay) {
             if (delay >= 0) {
                 timer.schedule(delay, TimeUnit.MILLISECONDS);
             }
         }
 
+        /**
+         * Cancels the scheduled expiration check.
+         */
         public void cancel() {
             timer.cancel();
         }
 
+        /**
+         * Destroys the expiration timer.
+         */
         public void destroy() {
             timer.destroy();
         }

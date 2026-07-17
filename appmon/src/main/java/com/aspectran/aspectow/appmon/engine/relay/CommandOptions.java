@@ -31,12 +31,16 @@ import com.aspectran.utils.apon.ValueType;
  */
 public class CommandOptions extends DefaultParameters {
 
+    /** Command to check connection liveness (ping) */
     public static final String COMMAND_PING = "ping";
 
+    /** Command to subscribe to application monitoring events */
     public static final String COMMAND_SUBSCRIBE = "subscribe";
 
+    /** Command to unsubscribe from application monitoring events */
     public static final String COMMAND_UNSUBSCRIBE = "unsubscribe";
 
+    /** Command to signal that a connection has been established */
     public static final String COMMAND_ESTABLISHED = "established";
 
     /** Command to refresh the current view or data */
@@ -104,10 +108,21 @@ public class CommandOptions extends DefaultParameters {
         setRenderStyle(AponRenderStyle.COMPACT);
     }
 
+    /**
+     * Parses the command string and populates the parameter values.
+     * @param command the command string to parse
+     * @throws Exception if parsing fails
+     */
     public void parseCommand(String command) throws Exception {
         readFrom(parseAsApon(command));
     }
 
+    /**
+     * Converts a simplified semicolon-separated command format into a standard APON format.
+     * @param text the raw command string
+     * @return the APON formatted string
+     * @throws IllegalArgumentException if the format is invalid
+     */
     private String parseAsApon(String text) {
         Assert.hasText(text, "text must not be null or empty");
         if (text.startsWith("[")) {
@@ -152,18 +167,34 @@ public class CommandOptions extends DefaultParameters {
         return (command != null && command.equals(getCommand()));
     }
 
+    /**
+     * Returns the target node ID.
+     * @return the node ID
+     */
     public String getNodeId() {
         return getString(nodeId);
     }
 
+    /**
+     * Sets the target node ID.
+     * @param nodeId the node ID to set
+     */
     public void setNodeId(String nodeId) {
         putValue(CommandOptions.nodeId, nodeId);
     }
 
+    /**
+     * Returns the target group ID.
+     * @return the group ID
+     */
     public String getGroupId() {
         return getString(groupId);
     }
 
+    /**
+     * Sets the target group ID.
+     * @param groupId the group ID to set
+     */
     public void setGroupId(String groupId) {
         putValue(CommandOptions.groupId, groupId);
     }
@@ -200,18 +231,34 @@ public class CommandOptions extends DefaultParameters {
         putValue(CommandOptions.appsToSubscribe, appsToSubscribe);
     }
 
+    /**
+     * Returns the node ID that should be subscribed to.
+     * @return the node ID to subscribe
+     */
     public String getNodeToSubscribe() {
         return getString(nodeToSubscribe);
     }
 
+    /**
+     * Sets the node ID that should be subscribed to.
+     * @param nodeToSubscribe the node ID to subscribe to
+     */
     public void setNodeToSubscribe(String nodeToSubscribe) {
         putValue(CommandOptions.nodeToSubscribe, nodeToSubscribe);
     }
 
+    /**
+     * Returns the relay session ID.
+     * @return the session ID
+     */
     public String getSessionId() {
         return getString(sessionId);
     }
 
+    /**
+     * Sets the relay session ID.
+     * @param sessionId the session ID to set
+     */
     public void setSessionId(String sessionId) {
         putValue(CommandOptions.sessionId, sessionId);
     }
@@ -232,6 +279,10 @@ public class CommandOptions extends DefaultParameters {
         putValue(CommandOptions.logId, logId);
     }
 
+    /**
+     * Checks if a log ID is specified in the options.
+     * @return true if a log ID exists, false otherwise
+     */
     public boolean hasLogId() {
         return hasValue(logId);
     }
@@ -252,10 +303,18 @@ public class CommandOptions extends DefaultParameters {
         putValue(CommandOptions.loadedLines, loadedLines);
     }
 
+    /**
+     * Returns whether the request should include log data.
+     * @return true if log data should be included, false otherwise
+     */
     public boolean isWithLogs() {
         return getBoolean(withLogs, false);
     }
 
+    /**
+     * Sets whether the request should include log data.
+     * @param withLogs true if log data should be included, false otherwise
+     */
     public void setWithLogs(boolean withLogs) {
         putValue(CommandOptions.withLogs, withLogs);
     }
