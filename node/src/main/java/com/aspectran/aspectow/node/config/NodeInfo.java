@@ -46,7 +46,7 @@ public class NodeInfo extends DefaultParameters {
         port = new ParameterKey("port", ValueType.INT);
         startTime = new ParameterKey("startTime", ValueType.STRING);
         status = new ParameterKey("status", ValueType.STRING);
-        pulseInterval = new ParameterKey("heartbeatInterval", ValueType.LONG);
+        pulseInterval = new ParameterKey("pulseInterval", ValueType.LONG);
         endpoint = new ParameterKey("endpoint", EndpointConfig.class);
         token = new ParameterKey("token", ValueType.STRING);
 
