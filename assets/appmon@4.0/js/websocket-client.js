@@ -19,7 +19,7 @@
  * In Gateway Mode, it manages a single physical connection for the entire cluster.
  *
  * @version 4.0
- * @last-modified 2026-07-11
+ * @last-modified 2026-07-17
  */
 class WebsocketClient extends BaseClient {
     constructor(node, viewer, onSubscribed, onClosed, onFailed, isGatewayMode) {
@@ -28,7 +28,6 @@ class WebsocketClient extends BaseClient {
         this.heartbeatTimer = null;
         this.socket = null;
         this.handshakeSuccessful = false;
-        this.pendingMessages = [];
     }
 
     start(appsToSubscribe, nodeToSubscribe) {
@@ -56,7 +55,6 @@ class WebsocketClient extends BaseClient {
         this.socket.onopen = () => {
             this.handshakeSuccessful = true;
             console.log(this.node.id, "websocket connected");
-            this.pendingMessages.push("WebSocket connection successful");
 
             // Connect to the current node
             this.connect(this.node.id);
@@ -226,9 +224,6 @@ class WebsocketClient extends BaseClient {
 
         const viewer = this.getViewer(nodeId);
         if (primary) {
-            while (this.pendingMessages.length) {
-                viewer.printMessage(this.pendingMessages.shift());
-            }
             if (this.isGatewayMode && this.reconnecting) {
                 for (let id in this.clusterNodes) {
                     if (id !== nodeId) {

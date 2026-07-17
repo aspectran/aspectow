@@ -18,7 +18,7 @@
  * HTTP Polling implementation of the AppMon client.
  *
  * @version 4.0
- * @last-modified 2026-07-11
+ * @last-modified 2026-07-17
  */
 class PollingClient extends BaseClient {
     constructor(node, viewer, onSubscribed, onClosed, onFailed, isGatewayMode = false) {
@@ -253,6 +253,7 @@ class PollingClient extends BaseClient {
             this.sendCommand(["command:established"], nodeId);
         }
     }
+
     sendCommand(options, nodeId) {
         if (options) {
             let arr = options.slice();
