@@ -47,7 +47,7 @@
                             <a th:href="@{/user/login-history(username=${history.username})}" 
                                class="text-decoration-none fw-bold" th:text="${history.username}">admin</a>
                         </td>
-                        <td th:text="${history.ipAddress}">127.0.0.1</td>
+                        <td th:text="${session.USER_INFO.hasRole('DEMO') ? (history.ipAddress.indexOf('.') != -1 ? history.ipAddress.replaceAll('(\\d+)\\.(\\d+)\\.(\\d+)\\.(\\d+)', '$1.$2.*.*') : (history.ipAddress.indexOf(':') != -1 ? history.ipAddress.replaceAll('(:[^:]*){1,4}$', ':*:*:*:*') : '***')) : history.ipAddress}">127.0.0.1</td>
                         <td>
                             <span th:class="${#strings.equals(history.successYn, 'Y') ? 'badge bg-success' : 'badge bg-danger'}"
                                   th:text="${#strings.equals(history.successYn, 'Y') ? 'SUCCESS' : 'FAILED'}">SUCCESS</span>
