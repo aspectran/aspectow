@@ -69,11 +69,11 @@ public class DashboardActivity {
      * @return a map of attributes for rendering the view
      */
     @Request("/dashboard/${appsToSubscribe}")
-    @Dispatch("appmon/dashboard")
+    @Dispatch("dashboard/dashboard")
     @Action("page")
     public Map<String, String> dashboard(String appsToSubscribe) {
         return Map.of(
-                "headinclude", "appmon/_groups",
+                "headinclude", "dashboard/_groups",
                 "style", "fluid compact",
                 "appsToSubscribe", StringUtils.nullToEmpty(appsToSubscribe)
         );

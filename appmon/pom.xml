@@ -95,4 +95,28 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
+            <!--
+                Thymeleaf HTML templates.
+                Placed outside 'META-INF/resources' to prevent direct web browser access to raw template sources.
+            -->
+            <resource>
+                <directory>${project.basedir}/../appmon-demo/app/webapps/appmon/WEB-INF/thymeleaf</directory>
+                <targetPath>META-INF/thymeleaf/appmon</targetPath>
+            </resource>
+            <!--
+                Static resources (css, js, images, etc.).
+                Placed under 'META-INF/resources' to allow direct public access from the web browser.
+            -->
+            <resource>
+                <directory>${project.basedir}/../appmon-demo/app/webapps/appmon/assets</directory>
+                <targetPath>META-INF/resources/appmon/assets</targetPath>
+            </resource>
+        </resources>
+    </build>
 </project>

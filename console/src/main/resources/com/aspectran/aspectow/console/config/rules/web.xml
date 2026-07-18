@@ -11,17 +11,35 @@
     <bean id="thymeleaf" class="com.aspectran.thymeleaf.ThymeleafTemplateEngine">
         <argument>
             <bean class="com.aspectran.thymeleaf.TemplateEngineFactoryBean">
-                <property name="templateResolvers" type="set">
-                    <bean class="com.aspectran.thymeleaf.template.FileTemplateResolver">
-                        <property name="prefix">#{basePath}/webapps/console/WEB-INF/thymeleaf/</property>
-                        <property name="suffix">.html</property>
-                        <property name="templateMode">HTML</property>
-                        <property name="cacheable" valueType="boolean">false</property>
-                    </bean>
-                </property>
                 <property type="set" name="dialects">
                     <bean class="nz.net.ultraq.thymeleaf.layoutdialect.LayoutDialect"/>
                 </property>
+                <properties profile="!custom-ui">
+                    <item name="templateResolvers" type="set">
+                        <bean class="com.aspectran.thymeleaf.template.ClassLoaderTemplateResolver">
+                            <property name="prefix">META-INF/thymeleaf/console/</property>
+                            <property name="suffix">.html</property>
+                            <property name="templateMode">HTML</property>
+                            <property name="cacheable" valueType="boolean">true</property>
+                            <properties profile="dev">
+                                <item name="cacheable" valueType="boolean">false</item>
+                            </properties>
+                        </bean>
+                    </item>
+                </properties>
+                <properties profile="custom-ui">
+                    <item name="templateResolvers" type="set">
+                        <bean class="com.aspectran.thymeleaf.template.FileTemplateResolver">
+                            <property name="prefix">#{basePath}/webapps/console/WEB-INF/thymeleaf/</property>
+                            <property name="suffix">.html</property>
+                            <property name="templateMode">HTML</property>
+                            <property name="cacheable" valueType="boolean">true</property>
+                            <properties profile="dev">
+                                <item name="cacheable" valueType="boolean">false</item>
+                            </properties>
+                        </bean>
+                    </item>
+                </properties>
             </bean>
         </argument>
     </bean>

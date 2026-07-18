@@ -17,11 +17,6 @@
           scope="prototype">
         <property name="deploymentName">%{tow.context.appmon.name}</property>
         <property name="contextPath">/%{tow.context.appmon.name}</property>
-        <property name="resourceManager">
-            <bean class="com.aspectran.undertow.server.handler.resource.TowResourceManager">
-                <property name="base">/webapps/%{tow.context.appmon.name}</property>
-            </bean>
-        </property>
         <property name="scratchDir">%{system:aspectran.workPath:/work}/_webapps/%{tow.context.appmon.name}</property>
         <property name="sessionManager">#{tow.context.appmon.sessionManager}</property>
         <property name="servletSessionConfig">
@@ -55,6 +50,20 @@
                 <property name="bufferSize" valueType="int">16384</property>
             </bean>
         </property>
+        <properties profile="!custom-ui">
+            <item name="resourceManager">
+                <bean class="com.aspectran.undertow.server.handler.resource.TowClassPathResourceManager">
+                    <argument>META-INF/resources/appmon/</argument>
+                </bean>
+            </item>
+        </properties>
+        <properties profile="custom-ui">
+            <item name="resourceManager">
+                <bean class="com.aspectran.undertow.server.handler.resource.TowResourceManager">
+                    <property name="base">/webapps/%{tow.context.appmon.name}</property>
+                </bean>
+            </item>
+        </properties>
     </bean>
 
     <bean id="tow.context.appmon.sessionManager"
