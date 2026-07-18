@@ -1,4 +1,4 @@
-name: AppMon Resources Cache Purge & Warmup
+name: Aspectow Assets Cache Purge & Warmup
 
 on:
   push:
@@ -17,26 +17,18 @@ jobs:
 
       - name: Run jsDelivr Purge & Warmup
         run: |
-          PROPERTIES_FILE="appmon-demo/app/config/appmon/appmon-assets-prod.properties"
+          # Define jsDelivr base URL
+          JSDELIVR_BASE="https://cdn.jsdelivr.net/gh/aspectran/aspectow@main"
           
-          if [ -f "$PROPERTIES_FILE" ]; then
-            base_url=$(grep "^url=" "$PROPERTIES_FILE" | cut -d'=' -f2- | tr -d '\r\n ')
-            version=$(grep "^cacheBustingVersion=" "$PROPERTIES_FILE" | cut -d'=' -f2- | tr -d '\r\n ')
-          else
-            echo "Properties file not found!"
-            exit 1
-          fi
-          
-          cdnPath=$(echo "$base_url" | sed -e "s|https\?://cdn.jsdelivr.net/||")
-          targetDir=$(echo "$cdnPath" | sed -e "s|gh/[^/]\+/[^/]\+@\?[^/]\+/||")
-          
-          echo "Target directory: $targetDir"
-          echo "Target CDN Path: $cdnPath"
-          echo "Cache Version: $version"
-          
-          # Find all files under assets/$path_part and send Purge & Warmup requests
-          find "$targetDir" -type f ! -path '*/.*' | while read -r file; do
-            # 1. jsDelivr Purge API call
+          # Find all css and js files under assets directory to optimize performance
+          find assets -type f \( -name "*.css" -o -name "*.js" \) ! -path '*/.*' | while read -r file; do
+            # Extract last commit date in YYYYMMDD format to use as version query parameter
+            commit_date=$(git log -1 --format="%cd" --date=format:"%Y%m%d" -- "$file" 2>/dev/null)
+            if [ -z "$commit_date" ]; then
+              commit_date=$(date +%Y%m%d)
+            fi
+            
+            # 1. jsDelivr Purge API call (file includes 'assets/' path, e.g. assets/js/theme-toggler.js)
             purge_url="https://purge.jsdelivr.net/gh/aspectran/aspectow@main/${file}"
             echo -n "Purging jsDelivr Cache: $purge_url -> "
             purge_status=$(curl -s -o /dev/null -w "%{http_code}" "$purge_url")
@@ -44,11 +36,17 @@ jobs:
             
             sleep 0.5
             
-            # 2. jsDelivr Warmup call
-            jsdelivr_url="https://cdn.jsdelivr.net/gh/aspectran/aspectow@main/${file}?v=${version}"
-            echo -n "Warming up jsDelivr: $jsdelivr_url -> "
-            warmup_status=$(curl -I -s -o /dev/null -w "%{http_code}" "$jsdelivr_url")
-            echo "Status: $warmup_status"
+            # 2. jsDelivr Warmup (with version query parameter)
+            jsdelivr_url_v="${JSDELIVR_BASE}/${file}?v=${commit_date}"
+            echo -n "Warming up jsDelivr (with version): $jsdelivr_url_v -> "
+            warmup_status_v=$(curl -I -s -o /dev/null -w "%{http_code}" "$jsdelivr_url_v")
+            echo "Status: $warmup_status_v"
+            
+            # 3. jsDelivr Warmup (without version query parameter)
+            jsdelivr_url_no_v="${JSDELIVR_BASE}/${file}"
+            echo -n "Warming up jsDelivr (without version): $jsdelivr_url_no_v -> "
+            warmup_status_no_v=$(curl -I -s -o /dev/null -w "%{http_code}" "$jsdelivr_url_no_v")
+            echo "Status: $warmup_status_no_v"
             
             echo "------------------------------------------------"
           done

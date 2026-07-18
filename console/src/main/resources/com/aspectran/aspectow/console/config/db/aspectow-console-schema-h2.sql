@@ -111,5 +111,4 @@ insert IGNORE into asc_role_permission (role_id, perm_id) select 4, perm_id from
 
 -- Initial Super Admin user (password: admin123)
 insert IGNORE into asc_user (username, password, nickname, email) values ('admin', 'admin123', 'Super Admin', 'admin@aspectow.com');
-insert IGNORE into asc_user (username, password, nickname, email) values ('demo', 'demo123', 'Demo', 'demo@aspectow.com');
 insert IGNORE into asc_user_role (user_id, role_id) values (1, 1);

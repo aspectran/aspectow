@@ -132,6 +132,10 @@
                 <directory>${project.basedir}/../console-demo/app/webapps/console/assets</directory>
                 <targetPath>META-INF/resources/console/assets</targetPath>
             </resource>
+            <resource>
+                <directory>${project.basedir}/../appmon-demo/app/webapps/appmon/assets</directory>
+                <targetPath>META-INF/resources/console/assets/appmon</targetPath>
+            </resource>
         </resources>
     </build>
 </project>

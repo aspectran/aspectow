@@ -3,20 +3,6 @@
         "https://aspectran.com/dtd/aspectran-9.dtd">
 <aspectran>
 
-    <bean id="appmonAssets" class="com.aspectran.core.support.PropertiesFactoryBean">
-        <property name="ignoreInvalidResource" valueType="boolean">false</property>
-        <properties profile="prod">
-            <item name="locations" type="array">
-                <value>/config/appmon/appmon-assets-prod.properties</value>
-            </item>
-        </properties>
-        <properties profile="!prod">
-            <item name="locations" type="array">
-                <value>/config/appmon/appmon-assets-dev.properties</value>
-            </item>
-        </properties>
-    </bean>
-
     <append file="/config/appmon/node-rules.xml" profile="!gateway"/>
     <append file="/config/appmon/node-rules-gateway.xml" profile="gateway"/>
 

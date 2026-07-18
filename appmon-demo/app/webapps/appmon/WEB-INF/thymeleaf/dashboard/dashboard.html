@@ -4,31 +4,15 @@
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{templates/default}">
 <head>
-    <link rel="stylesheet" th:href="|${#{appmonAssets}.url}/css/appmon.css?v=${#{appmonAssets}.cacheBustingVersion}|"/>
-    <link rel="stylesheet" th:href="|${#{appmonAssets}.url}/css/appmon-dark.css?v=${#{appmonAssets}.cacheBustingVersion}|"/>
-    <script th:src="|${#{appmonAssets}.url}/js/dashboard-builder.js?v=${#{appmonAssets}.cacheBustingVersion}|"></script>
-    <script th:src="|${#{appmonAssets}.url}/js/dashboard-viewer.js?v=${#{appmonAssets}.cacheBustingVersion}|"></script>
-    <script th:src="|${#{appmonAssets}.url}/js/dashboard-chart.js?v=${#{appmonAssets}.cacheBustingVersion}|"></script>
-    <script th:src="|${#{appmonAssets}.url}/js/traffic-painter.js?v=${#{appmonAssets}.cacheBustingVersion}|"></script>
-    <script th:src="|${#{appmonAssets}.url}/js/base-client.js?v=${#{appmonAssets}.cacheBustingVersion}|"></script>
-    <script th:src="|${#{appmonAssets}.url}/js/websocket-client.js?v=${#{appmonAssets}.cacheBustingVersion}|"></script>
-    <script th:src="|${#{appmonAssets}.url}/js/polling-client.js?v=${#{appmonAssets}.cacheBustingVersion}|"></script>
-    <th:block th:if="${#{currentEnvironment}.matchesProfiles('dev')}">
-        <script th:inline="javascript">
-            if (typeof DashboardBuilder === "undefined") {
-                const version = [[${#{appmonAssets}.cacheBustingVersion}]];
-                document.write('<link rel="stylesheet" href="https://aspectow-assets.aspectran.com/appmon@4.0/css/appmon.css?v=' + version + '">');
-                document.write('<link rel="stylesheet" href="https://aspectow-assets.aspectran.com/appmon@4.0/css/appmon-dark.css?v=' + version + '">');
-                document.write('<script src="https://aspectow-assets.aspectran.com/appmon@4.0/js/dashboard-builder.js?v=' + version + '">\x3C/script>');
-                document.write('<script src="https://aspectow-assets.aspectran.com/appmon@4.0/js/dashboard-viewer.js?v=' + version + '">\x3C/script>');
-                document.write('<script src="https://aspectow-assets.aspectran.com/appmon@4.0/js/dashboard-chart.js?v=' + version + '">\x3C/script>');
-                document.write('<script src="https://aspectow-assets.aspectran.com/appmon@4.0/js/traffic-painter.js?v=' + version + '">\x3C/script>');
-                document.write('<script src="https://aspectow-assets.aspectran.com/appmon@4.0/js/base-client.js?v=' + version + '">\x3C/script>');
-                document.write('<script src="https://aspectow-assets.aspectran.com/appmon@4.0/js/websocket-client.js?v=' + version + '">\x3C/script>');
-                document.write('<script src="https://aspectow-assets.aspectran.com/appmon@4.0/js/polling-client.js?v=' + version + '">\x3C/script>');
-            }
-        </script>
-    </th:block>
+    <link rel="stylesheet" th:href="@{/assets/css/appmon.css}"/>
+    <link rel="stylesheet" th:href="@{/assets/css/appmon-dark.css}"/>
+    <script th:src="@{/assets/js/dashboard-builder.js}"></script>
+    <script th:src="@{/assets/js/dashboard-viewer.js}"></script>
+    <script th:src="@{/assets/js/dashboard-chart.js}"></script>
+    <script th:src="@{/assets/js/traffic-painter.js}"></script>
+    <script th:src="@{/assets/js/base-client.js}"></script>
+    <script th:src="@{/assets/js/websocket-client.js}"></script>
+    <script th:src="@{/assets/js/polling-client.js}"></script>
 </head>
 <body>
     <th:block layout:fragment="content">

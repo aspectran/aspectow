@@ -11,10 +11,4 @@
 
     <bean id="nodeManager" class="com.aspectran.aspectow.node.manager.NodeManagerFactoryBean" lazyDestroy="true"/>
 
-    <bean id="schedulerManager" class="com.aspectran.aspectow.node.management.scheduler.RemoteSchedulerManager"/>
-
-    <bean id="remoteCommandManager" class="com.aspectran.aspectow.node.management.commands.RemoteCommandManager"/>
-
-    <bean id="remoteNodeManager" class="com.aspectran.aspectow.node.management.nodes.RemoteNodeManager"/>
-
 </aspectran>
