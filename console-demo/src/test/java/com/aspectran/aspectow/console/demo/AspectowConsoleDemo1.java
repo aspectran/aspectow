@@ -31,7 +31,7 @@ import static com.aspectran.logging.LoggingDefaults.LOGS_DIR_PROPERTY;
 /**
  * Main entry point for the application.
  */
-public class AspectowConsoleDemo {
+public class AspectowConsoleDemo1 {
 
     public static void main(String[] args) {
         try {
