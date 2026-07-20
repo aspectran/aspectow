@@ -94,6 +94,37 @@
             border: none;
             font-size: 0.9rem;
         }
+        .node-grid-card {
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: 1px solid var(--bs-border-color);
+            background: var(--bs-tertiary-bg);
+        }
+        .node-grid-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-color: var(--accent-color);
+
+        }
+        .status-led {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 6px;
+        }
+        .status-led.live {
+            background-color: var(--bs-success);
+            box-shadow: 0 0 8px var(--bs-success);
+        }
+        .status-led.dead {
+            background-color: var(--bs-danger);
+            box-shadow: 0 0 8px var(--bs-danger);
+        }
+        .status-led.connecting {
+            background-color: var(--bs-warning);
+            box-shadow: 0 0 8px var(--bs-warning);
+        }
     </style>
 </head>
 <body>
@@ -120,20 +151,36 @@
             <div class="card target-selector mb-4">
                 <div class="row align-items-center g-3">
                     <div class="col-auto">
-                        <label class="fw-bold small text-muted text-uppercase">Target Node</label>
+                        <div class="btn-group btn-group-sm" role="group">
+                            <button type="button" id="btn-view-dashboard" class="btn btn-outline-primary active">
+                                <i class="bi bi-grid-3x3-gap-fill me-1"></i> Dashboard
+                            </button>
+                            <button type="button" id="btn-view-detail" class="btn btn-outline-primary">
+                                <i class="bi bi-card-text me-1"></i> Detail View
+                            </button>
+                        </div>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3 selector-item" style="display: none;">
                         <select id="node-selector" class="form-select form-select-sm">
                             <!-- Dynamic options -->
                         </select>
                     </div>
+                    <div class="col-md-3">
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text"><i class="bi bi-search"></i></span>
+                            <input type="text" id="node-search" class="form-control" placeholder="Search nodes...">
+                            <button id="refresh-btn" class="btn btn-outline-secondary" type="button" title="Refresh node list & status">
+                                <i class="bi bi-arrow-clockwise"></i>
+                            </button>
+                        </div>
+                    </div>
                     <div class="col-auto">
-                        <button id="refresh-btn" class="btn btn-outline-primary btn-sm px-3">
-                            <i class="bi bi-arrow-clockwise me-1"></i> Refresh
+                        <button id="bulk-ctrl-btn" class="btn btn-outline-warning btn-sm px-3" data-bs-toggle="modal" data-bs-target="#bulkControlModal">
+                            <i class="bi bi-sliders me-1"></i> Bulk Control
                         </button>
                     </div>
-                    <div class="col text-end">
-                        <span id="connection-indicator" class="status-pill bg-secondary text-white">CONNECTING...</span>
+                    <div class="col text-end text-nowrap">
+                        <span id="connection-indicator" class="status-pill bg-secondary text-white text-nowrap">CONNECTING...</span>
                     </div>
                 </div>
             </div>
@@ -173,6 +220,72 @@
                         <span class="visually-hidden">Loading...</span>
                     </div>
                     <p class="mt-2 text-muted">Connecting to node and fetching data...</p>
+                </div>
+            </div>
+
+            <!-- Bulk Control Modal -->
+            <div class="modal fade" id="bulkControlModal" tabindex="-1" aria-labelledby="bulkControlModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content text-start">
+                        <div class="modal-header">
+                            <h5 class="modal-title fw-bold" id="bulkControlModalLabel"><i class="bi bi-sliders text-warning me-2"></i>Cluster Bulk Control</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="bulk-control-form">
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <label class="form-label fw-semibold small text-muted text-uppercase mb-0">1. Select Target Nodes</label>
+                                        <div>
+                                            <button type="button" class="btn btn-link btn-xs text-decoration-none p-0 me-2" id="bulk-select-all">Select All</button>
+                                            <button type="button" class="btn btn-link btn-xs text-decoration-none p-0 text-secondary" id="bulk-deselect-all">Deselect All</button>
+                                        </div>
+                                    </div>
+                                    <div class="border rounded p-2 bg-body-tertiary" id="bulk-node-list" style="max-height: 180px; overflow-y: auto;">
+                                        <!-- Dynamic Group & Node checkboxes -->
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="bulk-service-name" class="form-label fw-semibold small text-muted text-uppercase">2. Service Name <span class="fw-normal text-lowercase text-muted">(optional)</span></label>
+                                    <input type="text" id="bulk-service-name" class="form-control form-control-sm" placeholder="Leave empty to match across all services">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold small text-muted text-uppercase">3. Target Type</label>
+                                    <div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="bulkTargetType" id="bulkTypeSchedule" value="schedule" checked>
+                                            <label class="form-check-label" for="bulkTypeSchedule">Schedule</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="bulkTargetType" id="bulkTypeJob" value="job">
+                                            <label class="form-check-label" for="bulkTypeJob">Job</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="bulk-target-id" class="form-label fw-semibold small text-muted text-uppercase" id="bulk-target-id-label">Schedule ID</label>
+                                    <input type="text" id="bulk-target-id" class="form-control form-control-sm" placeholder="e.g. SyncBackupSchedule" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold small text-muted text-uppercase">4. Action</label>
+                                    <div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="bulkAction" id="bulkActionEnable" value="bulkEnable" checked>
+                                            <label class="form-check-label text-success fw-bold" for="bulkActionEnable">ENABLE</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="bulkAction" id="bulkActionDisable" value="bulkDisable">
+                                            <label class="form-check-label text-danger fw-bold" for="bulkActionDisable">DISABLE</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+                            <button type="button" id="execute-bulk-btn" class="btn btn-primary btn-sm px-4">Execute Action</button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -270,11 +383,9 @@
                 }
             }
 
-            function doConnectToNode(nodeId) {
-                if (consoleClient) {
-                    consoleClient.stop();
-                }
+            let currentViewMode = 'dashboard';
 
+            function doConnectToNode(nodeId) {
                 currentNodeId = nodeId;
                 updateStats('-', '-', '-', nodeId);
 
@@ -284,8 +395,21 @@
                     return;
                 }
 
+                if (currentViewMode === 'detail') {
+                    $('#scheduler-container').html('<div class="text-center py-5"><div class="spinner-border text-primary"></div><p class="mt-2 text-muted">Fetching data from ' + nodeId + '...</p></div>');
+                }
+
+                if (consoleClient && consoleClient.established) {
+                    $('#connection-indicator').text("CONNECTING...").removeClass("bg-success bg-danger bg-warning").addClass("bg-secondary");
+                    const request = {
+                        header: "subscribe",
+                        targetNodeId: nodeId
+                    };
+                    consoleClient.sendMessage(request);
+                    return;
+                }
+
                 $('#connection-indicator').text("CONNECTING...").removeClass("bg-success bg-danger bg-warning").addClass("bg-secondary");
-                $('#scheduler-container').html('<div class="text-center py-5"><div class="spinner-border text-primary"></div><p class="mt-2 text-muted">Fetching data from ' + nodeId + '...</p></div>');
 
                 const targetNode = nodes.find(n => n.id === nodeId);
                 const isDirect = (clusterMode === 'direct');
@@ -323,12 +447,17 @@
                             renderNodeSelector();
                         }
                         $('#connection-indicator').text("CONNECTED").removeClass("bg-secondary bg-danger bg-warning").addClass("bg-success");
-                        const request = {
-                            header: "execute",
-                            targetNodeId: currentNodeId,
-                            command: "services"
-                        };
-                        consoleClient.sendMessage(request);
+                        
+                        if (currentViewMode === 'detail') {
+                            const request = {
+                                header: "execute",
+                                targetNodeId: currentNodeId,
+                                command: "services"
+                            };
+                            consoleClient.sendMessage(request);
+                        } else {
+                            renderDashboard();
+                        }
                     },
                     onRetry: (count, max) => {
                         $('#connection-indicator').text(`RECONNECTING (${count}/${max})...`).removeClass("bg-success bg-danger").addClass("bg-warning");
@@ -367,70 +496,36 @@
             }
 
             function handleMessage(response) {
+                const respNodeId = response.nodeId;
                 if (response.header === 'services') {
-                    renderSchedulerList(response.data);
-                } else if (response.header === 'log') {
-                    appendLogLine(response.owner, response.data);
-                } else if (response.header === 'previousLogs') {
-                    prependLogLines(response.owner, response.data);
-                } else if (response.header === 'stateUpdated' && response.data) {
-                    const stateData = response.data;
-                    const serviceId = stateData.serviceName.replace(/[^a-zA-Z0-9]/g, '_');
-                    const safeId = stateData.id.replace(/[^a-zA-Z0-9]/g, '_');
-                    const isEnabled = !stateData.disabled;
-                    if (stateData.success) {
-                        if (stateData.type === 'schedule') {
-                            const $badge = $(`#badge-${serviceId}-${safeId}`);
-                            const $switch = $(`#switch-${serviceId}-${safeId}`);
-                            const $jobsContainer = $(`#jobs-${serviceId}-${safeId}`);
-                            if (isEnabled) {
-                                $badge.text('ACTIVE').removeClass('text-bg-danger').addClass('text-bg-success');
-                                $switch.prop('checked', true);
-                                // Show jobs as active if they are individually enabled
-                                $jobsContainer.find('.list-group-item').each(function() {
-                                    const $jobSwitch = $(this).find('.form-check-input');
-                                    if ($jobSwitch.is(':checked')) {
-                                        $(this).find('.bi-play-circle').removeClass('text-muted').addClass('text-success');
-                                        $(this).find('span').first().removeClass('text-muted');
-                                    }
-                                });
-                            } else {
-                                $badge.text('DISABLED').removeClass('text-bg-success').addClass('text-bg-danger');
-                                $switch.prop('checked', false);
-                                // Mute all jobs because the schedule is off
-                                $jobsContainer.find('.bi-play-circle').removeClass('text-success').addClass('text-muted');
-                                $jobsContainer.find('.list-group-item span').first().addClass('text-muted');
-                            }
-                        } else if (stateData.type === 'job') {
-                            const $switch = $(`#switch-${serviceId}-${safeId}`);
-                            const $icon = $(`#icon-${serviceId}-${safeId}`);
-                            const $text = $(`#text-${serviceId}-${safeId}`);
-                            
-                            const $collapse = $switch.closest('.collapse');
-                            const prefix = `jobs-${serviceId}-`;
-                            const safeScheduleId = $collapse.attr('id').substring(prefix.length);
-                            const isScheduleActive = $(`#badge-${serviceId}-${safeScheduleId}`).hasClass('text-bg-success');
-
-                            if (isEnabled) {
-                                $switch.prop('checked', true);
-                                if (isScheduleActive) {
-                                    $icon.removeClass('text-muted').addClass('text-success');
-                                    $text.removeClass('text-muted');
-                                }
-                            } else {
-                                $switch.prop('checked', false);
-                                $icon.removeClass('text-success').addClass('text-muted');
-                                $text.addClass('text-muted');
-                            }
+                    if (currentViewMode === 'detail') {
+                        if (respNodeId === currentNodeId) {
+                            renderSchedulerList(response.data);
                         }
-                        recalculateStats();
                     } else {
-                        $(`#switch-${serviceId}-${safeId}`).prop('checked', stateData.disabled);
-                        alert(stateData.message);
+                        updateDashboardNodeCard(respNodeId, response.data);
+                    }
+                } else if (response.header === 'log') {
+                    if (currentViewMode === 'detail' && respNodeId === currentNodeId) {
+                        appendLogLine(response.owner, response.data);
+                    }
+                } else if (response.header === 'previousLogs') {
+                    if (currentViewMode === 'detail' && respNodeId === currentNodeId) {
+                        prependLogLines(response.owner, response.data);
+                    }
+                } else if (response.header === 'stateUpdated' && response.data) {
+                    if (currentViewMode === 'detail' && respNodeId === currentNodeId) {
+                        applyStateUpdate(response.data);
+                    } else if (currentViewMode === 'dashboard') {
+                        const request = {
+                            header: "execute",
+                            targetNodeId: respNodeId,
+                            command: "services"
+                        };
+                        consoleClient.sendMessage(request);
                     }
                 } else if (response.header === 'nodeJoined') {
                     if (response.nodeId === currentNodeId && currentNodeId !== myNodeId) {
-                        // Delay reload slightly to ensure the re-joined node's scheduler services have fully started
                         setTimeout(() => {
                             window.location.reload();
                         }, 1500);
@@ -442,35 +537,235 @@
                             joinedNode.status = 'active';
                             renderNodeSelector();
                         }
-                        if (response.nodeId === currentNodeId && (!consoleClient || !consoleClient.established)) {
+                        if (currentViewMode === 'dashboard') {
+                            renderDashboard();
+                        } else if (response.nodeId === currentNodeId && (!consoleClient || !consoleClient.established)) {
                             setTimeout(() => {
                                 connectToNode(currentNodeId);
                             }, 1000);
                         }
                     });
                 } else if (response.header === 'nodeLeft') {
-                    refreshNodeList();
+                    refreshNodeList().then(() => {
+                        if (currentViewMode === 'dashboard') {
+                            renderDashboard();
+                        }
+                    });
+                }
+            }
+
+            function renderDashboard() {
+                let html = '<div class="row g-3" id="nodes-dashboard">';
+                const query = ($('#node-search').val() || '').toLowerCase();
+                const filteredNodes = nodes.filter(n => {
+                    const idMatch = n.id.toLowerCase().includes(query);
+                    const titleMatch = (n.title || '').toLowerCase().includes(query);
+                    const groupMatch = (n.group || '').toLowerCase().includes(query);
+                    return idMatch || titleMatch || groupMatch;
+                });
+
+                if (filteredNodes.length === 0) {
+                    html += `<div class="col-12 text-center py-5">
+                        <i class="bi bi-search fs-1 text-muted mb-3"></i>
+                        <h5 class="fw-bold">No nodes match your search</h5>
+                    </div>`;
+                } else {
+                    filteredNodes.forEach(n => {
+                        const title = n.title ? n.title : n.id;
+                        const isDead = (n.status && n.status.toUpperCase() === 'DEAD');
+                        const statusClass = isDead ? 'dead' : 'connecting';
+                        const statusText = isDead ? 'DEAD' : 'CONNECTING...';
+                        
+                        html += `
+                        <div class="col-md-4 col-sm-6 node-card-wrapper" data-node-id="${n.id}">
+                            <div class="card node-grid-card shadow-sm p-3 h-100" onclick="selectNodeFromDashboard('${n.id}')">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h6 class="fw-bold mb-0 text-truncate" style="max-width: 70%;" title="${title}">${title}</h6>
+                                    <span class="small text-muted font-monospace">${n.id}</span>
+                                </div>
+                                <div class="d-flex align-items-center mb-3">
+                                    <span id="led-${n.id}" class="status-led ${statusClass}"></span>
+                                    <span id="status-text-${n.id}" class="small fw-semibold text-muted text-uppercase">${statusText}</span>
+                                </div>
+                                <div id="info-${n.id}">
+                                    ${isDead ? '<p class="text-danger small mb-0"><i class="bi bi-x-circle me-1"></i> Node Offline</p>' : 
+                                    '<div class="d-flex justify-content-between text-muted small"><span class="spinner-border spinner-border-sm text-primary"></span><span>Loading scheduler...</span></div>'}
+                                </div>
+                            </div>
+                        </div>`;
+                    });
+                }
+                html += '</div>';
+                $('#scheduler-container').html(html);
+
+                filteredNodes.forEach(n => {
+                    const isDead = (n.status && n.status.toUpperCase() === 'DEAD');
+                    if (!isDead && consoleClient && consoleClient.established) {
+                        const request = {
+                            header: "execute",
+                            targetNodeId: n.id,
+                            command: "services"
+                        };
+                        consoleClient.sendMessage(request);
+                    }
+                });
+
+                recalculateStats();
+            }
+
+            function selectNodeFromDashboard(nodeId) {
+                $('#btn-view-detail').click();
+                $('#node-selector').val(nodeId).change();
+            }
+
+            function updateDashboardNodeCard(nodeId, services) {
+                const $led = $(`#led-${nodeId}`);
+                const $statusText = $(`#status-text-${nodeId}`);
+                const $info = $(`#info-${nodeId}`);
+
+                $led.removeClass('connecting dead').addClass('live');
+                $statusText.text('LIVE').removeClass('text-muted').addClass('text-success');
+
+                let totalSchedules = 0;
+                let activeSchedules = 0;
+                let activeJobs = 0;
+                let isolatedItems = 0;
+
+                if (services && services.length > 0) {
+                    services.forEach(service => {
+                        if (service.schedules) {
+                            service.schedules.forEach(schedule => {
+                                totalSchedules++;
+                                if (!schedule.disabled) activeSchedules++;
+                                if (schedule.isolated) isolatedItems++;
+                                if (schedule.job) {
+                                    (Array.isArray(schedule.job) ? schedule.job : [schedule.job]).forEach(job => {
+                                        if (!job.disabled && !schedule.disabled) activeJobs++;
+                                        if (job.isolated) isolatedItems++;
+                                    });
+                                }
+                            });
+                        }
+                    });
+                }
+
+                $info.html(`
+                    <div class="row g-0 text-center border-top pt-2 mt-2">
+                        <div class="col-4 border-end">
+                            <div class="text-muted" style="font-size: 0.65rem; text-transform: uppercase;">Schedules</div>
+                            <div class="fw-bold text-primary">${activeSchedules}/${totalSchedules}</div>
+                        </div>
+                        <div class="col-4 border-end">
+                            <div class="text-muted" style="font-size: 0.65rem; text-transform: uppercase;">Active Jobs</div>
+                            <div class="fw-bold text-success">${activeJobs}</div>
+                        </div>
+                        <div class="col-4">
+                            <div class="text-muted" style="font-size: 0.65rem; text-transform: uppercase;">Isolated</div>
+                            <div class="fw-bold ${isolatedItems > 0 ? 'text-warning' : 'text-muted'}">${isolatedItems}</div>
+                        </div>
+                    </div>
+                `);
+
+                recalculateStats();
+            }
+
+            function applyStateUpdate(stateData) {
+                const serviceId = stateData.serviceName.replace(/[^a-zA-Z0-9]/g, '_');
+                const safeId = stateData.id.replace(/[^a-zA-Z0-9]/g, '_');
+                const isEnabled = !stateData.disabled;
+                if (stateData.success) {
+                    if (stateData.type === 'schedule') {
+                        const $badge = $(`#badge-${serviceId}-${safeId}`);
+                        const $switch = $(`#switch-${serviceId}-${safeId}`);
+                        const $jobsContainer = $(`#jobs-${serviceId}-${safeId}`);
+                        if (isEnabled) {
+                            $badge.text('ACTIVE').removeClass('text-bg-danger').addClass('text-bg-success');
+                            $switch.prop('checked', true);
+                            $jobsContainer.find('.list-group-item').each(function() {
+                                const $jobSwitch = $(this).find('.form-check-input');
+                                if ($jobSwitch.is(':checked')) {
+                                    $(this).find('.bi-play-circle').removeClass('text-muted').addClass('text-success');
+                                    $(this).find('span').first().removeClass('text-muted');
+                                }
+                            });
+                        } else {
+                            $badge.text('DISABLED').removeClass('text-bg-success').addClass('text-bg-danger');
+                            $switch.prop('checked', false);
+                            $jobsContainer.find('.bi-play-circle').removeClass('text-success').addClass('text-muted');
+                            $jobsContainer.find('.list-group-item span').first().addClass('text-muted');
+                        }
+                    } else if (stateData.type === 'job') {
+                        const $switch = $(`#switch-${serviceId}-${safeId}`);
+                        const $icon = $(`#icon-${serviceId}-${safeId}`);
+                        const $text = $(`#text-${serviceId}-${safeId}`);
+                        
+                        const $collapse = $switch.closest('.collapse');
+                        const prefix = `jobs-${serviceId}-`;
+                        const safeScheduleId = $collapse.attr('id').substring(prefix.length);
+                        const isScheduleActive = $(`#badge-${serviceId}-${safeScheduleId}`).hasClass('text-bg-success');
+
+                        if (isEnabled) {
+                            $switch.prop('checked', true);
+                            if (isScheduleActive) {
+                                $icon.removeClass('text-muted').addClass('text-success');
+                                $text.removeClass('text-muted');
+                            }
+                        } else {
+                            $switch.prop('checked', false);
+                            $icon.removeClass('text-success').addClass('text-muted');
+                            $text.addClass('text-muted');
+                        }
+                    }
+                    recalculateStats();
+                } else {
+                    $(`#switch-${serviceId}-${safeId}`).prop('checked', stateData.disabled);
+                    alert(stateData.message);
                 }
             }
 
             function recalculateStats() {
-                let activeSchedules = $('.status-badge.text-bg-success').length;
-                let activeJobs = 0;
-                
-                $('.schedule-row').each(function() {
-                    const $row = $(this);
-                    if ($row.find('.status-badge').hasClass('text-bg-success')) {
-                        const targetId = $row.find('[data-bs-toggle="collapse"]').attr('data-bs-target');
-                        $(targetId).find('.form-check-input').each(function() {
-                            if ($(this).is(':checked')) {
-                                activeJobs++;
-                            }
-                        });
-                    }
-                });
+                if (currentViewMode === 'dashboard') {
+                    let totalActiveSchedules = 0;
+                    let totalActiveJobs = 0;
+                    let totalIsolated = 0;
+                    
+                    $('#nodes-dashboard .node-card-wrapper').each(function() {
+                        const nodeId = $(this).data('node-id');
+                        const $info = $(`#info-${nodeId}`);
+                        const $nums = $info.find('.fw-bold');
+                        if ($nums.length >= 3) {
+                            const schedText = $nums.eq(0).text();
+                            const activeSched = parseInt(schedText.split('/')[0]) || 0;
+                            totalActiveSchedules += activeSched;
 
-                let isolated = $('.isolated-icon').length;
-                updateStats(activeSchedules, activeJobs, isolated, currentNodeId);
+                            const activeJob = parseInt($nums.eq(1).text()) || 0;
+                            totalActiveJobs += activeJob;
+
+                            const isolated = parseInt($nums.eq(2).text()) || 0;
+                            totalIsolated += isolated;
+                        }
+                    });
+                    
+                    updateStats(totalActiveSchedules, totalActiveJobs, totalIsolated, 'ALL NODES');
+                } else {
+                    let activeSchedules = $('.status-badge.text-bg-success').length;
+                    let activeJobs = 0;
+                    
+                    $('.schedule-row').each(function() {
+                        const $row = $(this);
+                        if ($row.find('.status-badge').hasClass('text-bg-success')) {
+                            const targetId = $row.find('[data-bs-toggle="collapse"]').attr('data-bs-target');
+                            $(targetId).find('.form-check-input').each(function() {
+                                if ($(this).is(':checked')) {
+                                    activeJobs++;
+                                }
+                            });
+                        }
+                    });
+
+                    let isolated = $('.isolated-icon').length;
+                    updateStats(activeSchedules, activeJobs, isolated, currentNodeId);
+                }
             }
 
             function renderSchedulerList(services) {
@@ -824,6 +1119,164 @@
                 connectToNode(currentNodeId);
                 checkDirectNodesHealth();
 
+                $('#btn-view-dashboard').on('click', function() {
+                    currentViewMode = 'dashboard';
+                    $(this).addClass('active');
+                    $('#btn-view-detail').removeClass('active');
+                    $('.selector-item').hide();
+                    renderDashboard();
+                });
+
+                $('#btn-view-detail').on('click', function() {
+                    currentViewMode = 'detail';
+                    $(this).addClass('active');
+                    $('#btn-view-dashboard').removeClass('active');
+                    $('.selector-item').show();
+                    connectToNode(currentNodeId);
+                });
+
+                $('#node-search').on('input', function() {
+                    if (currentViewMode === 'dashboard') {
+                        renderDashboard();
+                    } else {
+                        const query = $(this).val().toLowerCase();
+                        $('#node-selector option').each(function() {
+                            const text = $(this).text().toLowerCase();
+                            $(this).toggle(text.indexOf(query) > -1);
+                        });
+                    }
+                });
+
+                $('input[name="bulkTargetType"]').on('change', function() {
+                    const val = $(this).val();
+                    if (val === 'schedule') {
+                        $('#bulk-target-id-label').text('Schedule ID');
+                        $('#bulk-target-id').attr('placeholder', 'e.g. SyncBackupSchedule');
+                    } else {
+                        $('#bulk-target-id-label').text('Job Name (Translet)');
+                        $('#bulk-target-id').attr('placeholder', 'e.g. cleanTempFiles');
+                    }
+                });
+
+                $('#bulk-select-all').on('click', function() {
+                    $('#bulk-node-list input[type="checkbox"]').prop('checked', true);
+                });
+
+                $('#bulk-deselect-all').on('click', function() {
+                    $('#bulk-node-list input[type="checkbox"]').prop('checked', false);
+                });
+
+                $('#bulk-node-list').on('change', '.bulk-group-chk', function() {
+                    const groupKey = $(this).data('group');
+                    const isChecked = $(this).is(':checked');
+                    $(`.group-node-${groupKey}`).prop('checked', isChecked);
+                });
+
+                $('#bulk-node-list').on('change', '.bulk-node-chk', function() {
+                    const classList = $(this).attr('class').split(/\s+/);
+                    const groupClass = classList.find(c => c.startsWith('group-node-'));
+                    if (groupClass) {
+                        const groupKey = groupClass.replace('group-node-', '');
+                        const totalInGroup = $(`.group-node-${groupKey}`).length;
+                        const checkedInGroup = $(`.group-node-${groupKey}:checked`).length;
+                        $(`#chk-group-${groupKey}`).prop('checked', totalInGroup === checkedInGroup);
+                    }
+                });
+
+                $('#bulkControlModal').on('show.bs.modal', function () {
+                    const $list = $('#bulk-node-list');
+                    $list.empty();
+                    
+                    const liveNodes = nodes.filter(n => !(n.status && n.status.toUpperCase() === 'DEAD'));
+                    if (liveNodes.length === 0) {
+                        $list.html('<div class="text-muted small p-2">No live nodes available.</div>');
+                        return;
+                    }
+
+                    const groups = {};
+                    liveNodes.forEach(n => {
+                        const g = n.group || 'Ungrouped';
+                        if (!groups[g]) groups[g] = [];
+                        groups[g].push(n);
+                    });
+
+                    Object.keys(groups).forEach(gName => {
+                        const safeGName = gName.replace(/[^a-zA-Z0-9]/g, '_');
+                        let gHtml = `<div class="mb-2">
+                            <div class="form-check fw-bold small text-primary ps-4 pe-2 py-1 bg-body rounded mb-1 border-bottom">
+                                <input class="form-check-input bulk-group-chk" type="checkbox" data-group="${safeGName}" id="chk-group-${safeGName}">
+                                <label class="form-check-label w-100" for="chk-group-${safeGName}">
+                                    <i class="bi bi-folder2-open me-1"></i>${gName}
+                                </label>
+                            </div>
+                            <div class="ms-2">`;
+                        
+                        groups[gName].forEach(n => {
+                            gHtml += `
+                                <div class="form-check text-start ps-4 py-1">
+                                    <input class="form-check-input bulk-node-chk group-node-${safeGName}" type="checkbox" name="bulkNodes" value="${n.id}" id="chk-${n.id}">
+                                    <label class="form-check-label small" for="chk-${n.id}">
+                                        ${n.title ? n.title + ' (' + n.id + ')' : n.id}
+                                    </label>
+                                </div>`;
+                        });
+
+                        gHtml += `</div></div>`;
+                        $list.append(gHtml);
+                    });
+                });
+
+                $('#execute-bulk-btn').on('click', function() {
+                    const selectedNodes = [];
+                    $('input[name="bulkNodes"]:checked').each(function() {
+                        selectedNodes.push($(this).val());
+                    });
+
+                    if (selectedNodes.length === 0) {
+                        alert('Please select at least one target node.');
+                        return;
+                    }
+
+                    const serviceName = $('#bulk-service-name').val();
+                    const targetType = $('input[name="bulkTargetType"]:checked').val();
+                    const targetId = $('#bulk-target-id').val();
+                    const action = $('input[name="bulkAction"]:checked').val();
+
+                    if (!targetId) {
+                        alert('Please specify the Schedule ID or Job Name.');
+                        return;
+                    }
+
+                    const request = {
+                        header: "execute",
+                        command: action,
+                        targetNodeIds: selectedNodes
+                    };
+
+                    if (serviceName) {
+                        request.serviceName = serviceName;
+                    }
+
+                    if (targetType === 'schedule') {
+                        request.scheduleId = targetId;
+                    } else {
+                        request.jobName = targetId;
+                    }
+
+                    if (consoleClient && consoleClient.established) {
+                        consoleClient.sendMessage(request);
+                        bootstrap.Modal.getInstance(document.getElementById('bulkControlModal')).hide();
+                        
+                        setTimeout(() => {
+                            if (currentViewMode === 'dashboard') {
+                                renderDashboard();
+                            } else {
+                                connectToNode(currentNodeId);
+                            }
+                        }, 500);
+                    }
+                });
+
                 $('#node-selector').on('change', function() {
                     const nodeId = $(this).val();
                     const url = new URL(window.location);
@@ -834,7 +1287,9 @@
 
                 $('#refresh-btn').on('click', function() {
                     refreshNodeList().then(() => {
-                        if (consoleClient && consoleClient.established && consoleClient.mode === 'websocket') {
+                        if (currentViewMode === 'dashboard') {
+                            renderDashboard();
+                        } else if (consoleClient && consoleClient.established && consoleClient.mode === 'websocket') {
                             const request = {
                                 header: "execute",
                                 targetNodeId: currentNodeId,

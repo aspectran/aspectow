@@ -142,18 +142,27 @@ public class WebsocketSchedulerBridge extends SimplifiedEndpoint implements Sche
         }
 
         WebsocketSchedulerSession schedulerSession = new WebsocketSchedulerSession(session);
-        schedulerSession.setNodeId(targetNodeId);
+        String oldNodeId = schedulerSession.getNodeId();
+        if (oldNodeId != null && !oldNodeId.equals(targetNodeId)) {
+            remoteSchedulerManager.getBroker().unsubscribe(schedulerSession);
+        }
 
-        if (addSession(session)) {
-            remoteSchedulerManager.registerSession(session.getId(), this);
-            SchedulerResponseParameters response = new SchedulerResponseParameters()
-                    .setHeader("subscribed")
-                    .setNodeId(remoteSchedulerManager.getNodeId());
-            sendText(session, response.toString());
-            if (logger.isDebugEnabled()) {
-                logger.debug("ConsoleClient joined scheduler management: session {}, targetNodeId: {}",
-                        session.getId(), schedulerSession.getNodeId());
-            }
+        schedulerSession.setNodeId(targetNodeId);
+        addSession(session);
+        remoteSchedulerManager.registerSession(session.getId(), this);
+
+        SchedulerResponseParameters response = new SchedulerResponseParameters()
+                .setHeader("subscribed")
+                .setNodeId(remoteSchedulerManager.getNodeId());
+        sendText(session, response.toString());
+
+        if (oldNodeId != null && !oldNodeId.equals(targetNodeId)) {
+            remoteSchedulerManager.getBroker().subscribe(schedulerSession);
+        }
+
+        if (logger.isDebugEnabled()) {
+            logger.debug("ConsoleClient joined scheduler management: session {}, targetNodeId: {}",
+                    session.getId(), schedulerSession.getNodeId());
         }
     }
 
@@ -172,7 +181,9 @@ public class WebsocketSchedulerBridge extends SimplifiedEndpoint implements Sche
     }
 
     private void execute(Session session, @NonNull SchedulerRequestParameters request) {
-        if (!StringUtils.hasText(request.getTargetNodeId())) {
+        boolean hasTargetNodeId = StringUtils.hasText(request.getTargetNodeId());
+        boolean hasTargetNodeIds = (request.getTargetNodeIds() != null && request.getTargetNodeIds().length > 0);
+        if (!hasTargetNodeId && !hasTargetNodeIds) {
             SchedulerResponseParameters response = new SchedulerResponseParameters()
                     .setError("Target node is required");
             sendText(session, response.toString());

@@ -23,6 +23,7 @@ import com.aspectran.core.context.rule.params.ScheduleParameters;
 import com.aspectran.core.scheduler.service.SchedulerService;
 import com.aspectran.core.service.CoreService;
 import com.aspectran.core.service.CoreServiceHolder;
+import com.aspectran.utils.StringUtils;
 import com.aspectran.utils.json.JsonBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -89,10 +90,11 @@ public class LocalSchedulerService {
      */
     public SchedulerResponseParameters updateState(String serviceName, String type, String id, boolean disabled) {
         boolean changed = false;
+        String matchedServiceName = serviceName;
         for (CoreService service : CoreServiceHolder.getAllServices()) {
             if (service.getServiceLifeCycle().isActive()) {
                 SchedulerService schedulerService = service.getSchedulerService();
-                if (schedulerService != null && schedulerService.getServiceName().equals(serviceName)) {
+                if (schedulerService != null && (!StringUtils.hasText(serviceName) || schedulerService.getServiceName().equals(serviceName))) {
                     ScheduleRuleRegistry registry = schedulerService.getActivityContext().getScheduleRuleRegistry();
                     if (registry != null) {
                         if ("schedule".equals(type)) {
@@ -105,6 +107,7 @@ public class LocalSchedulerService {
                                     schedulerService.resume(id);
                                 }
                                 changed = true;
+                                matchedServiceName = schedulerService.getServiceName();
                             }
                         } else if ("job".equals(type)) {
                             Set<ScheduledJobRule> jobRules = registry.getScheduledJobRules(new String[]{id});
@@ -119,25 +122,30 @@ public class LocalSchedulerService {
                                             schedulerService.resumeJob(scheduleId, id);
                                         }
                                         changed = true;
+                                        matchedServiceName = schedulerService.getServiceName();
                                     }
                                 }
                             }
                         }
                     }
-                    break;
+                    if (changed && StringUtils.hasText(serviceName)) {
+                        break;
+                    }
                 }
             }
         }
 
         String resultMessage;
         if (changed) {
-            resultMessage = (disabled ? "Disabled" : "Enabled") + " " + type + " '" + id + "' in service '" + serviceName + "'";
+            resultMessage = (disabled ? "Disabled" : "Enabled") + " " + type + " '" + id + "'" +
+                    (StringUtils.hasText(matchedServiceName) ? " in service '" + matchedServiceName + "'" : "");
         } else {
-            resultMessage = "Failed to change state for " + type + " '" + id + "' in service '" + serviceName + "' (Not found or isolated)";
+            resultMessage = "Failed to change state for " + type + " '" + id + "'" +
+                    (StringUtils.hasText(serviceName) ? " in service '" + serviceName + "'" : "") + " (Not found or isolated)";
         }
 
         JsonBuilder jsonBuilder = new JsonBuilder().object()
-                .put("serviceName", serviceName)
+                .put("serviceName", matchedServiceName)
                 .put("type", type)
                 .put("id", id)
                 .put("disabled", disabled)
@@ -147,7 +155,7 @@ public class LocalSchedulerService {
 
         return new SchedulerResponseParameters()
                 .setHeader("stateUpdated")
-                .setOwner(serviceName + ":" + type + ":" + id)
+                .setOwner((StringUtils.hasText(matchedServiceName) ? matchedServiceName : "*") + ":" + type + ":" + id)
                 .setData(jsonBuilder.toJsonString());
     }
 

@@ -35,6 +35,7 @@ public class SchedulerRequestParameters extends DefaultParameters {
     public static final ParameterKey jobName;
     public static final ParameterKey loggingGroup;
     public static final ParameterKey loadedLines;
+    public static final ParameterKey targetNodeIds;
 
     private static final ParameterKey[] parameterKeys;
 
@@ -49,11 +50,13 @@ public class SchedulerRequestParameters extends DefaultParameters {
         jobName = new ParameterKey("jobName", ValueType.STRING);
         loggingGroup = new ParameterKey("loggingGroup", ValueType.STRING);
         loadedLines = new ParameterKey("loadedLines", ValueType.INT);
+        targetNodeIds = new ParameterKey("targetNodeIds", ValueType.STRING, true);
 
         parameterKeys = new ParameterKey[] {
                 header,
                 nodeId,
                 targetNodeId,
+                targetNodeIds,
                 sessionId,
                 command,
                 serviceName,
@@ -232,4 +235,21 @@ public class SchedulerRequestParameters extends DefaultParameters {
         putValue(SchedulerRequestParameters.loadedLines, loadedLines);
     }
 
+    /**
+     * Gets the target node IDs.
+     * @return the target node IDs
+     */
+    public String[] getTargetNodeIds() {
+        return getStringArray(targetNodeIds);
+    }
+
+    /**
+     * Sets the target node IDs.
+     * @param targetNodeIds the target node IDs to set
+     */
+    public void setTargetNodeIds(String[] targetNodeIds) {
+        putValue(SchedulerRequestParameters.targetNodeIds, targetNodeIds);
+    }
+
 }
+

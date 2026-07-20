@@ -259,6 +259,31 @@ public class RemoteSchedulerManager implements ApplicationAdapterAware, Initiali
      * @param request the structured request parameters
      */
     public void process(@NonNull SchedulerRequestParameters request) {
+        String[] targetNodeIds = request.getTargetNodeIds();
+        if (targetNodeIds != null && targetNodeIds.length > 0) {
+            String command = request.getCommand();
+            String singleCommand = command;
+            if ("bulkEnable".equals(command)) {
+                singleCommand = OP_ENABLE;
+            } else if ("bulkDisable".equals(command)) {
+                singleCommand = OP_DISABLE;
+            }
+            for (String targetId : targetNodeIds) {
+                SchedulerRequestParameters subRequest = new SchedulerRequestParameters();
+                try {
+                    subRequest.readFrom(request.toString());
+                } catch (Exception e) {
+                    logger.error("Failed to copy scheduler request for target node {}", targetId, e);
+                    continue;
+                }
+                subRequest.setCommand(singleCommand);
+                subRequest.setTargetNodeId(targetId);
+                subRequest.removeValue(SchedulerRequestParameters.targetNodeIds);
+                process(subRequest);
+            }
+            return;
+        }
+
         String targetNodeId = request.getTargetNodeId();
         if (isSameNode(targetNodeId)) {
             if (logger.isDebugEnabled()) {
