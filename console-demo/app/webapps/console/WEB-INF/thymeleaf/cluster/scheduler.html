@@ -480,18 +480,11 @@
                 }
 
                 if (consoleClient && consoleClient.established) {
-                    $('#connection-indicator').text("CONNECTED").removeClass("bg-secondary bg-danger bg-warning").addClass("bg-success");
                     const request = {
                         header: "subscribe",
                         targetNodeId: nodeId
                     };
                     consoleClient.sendMessage(request);
-
-                    if (currentViewMode === 'detail') {
-                        requestDetailNodeServices(nodeId);
-                    } else {
-                        renderDashboard();
-                    }
                     return;
                 }
 
@@ -528,8 +521,9 @@
                         handleMessage(response);
                     },
                     onEstablished: () => {
-                        if (nodeInfo) {
-                            nodeInfo.status = 'LIVE';
+                        const current = nodes.find(n => n.id === currentNodeId);
+                        if (current) {
+                            current.status = 'LIVE';
                             renderNodeSelector();
                         }
                         $('#connection-indicator').text("CONNECTED").removeClass("bg-secondary bg-danger bg-warning").addClass("bg-success");
@@ -702,7 +696,7 @@
                         
                         html += `
                         <div class="col-12 node-card-wrapper px-0 py-1" data-node-id="${n.id}" data-node-title="${title}" data-node-group="${group}">
-                            <div class="card node-grid-card shadow-sm p-3 h-100" onclick="selectNodeFromDashboard('${n.id}')">
+                            <div class="card node-grid-card shadow-sm p-3 h-100" onclick="switchToDetailView('${n.id}')">
                                 <div class="d-flex justify-content-between align-items-center mb-2">
                                     <h6 class="fw-bold mb-0 text-truncate" style="max-width: 70%;" title="${title}">${title}</h6>
                                     <span class="small text-muted font-monospace">${n.id}</span>
@@ -805,7 +799,7 @@
 
                 const $line = $('<p class="log-line"></p>');
                 const $nodeTag = $('<span class="badge bg-secondary me-1 font-monospace" style="font-size:0.65rem;"></span>').text(nodeId || 'unknown');
-                const $ownerTag = owner ? $('<span class="badge bg-dark-subtle text-body-secondary me-2 font-monospace" style="font-size:0.65rem;"></span>').text(owner) : null;
+                const $ownerTag = owner ? $('<span class="badge bg-body-tertiary text-body-secondary me-2 font-monospace" style="font-size:0.65rem;"></span>').text(owner) : null;
 
                 $line.append($nodeTag);
                 if ($ownerTag) $line.append($ownerTag);
@@ -866,9 +860,20 @@
                 }
             }
 
-            function selectNodeFromDashboard(nodeId) {
-                $('#btn-view-detail').click();
-                $('#node-selector').val(nodeId).change();
+            function switchToDetailView(nodeId) {
+                currentViewMode = 'detail';
+                $('#btn-view-detail').addClass('active');
+                $('#btn-view-dashboard').removeClass('active');
+                $('.node-search').hide();
+                $('.selector-item').show();
+                const targetNodeId = nodeId || currentNodeId;
+                if (targetNodeId) {
+                    $('#node-selector').val(targetNodeId);
+                    const url = new URL(window.location);
+                    url.searchParams.set('nodeId', targetNodeId);
+                    window.history.replaceState({}, '', url);
+                }
+                connectToNode(targetNodeId);
             }
 
             function updateDashboardNodeCard(nodeId, services) {
@@ -1221,7 +1226,7 @@
             }
 
             function prependLogLines(loggingGroup, logLines) {
-                console.log("prependLogLines called:", loggingGroup, logLines);
+                console.log("prependLogLines called:", loggingGroup);
                 const $container = $(`#log-viewer-${loggingGroup}`);
                 if ($container.length === 0) return;
 
@@ -1404,12 +1409,7 @@
                 });
 
                 $('#btn-view-detail').on('click', function() {
-                    currentViewMode = 'detail';
-                    $(this).addClass('active');
-                    $('#btn-view-dashboard').removeClass('active');
-                    $('.node-search').hide();
-                    $('.selector-item').show();
-                    connectToNode(currentNodeId);
+                    switchToDetailView(currentNodeId);
                 });
 
                 $('#node-search').on('input', function() {
