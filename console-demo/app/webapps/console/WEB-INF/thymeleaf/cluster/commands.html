@@ -270,8 +270,10 @@ arguments: {
                     const groups = [...new Set(nodes.map(n => n.group).filter(g => g))];
                     groups.forEach(g => {
                         const groupNodes = nodes.filter(n => n.group === g);
+                        const count = groupNodes.length;
+                        const countText = count === 1 ? '1 Node' : count + ' Nodes';
                         const hasAnyCommandManager = groupNodes.some(n => n.hasCommandManager !== false && n.status?.toUpperCase() !== 'DEAD');
-                        const label = hasAnyCommandManager ? g : (g + ' [NO COMMAND MANAGER]');
+                        const label = hasAnyCommandManager ? `${g} (${countText})` : `${g} (${countText}) [NO COMMAND MANAGER]`;
                         const option = new Option(label, g);
                         if (!hasAnyCommandManager) {
                             $(option).addClass('text-secondary');
@@ -287,8 +289,10 @@ arguments: {
                     if (clusterMode === 'gateway') {
                         const groups = [...new Set(nodes.map(n => n.group).filter(g => g))];
                         groups.forEach(group => {
-                            const $optgroup = $('<optgroup>').attr('label', group);
-                            nodes.filter(n => n.group === group).forEach(n => {
+                            const groupNodes = nodes.filter(n => n.group === group);
+                            const countText = groupNodes.length === 1 ? '1 Node' : groupNodes.length + ' Nodes';
+                            const $optgroup = $('<optgroup>').attr('label', `${group} (${countText})`);
+                            groupNodes.forEach(n => {
                                 const title = (n.title && n.title !== n.id) ? (n.title + ' (' + n.id + ')') : n.id;
                                 const option = new Option(title, n.id);
                                 if (n.status && n.status.toUpperCase() === 'DEAD') {

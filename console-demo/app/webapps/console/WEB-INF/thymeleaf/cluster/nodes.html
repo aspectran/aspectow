@@ -31,7 +31,10 @@
         <div th:if="${session.USER_INFO.hasRole('SUPER_ADMIN') || session.USER_INFO.hasRole('ADMIN') || session.USER_INFO.hasRole('DEMO')}">
             <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
                 <div>
-                    <h2 class="fw-bold mb-1">Cluster Nodes</h2>
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <h2 class="fw-bold mb-0">Cluster Nodes</h2>
+                        <span class="badge bg-secondary-subtle text-secondary small fw-semibold" id="total-node-count" th:text="${page.nodes != null ? #lists.size(page.nodes) : 0} + ' Nodes'">0 Nodes</span>
+                    </div>
                     <p class="text-muted mb-0">Monitor and manage all active instances in the cluster.</p>
                 </div>
                 <div class="d-flex align-items-center gap-2">
@@ -48,10 +51,15 @@
             <th:block th:if="${page.clusterMode == 'gateway' and page.groups != null}">
                 <ul class="nav nav-pills mb-4" id="clusterTabs" role="tablist">
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link active" id="all-tab" data-bs-toggle="pill" data-bs-target="#all-nodes" type="button" role="tab">All Nodes</button>
+                        <button class="nav-link active" id="all-tab" data-bs-toggle="pill" data-bs-target="#all-nodes" type="button" role="tab">
+                            All Nodes <span class="badge bg-body-tertiary text-body-secondary ms-1" th:text="${page.nodes != null ? #lists.size(page.nodes) : 0}">0</span>
+                        </button>
                     </li>
                     <li class="nav-item" role="presentation" th:each="group : ${page.groups}">
-                        <button class="nav-link" th:id="${group.id} + '-tab'" data-bs-toggle="pill" th:data-bs-target="'#group-' + ${group.id}" type="button" role="tab" th:text="${group.title}">Group Title</button>
+                        <button class="nav-link" th:id="${group.id} + '-tab'" data-bs-toggle="pill" th:data-bs-target="'#group-' + ${group.id}" type="button" role="tab">
+                            <span th:text="${group.title}">Group Title</span>
+                            <span class="badge bg-body-tertiary text-body-secondary ms-1" th:text="${page.groupedNodes != null && page.groupedNodes[group.id] != null ? #lists.size(page.groupedNodes[group.id]) : 0}">0</span>
+                        </button>
                     </li>
                 </ul>
 
@@ -326,6 +334,8 @@
 
             function filterNodes() {
                 const query = ($('#node-search').val() || '').toLowerCase();
+                const totalNodes = nodes ? nodes.length : $('.node-card').length;
+                let visibleCount = 0;
                 
                 $('.node-card').each(function() {
                     const $card = $(this);
@@ -342,7 +352,14 @@
                     } else {
                         $card.toggle(match);
                     }
+                    if (match) visibleCount++;
                 });
+
+                if (query) {
+                    $('#total-node-count').text(visibleCount + ' / ' + totalNodes + ' Nodes');
+                } else {
+                    $('#total-node-count').text(totalNodes + ' Nodes');
+                }
 
                 if ($('#clusterTabContent').length > 0) {
                     $('#clusterTabContent .tab-pane').each(function() {
