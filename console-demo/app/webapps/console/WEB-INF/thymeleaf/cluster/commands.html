@@ -104,6 +104,15 @@
             background-color: var(--bs-danger-bg-subtle);
             color: var(--bs-danger-text-emphasis) !important;
         }
+        @media (max-width: 991.98px) {
+            .command-container {
+                grid-template-columns: 1fr;
+                min-height: auto;
+            }
+            .history-panel {
+                max-height: 280px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -123,22 +132,22 @@
 
             <div class="card target-selector">
                 <div class="row align-items-center g-3">
-                    <div class="col-auto">
+                    <div class="col-12 col-sm-auto">
                         <label class="fw-bold small text-muted text-uppercase">Target Nodes</label>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-12 col-md-4">
                         <select id="target-type" class="form-select form-select-sm" onchange="onTargetTypeChange()">
                             <option value="all" th:selected="${page.targetNodeId == null}">All Nodes in Cluster</option>
                             <option value="group" th:if="${page.clusterMode == 'gateway'}">Specific Group</option>
                             <option value="node" th:selected="${page.targetNodeId != null}">Individual Node</option>
                         </select>
                     </div>
-                    <div class="col-md-4" id="target-value-container">
+                    <div class="col-12 col-md-4" id="target-value-container">
                         <select id="target-value" class="form-select form-select-sm">
                             <!-- Dynamic options -->
                         </select>
                     </div>
-                    <div class="col text-end">
+                    <div class="col-12 col-md text-md-end text-start">
                         <span id="connection-indicator" class="status-pill bg-secondary text-white">CONNECTING...</span>
                     </div>
                 </div>
@@ -152,7 +161,7 @@
                         <button class="btn btn-sm btn-outline-secondary" onclick="clearHistory()">Clear</button>
                     </div>
                     <div class="history-list" id="history-list">
-                        <div class="text-center text-muted mt-5">No recent commands.</div>
+                        <div class="text-center text-muted mt-lg-5">No recent commands.</div>
                     </div>
                 </div>
 
