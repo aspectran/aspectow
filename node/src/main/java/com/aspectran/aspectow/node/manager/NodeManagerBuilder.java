@@ -23,6 +23,9 @@ import com.aspectran.aspectow.node.config.NodeInfo;
 import com.aspectran.aspectow.node.config.NodeInfoHolder;
 import com.aspectran.aspectow.node.config.SchedulerConfig;
 import com.aspectran.aspectow.node.config.SecretConfig;
+import com.aspectran.aspectow.node.management.commands.RemoteCommandManager;
+import com.aspectran.aspectow.node.management.nodes.RemoteNodeManager;
+import com.aspectran.aspectow.node.management.scheduler.RemoteSchedulerManager;
 import com.aspectran.aspectow.node.redis.RedisConnectionPool;
 import com.aspectran.aspectow.node.redis.RedisConnectionPoolConfig;
 import com.aspectran.aspectow.node.redis.RedisScheduledJobLockProvider;
@@ -164,6 +167,14 @@ public abstract class NodeManagerBuilder {
         }
 
         logger.info("Current Node: {} (Host: {})", nodeId, nodeInfo.getHost());
+
+        boolean hasNodeManager = context.getBeanRegistry().containsBean(RemoteNodeManager.class);
+        boolean hasSchedulerManager = context.getBeanRegistry().containsBean(RemoteSchedulerManager.class);
+        boolean hasCommandManager = context.getBeanRegistry().containsBean(RemoteCommandManager.class);
+
+        nodeInfo.setHasNodeManager(hasNodeManager);
+        nodeInfo.setHasSchedulerManager(hasSchedulerManager);
+        nodeInfo.setHasCommandManager(hasCommandManager);
 
         NodeManager nodeManager = new NodeManager(nodeId, myGroupId, clusterConfig, nodeInfoHolder, groupInfoHolder);
 

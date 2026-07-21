@@ -133,6 +133,14 @@ public class RemoteSchedulerManager implements ApplicationAdapterAware, Initiali
     }
 
     /**
+     * Gets the node manager.
+     * @return the node manager
+     */
+    public NodeManager getNodeManager() {
+        return nodeManager;
+    }
+
+    /**
      * Gets the node message publisher.
      * @return the message publisher
      */
@@ -460,13 +468,7 @@ public class RemoteSchedulerManager implements ApplicationAdapterAware, Initiali
         if (bridge != null) {
             SchedulerSession session = bridge.findSchedulerSession(sessionId);
             if (session != null) {
-                if (nodeId != null) {
-                    if (nodeId.equals(session.getNodeId())) {
-                        bridge.bridge(session, message);
-                    }
-                } else {
-                    bridge.bridge(session, message);
-                }
+                bridge.bridge(session, message);
             }
         }
     }
@@ -475,6 +477,9 @@ public class RemoteSchedulerManager implements ApplicationAdapterAware, Initiali
     public void onNodeJoined(NodeInfo info) {
         if (sessionBridgeMap.isEmpty()) {
             return;
+        }
+        if (isGatewayMode()) {
+            broker.subscribeRemoteNode(info.getId());
         }
         try {
             SchedulerResponseParameters response = new SchedulerResponseParameters()

@@ -134,20 +134,11 @@ public class WebsocketSchedulerBridge extends SimplifiedEndpoint implements Sche
 
     private void subscribe(Session session, @NonNull SchedulerRequestParameters request) {
         String targetNodeId = request.getTargetNodeId();
-        if (!StringUtils.hasText(targetNodeId)) {
-            SchedulerResponseParameters response = new SchedulerResponseParameters()
-                    .setError("Target node is required");
-            sendText(session, response.toString());
-            return;
-        }
-
         WebsocketSchedulerSession schedulerSession = new WebsocketSchedulerSession(session);
-        String oldNodeId = schedulerSession.getNodeId();
-        if (oldNodeId != null && !oldNodeId.equals(targetNodeId)) {
-            remoteSchedulerManager.getBroker().unsubscribe(schedulerSession);
+        if (StringUtils.hasText(targetNodeId)) {
+            schedulerSession.setNodeId(targetNodeId);
         }
 
-        schedulerSession.setNodeId(targetNodeId);
         addSession(session);
         remoteSchedulerManager.registerSession(session.getId(), this);
 
@@ -156,9 +147,7 @@ public class WebsocketSchedulerBridge extends SimplifiedEndpoint implements Sche
                 .setNodeId(remoteSchedulerManager.getNodeId());
         sendText(session, response.toString());
 
-        if (oldNodeId != null && !oldNodeId.equals(targetNodeId)) {
-            remoteSchedulerManager.getBroker().subscribe(schedulerSession);
-        }
+        remoteSchedulerManager.getBroker().subscribe(schedulerSession);
 
         if (logger.isDebugEnabled()) {
             logger.debug("ConsoleClient joined scheduler management: session {}, targetNodeId: {}",

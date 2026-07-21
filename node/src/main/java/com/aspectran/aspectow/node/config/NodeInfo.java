@@ -35,6 +35,9 @@ public class NodeInfo extends DefaultParameters {
     private static final ParameterKey pulseInterval;
     private static final ParameterKey endpoint;
     private static final ParameterKey token;
+    private static final ParameterKey hasNodeManager;
+    private static final ParameterKey hasSchedulerManager;
+    private static final ParameterKey hasCommandManager;
 
     private static final ParameterKey[] parameterKeys;
 
@@ -49,6 +52,9 @@ public class NodeInfo extends DefaultParameters {
         pulseInterval = new ParameterKey("pulseInterval", ValueType.LONG);
         endpoint = new ParameterKey("endpoint", EndpointConfig.class);
         token = new ParameterKey("token", ValueType.STRING);
+        hasNodeManager = new ParameterKey("hasNodeManager", ValueType.BOOLEAN);
+        hasSchedulerManager = new ParameterKey("hasSchedulerManager", ValueType.BOOLEAN);
+        hasCommandManager = new ParameterKey("hasCommandManager", ValueType.BOOLEAN);
 
         parameterKeys = new ParameterKey[] {
                 id,
@@ -60,7 +66,10 @@ public class NodeInfo extends DefaultParameters {
                 status,
                 pulseInterval,
                 endpoint,
-                token
+                token,
+                hasNodeManager,
+                hasSchedulerManager,
+                hasCommandManager
         };
     }
 
@@ -249,6 +258,81 @@ public class NodeInfo extends DefaultParameters {
     }
 
     /**
+     * Returns whether the node has node management capability.
+     * @return true if enabled, false otherwise
+     */
+    public Boolean hasNodeManager() {
+        return getBoolean(hasNodeManager);
+    }
+
+    /**
+     * Returns whether the node has node management capability with a fallback.
+     * @param defaultValue the default value
+     * @return true if enabled, false otherwise
+     */
+    public boolean hasNodeManager(boolean defaultValue) {
+        return getBoolean(hasNodeManager, defaultValue);
+    }
+
+    /**
+     * Sets whether the node has node management capability.
+     * @param value true if enabled, false otherwise
+     */
+    public void setHasNodeManager(Boolean value) {
+        putValue(NodeInfo.hasNodeManager, value);
+    }
+
+    /**
+     * Returns whether the node has scheduler management capability.
+     * @return true if enabled, false otherwise
+     */
+    public Boolean hasSchedulerManager() {
+        return getBoolean(hasSchedulerManager);
+    }
+
+    /**
+     * Returns whether the node has scheduler management capability with a fallback.
+     * @param defaultValue the default value
+     * @return true if enabled, false otherwise
+     */
+    public boolean hasSchedulerManager(boolean defaultValue) {
+        return getBoolean(hasSchedulerManager, defaultValue);
+    }
+
+    /**
+     * Sets whether the node has scheduler management capability.
+     * @param value true if enabled, false otherwise
+     */
+    public void setHasSchedulerManager(Boolean value) {
+        putValue(NodeInfo.hasSchedulerManager, value);
+    }
+
+    /**
+     * Returns whether the node has command management capability.
+     * @return true if enabled, false otherwise
+     */
+    public Boolean hasCommandManager() {
+        return getBoolean(hasCommandManager);
+    }
+
+    /**
+     * Returns whether the node has command management capability with a fallback.
+     * @param defaultValue the default value
+     * @return true if enabled, false otherwise
+     */
+    public boolean hasCommandManager(boolean defaultValue) {
+        return getBoolean(hasCommandManager, defaultValue);
+    }
+
+    /**
+     * Sets whether the node has command management capability.
+     * @param value true if enabled, false otherwise
+     */
+    public void setHasCommandManager(Boolean value) {
+        putValue(NodeInfo.hasCommandManager, value);
+    }
+
+    /**
      * Create a copy of the current NodeInfo with updated values from the new dynamic state of the node
      * @param nodeInfo the new dynamic state to update for the node
      * @return the updated NodeInfo instance
@@ -269,6 +353,9 @@ public class NodeInfo extends DefaultParameters {
         newInfo.setPulseInterval(nodeInfo.getPulseInterval());
         newInfo.setEndpointConfig(nodeInfo.getEndpointConfig());
         newInfo.setToken(nodeInfo.getToken());
+        newInfo.setHasNodeManager(nodeInfo.hasNodeManager());
+        newInfo.setHasSchedulerManager(nodeInfo.hasSchedulerManager());
+        newInfo.setHasCommandManager(nodeInfo.hasCommandManager());
 
         return newInfo;
     }

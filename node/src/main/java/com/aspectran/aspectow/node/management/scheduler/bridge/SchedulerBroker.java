@@ -15,12 +15,14 @@
  */
 package com.aspectran.aspectow.node.management.scheduler.bridge;
 
+import com.aspectran.aspectow.node.config.NodeInfo;
 import com.aspectran.aspectow.node.management.scheduler.RemoteSchedulerManager;
 import com.aspectran.aspectow.node.manager.NodeMessagePublisher;
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -55,26 +57,58 @@ public class SchedulerBroker {
     }
 
     /**
-     * Subscribes a session to scheduler management updates.
+     * Subscribes a session to scheduler management updates across all nodes.
      * @param session the session to subscribe
      * @return true if the subscription was successful, false otherwise
      */
     public synchronized boolean subscribe(@NonNull SchedulerSession session) {
         if (session.isValid()) {
+            boolean alreadyInUse = subscriptionRegistry.isInUse();
             subscriptionRegistry.addSession(session.getId());
-            String targetNodeId = session.getNodeId();
-            if (remoteSchedulerManager.isSameNode(targetNodeId)) {
-                boolean alreadyInUse = subscriptionRegistry.isInUse();
-                subscriptionRegistry.addLocalSubscription(session.getId());
-                if (!alreadyInUse) {
-                    remoteSchedulerManager.startExporters();
-                }
-                return true;
-            } else if (remoteSchedulerManager.isGatewayMode()) {
-                publishControl(targetNodeId, CONTROL_SUBSCRIBE + remoteSchedulerManager.getNodeId() + ":" + session.getId());
+            subscriptionRegistry.addLocalSubscription(session.getId());
+            if (!alreadyInUse) {
+                remoteSchedulerManager.startExporters();
             }
+            if (remoteSchedulerManager.isGatewayMode()) {
+                subscribeAllRemoteNodes(session.getId());
+            }
+            return true;
         }
         return false;
+    }
+
+    /**
+     * Sends a subscription request to all remote nodes in the cluster for the given session.
+     * @param sessionId the session identifier
+     */
+    public void subscribeAllRemoteNodes(String sessionId) {
+        if (remoteSchedulerManager.isGatewayMode() && remoteSchedulerManager.getNodeManager() != null) {
+            List<NodeInfo> nodes = remoteSchedulerManager.getNodeManager().getNodeInfoList();
+            for (NodeInfo node : nodes) {
+                if (!remoteSchedulerManager.isSameNode(node.getId())) {
+                    subscribeRemoteNode(node.getId(), sessionId);
+                }
+            }
+        }
+    }
+
+    /**
+     * Sends a subscription request to a single remote node for the given session.
+     * @param targetNodeId the target node ID
+     * @param sessionId the session identifier
+     */
+    public void subscribeRemoteNode(String targetNodeId, String sessionId) {
+        if (remoteSchedulerManager.isGatewayMode()) {
+            publishControl(targetNodeId, CONTROL_SUBSCRIBE + remoteSchedulerManager.getNodeId() + (sessionId != null ? ":" + sessionId : ""));
+        }
+    }
+
+    /**
+     * Sends a subscription request to a single remote node.
+     * @param targetNodeId the target node ID
+     */
+    public void subscribeRemoteNode(String targetNodeId) {
+        subscribeRemoteNode(targetNodeId, null);
     }
 
     /**
@@ -97,13 +131,26 @@ public class SchedulerBroker {
      */
     public synchronized void unsubscribe(@NonNull SchedulerSession session) {
         subscriptionRegistry.removeLocalSubscription(session.getId());
-        String targetNodeId = session.getNodeId();
-        if (remoteSchedulerManager.isSameNode(targetNodeId)) {
-            if (!subscriptionRegistry.isInUse()) {
-                remoteSchedulerManager.stopExporters();
+        if (!subscriptionRegistry.isInUse()) {
+            remoteSchedulerManager.stopExporters();
+        }
+        if (remoteSchedulerManager.isGatewayMode()) {
+            unsubscribeAllRemoteNodes(session.getId());
+        }
+    }
+
+    /**
+     * Sends an unsubscribe request to all remote nodes for the given session.
+     * @param sessionId the session identifier
+     */
+    public void unsubscribeAllRemoteNodes(String sessionId) {
+        if (remoteSchedulerManager.isGatewayMode() && remoteSchedulerManager.getNodeManager() != null) {
+            List<NodeInfo> nodes = remoteSchedulerManager.getNodeManager().getNodeInfoList();
+            for (NodeInfo node : nodes) {
+                if (!remoteSchedulerManager.isSameNode(node.getId())) {
+                    publishControl(node.getId(), CONTROL_UNSUBSCRIBE + remoteSchedulerManager.getNodeId() + (sessionId != null ? ":" + sessionId : ""));
+                }
             }
-        } else if (remoteSchedulerManager.isGatewayMode()) {
-            publishControl(targetNodeId, CONTROL_UNSUBSCRIBE + remoteSchedulerManager.getNodeId() + ":" + session.getId());
         }
     }
 

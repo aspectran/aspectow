@@ -259,9 +259,19 @@ arguments: {
                 } else if (type === 'group') {
                     $container.show();
                     const groups = [...new Set(nodes.map(n => n.group).filter(g => g))];
-                    groups.forEach(g => $select.append(new Option(g, g)));
+                    groups.forEach(g => {
+                        const groupNodes = nodes.filter(n => n.group === g);
+                        const hasAnyCommandManager = groupNodes.some(n => n.hasCommandManager !== false && n.status?.toUpperCase() !== 'DEAD');
+                        const label = hasAnyCommandManager ? g : (g + ' [NO COMMAND MANAGER]');
+                        const option = new Option(label, g);
+                        if (!hasAnyCommandManager) {
+                            $(option).addClass('text-secondary');
+                        }
+                        $select.append(option);
+                    });
                     resetDeadStatus();
                     updateUrl();
+                    checkSelectedGroupStatus($select.val());
                 } else {
                     const prevValue = $select.val();
                     $container.show();
@@ -270,11 +280,14 @@ arguments: {
                         groups.forEach(group => {
                             const $optgroup = $('<optgroup>').attr('label', group);
                             nodes.filter(n => n.group === group).forEach(n => {
-                                const title = n.title ? n.title + ' (' + n.id + ')' : n.id;
+                                const title = (n.title && n.title !== n.id) ? (n.title + ' (' + n.id + ')') : n.id;
                                 const option = new Option(title, n.id);
                                 if (n.status && n.status.toUpperCase() === 'DEAD') {
                                     $(option).addClass('text-danger');
                                     option.text += ' [DEAD]';
+                                } else if (n.hasCommandManager === false) {
+                                    $(option).addClass('text-secondary');
+                                    option.text += ' [NO COMMAND MANAGER]';
                                 }
                                 $optgroup.append(option);
                             });
@@ -283,22 +296,28 @@ arguments: {
                         const nogroup = nodes.filter(n => !n.group);
                         if (nogroup.length > 0) {
                             nogroup.forEach(n => {
-                                const title = n.title ? n.title + ' (' + n.id + ')' : n.id;
+                                const title = (n.title && n.title !== n.id) ? (n.title + ' (' + n.id + ')') : n.id;
                                 const option = new Option(title, n.id);
                                 if (n.status && n.status.toUpperCase() === 'DEAD') {
                                     $(option).addClass('text-danger');
                                     option.text += ' [DEAD]';
+                                } else if (n.hasCommandManager === false) {
+                                    $(option).addClass('text-secondary');
+                                    option.text += ' [NO COMMAND MANAGER]';
                                 }
                                 $select.append(option);
                             });
                         }
                     } else {
                         nodes.forEach(n => {
-                            const title = n.title ? n.title + ' (' + n.id + ')' : n.id;
+                            const title = (n.title && n.title !== n.id) ? (n.title + ' (' + n.id + ')') : n.id;
                             const option = new Option(title, n.id);
                             if (n.status && n.status.toUpperCase() === 'DEAD') {
                                 $(option).addClass('text-danger');
                                 option.text += ' [DEAD]';
+                            } else if (n.hasCommandManager === false) {
+                                $(option).addClass('text-secondary');
+                                option.text += ' [NO COMMAND MANAGER]';
                             }
                             $select.append(option);
                         });
@@ -329,6 +348,12 @@ arguments: {
             function checkSelectedNodeStatus(nodeId) {
                 const nodeInfo = nodes.find(n => n.id === nodeId);
                 const isDead = nodeInfo && nodeInfo.status && nodeInfo.status.toUpperCase() === 'DEAD';
+                const isUnsupported = nodeInfo && nodeInfo.hasCommandManager === false;
+
+                if (isUnsupported) {
+                    renderUnsupportedError(nodeId);
+                    return false;
+                }
 
                 if (clusterMode === 'gateway') {
                     if (isDead) {
@@ -356,6 +381,40 @@ arguments: {
                         return true;
                     }
                 }
+            }
+
+            function checkSelectedGroupStatus(groupName) {
+                if (!groupName) return true;
+                const groupNodes = nodes.filter(n => n.group === groupName);
+                const hasAnyCommandManager = groupNodes.some(n => n.hasCommandManager !== false && n.status?.toUpperCase() !== 'DEAD');
+                if (!hasAnyCommandManager) {
+                    renderUnsupportedGroupError(groupName);
+                    return false;
+                }
+                resetDeadStatus();
+                return true;
+            }
+
+            function renderUnsupportedGroupError(groupName) {
+                $('#connection-indicator').text("UNSUPPORTED").removeClass("bg-success bg-warning bg-danger").addClass("bg-secondary");
+                $('#result-view').html(`
+                    <div class="text-center py-4">
+                        <i class="bi bi-dash-circle fs-2 text-secondary mb-2"></i>
+                        <h6 class="fw-bold">Command Management Not Available</h6>
+                        <p class="text-muted small">No active Command Manager nodes found in group <strong>${groupName}</strong>.</p>
+                    </div>
+                `);
+            }
+
+            function renderUnsupportedError(nodeId) {
+                $('#connection-indicator').text("UNSUPPORTED").removeClass("bg-success bg-warning bg-danger").addClass("bg-secondary");
+                $('#result-view').html(`
+                    <div class="text-center py-4">
+                        <i class="bi bi-dash-circle fs-2 text-secondary mb-2"></i>
+                        <h6 class="fw-bold">Command Management Not Available</h6>
+                        <p class="text-muted small">Node <strong>${nodeId}</strong> does not have an active Command Manager service.</p>
+                    </div>
+                `);
             }
 
             function renderUnreachableError(nodeId) {
@@ -417,6 +476,16 @@ arguments: {
                 
                 if (targetType === 'node' && !checkSelectedNodeStatus(targetValue)) {
                     return;
+                }
+                if (targetType === 'group' && !checkSelectedGroupStatus(targetValue)) {
+                    return;
+                }
+                if (targetType === 'all') {
+                    const hasAnyCommandManager = nodes.some(n => n.hasCommandManager !== false && n.status?.toUpperCase() !== 'DEAD');
+                    if (!hasAnyCommandManager) {
+                        renderUnsupportedGroupError('Cluster');
+                        return;
+                    }
                 }
 
                 let targetDisplay = 'All Nodes';

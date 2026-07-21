@@ -86,6 +86,12 @@
         .log-wrapper.expanded .log-header {
             border-radius: 0;
             padding: 10px 20px;
+            background: #252526;
+            border-bottom: 1px solid #333;
+        }
+        .log-wrapper.expanded .expand-btn {
+            color: #569cd6 !important;
+            font-weight: bold;
         }
         .log-wrapper.expanded .log-container {
             flex: 1;
@@ -338,11 +344,14 @@
                     groups.forEach(group => {
                         const $optgroup = $('<optgroup>').attr('label', group);
                         nodes.filter(n => n.group === group).forEach(n => {
-                            const title = n.title ? n.title + ' (' + n.id + ')' : n.id;
+                            const title = (n.title && n.title !== n.id) ? (n.title + ' (' + n.id + ')') : n.id;
                             const option = new Option(title, n.id);
                             if (n.status && n.status.toUpperCase() === 'DEAD') {
                                 $(option).addClass('text-danger');
                                 option.text += ' [DEAD]';
+                            } else if (n.hasSchedulerManager === false) {
+                                $(option).addClass('text-secondary');
+                                option.text += ' [NO SCHEDULER MANAGER]';
                             }
                             $optgroup.append(option);
                         });
@@ -351,23 +360,29 @@
                     const nogroup = nodes.filter(n => !n.group);
                     if (nogroup.length > 0) {
                         nogroup.forEach(n => {
-                            const title = n.title ? n.title + ' (' + n.id + ')' : n.id;
+                            const title = (n.title && n.title !== n.id) ? (n.title + ' (' + n.id + ')') : n.id;
                             const option = new Option(title, n.id);
                             if (n.status && n.status.toUpperCase() === 'DEAD') {
                                 $(option).addClass('text-danger');
                                 option.text += ' [DEAD]';
+                            } else if (n.hasSchedulerManager === false) {
+                                $(option).addClass('text-secondary');
+                                option.text += ' [NO SCHEDULER MANAGER]';
                             }
                             $select.append(option);
                         });
                     }
                 } else {
                     nodes.forEach(n => {
-                        const title = n.title ? n.title + ' (' + n.id + ')' : n.id;
+                        const title = (n.title && n.title !== n.id) ? (n.title + ' (' + n.id + ')') : n.id;
                         const option = new Option(title, n.id);
                         const isMainNode = (n.id === currentNodeId);
                         if (n.status && n.status.toUpperCase() === 'DEAD' && (isMainNode || n.healthChecked)) {
                             $(option).addClass('text-danger');
                             option.text += ' [DEAD]';
+                        } else if (n.hasSchedulerManager === false) {
+                            $(option).addClass('text-secondary');
+                            option.text += ' [NO SCHEDULER MANAGER]';
                         }
                         $select.append(option);
                     });
@@ -385,6 +400,52 @@
 
             let currentViewMode = 'dashboard';
 
+            let detailNodeTimer = null;
+
+            function requestDetailNodeServices(nodeId) {
+                if (detailNodeTimer) {
+                    clearTimeout(detailNodeTimer);
+                    detailNodeTimer = null;
+                }
+                const targetNode = nodes.find(n => n.id === nodeId);
+                if (targetNode && targetNode.hasSchedulerManager === false) {
+                    showDetailViewUnsupportedError(nodeId);
+                    return;
+                }
+                if (!consoleClient || !consoleClient.established) return;
+
+                $('#scheduler-container').html('<div class="text-center py-5"><div class="spinner-border text-primary"></div><p class="mt-2 text-muted">Fetching data from ' + nodeId + '...</p></div>');
+
+                const request = {
+                    header: "execute",
+                    targetNodeId: nodeId,
+                    command: "services"
+                };
+                consoleClient.sendMessage(request);
+
+                detailNodeTimer = setTimeout(() => {
+                    showDetailViewUnsupportedError(nodeId);
+                }, 3000);
+            }
+
+            function showDetailViewUnsupportedError(nodeId) {
+                if (detailNodeTimer) {
+                    clearTimeout(detailNodeTimer);
+                    detailNodeTimer = null;
+                }
+                $('#scheduler-container').html(`
+                    <div class="text-center py-5">
+                        <i class="bi bi-dash-circle fs-1 text-secondary mb-3"></i>
+                        <h5 class="fw-bold">Scheduler Management Not Available</h5>
+                        <p class="text-muted">The node <strong>${nodeId}</strong> does not have an active Scheduler Manager service.</p>
+                        <button class="btn btn-sm btn-outline-secondary mt-2" onclick="connectToNode('${nodeId}', true)">
+                            <i class="bi bi-arrow-clockwise me-1"></i> Retry
+                        </button>
+                    </div>
+                `);
+                updateStats('-', '-', '-', nodeId);
+            }
+
             function doConnectToNode(nodeId) {
                 currentNodeId = nodeId;
                 updateStats('-', '-', '-', nodeId);
@@ -395,17 +456,19 @@
                     return;
                 }
 
-                if (currentViewMode === 'detail') {
-                    $('#scheduler-container').html('<div class="text-center py-5"><div class="spinner-border text-primary"></div><p class="mt-2 text-muted">Fetching data from ' + nodeId + '...</p></div>');
-                }
-
                 if (consoleClient && consoleClient.established) {
-                    $('#connection-indicator').text("CONNECTING...").removeClass("bg-success bg-danger bg-warning").addClass("bg-secondary");
+                    $('#connection-indicator').text("CONNECTED").removeClass("bg-secondary bg-danger bg-warning").addClass("bg-success");
                     const request = {
                         header: "subscribe",
                         targetNodeId: nodeId
                     };
                     consoleClient.sendMessage(request);
+
+                    if (currentViewMode === 'detail') {
+                        requestDetailNodeServices(nodeId);
+                    } else {
+                        renderDashboard();
+                    }
                     return;
                 }
 
@@ -449,12 +512,7 @@
                         $('#connection-indicator').text("CONNECTED").removeClass("bg-secondary bg-danger bg-warning").addClass("bg-success");
                         
                         if (currentViewMode === 'detail') {
-                            const request = {
-                                header: "execute",
-                                targetNodeId: currentNodeId,
-                                command: "services"
-                            };
-                            consoleClient.sendMessage(request);
+                            requestDetailNodeServices(currentNodeId);
                         } else {
                             renderDashboard();
                         }
@@ -506,7 +564,9 @@
                         updateDashboardNodeCard(respNodeId, response.data);
                     }
                 } else if (response.header === 'log') {
-                    if (currentViewMode === 'detail' && respNodeId === currentNodeId) {
+                    if (currentViewMode === 'dashboard') {
+                        appendClusterDashboardLogLine(response.nodeId, response.owner, response.data);
+                    } else if (currentViewMode === 'detail' && respNodeId === currentNodeId) {
                         appendLogLine(response.owner, response.data);
                     }
                 } else if (response.header === 'previousLogs') {
@@ -531,15 +591,21 @@
                         }, 1500);
                         return;
                     }
+                    const joinedNodeId = response.nodeId;
                     refreshNodeList().then(() => {
-                        const joinedNode = nodes.find(n => n.id === response.nodeId);
+                        const joinedNode = nodes.find(n => n.id === joinedNodeId);
                         if (joinedNode) {
                             joinedNode.status = 'active';
                             renderNodeSelector();
                         }
                         if (currentViewMode === 'dashboard') {
                             renderDashboard();
-                        } else if (response.nodeId === currentNodeId && (!consoleClient || !consoleClient.established)) {
+                            setTimeout(() => {
+                                if ($(`#status-text-${joinedNodeId}`).text() === 'CONNECTING...') {
+                                    requestDashboardNodeServices(joinedNodeId);
+                                }
+                            }, 1000);
+                        } else if (joinedNodeId === currentNodeId && (!consoleClient || !consoleClient.established)) {
                             setTimeout(() => {
                                 connectToNode(currentNodeId);
                             }, 1000);
@@ -554,30 +620,55 @@
                 }
             }
 
-            function renderDashboard() {
-                let html = '<div class="row g-3" id="nodes-dashboard">';
-                const query = ($('#node-search').val() || '').toLowerCase();
-                const filteredNodes = nodes.filter(n => {
-                    const idMatch = n.id.toLowerCase().includes(query);
-                    const titleMatch = (n.title || '').toLowerCase().includes(query);
-                    const groupMatch = (n.group || '').toLowerCase().includes(query);
-                    return idMatch || titleMatch || groupMatch;
-                });
+            const dashboardNodeTimers = {};
 
-                if (filteredNodes.length === 0) {
+            function requestDashboardNodeServices(nodeId) {
+                if (dashboardNodeTimers[nodeId]) {
+                    clearTimeout(dashboardNodeTimers[nodeId]);
+                }
+                if (!consoleClient || !consoleClient.established) return;
+
+                const request = {
+                    header: "execute",
+                    targetNodeId: nodeId,
+                    command: "services"
+                };
+                consoleClient.sendMessage(request);
+
+                dashboardNodeTimers[nodeId] = setTimeout(() => {
+                    markDashboardNodeUnsupported(nodeId);
+                }, 3000);
+            }
+
+            function markDashboardNodeUnsupported(nodeId) {
+                delete dashboardNodeTimers[nodeId];
+                const $led = $(`#led-${nodeId}`);
+                const $statusText = $(`#status-text-${nodeId}`);
+                const $info = $(`#info-${nodeId}`);
+
+                $led.removeClass('connecting live dead').addClass('bg-secondary');
+                $statusText.text('N/A').removeClass('text-muted text-success text-danger').addClass('text-secondary');
+                $info.html('<p class="text-muted small mb-0 py-1" style="font-size:0.75rem;"><i class="bi bi-dash-circle me-1"></i> Scheduler Not Active</p>');
+                recalculateStats();
+            }
+
+            function renderDashboard() {
+                let html = '<div class="row g-3 mb-4" id="nodes-dashboard">';
+                if (!nodes || nodes.length === 0) {
                     html += `<div class="col-12 text-center py-5">
                         <i class="bi bi-search fs-1 text-muted mb-3"></i>
-                        <h5 class="fw-bold">No nodes match your search</h5>
+                        <h5 class="fw-bold">No nodes found</h5>
                     </div>`;
                 } else {
-                    filteredNodes.forEach(n => {
+                    nodes.forEach(n => {
                         const title = n.title ? n.title : n.id;
+                        const group = n.group ? n.group : '';
                         const isDead = (n.status && n.status.toUpperCase() === 'DEAD');
                         const statusClass = isDead ? 'dead' : 'connecting';
                         const statusText = isDead ? 'DEAD' : 'CONNECTING...';
                         
                         html += `
-                        <div class="col-md-4 col-sm-6 node-card-wrapper" data-node-id="${n.id}">
+                        <div class="col-md-4 col-sm-6 node-card-wrapper" data-node-id="${n.id}" data-node-title="${title}" data-node-group="${group}">
                             <div class="card node-grid-card shadow-sm p-3 h-100" onclick="selectNodeFromDashboard('${n.id}')">
                                 <div class="d-flex justify-content-between align-items-center mb-2">
                                     <h6 class="fw-bold mb-0 text-truncate" style="max-width: 70%;" title="${title}">${title}</h6>
@@ -596,21 +687,130 @@
                     });
                 }
                 html += '</div>';
+
+                html += `
+                <div class="card scheduler-card shadow-sm overflow-hidden mt-4">
+                    <div id="log-wrapper-cluster-dashboard" class="log-wrapper">
+                        <div class="log-header">
+                            <span><i class="bi bi-terminal-fill me-2 text-primary"></i>Live Cluster Scheduler Logs (All Nodes)</span>
+                            <div class="d-flex align-items-center gap-3">
+                                <button class="btn btn-link btn-xs text-secondary p-0 text-decoration-none" onclick="clearClusterDashboardLog()">
+                                    <i class="bi bi-trash3"></i> Clear
+                                </button>
+                                <button class="btn btn-link btn-xs text-secondary p-0 text-decoration-none expand-btn" onclick="toggleExpandClusterDashboardLog()">
+                                    <i class="bi bi-arrows-angle-expand"></i> Expand
+                                </button>
+                                <div class="form-check form-check-inline m-0 d-flex align-items-center">
+                                    <input class="form-check-input me-2" type="checkbox" id="auto-scroll-cluster-dashboard" checked style="cursor:pointer">
+                                    <label class="form-check-label text-secondary" for="auto-scroll-cluster-dashboard" style="cursor:pointer; font-size: 0.75rem;">Auto-scroll</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="log-viewer-cluster-dashboard" class="log-container">
+                            <div class="text-muted italic">Listening for live log events from all cluster nodes...</div>
+                        </div>
+                    </div>
+                </div>
+                `;
+
                 $('#scheduler-container').html(html);
 
-                filteredNodes.forEach(n => {
+                nodes.forEach(n => {
                     const isDead = (n.status && n.status.toUpperCase() === 'DEAD');
-                    if (!isDead && consoleClient && consoleClient.established) {
-                        const request = {
-                            header: "execute",
-                            targetNodeId: n.id,
-                            command: "services"
-                        };
-                        consoleClient.sendMessage(request);
+                    if (isDead) return;
+
+                    if (n.hasSchedulerManager === false) {
+                        markDashboardNodeUnsupported(n.id);
+                    } else if (consoleClient && consoleClient.established) {
+                        requestDashboardNodeServices(n.id);
                     }
                 });
 
+                filterDashboardNodes();
+            }
+
+            function filterDashboardNodes() {
+                const query = ($('#node-search').val() || '').toLowerCase();
+                let visibleCount = 0;
+                $('#nodes-dashboard .node-card-wrapper').each(function() {
+                    const id = ($(this).data('node-id') || '').toString().toLowerCase();
+                    const title = ($(this).data('node-title') || '').toString().toLowerCase();
+                    const group = ($(this).data('node-group') || '').toString().toLowerCase();
+                    const match = !query || id.includes(query) || title.includes(query) || group.includes(query);
+                    $(this).toggle(match);
+                    if (match) visibleCount++;
+                });
+
+                let $noMatch = $('#no-nodes-match-msg');
+                if (visibleCount === 0 && nodes && nodes.length > 0) {
+                    if ($noMatch.length === 0) {
+                        $('#nodes-dashboard').append(`
+                            <div id="no-nodes-match-msg" class="col-12 text-center py-5">
+                                <i class="bi bi-search fs-1 text-muted mb-3"></i>
+                                <h5 class="fw-bold">No nodes match your search</h5>
+                            </div>
+                        `);
+                    } else {
+                        $noMatch.show();
+                    }
+                } else if ($noMatch.length > 0) {
+                    $noMatch.hide();
+                }
                 recalculateStats();
+            }
+
+            function appendClusterDashboardLogLine(nodeId, owner, logLine) {
+                const $container = $('#log-viewer-cluster-dashboard');
+                if ($container.length === 0) return;
+
+                if ($container.find('.text-muted').length > 0) {
+                    $container.empty();
+                }
+
+                const $line = $('<p class="log-line"></p>');
+                const $nodeTag = $('<span class="badge bg-secondary me-1 font-monospace" style="font-size:0.65rem;"></span>').text(nodeId || 'unknown');
+                const $ownerTag = owner ? $('<span class="badge bg-dark-subtle text-body-secondary me-2 font-monospace" style="font-size:0.65rem;"></span>').text(owner) : null;
+
+                $line.append($nodeTag);
+                if ($ownerTag) $line.append($ownerTag);
+                $line.append(document.createTextNode(logLine));
+
+                $container.append($line);
+
+                if ($container.children('.log-line').length > 2000) {
+                    $container.children('.log-line').first().remove();
+                }
+
+                if ($('#auto-scroll-cluster-dashboard').is(':checked')) {
+                    $container.scrollTop($container[0].scrollHeight);
+                }
+            }
+
+            function clearClusterDashboardLog() {
+                const $container = $('#log-viewer-cluster-dashboard');
+                $container.empty().append('<div class="text-muted italic">Log cleared. Listening for live log events...</div>');
+            }
+
+            function toggleExpandClusterDashboardLog() {
+                const $wrapper = $('#log-wrapper-cluster-dashboard');
+                const isExpanded = $wrapper.toggleClass('expanded').hasClass('expanded');
+                const $btn = $wrapper.find('.expand-btn');
+                const $icon = $btn.find('i');
+                const $container = $('#log-viewer-cluster-dashboard');
+
+                if (isExpanded) {
+                    $icon.removeClass('bi-arrows-angle-expand').addClass('bi-arrows-angle-contract');
+                    $btn.contents().last()[0].textContent = ' Collapse';
+                    $('body').css('overflow', 'hidden');
+                } else {
+                    $icon.removeClass('bi-arrows-angle-contract').addClass('bi-arrows-angle-expand');
+                    $btn.contents().last()[0].textContent = ' Expand';
+                    $('body').css('overflow', '');
+                }
+
+                if ($('#auto-scroll-cluster-dashboard').is(':checked')) {
+                    $container.scrollTop($container[0].scrollHeight);
+                }
             }
 
             function selectNodeFromDashboard(nodeId) {
@@ -619,12 +819,16 @@
             }
 
             function updateDashboardNodeCard(nodeId, services) {
+                if (dashboardNodeTimers[nodeId]) {
+                    clearTimeout(dashboardNodeTimers[nodeId]);
+                    delete dashboardNodeTimers[nodeId];
+                }
                 const $led = $(`#led-${nodeId}`);
                 const $statusText = $(`#status-text-${nodeId}`);
                 const $info = $(`#info-${nodeId}`);
 
-                $led.removeClass('connecting dead').addClass('live');
-                $statusText.text('LIVE').removeClass('text-muted').addClass('text-success');
+                $led.removeClass('connecting dead bg-secondary').addClass('live');
+                $statusText.text('LIVE').removeClass('text-muted text-secondary text-danger').addClass('text-success');
 
                 let totalSchedules = 0;
                 let activeSchedules = 0;
@@ -769,6 +973,10 @@
             }
 
             function renderSchedulerList(services) {
+                if (detailNodeTimer) {
+                    clearTimeout(detailNodeTimer);
+                    detailNodeTimer = null;
+                }
                 let html = '';
                 let totalSchedules = 0;
                 let totalActiveSchedules = 0;
@@ -1119,6 +1327,20 @@
                 connectToNode(currentNodeId);
                 checkDirectNodesHealth();
 
+                $(document).on('keydown', function(e) {
+                    if (e.key === 'Escape') {
+                        $('.log-wrapper.expanded').each(function() {
+                            const wrapperId = $(this).attr('id');
+                            if (wrapperId === 'log-wrapper-cluster-dashboard') {
+                                toggleExpandClusterDashboardLog();
+                            } else if (wrapperId && wrapperId.startsWith('log-wrapper-')) {
+                                const loggingGroup = wrapperId.replace('log-wrapper-', '');
+                                toggleExpandLog(loggingGroup);
+                            }
+                        });
+                    }
+                });
+
                 $('#btn-view-dashboard').on('click', function() {
                     currentViewMode = 'dashboard';
                     $(this).addClass('active');
@@ -1139,7 +1361,7 @@
 
                 $('#node-search').on('input', function() {
                     if (currentViewMode === 'dashboard') {
-                        renderDashboard();
+                        filterDashboardNodes();
                     } else {
                         const query = $(this).val().toLowerCase();
                         $('#node-selector option').each(function() {
