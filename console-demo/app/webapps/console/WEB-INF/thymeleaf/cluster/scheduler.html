@@ -131,6 +131,29 @@
             background-color: var(--bs-warning);
             box-shadow: 0 0 8px var(--bs-warning);
         }
+        @keyframes logPulseGlow {
+            0% {
+                box-shadow: 0 0 0 2px var(--bs-primary), 0 0 14px rgba(13, 110, 253, 0.5);
+                transform: translateY(-2px);
+            }
+            50% {
+                box-shadow: 0 0 0 2px var(--bs-primary), 0 0 18px rgba(13, 110, 253, 0.7);
+            }
+            100% {
+                box-shadow: var(--bs-box-shadow-sm);
+                transform: translateY(0);
+            }
+        }
+        .node-grid-card.log-pulsing {
+            animation: logPulseGlow 0.8s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        @keyframes ledFlash {
+            0% { transform: scale(1.5); filter: brightness(1.6); }
+            100% { transform: scale(1); filter: brightness(1); }
+        }
+        .status-led.log-flash {
+            animation: ledFlash 0.5s ease-out;
+        }
     </style>
 </head>
 <body>
@@ -653,7 +676,17 @@
             }
 
             function renderDashboard() {
-                let html = '<div class="row g-3 mb-4" id="nodes-dashboard">';
+                let html = '<div class="row g-4" id="dashboard-view-container">';
+                
+                // Left Column: Node Cards (Spacious Layout)
+                html += '<div class="col-lg-5 col-xl-4 col-md-12 d-flex flex-column">';
+                html += '<div class="d-flex justify-content-between align-items-center mb-2 px-1">';
+                html += '<span class="fw-bold text-uppercase small text-muted"><i class="bi bi-grid-fill me-1"></i> Cluster Nodes</span>';
+                html += '<span class="badge bg-secondary-subtle text-secondary small" id="dashboard-node-count">' + (nodes ? nodes.length : 0) + ' Nodes</span>';
+                html += '</div>';
+                html += '<div id="nodes-dashboard-scroll" style="max-height: calc(100vh - 400px); overflow-y: auto; overflow-x: hidden; padding-right: 2px;">';
+                html += '<div class="row g-3 mx-0" id="nodes-dashboard">';
+                
                 if (!nodes || nodes.length === 0) {
                     html += `<div class="col-12 text-center py-5">
                         <i class="bi bi-search fs-1 text-muted mb-3"></i>
@@ -668,7 +701,7 @@
                         const statusText = isDead ? 'DEAD' : 'CONNECTING...';
                         
                         html += `
-                        <div class="col-md-4 col-sm-6 node-card-wrapper" data-node-id="${n.id}" data-node-title="${title}" data-node-group="${group}">
+                        <div class="col-12 node-card-wrapper px-0 py-1" data-node-id="${n.id}" data-node-title="${title}" data-node-group="${group}">
                             <div class="card node-grid-card shadow-sm p-3 h-100" onclick="selectNodeFromDashboard('${n.id}')">
                                 <div class="d-flex justify-content-between align-items-center mb-2">
                                     <h6 class="fw-bold mb-0 text-truncate" style="max-width: 70%;" title="${title}">${title}</h6>
@@ -686,32 +719,35 @@
                         </div>`;
                     });
                 }
-                html += '</div>';
+                html += '</div></div></div>';
 
+                // Right Column: Live Logs (Fills remaining height)
                 html += `
-                <div class="card scheduler-card shadow-sm overflow-hidden mt-4">
-                    <div id="log-wrapper-cluster-dashboard" class="log-wrapper">
-                        <div class="log-header">
-                            <span><i class="bi bi-terminal-fill me-2 text-primary"></i>Live Cluster Scheduler Logs (All Nodes)</span>
-                            <div class="d-flex align-items-center gap-3">
-                                <button class="btn btn-link btn-xs text-secondary p-0 text-decoration-none" onclick="clearClusterDashboardLog()">
-                                    <i class="bi bi-trash3"></i> Clear
-                                </button>
-                                <button class="btn btn-link btn-xs text-secondary p-0 text-decoration-none expand-btn" onclick="toggleExpandClusterDashboardLog()">
-                                    <i class="bi bi-arrows-angle-expand"></i> Expand
-                                </button>
-                                <div class="form-check form-check-inline m-0 d-flex align-items-center">
-                                    <input class="form-check-input me-2" type="checkbox" id="auto-scroll-cluster-dashboard" checked style="cursor:pointer">
-                                    <label class="form-check-label text-secondary" for="auto-scroll-cluster-dashboard" style="cursor:pointer; font-size: 0.75rem;">Auto-scroll</label>
+                <div class="col-lg-7 col-xl-8 col-md-12 d-flex flex-column">
+                    <div class="card scheduler-card shadow-sm overflow-hidden flex-grow-1" style="height: calc(100vh - 400px); min-height: 500px;">
+                        <div id="log-wrapper-cluster-dashboard" class="log-wrapper h-100 d-flex flex-column">
+                            <div class="log-header">
+                                <span><i class="bi bi-terminal-fill me-2 text-primary"></i>Live Cluster Logs (All Nodes)</span>
+                                <div class="d-flex align-items-center gap-3">
+                                    <button class="btn btn-link btn-xs text-secondary p-0 text-decoration-none" onclick="clearClusterDashboardLog()">
+                                        <i class="bi bi-trash3"></i> Clear
+                                    </button>
+                                    <button class="btn btn-link btn-xs text-secondary p-0 text-decoration-none expand-btn" onclick="toggleExpandClusterDashboardLog()">
+                                        <i class="bi bi-arrows-angle-expand"></i> Expand
+                                    </button>
+                                    <div class="form-check form-check-inline m-0 d-flex align-items-center">
+                                        <input class="form-check-input me-2" type="checkbox" id="auto-scroll-cluster-dashboard" checked style="cursor:pointer">
+                                        <label class="form-check-label text-secondary" for="auto-scroll-cluster-dashboard" style="cursor:pointer; font-size: 0.75rem;">Auto-scroll</label>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div id="log-viewer-cluster-dashboard" class="log-container">
-                            <div class="text-muted italic">Listening for live log events from all cluster nodes...</div>
+                            <div id="log-viewer-cluster-dashboard" class="log-container flex-grow-1" style="height: 100%; min-height: 440px;">
+                                <div class="text-muted italic">Listening for live log events from all cluster nodes...</div>
+                            </div>
                         </div>
                     </div>
                 </div>
-                `;
+                </div>`;
 
                 $('#scheduler-container').html(html);
 
@@ -783,6 +819,23 @@
 
                 if ($('#auto-scroll-cluster-dashboard').is(':checked')) {
                     $container.scrollTop($container[0].scrollHeight);
+                }
+
+                if (nodeId) {
+                    const $wrapper = $(`.node-card-wrapper[data-node-id="${nodeId}"]`);
+                    if ($wrapper.length > 0) {
+                        const $card = $wrapper.find('.node-grid-card');
+                        const $led = $wrapper.find('.status-led');
+                        $card.removeClass('log-pulsing');
+                        $led.removeClass('log-flash');
+                        if ($card.length > 0 && $card[0]) void $card[0].offsetWidth; // trigger reflow
+                        $card.addClass('log-pulsing');
+                        $led.addClass('log-flash');
+                        setTimeout(() => {
+                            $card.removeClass('log-pulsing');
+                            $led.removeClass('log-flash');
+                        }, 800);
+                    }
                 }
             }
 
