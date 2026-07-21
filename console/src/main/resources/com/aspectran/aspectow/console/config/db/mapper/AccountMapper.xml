@@ -37,7 +37,15 @@
     </select>
 
     <select id="getUserList" resultMap="UserResultMap">
-        select * from asc_user order by user_id desc
+        select * from asc_user
+        <where>
+            <if test="searchKeyword != null and searchKeyword != ''">
+                (lower(username) like lower(concat('%', #{searchKeyword}, '%'))
+                or lower(nickname) like lower(concat('%', #{searchKeyword}, '%'))
+                or lower(email) like lower(concat('%', #{searchKeyword}, '%')))
+            </if>
+        </where>
+        order by user_id desc
         <if test="pageInfo != null">
             limit #{pageInfo.size} offset #{pageInfo.offset}
         </if>
@@ -45,6 +53,13 @@
 
     <select id="getUserCount" resultType="long">
         select count(*) from asc_user
+        <where>
+            <if test="searchKeyword != null and searchKeyword != ''">
+                (lower(username) like lower(concat('%', #{searchKeyword}, '%'))
+                or lower(nickname) like lower(concat('%', #{searchKeyword}, '%'))
+                or lower(email) like lower(concat('%', #{searchKeyword}, '%')))
+            </if>
+        </where>
     </select>
 
     <insert id="insertUser" parameterType="com.aspectran.aspectow.console.common.db.model.User" useGeneratedKeys="true" keyProperty="userId">
@@ -122,9 +137,18 @@
 
     <select id="getLoginHistoryList" resultType="com.aspectran.aspectow.console.common.db.model.LoginHistory">
         select * from asc_login_history
-        <if test="username != null and username != ''">
-            where username = #{username}
-        </if>
+        <where>
+            <if test="username != null and username != ''">
+                username = #{username}
+            </if>
+            <if test="searchKeyword != null and searchKeyword != ''">
+                and (
+                    lower(username) like lower(concat('%', #{searchKeyword}, '%'))
+                    or lower(ip_address) like lower(concat('%', #{searchKeyword}, '%'))
+                    or lower(user_agent) like lower(concat('%', #{searchKeyword}, '%'))
+                )
+            </if>
+        </where>
         order by history_id desc
         <if test="pageInfo != null">
             limit #{pageInfo.size} offset #{pageInfo.offset}
@@ -133,9 +157,18 @@
 
     <select id="getLoginHistoryCount" resultType="long">
         select count(*) from asc_login_history
-        <if test="username != null and username != ''">
-            where username = #{username}
-        </if>
+        <where>
+            <if test="username != null and username != ''">
+                username = #{username}
+            </if>
+            <if test="searchKeyword != null and searchKeyword != ''">
+                and (
+                    lower(username) like lower(concat('%', #{searchKeyword}, '%'))
+                    or lower(ip_address) like lower(concat('%', #{searchKeyword}, '%'))
+                    or lower(user_agent) like lower(concat('%', #{searchKeyword}, '%'))
+                )
+            </if>
+        </where>
     </select>
 
 </mapper>

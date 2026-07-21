@@ -59,11 +59,21 @@ public interface UserService {
     boolean isPasswordChangeRequired(User user, String password);
 
     /**
+     * Retrieves users with pagination and search keyword.
+     * @param pageInfo the pagination info
+     * @param searchKeyword the search keyword
+     * @return the list of users
+     */
+    List<User> getUserList(PageInfo pageInfo, String searchKeyword);
+
+    /**
      * Retrieves all users.
      * @param pageInfo the pagination info
      * @return the list of users
      */
-    List<User> getUserList(PageInfo pageInfo);
+    default List<User> getUserList(PageInfo pageInfo) {
+        return getUserList(pageInfo, null);
+    }
 
     /**
      * Retrieves all roles.
@@ -121,11 +131,22 @@ public interface UserService {
     void recordLogin(String username, String ipAddress, String userAgent, boolean success);
 
     /**
-     * Retrieves the login history for a specific user.
-     * @param username the username of the user
+     * Retrieves the login history for a specific user with search keyword.
      * @param pageInfo the pagination info
+     * @param username the username of the user
+     * @param searchKeyword the search keyword
      * @return the list of login history records
      */
-    List<LoginHistory> getLoginHistoryList(String username, PageInfo pageInfo);
+    List<LoginHistory> getLoginHistoryList(PageInfo pageInfo, String username, String searchKeyword);
+
+    /**
+     * Retrieves the login history for a specific user.
+     * @param pageInfo the pagination info
+     * @param username the username of the user
+     * @return the list of login history records
+     */
+    default List<LoginHistory> getLoginHistoryList(PageInfo pageInfo, String username) {
+        return getLoginHistoryList(pageInfo, username, null);
+    }
 
 }

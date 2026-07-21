@@ -55,10 +55,10 @@ public class VaultServiceImpl implements VaultService {
     }
 
     @Override
-    public List<Vault> getVaultList(PageInfo pageInfo) {
-        List<Vault> vaultList = vaultMapper.getVaultList(pageInfo);
+    public List<Vault> getVaultList(PageInfo pageInfo, String searchKeyword) {
+        List<Vault> vaultList = vaultMapper.getVaultList(pageInfo, searchKeyword);
         if (pageInfo != null) {
-            pageInfo.setTotalElements(vaultList.size(), () -> vaultMapper.getVaultCount());
+            pageInfo.setTotalElements(vaultList.size(), () -> vaultMapper.getVaultCount(searchKeyword));
         }
         return vaultList;
     }

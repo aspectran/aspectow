@@ -5,23 +5,33 @@
       layout:decorate="~{templates/default}">
 <body>
 <th:block layout:fragment="content">
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-3">
-        <h4 class="mb-0">
-            <i class="bi bi-clock-history me-2"></i> 
-            <span th:if="${!#strings.isEmpty(page.username)}" th:text="|Login History for '${page.username}'|">Login History</span>
-            <span th:if="${#strings.isEmpty(page.username)}">All Login History</span>
-        </h4>
-        <div class="d-flex flex-wrap align-items-center gap-2 gap-md-3">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2 mb-3">
+        <div class="d-flex align-items-center gap-2">
+            <h4 class="mb-0 text-nowrap">
+                <i class="bi bi-clock-history me-2"></i> 
+                <span th:if="${!#strings.isEmpty(page.username)}" th:text="|Login History for '${page.username}'|">Login History</span>
+                <span th:if="${#strings.isEmpty(page.username)}">All Login History</span>
+            </h4>
+            <span class="badge bg-secondary-subtle text-secondary small fw-semibold text-nowrap" id="total-history-count" th:text="${page.pageInfo != null ? page.pageInfo.totalElements : (#lists.size(page.historyList))} + ' Records'">0 Records</span>
+        </div>
+        <div class="d-flex flex-wrap flex-md-nowrap align-items-center gap-2">
+            <div class="input-group input-group-sm" style="width: 180px;">
+                <span class="input-group-text cursor-pointer" onclick="performSearch()"><i class="bi bi-search"></i></span>
+                <input type="text" id="history-search" class="form-control" placeholder="Search..." th:value="${page.searchKeyword}">
+                <button th:if="${!#strings.isEmpty(page.searchKeyword)}" class="btn btn-outline-secondary" type="button" onclick="clearSearch()" title="Clear search">
+                    <i class="bi bi-x"></i>
+                </button>
+            </div>
             <select class="form-select form-select-sm" id="pageSizeSelect" style="width: auto;">
-                <option value="auto">Auto (Fit Height)</option>
-                <option value="10">10 per page</option>
-                <option value="20">20 per page</option>
-                <option value="30">30 per page</option>
-                <option value="50">50 per page</option>
-                <option value="100">100 per page</option>
+                <option value="auto">Auto</option>
+                <option value="10">10 / page</option>
+                <option value="20">20 / page</option>
+                <option value="30">30 / page</option>
+                <option value="50">50 / page</option>
+                <option value="100">100 / page</option>
             </select>
             <div th:if="${!#strings.isEmpty(page.username)}">
-                <a th:href="@{/user/login-history(size=${page.pageInfo.size})}" class="btn btn-outline-secondary btn-sm">Show All</a>
+                <a th:href="@{/user/login-history(size=${page.pageInfo.size})}" class="btn btn-outline-secondary btn-sm text-nowrap">Show All</a>
             </div>
         </div>
     </div>
@@ -69,39 +79,39 @@
     <nav th:if="${page.pageInfo.totalPages > 1}" aria-label="Page navigation">
         <ul class="pagination justify-content-center">
             <li class="page-item">
-                <a th:if="${page.pageInfo.number > 1}" th:href="@{/user/login-history(page=1, size=${page.pageInfo.size}, username=${#strings.isEmpty(page.username) ? null : page.username})}" title="First"
+                <a th:if="${page.pageInfo.number > 1}" th:href="@{/user/login-history(page=1, size=${page.pageInfo.size}, username=${#strings.isEmpty(page.username) ? null : page.username}, searchKeyword=${#strings.isEmpty(page.searchKeyword) ? null : page.searchKeyword})}" title="First"
                    class="page-link">First</a>
                 <span th:unless="${page.pageInfo.number > 1}" title="First" class="page-link disabled">First</span>
             </li>
             <li class="page-item">
                 <a th:if="${page.pageInfo.number > 5 and page.pageInfo.number % 5 == 1}"
-                   th:href="@{/user/login-history(page=${page.pageInfo.number - 1}, size=${page.pageInfo.size}, username=${#strings.isEmpty(page.username) ? null : page.username})}" title="Previous"
+                   th:href="@{/user/login-history(page=${page.pageInfo.number - 1}, size=${page.pageInfo.size}, username=${#strings.isEmpty(page.username) ? null : page.username}, searchKeyword=${#strings.isEmpty(page.searchKeyword) ? null : page.searchKeyword})}" title="Previous"
                    class="page-link">&laquo;</a>
                 <a th:if="${page.pageInfo.number > 5 and page.pageInfo.number % 5 != 1}"
-                   th:href="@{/user/login-history(page=${page.pageInfo.number - 5}, size=${page.pageInfo.size}, username=${#strings.isEmpty(page.username) ? null : page.username})}" title="Previous"
+                   th:href="@{/user/login-history(page=${page.pageInfo.number - 5}, size=${page.pageInfo.size}, username=${#strings.isEmpty(page.username) ? null : page.username}, searchKeyword=${#strings.isEmpty(page.searchKeyword) ? null : page.searchKeyword})}" title="Previous"
                    class="page-link">&laquo;</a>
                 <span th:unless="${page.pageInfo.number > 5}" title="Previous" class="page-link disabled">&laquo;</span>
             </li>
             <li class="page-item"
                 th:if="${i <= page.pageInfo.totalPages}"
                 th:each="i: ${#numbers.sequence(page.pageInfo.number - (page.pageInfo.number - 1) % 5, page.pageInfo.number - (page.pageInfo.number - 1) % 5 + 4)}">
-                <a th:if="${page.pageInfo.number != i}" th:href="@{/user/login-history(page=${i}, size=${page.pageInfo.size}, username=${#strings.isEmpty(page.username) ? null : page.username})}"
+                <a th:if="${page.pageInfo.number != i}" th:href="@{/user/login-history(page=${i}, size=${page.pageInfo.size}, username=${#strings.isEmpty(page.username) ? null : page.username}, searchKeyword=${#strings.isEmpty(page.searchKeyword) ? null : page.searchKeyword})}"
                    th:text="${i}" class="page-link"></a>
                 <span th:if="${page.pageInfo.number == i}" th:text="${i}" class="page-link active"></span>
             </li>
             <li class="page-item">
                 <a th:if="${page.pageInfo.number < page.pageInfo.totalPages - 5 and page.pageInfo.number % 5 == 0}"
-                   th:href="@{/user/login-history(page=${page.pageInfo.number + 1}, size=${page.pageInfo.size}, username=${#strings.isEmpty(page.username) ? null : page.username})}"
+                   th:href="@{/user/login-history(page=${page.pageInfo.number + 1}, size=${page.pageInfo.size}, username=${#strings.isEmpty(page.username) ? null : page.username}, searchKeyword=${#strings.isEmpty(page.searchKeyword) ? null : page.searchKeyword})}"
                    title="Next" class="page-link">&raquo;</a>
                 <a th:if="${page.pageInfo.number < page.pageInfo.totalPages - 5 and page.pageInfo.number % 5 != 0}"
-                   th:href="@{/user/login-history(page=${page.pageInfo.number + 5}, size=${page.pageInfo.size}, username=${#strings.isEmpty(page.username) ? null : page.username})}"
+                   th:href="@{/user/login-history(page=${page.pageInfo.number + 5}, size=${page.pageInfo.size}, username=${#strings.isEmpty(page.username) ? null : page.username}, searchKeyword=${#strings.isEmpty(page.searchKeyword) ? null : page.searchKeyword})}"
                    title="Next" class="page-link">&raquo;</a>
                 <a th:if="${page.pageInfo.number >= page.pageInfo.totalPages - 5 and page.pageInfo.number < page.pageInfo.totalPages - (page.pageInfo.totalPages - 1) % 5}"
-                   th:href="@{/user/login-history(page=${page.pageInfo.totalPages}, size=${page.pageInfo.size}, username=${#strings.isEmpty(page.username) ? null : page.username})}" title="Next" class="page-link">&raquo;</a>
+                   th:href="@{/user/login-history(page=${page.pageInfo.totalPages}, size=${page.pageInfo.size}, username=${#strings.isEmpty(page.username) ? null : page.username}, searchKeyword=${#strings.isEmpty(page.searchKeyword) ? null : page.searchKeyword})}" title="Next" class="page-link">&raquo;</a>
                 <span th:if="${page.pageInfo.number >= page.pageInfo.totalPages - (page.pageInfo.totalPages - 1) % 5}" title="Next" class="page-link disabled">&raquo;</span>
             </li>
             <li class="page-item">
-                <a th:if="${page.pageInfo.number < page.pageInfo.totalPages}" th:href="@{/user/login-history(page=${page.pageInfo.totalPages}, size=${page.pageInfo.size}, username=${#strings.isEmpty(page.username) ? null : page.username})}"
+                <a th:if="${page.pageInfo.number < page.pageInfo.totalPages}" th:href="@{/user/login-history(page=${page.pageInfo.totalPages}, size=${page.pageInfo.size}, username=${#strings.isEmpty(page.username) ? null : page.username}, searchKeyword=${#strings.isEmpty(page.searchKeyword) ? null : page.searchKeyword})}"
                    title="Last" class="page-link">Last</a>
                 <span th:unless="${page.pageInfo.number < page.pageInfo.totalPages}" title="Last" class="page-link disabled">Last</span>
             </li>
@@ -132,7 +142,32 @@
             return null;
         }
 
+        function performSearch() {
+            const query = $.trim($('#history-search').val());
+            const urlParams = new URLSearchParams(window.location.search);
+            if (query) {
+                urlParams.set('searchKeyword', query);
+            } else {
+                urlParams.delete('searchKeyword');
+            }
+            urlParams.set('page', '1');
+            window.location.search = urlParams.toString();
+        }
+
+        function clearSearch() {
+            const urlParams = new URLSearchParams(window.location.search);
+            urlParams.delete('searchKeyword');
+            urlParams.set('page', '1');
+            window.location.search = urlParams.toString();
+        }
+
         $(function() {
+            $('#history-search').on('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    performSearch();
+                }
+            });
             const sizeCookieKey = 'login_history_page_size';
             const modeCookieKey = 'login_history_page_size_mode';
             

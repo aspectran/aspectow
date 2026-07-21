@@ -58,14 +58,16 @@ public class UserManagementActivity {
 
     /**
      * Displays the user list page containing all users and available roles.
+     * @param translet the current translet
+     * @param searchKeyword the search keyword
      * @return a map of attributes for rendering the view
      */
     @Request("/")
     @Dispatch("user/list")
     @Action("page")
-    public Map<String, Object> list(@NonNull Translet translet) {
+    public Map<String, Object> list(@NonNull Translet translet, String searchKeyword) {
         PageInfo pageInfo = PageInfo.of(translet, "user_list_page_size");
-        List<User> userList = userService.getUserList(pageInfo);
+        List<User> userList = userService.getUserList(pageInfo, searchKeyword);
         List<Role> roleList = userService.getRoleList();
         List<Permission> permissionList = userService.getPermissionList();
         return Map.of(
@@ -75,7 +77,8 @@ public class UserManagementActivity {
             "userList", userList,
             "roleList", roleList,
             "permissionList", permissionList,
-            "pageInfo", pageInfo
+            "pageInfo", pageInfo,
+            "searchKeyword", (searchKeyword != null ? searchKeyword : "")
         );
     }
 
@@ -83,12 +86,13 @@ public class UserManagementActivity {
      * Displays the login history page for a given user or the current user if not an admin.
      * @param translet the current translet
      * @param username the target username
+     * @param searchKeyword the search keyword
      * @return a map of attributes for rendering the view
      */
     @Request("/login-history")
     @Dispatch("user/login-history")
     @Action("page")
-    public Map<String, Object> loginHistory(@NonNull Translet translet, String username) {
+    public Map<String, Object> loginHistory(@NonNull Translet translet, String username, String searchKeyword) {
         UserInfo userInfo = translet.getSessionAdapter().getAttribute(UserInfo.USERINFO_KEY);
         String targetUsername = username;
 
@@ -98,14 +102,15 @@ public class UserManagementActivity {
         }
 
         PageInfo pageInfo = PageInfo.of(translet, "login_history_page_size");
-        List<LoginHistory> historyList = userService.getLoginHistoryList(targetUsername, pageInfo);
+        List<LoginHistory> historyList = userService.getLoginHistoryList(pageInfo, targetUsername, searchKeyword);
         return Map.of(
             "title", "Login History",
             "style", "login-history-page",
             "group", "accounts-menu",
             "historyList", historyList,
             "pageInfo", pageInfo,
-            "username", (targetUsername != null ? targetUsername : "")
+            "username", (targetUsername != null ? targetUsername : ""),
+            "searchKeyword", (searchKeyword != null ? searchKeyword : "")
         );
     }
 

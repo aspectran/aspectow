@@ -41,17 +41,19 @@ public interface VaultMapper {
     Vault getVaultById(Long vaultId);
 
     /**
-     * Retrieves all vaults.
+     * Retrieves vaults matching the search keyword.
      * @param pageInfo the pagination info
+     * @param searchKeyword the search keyword
      * @return the list of vaults
      */
-    List<Vault> getVaultList(@Param("pageInfo") PageInfo pageInfo);
+    List<Vault> getVaultList(@Param("pageInfo") PageInfo pageInfo, @Param("searchKeyword") String searchKeyword);
 
     /**
-     * Retrieves the total count of vaults.
+     * Retrieves the total count of vaults matching the search keyword.
+     * @param searchKeyword the search keyword
      * @return the total count of vaults
      */
-    long getVaultCount();
+    long getVaultCount(@Param("searchKeyword") String searchKeyword);
 
     /**
      * Inserts a new vault.
@@ -96,13 +98,13 @@ public interface VaultMapper {
         }
 
         @Override
-        public List<Vault> getVaultList(PageInfo pageInfo) {
-            return mapper().getVaultList(pageInfo);
+        public List<Vault> getVaultList(PageInfo pageInfo, String searchKeyword) {
+            return mapper().getVaultList(pageInfo, searchKeyword);
         }
 
         @Override
-        public long getVaultCount() {
-            return mapper().getVaultCount();
+        public long getVaultCount(String searchKeyword) {
+            return mapper().getVaultCount(searchKeyword);
         }
 
         @Override

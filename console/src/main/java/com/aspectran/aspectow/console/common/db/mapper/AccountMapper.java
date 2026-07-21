@@ -51,17 +51,19 @@ public interface AccountMapper {
     User getUserByUsername(String username);
 
     /**
-     * Retrieves a list of all users.
+     * Retrieves a list of users matching the search keyword.
      * @param pageInfo the pagination info
+     * @param searchKeyword the search keyword
      * @return the list of users
      */
-    List<User> getUserList(@Param("pageInfo") PageInfo pageInfo);
+    List<User> getUserList(@Param("pageInfo") PageInfo pageInfo, @Param("searchKeyword") String searchKeyword);
 
     /**
-     * Retrieves the total count of users.
+     * Retrieves the total count of users matching the search keyword.
+     * @param searchKeyword the search keyword
      * @return the total count of users
      */
-    long getUserCount();
+    long getUserCount(@Param("searchKeyword") String searchKeyword);
 
     /**
      * Inserts a new user record into the database.
@@ -155,19 +157,21 @@ public interface AccountMapper {
     int insertLoginHistory(LoginHistory history);
 
     /**
-     * Retrieves the login history for a specific user.
-     * @param username the username
+     * Retrieves the login history for a specific user matching the search keyword.
      * @param pageInfo the pagination info
+     * @param username the username
+     * @param searchKeyword the search keyword
      * @return the list of login history records
      */
-    List<LoginHistory> getLoginHistoryList(@Param("username") String username, @Param("pageInfo") PageInfo pageInfo);
+    List<LoginHistory> getLoginHistoryList(@Param("pageInfo") PageInfo pageInfo, @Param("username") String username, @Param("searchKeyword") String searchKeyword);
 
     /**
-     * Retrieves the total count of login history records for a specific user.
+     * Retrieves the total count of login history records matching the search keyword.
      * @param username the username
+     * @param searchKeyword the search keyword
      * @return the total count
      */
-    long getLoginHistoryCount(@Param("username") String username);
+    long getLoginHistoryCount(@Param("username") String username, @Param("searchKeyword") String searchKeyword);
 
     /**
      * Data Access Object (DAO) for {@link AccountMapper}.
@@ -197,13 +201,13 @@ public interface AccountMapper {
         }
 
         @Override
-        public List<User> getUserList(PageInfo pageInfo) {
-            return mapper().getUserList(pageInfo);
+        public List<User> getUserList(PageInfo pageInfo, String searchKeyword) {
+            return mapper().getUserList(pageInfo, searchKeyword);
         }
 
         @Override
-        public long getUserCount() {
-            return mapper().getUserCount();
+        public long getUserCount(String searchKeyword) {
+            return mapper().getUserCount(searchKeyword);
         }
 
         @Override
@@ -272,13 +276,13 @@ public interface AccountMapper {
         }
 
         @Override
-        public List<LoginHistory> getLoginHistoryList(String username, PageInfo pageInfo) {
-            return mapper().getLoginHistoryList(username, pageInfo);
+        public List<LoginHistory> getLoginHistoryList(PageInfo pageInfo, String username, String searchKeyword) {
+            return mapper().getLoginHistoryList(pageInfo, username, searchKeyword);
         }
 
         @Override
-        public long getLoginHistoryCount(String username) {
-            return mapper().getLoginHistoryCount(username);
+        public long getLoginHistoryCount(String username, String searchKeyword) {
+            return mapper().getLoginHistoryCount(username, searchKeyword);
         }
     }
 

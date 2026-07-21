@@ -33,11 +33,21 @@ public interface VaultService {
     Vault getVaultById(Long vaultId);
 
     /**
+     * Retrieves a list of vault entities matching the search keyword.
+     * @param pageInfo the pagination info
+     * @param searchKeyword the search keyword
+     * @return a list of {@code Vault} objects representing the stored vault entries
+     */
+    List<Vault> getVaultList(PageInfo pageInfo, String searchKeyword);
+
+    /**
      * Retrieves a list of all vault entities.
      * @param pageInfo the pagination info
      * @return a list of {@code Vault} objects representing the stored vault entries
      */
-    List<Vault> getVaultList(PageInfo pageInfo);
+    default List<Vault> getVaultList(PageInfo pageInfo) {
+        return getVaultList(pageInfo, null);
+    }
 
     /**
      * Creates a new vault entry and encrypts the specified plain text.

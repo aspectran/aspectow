@@ -20,7 +20,15 @@
     </select>
 
     <select id="getVaultList" resultMap="VaultResultMap">
-        select * from asc_vault order by vault_id desc
+        select * from asc_vault
+        <where>
+            <if test="searchKeyword != null and searchKeyword != ''">
+                (lower(label) like lower(concat('%', #{searchKeyword}, '%'))
+                or lower(token_type) like lower(concat('%', #{searchKeyword}, '%'))
+                or lower(description) like lower(concat('%', #{searchKeyword}, '%')))
+            </if>
+        </where>
+        order by vault_id desc
         <if test="pageInfo != null">
             limit #{pageInfo.size} offset #{pageInfo.offset}
         </if>
@@ -28,6 +36,13 @@
 
     <select id="getVaultCount" resultType="long">
         select count(*) from asc_vault
+        <where>
+            <if test="searchKeyword != null and searchKeyword != ''">
+                (lower(label) like lower(concat('%', #{searchKeyword}, '%'))
+                or lower(token_type) like lower(concat('%', #{searchKeyword}, '%'))
+                or lower(description) like lower(concat('%', #{searchKeyword}, '%')))
+            </if>
+        </where>
     </select>
 
     <insert id="insertVault" parameterType="com.aspectran.aspectow.console.common.db.model.Vault" useGeneratedKeys="true" keyProperty="vaultId">

@@ -52,15 +52,16 @@ public class VaultActivity {
     @Request("/")
     @Dispatch("vault/list")
     @Action("page")
-    public Map<String, Object> list(@NonNull Translet translet) {
+    public Map<String, Object> list(@NonNull Translet translet, String searchKeyword) {
         PageInfo pageInfo = PageInfo.of(translet, "vault_list_page_size");
-        List<Vault> vaultList = vaultService.getVaultList(pageInfo);
+        List<Vault> vaultList = vaultService.getVaultList(pageInfo, searchKeyword);
         return Map.of(
             "title", "Vault",
             "style", "vault-page",
             "group", "security-menu",
             "vaultList", vaultList,
             "pageInfo", pageInfo,
+            "searchKeyword", (searchKeyword != null ? searchKeyword : ""),
             "encryptionAlgorithm", PBEncryptionUtils.getAlgorithm(),
             "encryptionSalt", StringUtils.nullToEmpty(PBEncryptionUtils.getSalt()),
             "now", LocalDateTime.now()

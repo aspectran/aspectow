@@ -130,10 +130,10 @@ public class UserServiceImpl implements UserService, EnvironmentAware {
     }
 
     @Override
-    public List<User> getUserList(PageInfo pageInfo) {
-        List<User> userList = accountMapper.getUserList(pageInfo);
+    public List<User> getUserList(PageInfo pageInfo, String searchKeyword) {
+        List<User> userList = accountMapper.getUserList(pageInfo, searchKeyword);
         if (pageInfo != null) {
-            pageInfo.setTotalElements(userList.size(), () -> accountMapper.getUserCount());
+            pageInfo.setTotalElements(userList.size(), () -> accountMapper.getUserCount(searchKeyword));
         }
         return userList;
     }
@@ -211,10 +211,10 @@ public class UserServiceImpl implements UserService, EnvironmentAware {
     }
 
     @Override
-    public List<LoginHistory> getLoginHistoryList(String username, PageInfo pageInfo) {
-        List<LoginHistory> historyList = accountMapper.getLoginHistoryList(username, pageInfo);
+    public List<LoginHistory> getLoginHistoryList(PageInfo pageInfo, String username, String searchKeyword) {
+        List<LoginHistory> historyList = accountMapper.getLoginHistoryList(pageInfo, username, searchKeyword);
         if (pageInfo != null) {
-            pageInfo.setTotalElements(historyList.size(), () -> accountMapper.getLoginHistoryCount(username));
+            pageInfo.setTotalElements(historyList.size(), () -> accountMapper.getLoginHistoryCount(username, searchKeyword));
         }
         return historyList;
     }
