@@ -42,6 +42,9 @@
                         <span class="input-group-text"><i class="bi bi-search"></i></span>
                         <input type="text" id="node-search" class="form-control" placeholder="Search nodes...">
                     </div>
+                    <button id="bulk-ctrl-btn" class="btn btn-outline-warning btn-sm text-nowrap" data-bs-toggle="modal" data-bs-target="#bulkControlModal" th:if="${session.USER_INFO.hasPermission('NODE_MANAGE') || session.USER_INFO.hasRole('SUPER_ADMIN') || session.USER_INFO.hasRole('DEMO')}">
+                        <i class="bi bi-sliders me-1"></i> Bulk Control
+                    </button>
                     <button class="btn btn-outline-primary btn-sm text-nowrap" onclick="location.reload()">
                         <i class="bi bi-arrow-clockwise"></i> Refresh
                     </button>
@@ -167,6 +170,54 @@
                     </div>
                 </div>
             </th:block>
+            <!-- Bulk Control Modal -->
+            <div class="modal fade" id="bulkControlModal" tabindex="-1" aria-labelledby="bulkControlModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content text-start">
+                        <div class="modal-header">
+                            <h5 class="modal-title fw-bold" id="bulkControlModalLabel"><i class="bi bi-sliders text-warning me-2"></i>Cluster Bulk Control</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="bulk-control-form">
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <label class="form-label fw-semibold small text-muted text-uppercase mb-0">1. Select Target Nodes</label>
+                                        <div>
+                                            <button type="button" class="btn btn-link btn-xs text-decoration-none p-0 me-2" id="bulk-select-all">Select All</button>
+                                            <button type="button" class="btn btn-link btn-xs text-decoration-none p-0 text-secondary" id="bulk-deselect-all">Deselect All</button>
+                                        </div>
+                                    </div>
+                                    <div class="border rounded p-2 bg-body-tertiary" id="bulk-node-list" style="max-height: 220px; overflow-y: auto;">
+                                        <!-- Dynamic Group & Node checkboxes -->
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold small text-muted text-uppercase">2. Action</label>
+                                    <div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="bulkAction" id="bulkActionPause" value="pause" checked>
+                                            <label class="form-check-label text-warning fw-bold" for="bulkActionPause">PAUSE</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="bulkAction" id="bulkActionResume" value="resume">
+                                            <label class="form-check-label text-success fw-bold" for="bulkActionResume">RESUME</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="bulkAction" id="bulkActionRestart" value="restart">
+                                            <label class="form-check-label text-danger fw-bold" for="bulkActionRestart">RESTART</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+                            <button type="button" id="execute-bulk-btn" class="btn btn-primary btn-sm px-4">Execute Action</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
         <div th:unless="${session.USER_INFO.hasRole('SUPER_ADMIN') || session.USER_INFO.hasRole('ADMIN') || session.USER_INFO.hasRole('DEMO')}" class="alert alert-danger my-4">
             <h4 class="alert-heading"><i class="bi bi-exclamation-triangle-fill"></i> Access Denied</h4>
@@ -288,6 +339,12 @@
             }
 
             function updateNodeStatus(node) {
+                if (nodes && node && node.id) {
+                    const target = nodes.find(n => n.id === node.id);
+                    if (target) {
+                        target.status = node.status;
+                    }
+                }
                 const $card = $(`.node-id-badge:contains("${node.id}")`).closest('.node-card');
                 if ($card.length) {
                     const $dot = $card.find('.status-dot');
@@ -472,6 +529,148 @@
                     const client = createConsoleClient(node);
                     client.start('');
                 }
+
+                $('#bulk-select-all').on('click', function() {
+                    $('#bulk-node-list input[type="checkbox"]').prop('checked', true);
+                });
+
+                $('#bulk-deselect-all').on('click', function() {
+                    $('#bulk-node-list input[type="checkbox"]').prop('checked', false);
+                });
+
+                $('#bulk-node-list').on('change', '.bulk-group-chk', function() {
+                    const groupKey = $(this).data('group');
+                    const isChecked = $(this).is(':checked');
+                    $(`.group-node-${groupKey}`).prop('checked', isChecked);
+                });
+
+                $('#bulk-node-list').on('change', '.bulk-node-chk', function() {
+                    const classList = $(this).attr('class').split(/\s+/);
+                    const groupClass = classList.find(c => c.startsWith('group-node-'));
+                    if (groupClass) {
+                        const groupKey = groupClass.replace('group-node-', '');
+                        const totalInGroup = $(`.group-node-${groupKey}`).length;
+                        const checkedInGroup = $(`.group-node-${groupKey}:checked`).length;
+                        $(`#chk-group-${groupKey}`).prop('checked', totalInGroup === checkedInGroup);
+                    }
+                });
+
+                $('#bulkControlModal').on('show.bs.modal', function () {
+                    const $list = $('#bulk-node-list');
+                    $list.empty();
+                    
+                    if (!nodes || nodes.length === 0) {
+                        $list.html('<div class="text-muted small p-2">No nodes available.</div>');
+                        return;
+                    }
+
+                    const groups = {};
+                    nodes.forEach(n => {
+                        const g = n.group || 'Ungrouped';
+                        if (!groups[g]) groups[g] = [];
+                        groups[g].push(n);
+                    });
+
+                    Object.keys(groups).forEach(gName => {
+                        const safeGName = gName.replace(/[^a-zA-Z0-9]/g, '_');
+                        let gHtml = `<div class="mb-2">
+                            <div class="form-check fw-bold small text-primary ps-2 pe-2 py-1 bg-body rounded mb-1 border-bottom">
+                                <input class="form-check-input bulk-group-chk ms-0 me-2" type="checkbox" data-group="${safeGName}" id="chk-group-${safeGName}">
+                                <label class="form-check-label" for="chk-group-${safeGName}">
+                                    <i class="bi bi-folder2-open me-1"></i>${gName}
+                                </label>
+                            </div>
+                            <div class="ms-2">`;
+                        
+                        groups[gName].forEach(n => {
+                            const status = (n.status || 'live').toLowerCase();
+                            let statusBadge = '';
+                            if (status === 'live') {
+                                statusBadge = '<span class="badge bg-success-subtle text-success border border-success-subtle ms-2">LIVE</span>';
+                            } else if (status === 'paused') {
+                                statusBadge = '<span class="badge bg-warning-subtle text-warning border border-warning-subtle ms-2">PAUSED</span>';
+                            } else if (status === 'dead') {
+                                statusBadge = '<span class="badge bg-danger-subtle text-danger border border-danger-subtle ms-2">DEAD</span>';
+                            } else {
+                                statusBadge = `<span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle ms-2">${status.toUpperCase()}</span>`;
+                            }
+
+                            gHtml += `
+                                <div class="form-check text-start ps-4 py-1">
+                                    <input class="form-check-input bulk-node-chk group-node-${safeGName}" type="checkbox" name="bulkNodes" value="${n.id}" id="chk-${n.id}">
+                                    <label class="form-check-label small" for="chk-${n.id}">
+                                        ${n.title ? n.title + ' (' + n.id + ')' : n.id}
+                                        ${statusBadge}
+                                    </label>
+                                </div>`;
+                        });
+
+                        gHtml += `</div></div>`;
+                        $list.append(gHtml);
+                    });
+                });
+
+                $('#execute-bulk-btn').on('click', function() {
+                    const selectedNodes = [];
+                    $('input[name="bulkNodes"]:checked').each(function() {
+                        selectedNodes.push($(this).val());
+                    });
+
+                    if (selectedNodes.length === 0) {
+                        alert('Please select at least one target node.');
+                        return;
+                    }
+
+                    const action = $('input[name="bulkAction"]:checked').val();
+                    const actionName = action.toUpperCase();
+
+                    if (!confirm(`Are you sure you want to execute '${actionName}' on ${selectedNodes.length} selected node(s)?`)) {
+                        return;
+                    }
+
+                    const $btn = $(this);
+                    $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span>Executing...');
+
+                    const promises = selectedNodes.map(nodeId => {
+                        const url = basePath + "/cluster/nodes/" + nodeId + "/" + action;
+                        return fetch(url, {
+                            method: 'POST',
+                            headers: {
+                                'Accept': 'application/json'
+                            }
+                        })
+                        .then(response => {
+                            if (response.status === 403) {
+                                throw new Error("Access Denied: You do not have permission to execute this action on node " + nodeId);
+                            }
+                            if (!response.ok) {
+                                throw new Error("HTTP error " + response.status + " for node " + nodeId);
+                            }
+                            return response.json();
+                        })
+                        .then(res => ({ nodeId, success: res.success, error: res.error }))
+                        .catch(err => ({ nodeId, success: false, error: { message: err.message } }));
+                    });
+
+                    Promise.all(promises).then(results => {
+                        $btn.prop('disabled', false).text('Execute Action');
+                        bootstrap.Modal.getInstance(document.getElementById('bulkControlModal')).hide();
+
+                        const successCount = results.filter(r => r.success).length;
+                        const failedCount = results.length - successCount;
+
+                        if (failedCount === 0) {
+                            alert(`Successfully dispatched '${actionName}' command to all ${successCount} node(s).`);
+                        } else {
+                            const failedDetails = results.filter(r => !r.success).map(r => `${r.nodeId}: ${r.error ? r.error.message : 'Failed'}`).join('\n');
+                            alert(`Dispatched '${actionName}' command to ${successCount} node(s). ${failedCount} node(s) failed:\n` + failedDetails);
+                        }
+
+                        setTimeout(() => {
+                            location.reload();
+                        }, 500);
+                    });
+                });
             });
         </script>
     </th:block>
