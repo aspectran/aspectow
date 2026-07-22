@@ -591,8 +591,19 @@
                         prependLogLines(response.owner, response.data);
                     }
                 } else if (response.header === 'stateUpdated' && response.data) {
+                    let stateData = response.data;
+                    if (typeof stateData === 'string') {
+                        try {
+                            stateData = JSON.parse(stateData);
+                        } catch (e) {
+                            console.error("Failed to parse stateData:", e);
+                        }
+                    }
+                    if (stateData && !stateData.success) {
+                        alert(stateData.message || "Failed to update state");
+                    }
                     if (currentViewMode === 'detail' && respNodeId === currentNodeId) {
-                        applyStateUpdate(response.data);
+                        applyStateUpdate(stateData);
                     } else if (currentViewMode === 'dashboard') {
                         const request = {
                             header: "execute",
@@ -932,8 +943,18 @@
             }
 
             function applyStateUpdate(stateData) {
-                const serviceId = stateData.serviceName.replace(/[^a-zA-Z0-9]/g, '_');
-                const safeId = stateData.id.replace(/[^a-zA-Z0-9]/g, '_');
+                if (!stateData) return;
+                if (typeof stateData === 'string') {
+                    try {
+                        stateData = JSON.parse(stateData);
+                    } catch (e) {
+                        console.error("Failed to parse stateData:", e);
+                    }
+                }
+                const serviceName = stateData.serviceName || '';
+                const serviceId = serviceName.replace(/[^a-zA-Z0-9]/g, '_');
+                const id = stateData.id || '';
+                const safeId = id.replace(/[^a-zA-Z0-9]/g, '_');
                 const isEnabled = !stateData.disabled;
                 if (stateData.success) {
                     if (stateData.type === 'schedule') {
@@ -962,26 +983,30 @@
                         const $text = $(`#text-${serviceId}-${safeId}`);
                         
                         const $collapse = $switch.closest('.collapse');
-                        const prefix = `jobs-${serviceId}-`;
-                        const safeScheduleId = $collapse.attr('id').substring(prefix.length);
-                        const isScheduleActive = $(`#badge-${serviceId}-${safeScheduleId}`).hasClass('text-bg-success');
+                        if ($collapse.length > 0) {
+                            const prefix = `jobs-${serviceId}-`;
+                            const safeScheduleId = $collapse.attr('id').substring(prefix.length);
+                            const isScheduleActive = $(`#badge-${serviceId}-${safeScheduleId}`).hasClass('text-bg-success');
 
-                        if (isEnabled) {
-                            $switch.prop('checked', true);
-                            if (isScheduleActive) {
-                                $icon.removeClass('text-muted').addClass('text-success');
-                                $text.removeClass('text-muted');
+                            if (isEnabled) {
+                                $switch.prop('checked', true);
+                                if (isScheduleActive) {
+                                    $icon.removeClass('text-muted').addClass('text-success');
+                                    $text.removeClass('text-muted');
+                                }
+                            } else {
+                                $switch.prop('checked', false);
+                                $icon.removeClass('text-success').addClass('text-muted');
+                                $text.addClass('text-muted');
                             }
-                        } else {
-                            $switch.prop('checked', false);
-                            $icon.removeClass('text-success').addClass('text-muted');
-                            $text.addClass('text-muted');
                         }
                     }
                     recalculateStats();
                 } else {
-                    $(`#switch-${serviceId}-${safeId}`).prop('checked', stateData.disabled);
-                    alert(stateData.message);
+                    if (serviceId && safeId) {
+                        $(`#switch-${serviceId}-${safeId}`).prop('checked', stateData.disabled);
+                    }
+                    alert(stateData.message || "Failed to update state");
                 }
             }
 

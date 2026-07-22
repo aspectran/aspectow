@@ -145,7 +145,7 @@ public class LocalSchedulerService {
         }
 
         JsonBuilder jsonBuilder = new JsonBuilder().object()
-                .put("serviceName", matchedServiceName)
+                .put("serviceName", StringUtils.nullToEmpty(matchedServiceName))
                 .put("type", type)
                 .put("id", id)
                 .put("disabled", disabled)
