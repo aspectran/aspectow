@@ -78,6 +78,9 @@ public class NodeRegistry {
      * @return a map of node IDs to their metadata (APON strings)
      */
     public Map<String, String> getAllNodes() {
+        if (connectionPool == null || !connectionPool.isAvailable()) {
+            return Collections.emptyMap();
+        }
         String key = NodeMessageProtocol.getNodesHashKey(clusterId);
         if (logger.isTraceEnabled()) {
             logger.trace("Retrieving all nodes from Redis hash: {}", key);
@@ -85,7 +88,9 @@ public class NodeRegistry {
         try (StatefulRedisConnection<String, String> connection = connectionPool.getConnection()) {
             return connection.sync().hgetall(key);
         } catch (Exception e) {
-            logger.error("Failed to retrieve nodes from Redis registry", e);
+            if (connectionPool.isAvailable()) {
+                logger.error("Failed to retrieve nodes from Redis registry", e);
+            }
             return Collections.emptyMap();
         }
     }
@@ -95,6 +100,9 @@ public class NodeRegistry {
      * @return a map of group IDs to their metadata (APON strings)
      */
     public Map<String, String> getAllGroups() {
+        if (connectionPool == null || !connectionPool.isAvailable()) {
+            return Collections.emptyMap();
+        }
         String key = NodeMessageProtocol.getGroupsHashKey(clusterId);
         if (logger.isTraceEnabled()) {
             logger.trace("Retrieving all groups from Redis hash: {}", key);
@@ -102,7 +110,9 @@ public class NodeRegistry {
         try (StatefulRedisConnection<String, String> connection = connectionPool.getConnection()) {
             return connection.sync().hgetall(key);
         } catch (Exception e) {
-            logger.error("Failed to retrieve groups from Redis registry", e);
+            if (connectionPool.isAvailable()) {
+                logger.error("Failed to retrieve groups from Redis registry", e);
+            }
             return Collections.emptyMap();
         }
     }
