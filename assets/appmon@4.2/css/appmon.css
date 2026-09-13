@@ -1,84 +1,194 @@
+/*
+ * Copyright (c) 2020-present The Aspectran Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/*
+ * @version 4.2
+ * @last-modified 2026-09-06
+ */
+
+/* For console-integrated */
+.monitoring-page .group.tabs {
+    box-shadow: none;
+}
+.monitoring-page .group.tabs > .tabs-title > a, .monitoring-page .group.tabs > .tabs-title button {
+    margin-right: 4px;
+    border-radius: 30px !important;
+    @media screen and (min-width: 768px) {
+        padding: 3px 13px !important;
+        font-size: .8em !important;
+    }
+}
+
 .tabs > .tabs-title .indicator {
     padding: 0;
 }
-.domain.tabs .tabs-title .indicator.disconnected {
+
+.group-bar {
+    display: none;
+}
+
+.node-bar {
+    border-top: 1px solid #ddd;
+    border-bottom: 1px solid #ddd;
+}
+.node.tabs {
+    box-shadow: none;
+    @media screen and (max-width: 768px) {
+        height: auto;
+    }
+    @media screen and (min-width: 768px) {
+        margin-top: 1px;
+    }
+}
+@media screen and (min-width: 768px) {
+    .node.tabs > .tabs-title > a, .node.tabs > .tabs-title button {
+        padding: 3px 13px !important;
+    }
+}
+.node.tabs .tabs-title .indicator.disconnected {
     color: #ff9900;
 }
-.domain.tabs .tabs-title .indicator.error {
+.node.tabs .tabs-title .indicator.error {
     color: #a01f27;
 }
 
 .metrics-bar {
     background-color: #d3d3d3;
-    height: 28px;
-}
-.metrics-bar .metric {
-    display: inline-block;
-}
-.metrics-bar .metric:hover dl dt {
-    border-left: 3px solid #ddd;
-    padding-left: 7px;
+    @media screen and (max-width: 768px) {
+        display: block;
+        height: auto;
+    }
+    @media screen and (min-width: 768px) {
+        display: flex;
+        height: 1.8rem;
+    }
 }
 .metrics-bar .metric dl {
     display: flex;
-    height: 28px;
     margin: 0;
+    @media screen and (max-width: 768px) {
+        height: auto;
+    }
+    @media screen and (min-width: 768px) {
+        height: 1.8rem;
+    }
 }
 .metrics-bar .metric dl dt {
     margin: 0;
-    padding: 0 5px 0 10px;
+    padding: 0 .6rem;
     align-content: center;
     font-weight: normal;
     font-size: .9em;
+    white-space: nowrap;
 }
 .metrics-bar .metric dl dd {
     margin: 0;
-    padding: 0 5px 0 0;
+    padding: 0 .8rem 0 0;
     align-content: center;
     font-weight: bold;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    white-space: nowrap;
 }
-.domain.metrics-bar {
+.node.metrics-bar {
     position: relative;
-    height: unset;
-    padding: 0 50px;
-    border-bottom: 1px solid #ccc;
+    height: auto;
+    border-bottom: 1px solid #ddd;
     background-color: unset;
     box-shadow: 0 6px 15px -10px rgba(50, 50, 50, .33);
-    @media screen and (max-width: 576px) {
-        text-align: center;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    @media screen and (max-width: 768px) {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        align-items: center;
     }
-    @media (min-width: 1200px) {
-        flex: 0 0 auto;
-        width: 50%;
+}
+.node.metrics-bar .title {
+    display: inline-flex;
+    align-items: center;
+    font-weight: bold;
+    color: #677278;
+    white-space: nowrap;
+    padding-right: 12px;
+    grid-gap: 4px;
+    @media screen and (max-width: 768px) {
+        grid-column: 1;
+        grid-row: 1 / span 10;
+        align-self: center;
+        padding-right: 12px;
+    }
+    @media screen and (min-width: 768px) {
+        min-width: 2.8rem;
+    }
+}
+.node.metrics-bar .metric {
+    border-left: 1px solid #ccc;
+    @media screen and (max-width: 768px) {
+        border-right: 1px solid #ccc;
+    }
+    @media screen and (max-width: 768px) {
+        display: block;
+        grid-column: 2;
+        text-align: left;
+    }
+}
+.node.metrics-bar .metric dl {
+    @media screen and (max-width: 768px) {
+        display: inline-flex;
+    }
+}
+.node.metrics-bar .metric dl dt {
+    @media screen and (max-width: 768px) {
+        min-width: 3.8rem;
+    }
+}
+.node.metrics-bar .metric dl dd {
+    @media screen and (max-width: 768px) {
+        text-align: left;
+    }
+}
+@media screen and (min-width: 768px) {
+    .metrics-bar .metric[data-metric-id="cpu"] dl dd {
+        min-width: 4.3rem;
+    }
+    .metrics-bar .metric[data-metric-id="heap"] dl dd {
+        min-width: 10.5rem;
+    }
+    .metrics-bar .metric[data-metric-id="tp"] dl dd,
+    .metrics-bar .metric[data-metric-id$="-tp"] dl dd {
+        min-width: 5.8rem;
     }
 }
 .instance.metrics-bar {
-    text-align: center;
+    @media screen and (max-width: 576px) {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        height: auto;
+    }
+    @media screen and (min-width: 576px) {
+        display: flex;
+        justify-content: center;
+    }
 }
-.domain.metrics-bar.full-width {
-    width: 100%;
-}
-.domain.metrics-bar .title {
-    position: absolute;
-    top: 0;
-    left: 13px;
-    width: 50px;
+.instance.metrics-bar .metric dl {
     height: 28px;
-    text-align: left;
-    align-content: center;
-    font-weight: bold;
-    color: #677278;
-}
-.domain.metrics-bar .metric {
-    border-left: 1px solid #ccc;
-    @media screen and (max-width: 576px) {
-        display: block;
-    }
-}
-.domain.metrics-bar .metric dl {
-    @media screen and (max-width: 576px) {
-        display: inline-flex;
-    }
 }
 
 .control-bar {
@@ -104,10 +214,15 @@
     padding: 3px 8px;
     font-size: .9em;
     background-color: #545a5d;
+    color: #e6e6e6;
+    transition: all 0.2s ease-in-out;
+}
+.control-bar .options .btn-group .btn:hover {
+    background-color: #43494c;
     color: #fff;
 }
 .control-bar .options .btn-group .btn.on {
-    background-color: #2a4959;
+    background-color: #314959;
 }
 
 .event-box {
@@ -137,6 +252,13 @@
     overflow: hidden;
     display: none;
 }
+.track-box .traffic-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
 .track-box .track-stack {
     position: absolute;
     top: 0;
@@ -144,45 +266,7 @@
     width: 180px;
     height: 120px;
     background-color: #3e132d;
-}
-@keyframes bulletAnimation {
-    from {
-        left: 0;
-    }
-    to {
-        left: calc(100% - 184px);
-    }
-}
-.track-box .bullet {
-    position: absolute;
-    top: 40%;
-    right: 10px;
-    width: 160px;
-    height: 12px;
-    border-radius: 50%;
-    background: linear-gradient(to right, rgba(9, 17, 39, 0) 25%, rgba(17, 213, 57, 0.66) 100%);
-    animation-name: bulletAnimation;
-    animation-timing-function: linear;
-    animation-iteration-count: 1;
-    animation-duration: .9s;
-    z-index: 10;
-    display: none;
-}
-.track-box .bullet.arrive {
-    background-color: #0d7aaa;
-    border: 1px solid #086893;
-    border-radius: 3px;
-    width: 160px;
-    height: 10px;
-    margin: 2px 0;
-    opacity: .4;
-}
-.track-box .bullet.error {
-    background: linear-gradient(to right, rgba(9, 17, 39, 0) 27%, rgb(255, 0, 0) 100%);
-}
-.track-box .bullet.error.arrive {
-    background-color: #a51e1e;
-    border: 1px solid #f34d4d;
+    z-index: 5;
 }
 .track-stack .activity-status-plate {
     position: absolute;
@@ -276,10 +360,12 @@
     box-shadow: 0 8px 10px -10px rgba(50, 50, 50, 0.33);
 }
 .visual-box .chart-box {
+    position: relative;
     width: 100%;
     height: 188px;
     padding: 4px 0 0 4px;
-    box-shadow: 0 6px 10px -10px rgba(50, 50, 50, 0.45);
+    background-color: #fff;
+    border-top: 1px solid #ddd;
 }
 .visual-box .chart-box .chart {
     width: 100%;
@@ -300,6 +386,23 @@
     opacity: .7;
     display: none;
 }
+.visual-box .chart-box .loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+}
+.visual-box .chart-box .loading-overlay .spinner-border {
+    width: 2.5rem;
+    height: 2.5rem;
+    color: #4493c8;
+}
 
 .session-box {
     display: none;
@@ -307,11 +410,12 @@
 .session-box .panel {
     border: none;
     border-radius: 0;
-    height: 200px;
+    height: 199px;
     padding: 5px;
     overflow-y: auto;
     background-color: #9fbbbb;
     position: relative;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 .session-box .panel.status .knob-bar {
     position: absolute;
@@ -333,7 +437,7 @@
 }
 @media screen and (max-width: 768px) {
     .session-box .panel.status {
-        height: 34px;
+        height: 33px;
         overflow-y: hidden;
         border-bottom: none;
     }
@@ -474,30 +578,34 @@
 }
 
 .console-box .status-bar {
+    display: flex;
+    align-items: center;
     background-color: #677278;
     color: #eee;
-    overflow: auto;
-    padding : 0 7px 0 10px;
+    padding: 0 7px 0 10px;
     height: 29px;
-    box-shadow: -20px 20px 20px -20px #3e5763 inset;
+    box-shadow: -20px 20px 20px -20px #42494e inset;
 }
 .console-box .status-bar.on {
     background-color: #709185;
 }
 .console-box .status-bar h4 {
-    float: left;
-    width: 70%;
+    flex: 1;
     height: 29px;
     line-height: 29px;
     font-size: .88em;
     font-weight: normal;
     margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 .console-box .status-bar a {
-    float: right;
+    display: inline-block;
     line-height: 29px;
-    margin-left: 10px;
+    margin-left: 12px;
     color: #fff;
+    cursor: pointer;
 }
 .console-box .status-bar a:hover, .console-box .status-bar a:visited {
     color: #d1b605;
@@ -505,14 +613,17 @@
 .console-box .status-bar a.on {
     color: #ffeb00;
 }
+.console-box .status-bar a.load-previous i {
+    font-size: 1.1em;
+}
 .console-box .status-bar .tailing-switch {
-    line-height: 26px;
+    display: flex;
+    align-items: center;
 }
 .console-box .status-bar .tailing-switch .tailing-status {
-    display: inline-block;
-    height: 20px;
-    width: 20px;
-    vertical-align: middle;
+    display: block;
+    height: 18px;
+    width: 18px;
     border-radius: 50%;
     position: relative;
 }
@@ -525,8 +636,8 @@
     bottom: 0;
     margin: auto;
     display: block;
-    height: 10px;
-    width: 10px;
+    height: 8px;
+    width: 8px;
     background: #f1f1f1;
     border-radius: 50%;
 }
@@ -541,12 +652,8 @@
     height: 450px;
     color: #f1f1f1;
     background-color: #222;
-    border: none;
+    border: 1px solid #54656f;
     border-radius: 0;
-    box-shadow: inset -20px 20px 30px -20px #262f44;
-}
-.console-box .console:hover {
-    box-shadow: inset 0 0 6px 3px #3a4c57;
 }
 .console-box .console p {
     font-size: 12px;
@@ -559,8 +666,7 @@
     min-width: 100%;
 }
 .console-box .console p:hover {
-    color: #fafafa;
-    background-color: #323d48;
+    color: #fbf1a2;
 }
 .console-box .console p.event {
     border-radius: 20px;
@@ -576,3 +682,20 @@
     border: 1px solid #db7093;
     color: #fff;
 }
+.console-box.maximized {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 9999;
+    background-color: #fff;
+}
+.console-box.maximized .console {
+    height: calc(100vh - 29px) !important;
+    box-shadow: none;
+}
+.console-box.maximized .console:hover {
+    box-shadow: none;
+}
+
