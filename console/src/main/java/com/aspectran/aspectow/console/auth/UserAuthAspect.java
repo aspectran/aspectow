@@ -28,6 +28,7 @@ import com.aspectran.web.support.rest.response.FailureResponse;
 import com.aspectran.web.support.util.WebUtils;
 import org.jspecify.annotations.NonNull;
 
+import java.io.IOException;
 import java.util.Map;
 
 /**
@@ -52,7 +53,7 @@ import java.util.Map;
 public class UserAuthAspect {
 
     @Before
-    public void checkAuthenticated(@NonNull Translet translet) {
+    public void checkAuthenticated(@NonNull Translet translet) throws IOException {
         SessionAdapter sessionAdapter = translet.getSessionAdapter();
         UserInfo userInfo = sessionAdapter.getAttribute(UserInfo.USERINFO_KEY);
         if (userInfo == null) {
@@ -60,7 +61,7 @@ public class UserAuthAspect {
         }
     }
 
-    private void authRequired(@NonNull Translet translet) {
+    private void authRequired(@NonNull Translet translet) throws IOException {
         HintParameters hint = translet.peekHint("layout");
         if (hint != null && "popup".equals(hint.getString("layout"))) {
             translet.transform(new FailureResponse().forbidden());
@@ -68,6 +69,7 @@ public class UserAuthAspect {
         }
         if (WebUtils.isAcceptContentTypes(translet, MediaType.TEXT_HTML)) {
             translet.redirect("/auth/login", Map.of("referrer", translet.getRequestName()));
+            translet.getResponseAdapter().redirect("/auth/login");
         } else {
             translet.transform(new FailureResponse().forbidden());
         }
