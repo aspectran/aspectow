@@ -53,7 +53,7 @@ import java.util.Map;
 public class UserAuthAspect {
 
     @Before
-    public void checkAuthenticated(@NonNull Translet translet) throws IOException {
+    public void checkAuthenticated(@NonNull Translet translet) {
         SessionAdapter sessionAdapter = translet.getSessionAdapter();
         UserInfo userInfo = sessionAdapter.getAttribute(UserInfo.USERINFO_KEY);
         if (userInfo == null) {
@@ -61,7 +61,7 @@ public class UserAuthAspect {
         }
     }
 
-    private void authRequired(@NonNull Translet translet) throws IOException {
+    private void authRequired(@NonNull Translet translet) {
         HintParameters hint = translet.peekHint("layout");
         if (hint != null && "popup".equals(hint.getString("layout"))) {
             translet.transform(new FailureResponse().forbidden());
@@ -69,7 +69,6 @@ public class UserAuthAspect {
         }
         if (WebUtils.isAcceptContentTypes(translet, MediaType.TEXT_HTML)) {
             translet.redirect("/auth/login", Map.of("referrer", translet.getRequestName()));
-            translet.getResponseAdapter().redirect("/auth/login");
         } else {
             translet.transform(new FailureResponse().forbidden());
         }
