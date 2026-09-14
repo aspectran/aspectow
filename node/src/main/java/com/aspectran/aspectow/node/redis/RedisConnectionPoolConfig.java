@@ -38,8 +38,6 @@ import java.util.Properties;
  * <h2>Example Aspectran Bean Definition</h2>
  * <pre>{@code
  * <bean id="redisConnectionPoolConfig" class="com.aspectran.aspectow.node.redis.RedisConnectionPoolConfig">
- *     <property name="timeout" value="5s"/>
- *     <property name="poolSize" value="8"/>
  *     <argument>
  *         <bean class="com.aspectran.core.support.PropertiesFactoryBean">
  *             <properties profile="prod">
@@ -49,6 +47,8 @@ import java.util.Properties;
  *             </properties>
  *         </bean>
  *     </argument>
+ *     <property name="timeout" value="5s"/>
+ *     <property name="poolSize" value="8"/>
  * </bean>
  * }</pre>
  *
@@ -56,7 +56,7 @@ import java.util.Properties;
  */
 public class RedisConnectionPoolConfig {
 
-    private static final int DEFAULT_POOL_SIZE = 8;
+    protected static final int DEFAULT_POOL_SIZE = 8;
 
     private RedisURI redisURI;
 

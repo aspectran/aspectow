@@ -34,6 +34,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static com.aspectran.aspectow.node.redis.RedisConnectionPoolConfig.DEFAULT_POOL_SIZE;
+
 /**
  * Thread-safe, lock-free Redis connection pool based on Lettuce multiplexing.
  * <p>Instead of relying on heavy pool synchronization (e.g. Apache Commons Pool2)
@@ -137,7 +139,7 @@ public class RedisConnectionPool implements InitializableBean, DisposableBean {
 
         int poolSize = poolConfig.getPoolSize();
         if (poolSize <= 0) {
-            poolSize = 8;
+            poolSize = DEFAULT_POOL_SIZE;
         }
         poolSize = Math.clamp(poolSize, 2, 32);
 
