@@ -76,7 +76,8 @@ public class RedisConnectionPool implements InitializableBean, DisposableBean {
      * @throws Exception if the connection pool is not initialized
      */
     public StatefulRedisConnection<String, String> getConnection() throws Exception {
-        Assert.state(proxyConnections != null && proxyConnections.length > 0, "RedisConnectionPool is not initialized");
+        Assert.state(proxyConnections != null && proxyConnections.length > 0,
+                "RedisConnectionPool is not initialized");
         int idx = (connectionIndex.getAndIncrement() & 0x7FFFFFFF) % proxyConnections.length;
         return proxyConnections[idx];
     }
@@ -106,7 +107,7 @@ public class RedisConnectionPool implements InitializableBean, DisposableBean {
      * @return {@code true} if the pool is initialized and at least one shared connection is open, otherwise {@code false}
      */
     public boolean isAvailable() {
-        if (client == null || sharedConnections == null || sharedConnections.length == 0) {
+        if (client == null || sharedConnections == null) {
             return false;
         }
         for (StatefulRedisConnection<String, String> connection : sharedConnections) {
