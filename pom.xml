@@ -117,7 +117,7 @@
         <javadoc.title>${project.name} API Reference (${project.version})</javadoc.title>
         <javadoc.locale>en_US</javadoc.locale>
 
-        <aspectran.version>9.7.1</aspectran.version>
+        <aspectran.version>9.7.2-SNAPSHOT</aspectran.version>
         <lettuce.version>7.7.0.RELEASE</lettuce.version>
         <netty.version>4.2.18.Final</netty.version>
     </properties>
@@ -492,7 +492,7 @@
                                     <executable>node</executable>
                                     <arguments>
                                         <argument>${main.basedir}/.mvn/bundle-assets.js</argument>
-                                        <argument>4.1</argument>
+                                        <argument>4.2</argument>
                                     </arguments>
                                 </configuration>
                             </execution>
