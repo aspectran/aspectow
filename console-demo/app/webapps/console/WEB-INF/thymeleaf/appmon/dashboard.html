@@ -4,13 +4,24 @@
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{templates/__${page.layout}__}">
 <head>
-<th:block th:if="${#{currentEnvironment}.matchesProfiles('cdn-assets')}">
+<th:block th:if="${#{currentEnvironment}.matchesProfiles('(cdn-assets, !dev)')}">
     <link rel="stylesheet" th:href="|https://cdn.jsdelivr.net/gh/aspectran/aspectow@main/assets/appmon@4.2/css/appmon-bundle.min.css|"/>
     <script th:src="|https://cdn.jsdelivr.net/gh/aspectran/aspectow@main/assets/appmon@4.2/js/appmon-bundle.min.js|"></script>
 </th:block>
-<th:block th:unless="${#{currentEnvironment}.matchesProfiles('cdn-assets')}">
+<th:block th:if="${#{currentEnvironment}.matchesProfiles('(!cdn-assets, !dev)')}">
     <link rel="stylesheet" th:href="@{/assets/appmon/css/appmon-bundle.min.css?v=20260909}"/>
     <script th:src="@{/assets/appmon/js/appmon-bundle.min.js?v=20260909}"></script>
+</th:block>
+<th:block th:if="${#{currentEnvironment}.matchesProfiles('dev')}">
+    <link rel="stylesheet" th:href="@{/assets/appmon/css/appmon.css}"/>
+    <link rel="stylesheet" th:href="@{/assets/appmon/css/appmon-dark.css}"/>
+    <script th:src="@{/assets/appmon/js/dashboard-builder.js}"></script>
+    <script th:src="@{/assets/appmon/js/dashboard-viewer.js}"></script>
+    <script th:src="@{/assets/appmon/js/dashboard-chart.js}"></script>
+    <script th:src="@{/assets/appmon/js/traffic-painter.js}"></script>
+    <script th:src="@{/assets/appmon/js/base-client.js}"></script>
+    <script th:src="@{/assets/appmon/js/websocket-client.js}"></script>
+    <script th:src="@{/assets/appmon/js/polling-client.js}"></script>
 </th:block>
 </head>
 <body>
