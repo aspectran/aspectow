@@ -18,7 +18,7 @@
  * The builder component for the AppMon dashboard.
  * Responsible for assembling the dashboard UI based on configuration data.
  *
- * @version 4.1
+ * @version 4.2
  * @last-modified 2026-09-09
  */
 class DashboardBuilder {
@@ -197,7 +197,6 @@ class DashboardBuilder {
             node.subscribed = true;
             node.subscribeAttempts++;
             console.log(node.id, "subscribe attempts:", node.subscribeAttempts);
-            //this.clearConsole(node.index);
             this.changeNodeState(node);
             if (node.subscribeAttempts === 1) {
                 this.initView();

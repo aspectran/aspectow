@@ -18,7 +18,7 @@
  * The base class for AppMon communication clients.
  * Provides common functionality for connection management and retries.
  *
- * @version 4.1
+ * @version 4.2
  * @last-modified 2026-08-29
  */
 class BaseClient {

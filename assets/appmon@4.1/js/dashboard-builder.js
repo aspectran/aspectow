@@ -19,7 +19,7 @@
  * Responsible for assembling the dashboard UI based on configuration data.
  *
  * @version 4.1
- * @last-modified 2026-09-07
+ * @last-modified 2026-09-09
  */
 class DashboardBuilder {
     constructor(options = {}) {
@@ -197,7 +197,6 @@ class DashboardBuilder {
             node.subscribed = true;
             node.subscribeAttempts++;
             console.log(node.id, "subscribe attempts:", node.subscribeAttempts);
-            //this.clearConsole(node.index);
             this.changeNodeState(node);
             if (node.subscribeAttempts === 1) {
                 this.initView();
@@ -424,9 +423,9 @@ class DashboardBuilder {
                     this.viewers[node.index].refreshConsole($console);
                 }
             });
-            $(`.node.metrics-bar[data-node-index=${node.index}]`).show();
+            $(`.node.metrics-bar[data-node-index=${node.index}][data-has-metrics=true]`).show();
         } else {
-            $(`.node.metrics-bar[data-node-index=${node.index}]`).hide();
+            $(`.node.metrics-bar[data-node-index=${node.index}][data-has-metrics=true]`).hide();
         }
     }
 
@@ -831,11 +830,10 @@ class DashboardBuilder {
     clearView() {
         $("#appmon-popup-message").hide();
         $(".group.tabs .tabs-title.available, .node.tabs .tabs-title.available, .app.tabs .tabs-title.available, " +
-          ".node.metrics-bar.available, .node.metrics-bar .metric.available, " +
-          ".app.metrics-bar.available, .app.metrics-bar .metric.available, .control-bar.available, " +
+          ".node.metrics-bar.available, .node.metrics-bar .metric.available, .control-bar.available, " +
           ".event-box.available, .visual-box.available, .chart-box.available, .console-box.available").remove();
         $(".group.tabs .tabs-title:not(.available), .node.tabs .tabs-title:not(.available), .app.tabs .tabs-title:not(.available), " +
-          ".node.metrics-bar:not(.available), .app.metrics-bar:not(.available), .console-box:not(.available)").hide();
+          ".node.metrics-bar:not(.available), .console-box:not(.available)").hide();
     }
 
     clearConsole(nodeIndex) {
@@ -874,6 +872,15 @@ class DashboardBuilder {
                 if (!app.group || app.group === node.group) {
                     const viewer = this.viewers[node.index];
                     viewer.putIndicator$("app", "event", app.id, $appIndicator);
+                    if (app.metrics && app.metrics.length) {
+                        app.metrics.forEach(metric => {
+                            const $metric = metric.heading ?
+                                this.addNodeMetric(node, metric) :
+                                this.addAppMetric(node, app, metric);
+                            $metric.data("exporter-key", app.id + ":metric:" + metric.id);
+                            viewer.putMetric$(app.id, metric.id, $metric);
+                        });
+                    }
                     if (app.events && app.events.length) {
                         const $eventBox = this.addEventBox(node, app);
                         app.events.forEach(event => {
@@ -890,16 +897,6 @@ class DashboardBuilder {
                             if (event.id === "activity" || event.id === "session") {
                                 viewer.putChart$(app.id, event.id, this.addChartBox($visualBox, node, app, event).find(".chart"));
                             }
-                        });
-                    }
-                    if (app.metrics && app.metrics.length) {
-                        const $eventBox = $(`.event-box[data-node-index=${node.index}][data-app-id=${app.id}]`);
-                        app.metrics.forEach(metric => {
-                            const $metric = (metric.heading || !$eventBox.length) ? 
-                                this.addNodeMetric(node, metric) :
-                                this.addAppMetric($eventBox, node, app, metric);
-                            $metric.data("exporter-key", app.id + ":metric:" + metric.id);
-                            viewer.putMetric$(app.id, metric.id, $metric);
                         });
                     }
                     if (app.logs) {
@@ -948,21 +945,36 @@ class DashboardBuilder {
     }
 
     addNodeMetricsBar(nodeInfo) {
-        const $metricsBar = $(".node.metrics-bar");
-        const $newBar = $metricsBar.first().hide().clone().addClass("available").attr("data-node-index", nodeInfo.index);
+        const $bar = $(".node.metrics-bar");
+        const $newBar = $bar.first().hide().clone().addClass("available").attr("data-node-index", nodeInfo.index);
         $newBar.find(".number").text(" " + nodeInfo.nodeNoInGroup);
-        return $newBar.insertAfter($metricsBar.last());
+        return $newBar.insertAfter($bar.last());
     }
 
     addNodeMetric(nodeInfo, metricInfo) {
         const $bar = $(`.node.metrics-bar[data-node-index=${nodeInfo.index}]`).show();
-        const $metric = $bar.find(".metric").first().hide().clone().addClass("available")
+        $bar.attr("data-has-metrics", true);
+        const $container = $bar.find(".node-metrics").show();
+        const $metric = $container.find(".metric").first().hide().clone().addClass("available")
             .attr({ "data-node-index": nodeInfo.index, "data-metric-id": metricInfo.id });
-        $metric.find("dt").text(metricInfo.title + " :").attr("title", metricInfo.description);
+        $metric.find("dt .name").text(metricInfo.title).attr("title", metricInfo.description);
         if (metricInfo.unit) {
             $metric.find(".unit").text(metricInfo.unit);
         }
-        return $metric.appendTo($bar).show();
+        return $metric.appendTo($container).show();
+    }
+
+    addAppMetric(nodeInfo, appInfo, metricInfo) {
+        const $bar = $(`.node.metrics-bar[data-node-index=${nodeInfo.index}]`).show();
+        $bar.attr("data-has-metrics", true);
+        const $container = $bar.find(".app-metrics").show();
+        const $metric = $container.find(".metric").first().hide().clone().addClass("available")
+            .attr({ "data-node-index": nodeInfo.index, "data-app-id": appInfo.id, "data-metric-id": metricInfo.id });
+        $metric.find("dt .name").text(metricInfo.title).attr("title", metricInfo.description);
+        if (metricInfo.unit) {
+            $metric.find(".unit").text(metricInfo.unit);
+        }
+        return $metric.appendTo($container).show();
     }
 
     addControlBar(appInfo) {
@@ -977,7 +989,7 @@ class DashboardBuilder {
             .attr({ "data-node-index": nodeInfo.index, "data-app-id": appInfo.id });
         const $titleBar = $box.find(".title-bar");
         $titleBar.find("h4").text(nodeInfo.title || nodeInfo.id);
-        
+
         const nodesInGroup = this.nodes.filter(n => n.group === nodeInfo.group);
         if (nodesInGroup.length > 1) {
             $titleBar.find(".number").text(" " + nodeInfo.nodeNoInGroup);
@@ -992,17 +1004,6 @@ class DashboardBuilder {
         return $track.first().hide().clone().addClass("available")
             .attr({ "data-node-index": nodeInfo.index, "data-app-id": appInfo.id, "data-event-id": eventInfo.id })
             .insertAfter($track.last()).show();
-    }
-
-    addAppMetric($eventBox, nodeInfo, appInfo, metricInfo) {
-        const $bar = $eventBox.find(".metrics-bar").show();
-        const $metric = $bar.find(".metric").first().hide().clone().addClass("available")
-            .attr({ "data-node-index": nodeInfo.index, "data-app-id": appInfo.id, "data-metric-id": metricInfo.id });
-        $metric.find("dt").text(metricInfo.title + " :").attr("title", metricInfo.description);
-        if (metricInfo.unit) {
-            $metric.find(".unit").text(metricInfo.unit);
-        }
-        return $metric.appendTo($bar).show();
     }
 
     addSessionBox($eventBox, nodeInfo, appInfo, eventInfo) {

@@ -18,7 +18,7 @@
  * The viewer component for the AppMon dashboard.
  * Responsible for rendering monitoring data, including logs, metrics, and charts.
  *
- * @version 4.1
+ * @version 4.2
  * @last-modified 2026-09-08
  */
 class DashboardViewer {

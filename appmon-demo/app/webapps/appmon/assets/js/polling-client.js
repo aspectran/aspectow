@@ -17,7 +17,7 @@
 /**
  * HTTP Polling implementation of the AppMon client.
  *
- * @version 4.1
+ * @version 4.2
  * @last-modified 2026-08-29
  */
 class PollingClient extends BaseClient {

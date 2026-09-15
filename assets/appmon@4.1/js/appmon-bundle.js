@@ -199,8 +199,8 @@ class BaseClient {
  * WebSocket implementation of the AppMon client.
  * In Gateway Mode, it manages a single physical connection for the entire cluster.
  *
- * @version 4.1
- * @last-modified 2026-08-29
+ * @version 4.2
+ * @last-modified 2026-09-15
  */
 class WebsocketClient extends BaseClient {
     constructor(node, viewer, onSubscribed, onClosed, onFailed, isGatewayMode) {
@@ -351,7 +351,7 @@ class WebsocketClient extends BaseClient {
         this.primaryNodeId = null;
         if (this.socket) {
             if (!afterClosing) {
-                this.socket.close();
+                this.socket.close(1000, "Normal closure");
             }
             this.socket = null;
         }
@@ -449,7 +449,7 @@ class WebsocketClient extends BaseClient {
 /**
  * HTTP Polling implementation of the AppMon client.
  *
- * @version 4.1
+ * @version 4.2
  * @last-modified 2026-08-29
  */
 class PollingClient extends BaseClient {
@@ -720,7 +720,7 @@ class PollingClient extends BaseClient {
  * Advanced Canvas-based particle engine for AppMon traffic visualization.
  * Handles tab visibility to prevent "bullet bursts" when returning to the tab.
  *
- * @version 4.1
+ * @version 4.2
  * @last-modified 2026-08-29
  */
 class TrafficPainter {
@@ -891,7 +891,7 @@ class TrafficPainter {
  * The chart component for the AppMon dashboard.
  * Responsible for rendering and updating individual charts using Chart.js.
  *
- * @version 4.1
+ * @version 4.2
  * @last-modified 2026-08-29
  */
 class DashboardChart {
@@ -1144,7 +1144,7 @@ class DashboardChart {
  * The viewer component for the AppMon dashboard.
  * Responsible for rendering monitoring data, including logs, metrics, and charts.
  *
- * @version 4.1
+ * @version 4.2
  * @last-modified 2026-09-08
  */
 class DashboardViewer {
@@ -2373,7 +2373,7 @@ class DashboardViewer {
  * The builder component for the AppMon dashboard.
  * Responsible for assembling the dashboard UI based on configuration data.
  *
- * @version 4.1
+ * @version 4.2
  * @last-modified 2026-09-09
  */
 class DashboardBuilder {
@@ -2552,7 +2552,6 @@ class DashboardBuilder {
             node.subscribed = true;
             node.subscribeAttempts++;
             console.log(node.id, "subscribe attempts:", node.subscribeAttempts);
-            //this.clearConsole(node.index);
             this.changeNodeState(node);
             if (node.subscribeAttempts === 1) {
                 this.initView();

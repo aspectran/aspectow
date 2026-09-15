@@ -18,8 +18,8 @@
  * WebSocket implementation of the AppMon client.
  * In Gateway Mode, it manages a single physical connection for the entire cluster.
  *
- * @version 4.1
- * @last-modified 2026-08-29
+ * @version 4.2
+ * @last-modified 2026-09-15
  */
 class WebsocketClient extends BaseClient {
     constructor(node, viewer, onSubscribed, onClosed, onFailed, isGatewayMode) {
@@ -170,7 +170,7 @@ class WebsocketClient extends BaseClient {
         this.primaryNodeId = null;
         if (this.socket) {
             if (!afterClosing) {
-                this.socket.close();
+                this.socket.close(1000, "Normal closure");
             }
             this.socket = null;
         }
