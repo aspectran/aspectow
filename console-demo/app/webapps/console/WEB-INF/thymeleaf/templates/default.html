@@ -139,7 +139,6 @@
                     </a>
                 </div>
             </div>
-
         </nav>
         <div class="p-3 border-top">
             <div class="d-flex align-items-center gap-2 mb-2">
@@ -156,8 +155,8 @@
             </div>
         </div>
     </aside>
-
     <div id="sidebar-overlay"></div>
+
     <div id="main-container">
         <header id="header-bar" class="px-3 px-lg-4">
             <div class="d-flex align-items-center gap-2 gap-lg-3">
@@ -190,7 +189,7 @@
 
                 <!-- Theme Toggler -->
                 <div class="theme-toggler dropdown">
-                    <button class="btn dropdown-toggle" type="button" id="theme-toggler-btn" data-bs-toggle="dropdown">
+                    <button class="btn dropdown-toggle pe-1" type="button" id="theme-toggler-btn" data-bs-toggle="dropdown">
                         <i class="bi theme-icon-active"></i>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end shadow">
@@ -262,6 +261,7 @@
         $(function() {
             const $sidebar = $('#sidebar');
             const $overlay = $('#sidebar-overlay');
+            const $header = $('#header-bar');
             const STORAGE_KEY = 'aspectow.console.sidebar.collapsed';
             const isDesktop = () => window.innerWidth > 992;
 
@@ -280,6 +280,23 @@
             $('#sidebar-close, #sidebar-overlay').on('click', function() {
                 $sidebar.removeClass('show');
                 $overlay.removeClass('show');
+            });
+
+            // Smart Header (Hide on scroll down, show on scroll up)
+            let lastScrollTop = 0;
+            const delta = 10;
+            $(window).on('scroll', function() {
+                const currentScrollTop = $(this).scrollTop();
+                const headerHeight = $header.outerHeight() || 50;
+                if (currentScrollTop < 0) return;
+                if ($sidebar.hasClass('show')) return;
+                if (Math.abs(lastScrollTop - currentScrollTop) <= delta) return;
+                if (currentScrollTop > lastScrollTop && currentScrollTop > headerHeight) {
+                    $header.addClass('header-hidden');
+                } else {
+                    $header.removeClass('header-hidden');
+                }
+                lastScrollTop = currentScrollTop;
             });
         });
     </script>

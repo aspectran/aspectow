@@ -15,8 +15,8 @@
  */
 
 /*
- * @version 4.1
- * @last-modified 2026-08-29
+ * @version 4.2
+ * @last-modified 2026-09-16
  */
 
 :root {
@@ -97,8 +97,11 @@ body {
     }
 }
 
-/* Responsive Sidebar */
+/* Responsive Sidebar & Layout */
 @media (max-width: 992px) {
+    :root {
+        --top-bar-height: 50px;
+    }
     #sidebar {
         position: fixed;
         top: 0;
@@ -206,6 +209,10 @@ body {
     align-items: center;
     justify-content: space-between;
     background: var(--bs-body-bg);
+    transition: transform 0.3s ease;
+}
+#header-bar.header-hidden {
+    transform: translateY(-100%);
 }
 #content-area {
     flex: 1;

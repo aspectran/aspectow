@@ -30,10 +30,11 @@
 }
 body {
     margin: 0;
-    overflow: hidden;
+    min-height: 100vh;
+    min-height: 100dvh;
     display: flex;
-    height: 100vh;
-    height: 100dvh;
+    overflow-x: hidden;
+    overflow-y: auto;
 }
 
 /* Sidebar */
@@ -84,20 +85,22 @@ body {
 
 /* Desktop Collapsed Sidebar */
 @media (min-width: 993px) {
+    #sidebar {
+        position: sticky;
+        top: 0;
+        height: 100vh;
+        height: 100dvh;
+    }
     html.sidebar-collapsed #sidebar,
     body.sidebar-collapsed #sidebar {
         margin-left: calc(-1 * var(--sidebar-width));
     }
 }
 
-/* Responsive Layout */
+/* Responsive Sidebar & Layout */
 @media (max-width: 992px) {
-    body {
-        height: auto;
-        min-height: 100vh;
-        min-height: 100dvh;
-        overflow-y: auto;
-        display: block;
+    :root {
+        --top-bar-height: 50px;
     }
     #sidebar {
         position: fixed;
@@ -123,21 +126,6 @@ body {
     }
     #sidebar-overlay.show {
         display: block;
-    }
-    #main-container {
-        display: block;
-        min-height: 100vh;
-        min-height: 100dvh;
-        overflow: visible;
-    }
-    #header-bar {
-        position: sticky;
-        top: 0;
-        z-index: 1030;
-    }
-    #content-area {
-        overflow-y: visible;
-        height: auto;
     }
 }
 
@@ -206,20 +194,29 @@ body {
     flex: 1;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    overflow: visible;
     min-width: 0;
+    min-height: 100vh;
+    min-height: 100dvh;
 }
 #header-bar {
+    position: sticky;
+    top: 0;
+    z-index: 1020;
     height: var(--top-bar-height);
     border-bottom: 1px solid var(--bs-border-color);
     display: flex;
     align-items: center;
     justify-content: space-between;
     background: var(--bs-body-bg);
+    transition: transform 0.3s ease;
+}
+#header-bar.header-hidden {
+    transform: translateY(-100%);
 }
 #content-area {
     flex: 1;
-    overflow-y: auto;
+    overflow: visible;
     background: var(--bs-body-bg);
 }
 pre#details-content {
