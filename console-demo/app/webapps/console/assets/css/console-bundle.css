@@ -30,9 +30,11 @@
 }
 body {
     margin: 0;
-    overflow: hidden;
+    min-height: 100vh;
+    min-height: 100dvh;
     display: flex;
-    height: 100vh;
+    overflow-x: hidden;
+    overflow-y: auto;
 }
 
 /* Sidebar */
@@ -83,6 +85,12 @@ body {
 
 /* Desktop Collapsed Sidebar */
 @media (min-width: 993px) {
+    #sidebar {
+        position: sticky;
+        top: 0;
+        height: 100vh;
+        height: 100dvh;
+    }
     html.sidebar-collapsed #sidebar,
     body.sidebar-collapsed #sidebar {
         margin-left: calc(-1 * var(--sidebar-width));
@@ -183,19 +191,25 @@ body {
     flex: 1;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    overflow: visible;
     min-width: 0;
+    min-height: 100vh;
+    min-height: 100dvh;
 }
 #header-bar {
+    position: sticky;
+    top: 0;
+    z-index: 1020;
     height: var(--top-bar-height);
     border-bottom: 1px solid var(--bs-border-color);
     display: flex;
     align-items: center;
     justify-content: space-between;
+    background: var(--bs-body-bg);
 }
 #content-area {
     flex: 1;
-    overflow-y: auto;
+    overflow: visible;
     background: var(--bs-body-bg);
 }
 pre#details-content {
