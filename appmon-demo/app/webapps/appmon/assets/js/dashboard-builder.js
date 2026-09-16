@@ -19,7 +19,7 @@
  * Responsible for assembling the dashboard UI based on configuration data.
  *
  * @version 4.2
- * @last-modified 2026-09-09
+ * @last-modified 2026-09-16
  */
 class DashboardBuilder {
     constructor(options = {}) {
@@ -65,8 +65,8 @@ class DashboardBuilder {
             success: (data) => {
                 this.currentAjax = null;
                 if (data) {
-                    if (!data.appsToSubscribe) {
-                        alert("No verified apps found. Please check the configuration of the backend.");
+                    if (!data.appsToSubscribe || !data.apps || data.apps.length === 0) {
+                        this.showEmptyAppMessage();
                         return;
                     }
 
@@ -816,8 +816,7 @@ class DashboardBuilder {
 
     showPopupModeMessage() {
         this.clearView();
-        const $container = $("#content-area > .container-fluid");
-        $container.find(".row, .tabs, .control-bar, .console-box").hide();
+        $(".group-bar, .node-bar, .node.metrics-bar, .app.tabs, .control-bar, .row.g-0").hide();
         const $messageBox = $("#appmon-popup-message");
         if ($messageBox.length > 0) {
             $messageBox.find(".resume-here").off("click").on("click", () => {
@@ -827,8 +826,22 @@ class DashboardBuilder {
         }
     }
 
+    showEmptyAppMessage() {
+        this.clearView();
+        $(".group-bar, .node-bar, .node.metrics-bar, .app.tabs, .control-bar, .row.g-0").hide();
+        const $emptyBox = $("#appmon-empty-message");
+        if ($emptyBox.length > 0) {
+            $emptyBox.find(".retry-btn").off("click").on("click", () => {
+                $emptyBox.hide();
+                this.rebuild();
+            });
+            $emptyBox.show();
+        }
+    }
+
     clearView() {
         $("#appmon-popup-message").hide();
+        $("#appmon-empty-message").hide();
         $(".group.tabs .tabs-title.available, .node.tabs .tabs-title.available, .app.tabs .tabs-title.available, " +
           ".node.metrics-bar.available, .node.metrics-bar .metric.available, .control-bar.available, " +
           ".event-box.available, .visual-box.available, .chart-box.available, .console-box.available").remove();
@@ -845,6 +858,7 @@ class DashboardBuilder {
     }
 
     buildView() {
+        $(".node-bar, .app.tabs, .row.g-0").show();
         if (this.groups.length > 0) {
             $(".group-bar").show();
             this.groups.forEach(group => {

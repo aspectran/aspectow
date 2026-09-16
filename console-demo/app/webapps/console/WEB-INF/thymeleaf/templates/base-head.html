@@ -76,7 +76,7 @@
     </th:block>
     <th:block th:if="${#{currentEnvironment}.matchesProfiles('dev')}">
         <link rel="stylesheet" th:href="@{/assets/css/console.css}"/>
-        <link rel="stylesheet" th:href="@{/assets/js/console-bundle.js}"/>
+        <script th:src="@{/assets/js/console-bundle.js}"></script>
     </th:block>
 </th:block>
 </html>
