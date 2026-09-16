@@ -23,6 +23,7 @@ import java.io.IOException;
 
 import static com.aspectran.aspectow.node.manager.NodeManagerBuilder.MY_CONSOLE_PROPERTY;
 import static com.aspectran.aspectow.node.manager.NodeManagerBuilder.MY_NODE_ID_PROPERTY;
+import static com.aspectran.aspectow.node.manager.NodeManagerBuilder.MY_ROUTE_ID_PROPERTY;
 import static com.aspectran.core.context.config.AspectranConfig.BASE_PATH_PROPERTY;
 import static com.aspectran.core.context.config.AspectranConfig.COMMANDS_PATH_PROPERTY;
 import static com.aspectran.core.context.config.AspectranConfig.LOGS_DIR_PROPERTY;
@@ -43,6 +44,7 @@ public class AspectowConsoleDemoUndertowNode0 {
             File cmdDir = new File(baseDir, "cmd");
 
             System.setProperty(MY_NODE_ID_PROPERTY, "dev-console-node1");
+            System.setProperty(MY_ROUTE_ID_PROPERTY, "n0");
             System.setProperty(MY_CONSOLE_PROPERTY, "true"); // This node is a console-dedicated node.
             System.setProperty(BASE_PATH_PROPERTY, baseDir.getCanonicalPath()); // for logging configuration
             System.setProperty(LOGS_DIR_PROPERTY, logsDir.getCanonicalPath()); // for logging configuration

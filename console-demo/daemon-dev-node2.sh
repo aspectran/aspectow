@@ -46,6 +46,7 @@ ASPECTRAN_OPTS="
 -Daspectran.commandsPath=$COMMANDS_DIR
 -Daspectran.logsDir=$LOGS_DIR
 -Daspectow.node.id=$NODE_ID
+-Daspectow.node.route=n2
 -Djava.io.tmpdir=$TEMP_DIR
 -Daspectow.console.config.db.h2.path_explicit=~/aspectow-console-demo
 $SERVER_OPTS

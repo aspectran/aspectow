@@ -22,6 +22,7 @@ import java.io.File;
 import java.io.IOException;
 
 import static com.aspectran.aspectow.node.manager.NodeManagerBuilder.MY_NODE_ID_PROPERTY;
+import static com.aspectran.aspectow.node.manager.NodeManagerBuilder.MY_ROUTE_ID_PROPERTY;
 import static com.aspectran.core.context.config.AspectranConfig.BASE_PATH_PROPERTY;
 import static com.aspectran.core.context.config.AspectranConfig.COMMANDS_PATH_PROPERTY;
 import static com.aspectran.core.context.config.AspectranConfig.LOGS_DIR_PROPERTY;
@@ -42,6 +43,7 @@ public class AspectowConsoleDemoUndertowNode1 {
             File cmdDir = new File(baseDir, "cmd1");
 
             System.setProperty(MY_NODE_ID_PROPERTY, "dev-node1");
+            System.setProperty(MY_ROUTE_ID_PROPERTY, "n1");
             System.setProperty(BASE_PATH_PROPERTY, baseDir.getCanonicalPath()); // for logging configuration
             System.setProperty(LOGS_DIR_PROPERTY, logsDir.getCanonicalPath()); // for logging configuration
             System.setProperty(WORK_PATH_PROPERTY, workDir.getCanonicalPath());
