@@ -15,6 +15,7 @@
  */
 package com.aspectran.aspectow.console.auth;
 
+import com.aspectran.aspectow.appmon.common.support.IPCountryResolver;
 import com.aspectran.aspectow.console.common.db.model.User;
 import com.aspectran.aspectow.console.common.service.UserService;
 import com.aspectran.core.activity.Translet;
@@ -29,6 +30,8 @@ import com.aspectran.web.support.http.HttpHeaders;
 import com.aspectran.web.support.util.WebUtils;
 import org.jspecify.annotations.NonNull;
 
+import java.util.Optional;
+
 /**
  * Handles authentication requests.
  */
@@ -37,13 +40,14 @@ import org.jspecify.annotations.NonNull;
 public class DemoActivity {
 
     private final UserService userService;
-
     private final LoginActivity loginActivity;
+    private final IPCountryResolver ipCountryResolver;
 
     @Autowired
-    public DemoActivity(UserService userService, LoginActivity loginActivity) {
+    public DemoActivity(UserService userService, LoginActivity loginActivity, Optional<IPCountryResolver> ipCountryResolver) {
         this.userService = userService;
         this.loginActivity = loginActivity;
+        this.ipCountryResolver = ipCountryResolver.orElse(null);
     }
 
     @Request("/login")
@@ -66,9 +70,13 @@ public class DemoActivity {
                     loginActivity.doLogin(translet, user);
 
                     String remoteAddr = WebUtils.getRemoteAddr(translet);
+                    String countryCode = null;
+                    if (ipCountryResolver != null && remoteAddr != null) {
+                        countryCode = ipCountryResolver.resolveCountryCode(remoteAddr, translet.getRequestAdapter().getLocale());
+                    }
                     String userAgent = translet.getRequestAdapter().getHeader(HttpHeaders.USER_AGENT);
 
-                    userService.recordLogin(user.getUsername(), remoteAddr, userAgent, true);
+                    userService.recordLogin(user.getUsername(), remoteAddr, countryCode, userAgent, true);
 
                     if (StringUtils.hasText(redirect)) {
                         translet.redirect(redirect);

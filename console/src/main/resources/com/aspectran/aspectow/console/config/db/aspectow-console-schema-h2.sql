@@ -68,6 +68,7 @@ create table if not exists asc_login_history (
     username varchar(50) not null,
     login_at timestamp default current_timestamp not null,
     ip_address varchar(45),
+    country_code varchar(2),
     user_agent varchar(500),
     success_yn char(1) default 'Y' not null,
     primary key (history_id)

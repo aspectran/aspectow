@@ -204,10 +204,11 @@ public class UserServiceImpl implements UserService, EnvironmentAware {
     }
 
     @Override
-    public void recordLogin(String username, String ipAddress, String userAgent, boolean success) {
+    public void recordLogin(String username, String ipAddress, String countryCode, String userAgent, boolean success) {
         LoginHistory history = new LoginHistory();
         history.setUsername(username);
         history.setIpAddress(ipAddress);
+        history.setCountryCode(countryCode);
         history.setUserAgent(userAgent);
         history.setSuccessYn(success ? "Y" : "N");
         accountMapper.insertLoginHistory(history);

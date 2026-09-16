@@ -126,10 +126,22 @@ public interface UserService {
      * Records a user login attempt.
      * @param username the username of the user attempting to log in
      * @param ipAddress the IP address from which the login attempt originated
+     * @param countryCode the 2-letter country code
      * @param userAgent the User-Agent header of the browser or client
      * @param success true if the login attempt was successful, false otherwise
      */
-    void recordLogin(String username, String ipAddress, String userAgent, boolean success);
+    void recordLogin(String username, String ipAddress, String countryCode, String userAgent, boolean success);
+
+    /**
+     * Records a user login attempt without a country code.
+     * @param username the username of the user attempting to log in
+     * @param ipAddress the IP address from which the login attempt originated
+     * @param userAgent the User-Agent header of the browser or client
+     * @param success true if the login attempt was successful, false otherwise
+     */
+    default void recordLogin(String username, String ipAddress, String userAgent, boolean success) {
+        recordLogin(username, ipAddress, null, userAgent, success);
+    }
 
     /**
      * Retrieves the login history for a specific user with search keyword.

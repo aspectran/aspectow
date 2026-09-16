@@ -148,6 +148,7 @@ CREATE TABLE asc_login_history (
     username VARCHAR2(50) NOT NULL,
     login_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     ip_address VARCHAR2(45),
+    country_code VARCHAR2(2),
     user_agent VARCHAR2(500),
     success_yn CHAR(1) DEFAULT 'Y' NOT NULL,
     PRIMARY KEY (history_id)

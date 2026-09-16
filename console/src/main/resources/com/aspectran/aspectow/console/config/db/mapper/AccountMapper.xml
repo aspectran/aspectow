@@ -144,8 +144,8 @@
     </delete>
 
     <insert id="insertLoginHistory" parameterType="com.aspectran.aspectow.console.common.db.model.LoginHistory">
-        insert into asc_login_history (username, ip_address, user_agent, success_yn)
-        values (#{username}, #{ipAddress}, #{userAgent}, #{successYn})
+        insert into asc_login_history (username, ip_address, country_code, user_agent, success_yn)
+        values (#{username}, #{ipAddress}, #{countryCode}, #{userAgent}, #{successYn})
     </insert>
 
     <select id="getLoginHistoryList" resultType="com.aspectran.aspectow.console.common.db.model.LoginHistory">
@@ -158,6 +158,7 @@
                 and (
                     lower(username) like lower(concat('%', #{searchKeyword}, '%'))
                     or lower(ip_address) like lower(concat('%', #{searchKeyword}, '%'))
+                    or lower(country_code) like lower(concat('%', #{searchKeyword}, '%'))
                     or lower(user_agent) like lower(concat('%', #{searchKeyword}, '%'))
                 )
             </if>
@@ -178,6 +179,7 @@
                 and (
                     lower(username) like lower(concat('%', #{searchKeyword}, '%'))
                     or lower(ip_address) like lower(concat('%', #{searchKeyword}, '%'))
+                    or lower(country_code) like lower(concat('%', #{searchKeyword}, '%'))
                     or lower(user_agent) like lower(concat('%', #{searchKeyword}, '%'))
                 )
             </if>

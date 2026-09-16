@@ -15,6 +15,7 @@
  */
 package com.aspectran.aspectow.console.auth;
 
+import com.aspectran.aspectow.appmon.common.support.IPCountryResolver;
 import com.aspectran.aspectow.console.common.db.model.Permission;
 import com.aspectran.aspectow.console.common.db.model.Role;
 import com.aspectran.aspectow.console.common.db.model.User;
@@ -40,6 +41,7 @@ import org.jspecify.annotations.NonNull;
 
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -50,10 +52,12 @@ import java.util.Set;
 public class LoginActivity {
 
     private final UserService userService;
+    private final IPCountryResolver ipCountryResolver;
 
     @Autowired
-    public LoginActivity(UserService userService) {
+    public LoginActivity(UserService userService, Optional<IPCountryResolver> ipCountryResolver) {
         this.userService = userService;
+        this.ipCountryResolver = ipCountryResolver.orElse(null);
     }
 
     @Request("/login")
@@ -73,17 +77,21 @@ public class LoginActivity {
         }
 
         String remoteAddr = WebUtils.getRemoteAddr(translet);
+        String countryCode = null;
+        if (ipCountryResolver != null && remoteAddr != null) {
+            countryCode = ipCountryResolver.resolveCountryCode(remoteAddr, translet.getRequestAdapter().getLocale());
+        }
         String userAgent = translet.getRequestAdapter().getHeader(HttpHeaders.USER_AGENT);
 
         User user = userService.getUserByUsername(username);
         if (user != null && "LOCKED".equals(user.getStatus())) {
-            userService.recordLogin(username, remoteAddr, userAgent, false);
+            userService.recordLogin(username, remoteAddr, countryCode, userAgent, false);
             return new FailureResponse().setError("locked", "Account is LOCKED. Please contact administrator.");
         }
 
         if (user != null && userService.checkPassword(user, password)) {
             if (!IpAddressUtils.isAllowedIp(remoteAddr, user.getAllowedIps())) {
-                userService.recordLogin(username, remoteAddr, userAgent, false);
+                userService.recordLogin(username, remoteAddr, countryCode, userAgent, false);
                 userService.recordAuditLog(username, "LOGIN_FAILED_UNALLOWED_IP", "User: " + username,
                         "Login attempt from unallowed IP address: " + remoteAddr, remoteAddr);
                 return new FailureResponse().setError("ip_denied", "Access denied. Your IP address (" +
@@ -94,16 +102,16 @@ public class LoginActivity {
                         "Administrator password setup is required.");
             }
             if (!"NORMAL".equals(user.getStatus())) {
-                userService.recordLogin(username, remoteAddr, userAgent, false);
+                userService.recordLogin(username, remoteAddr, countryCode, userAgent, false);
                 return new FailureResponse().setError("locked", "Account is " + user.getStatus());
             }
 
             doLogin(translet, user);
 
-            userService.recordLogin(username, remoteAddr, userAgent, true);
+            userService.recordLogin(username, remoteAddr, countryCode, userAgent, true);
             return new SuccessResponse("OK").ok();
         } else {
-            userService.recordLogin(username, remoteAddr, userAgent, false);
+            userService.recordLogin(username, remoteAddr, countryCode, userAgent, false);
             if (user != null) {
                 User updatedUser = userService.getUserByUsername(username);
                 if (updatedUser != null && "LOCKED".equals(updatedUser.getStatus())) {
