@@ -66,13 +66,17 @@
     <script src="https://cdn.jsdelivr.net/gh/aspectran/aspectran-assets@main/assets/js/theme-toggler.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/aspectran/aspectran-assets@main/assets/countries/countries.js"></script>
 
-    <th:block th:if="${#{currentEnvironment}.matchesProfiles('cdn-assets')}">
+    <th:block th:if="${#{currentEnvironment}.matchesProfiles('(cdn-assets, !dev)')}">
         <link rel="stylesheet" th:href="|https://cdn.jsdelivr.net/gh/aspectran/aspectow@main/assets/console@4.2/css/console-bundle.min.css|"/>
         <script th:src="|https://cdn.jsdelivr.net/gh/aspectran/aspectow@main/assets/console@4.2/js/console-bundle.min.js|"></script>
     </th:block>
-    <th:block th:unless="${#{currentEnvironment}.matchesProfiles('cdn-assets')}">
+    <th:block th:if="${#{currentEnvironment}.matchesProfiles('(!cdn-assets, !dev)')}">
         <link rel="stylesheet" th:href="@{/assets/css/console-bundle.min.css?v=20260905}"/>
         <script th:src="@{/assets/js/console-bundle.min.js?v=20260905}"></script>
+    </th:block>
+    <th:block th:if="${#{currentEnvironment}.matchesProfiles('dev')}">
+        <link rel="stylesheet" th:href="@{/assets/css/console.css}"/>
+        <link rel="stylesheet" th:href="@{/assets/js/console-bundle.js}"/>
     </th:block>
 </th:block>
 </html>
