@@ -58,6 +58,8 @@ public abstract class NodeManagerBuilder {
 
     public static final String MY_GROUP_ID_PROPERTY = "aspectow.node.group";
 
+    public static final String MY_ROUTE_ID_PROPERTY = "aspectow.node.route";
+
     public static final String MY_CONSOLE_PROPERTY = "aspectow.node.console";
 
     private static final String DEFAULT_CLUSTER_ID = "cluster1";
