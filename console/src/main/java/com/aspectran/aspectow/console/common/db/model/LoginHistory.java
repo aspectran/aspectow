@@ -31,6 +31,7 @@ public class LoginHistory implements Serializable {
     private String username;
     private LocalDateTime loginAt;
     private String ipAddress;
+    private String countryCode;
     private String userAgent;
     private String successYn;
 
@@ -96,6 +97,22 @@ public class LoginHistory implements Serializable {
      */
     public void setIpAddress(String ipAddress) {
         this.ipAddress = ipAddress;
+    }
+
+    /**
+     * Gets the 2-letter country code.
+     * @return the country code
+     */
+    public String getCountryCode() {
+        return countryCode;
+    }
+
+    /**
+     * Sets the 2-letter country code.
+     * @param countryCode the country code
+     */
+    public void setCountryCode(String countryCode) {
+        this.countryCode = countryCode;
     }
 
     /**

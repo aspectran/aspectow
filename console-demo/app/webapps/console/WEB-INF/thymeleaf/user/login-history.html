@@ -47,6 +47,7 @@
                         <th class="ps-3 text-muted small text-uppercase" style="width: 60px;">ID</th>
                         <th class="text-muted small text-uppercase">Username</th>
                         <th class="text-muted small text-uppercase">IP Address</th>
+                        <th th:if="${page.hasCountryResolver}" class="text-muted small text-uppercase">Country</th>
                         <th class="text-muted small text-uppercase">Status</th>
                         <th class="text-muted small text-uppercase">Time</th>
                         <th class="pe-3 text-muted small text-uppercase">User Agent</th>
@@ -60,6 +61,12 @@
                                class="text-decoration-none fw-bold" th:text="${history.username}">admin</a>
                         </td>
                         <td th:text="${session.USER_INFO.hasRole('DEMO') ? (history.ipAddress.indexOf('.') != -1 ? history.ipAddress.replaceAll('(\\d+)\\.(\\d+)\\.(\\d+)\\.(\\d+)', '$1.$2.*.*') : (history.ipAddress.indexOf(':') != -1 ? history.ipAddress.replaceAll('(:[^:]*){1,4}$', ':*:*:*:*') : '***')) : history.ipAddress}">127.0.0.1</td>
+                        <td th:if="${page.hasCountryResolver}">
+                            <span th:if="${!#strings.isEmpty(history.countryCode)}"
+                                  class="badge bg-secondary-subtle text-secondary border border-secondary-subtle fw-medium"
+                                  th:text="${history.countryCode}">KR</span>
+                            <span th:if="${#strings.isEmpty(history.countryCode)}" class="text-muted">-</span>
+                        </td>
                         <td>
                             <span th:class="${#strings.equals(history.successYn, 'Y') ? 'badge bg-success' : 'badge bg-danger'}"
                                   th:text="${#strings.equals(history.successYn, 'Y') ? 'SUCCESS' : 'FAILED'}">SUCCESS</span>
@@ -69,7 +76,7 @@
                             th:text="${history.userAgent}" th:title="${history.userAgent}">Mozilla/5.0...</td>
                     </tr>
                     <tr th:if="${#lists.isEmpty(page.historyList)}">
-                        <td colspan="6" class="text-center py-4 text-muted">No login history found.</td>
+                        <td th:colspan="${page.hasCountryResolver ? 7 : 6}" class="text-center py-4 text-muted">No login history found.</td>
                     </tr>
                     </tbody>
                 </table>

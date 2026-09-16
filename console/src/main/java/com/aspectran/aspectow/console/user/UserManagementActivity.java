@@ -15,6 +15,7 @@
  */
 package com.aspectran.aspectow.console.user;
 
+import com.aspectran.aspectow.appmon.common.support.IPCountryResolver;
 import com.aspectran.aspectow.console.auth.UserInfo;
 import com.aspectran.aspectow.console.common.db.model.AuditLog;
 import com.aspectran.aspectow.console.common.db.model.LoginHistory;
@@ -41,6 +42,7 @@ import org.jspecify.annotations.NonNull;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Controller class that handles user management requests, including
@@ -51,14 +53,17 @@ import java.util.Map;
 public class UserManagementActivity {
 
     private final UserService userService;
+    private final IPCountryResolver ipCountryResolver;
 
     /**
-     * Constructs a new {@code UserManagementActivity} with the specified user service.
+     * Constructs a new {@code UserManagementActivity} with the specified user service and optional IP country resolver.
      * @param userService the user service
+     * @param ipCountryResolver the IP country resolver
      */
     @Autowired
-    public UserManagementActivity(UserService userService) {
+    public UserManagementActivity(UserService userService, Optional<IPCountryResolver> ipCountryResolver) {
         this.userService = userService;
+        this.ipCountryResolver = ipCountryResolver.orElse(null);
     }
 
     /**
@@ -115,6 +120,14 @@ public class UserManagementActivity {
 
         PageInfo pageInfo = PageInfo.of(translet, "login_history_page_size");
         List<LoginHistory> historyList = userService.getLoginHistoryList(pageInfo, targetUsername, searchKeyword);
+        if (ipCountryResolver != null) {
+            for (LoginHistory history : historyList) {
+                if (StringUtils.hasLength(history.getIpAddress())) {
+                    String countryCode = ipCountryResolver.resolveCountryCode(history.getIpAddress());
+                    history.setCountryCode(countryCode);
+                }
+            }
+        }
         return Map.of(
             "title", "Login History",
             "style", "login-history-page",
@@ -122,7 +135,8 @@ public class UserManagementActivity {
             "historyList", historyList,
             "pageInfo", pageInfo,
             "username", (targetUsername != null ? targetUsername : ""),
-            "searchKeyword", (searchKeyword != null ? searchKeyword : "")
+            "searchKeyword", (searchKeyword != null ? searchKeyword : ""),
+            "hasCountryResolver", (ipCountryResolver != null)
         );
     }
 
