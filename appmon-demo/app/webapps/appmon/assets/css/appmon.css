@@ -43,7 +43,7 @@
 }
 @media screen and (max-width: 768px) {
     .monitoring-page .group.tabs > .tabs-title:nth-child(2) {
-        margin-right: 2.2rem !important;
+        margin-right: 2.5rem;
     }
 }
 
