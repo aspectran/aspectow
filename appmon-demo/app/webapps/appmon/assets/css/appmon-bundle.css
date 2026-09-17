@@ -16,19 +16,34 @@
 
 /*
  * @version 4.2
- * @last-modified 2026-09-09
+ * @last-modified 2026-09-17
  */
 
 /* For console-integrated */
+.popup-close-btn {
+    position: absolute;
+    top: 14px;
+    right: 16px;
+    z-index: 1050;
+    cursor: pointer;
+}
 .monitoring-page .group.tabs {
     box-shadow: none;
+    @media screen and (min-width: 768px) {
+        margin-top: 1px;
+    }
 }
-.monitoring-page .group.tabs > .tabs-title > a, .monitoring-page .group.tabs > .tabs-title button {
+.monitoring-page .group.tabs > .tabs-title > a {
     margin-right: 4px;
     border-radius: 30px !important;
     @media screen and (min-width: 768px) {
         padding: 3px 13px !important;
         font-size: .8em !important;
+    }
+}
+@media screen and (max-width: 768px) {
+    .monitoring-page .group.tabs > .tabs-title:nth-child(2) {
+        margin-right: 2.2rem !important;
     }
 }
 
@@ -54,7 +69,7 @@
     }
 }
 @media screen and (min-width: 768px) {
-    .node.tabs > .tabs-title > a, .node.tabs > .tabs-title button {
+    .node.tabs > .tabs-title > a {
         padding: 3px 12px !important;
     }
 }
