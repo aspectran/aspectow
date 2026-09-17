@@ -27,7 +27,7 @@
 <body>
     <th:block layout:fragment="content">
         <div class="row">
-            <div class="node-bar mt-0 mt-md-3 py-2 py-md-0">
+            <div class="node-bar mt-0 mt-md-3 py-1 py-md-0">
                 <ul class="node tabs flat nav nav-tabs">
                     <li class="tabs-title nav-item">
                         <a class="nav-link">
@@ -61,12 +61,16 @@
                 </div>
             </div>
         </div>
-        <ul class="app tabs nav nav-tabs mt-2 mt-md-3 pb-2 pb-md-0">
-            <li class="tabs-title nav-item">
-                <a class="nav-link"><i class="bi bi-box"></i> <span class="title">App 1</span> <i class="indicator bi bi-lightning-charge-fill"></i></a>
-            </li>
-        </ul>
-        <div class="control-bar">
+        <div class="row app-bar">
+            <div class="container py-1 py-md-0">
+                <ul class="app tabs flat nav nav-tabs">
+                    <li class="tabs-title nav-item">
+                        <a class="nav-link"><i class="bi bi-box"></i> <span class="title">App 1</span> <i class="indicator bi bi-lightning-charge-fill"></i></a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="control-bar mt-2">
             <div class="options">
                 <i class="bi bi-columns-gap d-none d-lg-inline-block"></i>
                 <div class="layout-options btn-group d-none d-lg-inline-block" title="Layout options">

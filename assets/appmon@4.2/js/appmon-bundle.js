@@ -2754,8 +2754,12 @@ class DashboardBuilder {
         const availableTabs = $(`.node.tabs .tabs-title[data-group-id=${this.currentGroupId}]`);
         availableTabs.removeClass("active");
         this.nodes.filter(d => d.active && d.group === this.currentGroupId).forEach(d => {
-            $(".node.tabs .tabs-title[data-node-index=" + d.index + "]").addClass("active");
-        })
+            const $tab = $(".node.tabs .tabs-title[data-node-index=" + d.index + "]");
+            $tab.addClass("active");
+            if ($tab.length && $tab[0].scrollIntoView) {
+                $tab[0].scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
+            }
+        });
     }
 
     updateNodeVisibility(node, appId) {
@@ -2807,6 +2811,9 @@ class DashboardBuilder {
             if (group.id === groupId) {
                 group.active = true;
                 $tabTitle.addClass("active");
+                if ($tabTitle.length && $tabTitle[0].scrollIntoView) {
+                    $tabTitle[0].scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
+                }
             } else {
                 group.active = false;
                 $tabTitle.removeClass("active");
@@ -2857,6 +2864,9 @@ class DashboardBuilder {
                 app.active = true;
                 setTimeout(() => this.showNodeApp(appId), 0);
                 $tabTitle.addClass("active");
+                if ($tabTitle.length && $tabTitle[0].scrollIntoView) {
+                    $tabTitle[0].scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
+                }
                 exists = true;
                 this.nodes.forEach(node => {
                     if (node.primary) {
@@ -2975,7 +2985,7 @@ class DashboardBuilder {
                 url += "?nodeId=" + encodeURIComponent(this.nodeToSubscribe);
             }
             const name = "appmon_dashboard_popup";
-            const features = "width=1500,height=1070,menubar=no,toolbar=no,location=no,status=no,resizable=yes,scrollbars=yes";
+            const features = "width=1500,height=1045,menubar=no,toolbar=no,location=no,status=no,resizable=yes,scrollbars=yes";
             const popup = window.open(url, name, features);
             if (popup) {
                 this.suspendMonitoring();

@@ -16,7 +16,7 @@
 
 /*
  * @version 4.2
- * @last-modified 2026-09-09
+ * @last-modified 2026-09-17
  */
 
 [data-bs-theme=dark] {
@@ -27,7 +27,7 @@
         border-color: #353b3e;
     }
     .app-bar {
-        border-color: #495057 !important;
+        border-color: #353b3e;
     }
     .metrics-bar .metric:hover {
         background-color: rgba(255, 255, 255, .06);
@@ -109,15 +109,15 @@
         color: #d6e5e4;
     }
     .control-bar .options .btn-group .btn {
-        background-color: #313639;
+        background-color: #243640;
         color: #cfcfcf;
     }
     .control-bar .options .btn-group .btn:hover {
-        background-color: #43494c;
+        background-color: #294556;
         color: #fff;
     }
     .control-bar .options .btn-group .btn.on {
-        background-color: #1e2b32;
+        background-color: #2e5469;
         color: #fff;
     }
     .event-box .title-bar {

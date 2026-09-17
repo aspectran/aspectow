@@ -329,7 +329,7 @@
             function openAppMon(nodeId) {
                 const url = contextPath + "/appmon/dashboard/popup/?nodeId=" + nodeId;
                 const name = "appmon_dashboard_popup_" + nodeId.replace(/[^a-zA-Z0-9]/g, '_');
-                const features = "width=1500,height=1070,menubar=no,toolbar=no,location=no,status=no,resizable=yes,scrollbars=yes";
+                const features = "width=1500,height=1045,menubar=no,toolbar=no,location=no,status=no,resizable=yes,scrollbars=yes";
                 const popup = window.open(url, name, features);
                 if (popup) {
                     popup.focus();
@@ -341,7 +341,7 @@
             function openCommands(nodeId) {
                 const url = contextPath + "/cluster/commands/popup/?nodeId=" + nodeId;
                 const name = "cluster_commands_popup_" + nodeId.replace(/[^a-zA-Z0-9]/g, '_');
-                const features = "width=1500,height=1070,menubar=no,toolbar=no,location=no,status=no,resizable=yes,scrollbars=yes";
+                const features = "width=1500,height=1045,menubar=no,toolbar=no,location=no,status=no,resizable=yes,scrollbars=yes";
                 const popup = window.open(url, name, features);
                 if (popup) {
                     popup.focus();
@@ -353,7 +353,7 @@
             function openAudit(nodeId) {
                 const url = contextPath + "/cluster/build/audit/?nodeId=" + encodeURIComponent(nodeId) + "&layout=popup";
                 const name = "cluster_audit_popup_" + nodeId.replace(/[^a-zA-Z0-9]/g, '_');
-                const features = "width=1500,height=1070,menubar=no,toolbar=no,location=no,status=no,resizable=yes,scrollbars=yes";
+                const features = "width=1500,height=1045,menubar=no,toolbar=no,location=no,status=no,resizable=yes,scrollbars=yes";
                 const popup = window.open(url, name, features);
                 if (popup) {
                     popup.focus();

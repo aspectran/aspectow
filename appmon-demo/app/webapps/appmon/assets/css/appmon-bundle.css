@@ -20,6 +20,11 @@
  */
 
 /* For console-integrated */
+.monitoring-page #content-area > .container-fluid {
+    padding-top: 0.75rem !important;
+    padding-left: 0.75rem !important;
+    padding-right: 0.75rem !important;
+}
 .popup-close-btn {
     position: absolute;
     top: 14px;
@@ -41,26 +46,45 @@
         font-size: .8em !important;
     }
 }
+.monitoring-page .app-bar {
+    position: sticky;
+    top: 0;
+    z-index: 1010;
+    background-color: var(--bs-body-bg);
+    transition: top 0.3s ease;
+}
+.monitoring-page #header-bar ~ #content-area .app-bar {
+    top: var(--top-bar-height);
+}
+.monitoring-page #header-bar.header-hidden ~ #content-area .app-bar {
+    top: 0;
+}
 @media screen and (max-width: 768px) {
-    .monitoring-page:has(.popup-close-btn) .group.tabs > .tabs-title:nth-child(2) {
+    .monitoring-page:has(.popup-close-btn) .group.tabs {
         margin-right: 2.5rem;
     }
-}
-
-.tabs > .tabs-title .indicator {
-    padding: 0;
 }
 
 .group-bar {
     display: none;
 }
-
 .node-bar {
     border-top: 1px solid #ddd;
     border-bottom: 1px solid #ddd;
 }
-.node.tabs {
+.app-bar {
+    border-bottom: 1px solid #ddd;
+}
+
+.tabs {
     box-shadow: none;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    border-radius: 0;
     @media screen and (max-width: 768px) {
         height: auto;
     }
@@ -68,16 +92,29 @@
         margin-top: 1px;
     }
 }
+.tabs::-webkit-scrollbar {
+    display: none;
+}
+.tabs > .tabs-title {
+    flex-shrink: 0;
+    white-space: nowrap;
+}
 @media screen and (min-width: 768px) {
-    .node.tabs > .tabs-title > a {
+    .tabs > .tabs-title > a {
         padding: 3px 12px !important;
     }
 }
-.node.tabs .tabs-title .indicator.disconnected {
+.tabs > .tabs-title .indicator {
+    padding: 0;
+}
+.tabs > .tabs-title .indicator.disconnected {
     color: #ff9900;
 }
-.node.tabs .tabs-title .indicator.error {
+.tabs > .tabs-title .indicator.error {
     color: #a01f27;
+}
+.app.tabs {
+    box-shadow: none;
 }
 
 .metrics-bar {
@@ -173,7 +210,6 @@
     height: auto;
     border-bottom: 1px solid #ddd;
     background-color: unset;
-    box-shadow: 0 6px 10px -10px rgba(50, 50, 50, .33);
     width: 100%;
     display: grid;
     grid-template-columns: auto 1fr;
@@ -346,13 +382,10 @@
 .control-bar {
     background-color: #677278;
     color: #eee;
-    padding : 4px 6px;
+    padding : 0 6px;
     box-shadow: 0 6px 10px -10px rgba(50, 50, 50, 0.45);
     text-align: right;
-    border-top-right-radius: 3px;
-    @media screen and (max-width: 768px) {
-        border-top-left-radius: 3px;
-    }
+    border-radius: 3px 3px 0 0;
 }
 .control-bar .options > .bi {
     color: #d6e5e4;
@@ -363,29 +396,29 @@
     margin: 0;
 }
 .control-bar .options .btn-group .btn {
+    border-radius: 0;
     padding: 3px 8px;
     font-size: .9em;
-    background-color: #545a5d;
+    background-color: #314959;
     color: #e6e6e6;
     transition: all 0.2s ease-in-out;
 }
 .control-bar .options .btn-group .btn:hover {
-    background-color: #43494c;
+    background-color: #335a73;
     color: #fff;
 }
 .control-bar .options .btn-group .btn.on {
-    background-color: #314959;
+    background-color: #336d95;
 }
 
 .event-box {
     display: none;
 }
 .event-box .title-bar {
-    background-color: #242c43;
+    background-color: #572b2a;
     color: #eee;
     padding : 0 7px 0 10px;
     height: 29px;
-    box-shadow: inset -20px 20px 20px -20px #394e59;
 }
 .event-box .title-bar.on {
     background-color: #709185;
@@ -853,7 +886,7 @@
 
 /*
  * @version 4.2
- * @last-modified 2026-09-09
+ * @last-modified 2026-09-17
  */
 
 [data-bs-theme=dark] {
@@ -861,6 +894,9 @@
         filter: invert(1) hue-rotate(180deg);
     }
     .node-bar {
+        border-color: #353b3e;
+    }
+    .app-bar {
         border-color: #353b3e;
     }
     .metrics-bar .metric:hover {
@@ -943,21 +979,20 @@
         color: #d6e5e4;
     }
     .control-bar .options .btn-group .btn {
-        background-color: #313639;
+        background-color: #243640;
         color: #cfcfcf;
     }
     .control-bar .options .btn-group .btn:hover {
-        background-color: #43494c;
+        background-color: #294556;
         color: #fff;
     }
     .control-bar .options .btn-group .btn.on {
-        background-color: #1e2b32;
+        background-color: #2e5469;
         color: #fff;
     }
     .event-box .title-bar {
-        background-color: #24272e;
+        background-color: #3c201f;
         color: #eee;
-        box-shadow: none;
     }
     .event-box .title-bar.on {
         background-color: #709185;

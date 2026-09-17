@@ -20,16 +20,17 @@
  */
 
 /* For console-integrated */
+.monitoring-page #content-area > .container-fluid {
+    padding-top: 0.75rem !important;
+    padding-left: 0.75rem !important;
+    padding-right: 0.75rem !important;
+}
 .popup-close-btn {
     position: absolute;
     top: 14px;
     right: 16px;
     z-index: 1050;
     cursor: pointer;
-}
-.popup.monitoring-page #header-bar {
-    height: auto;
-    border-bottom: none;
 }
 .monitoring-page .group.tabs {
     box-shadow: none;
@@ -45,8 +46,21 @@
         font-size: .8em !important;
     }
 }
+.monitoring-page .app-bar {
+    position: sticky;
+    top: 0;
+    z-index: 1010;
+    background-color: var(--bs-body-bg);
+    transition: top 0.3s ease;
+}
+.monitoring-page #header-bar ~ #content-area .app-bar {
+    top: var(--top-bar-height);
+}
+.monitoring-page #header-bar.header-hidden ~ #content-area .app-bar {
+    top: 0;
+}
 @media screen and (max-width: 768px) {
-    .monitoring-page:has(.popup-close-btn) .group.tabs > .tabs-title:nth-child(2) {
+    .monitoring-page:has(.popup-close-btn) .group.tabs {
         margin-right: 2.5rem;
     }
 }
@@ -59,17 +73,31 @@
     border-bottom: 1px solid #ddd;
 }
 .app-bar {
-    border-bottom: 1px solid #dee2e6 !important;
+    border-bottom: 1px solid #ddd;
 }
 
 .tabs {
     box-shadow: none;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    border-radius: 0;
     @media screen and (max-width: 768px) {
         height: auto;
     }
     @media screen and (min-width: 768px) {
         margin-top: 1px;
     }
+}
+.tabs::-webkit-scrollbar {
+    display: none;
+}
+.tabs > .tabs-title {
+    flex-shrink: 0;
+    white-space: nowrap;
 }
 @media screen and (min-width: 768px) {
     .tabs > .tabs-title > a {
@@ -182,7 +210,6 @@
     height: auto;
     border-bottom: 1px solid #ddd;
     background-color: unset;
-    box-shadow: 0 6px 10px -10px rgba(50, 50, 50, .33);
     width: 100%;
     display: grid;
     grid-template-columns: auto 1fr;
@@ -372,16 +399,16 @@
     border-radius: 0;
     padding: 3px 8px;
     font-size: .9em;
-    background-color: #545a5d;
+    background-color: #314959;
     color: #e6e6e6;
     transition: all 0.2s ease-in-out;
 }
 .control-bar .options .btn-group .btn:hover {
-    background-color: #43494c;
+    background-color: #335a73;
     color: #fff;
 }
 .control-bar .options .btn-group .btn.on {
-    background-color: #314959;
+    background-color: #336d95;
 }
 
 .event-box {
