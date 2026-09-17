@@ -42,7 +42,7 @@
     }
 }
 @media screen and (max-width: 768px) {
-    .monitoring-page .group.tabs > .tabs-title:nth-child(2) {
+    .monitoring-page:has(.popup-close-btn) .group.tabs > .tabs-title:nth-child(2) {
         margin-right: 2.5rem;
     }
 }
