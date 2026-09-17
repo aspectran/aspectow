@@ -856,7 +856,7 @@ class DashboardBuilder {
         $("#appmon-loading-message").hide();
         $("#appmon-empty-message").hide();
         $("#appmon-popup-message").hide();
-        $(".group-bar, .node-bar, .node.metrics-bar, .app.tabs, .control-bar, .view-box").hide();
+        $(".group-bar, .node-bar, .node.metrics-bar, .app-bar, .app.tabs, .control-bar, .view-box").hide();
         $(".group.tabs .tabs-title.available, .node.tabs .tabs-title.available, .app.tabs .tabs-title.available, " +
           ".node.metrics-bar.available, .node.metrics-bar .metric.available, .control-bar.available, " +
           ".event-box.available, .visual-box.available, .chart-box.available, .console-box.available").remove();
@@ -873,7 +873,7 @@ class DashboardBuilder {
     }
 
     buildView() {
-        $(".node-bar, .app.tabs, .view-box").show();
+        $(".node-bar, .app-bar, .app.tabs, .view-box").show();
         if (this.groups.length > 0) {
             $(".group-bar").show();
             this.groups.forEach(group => {
