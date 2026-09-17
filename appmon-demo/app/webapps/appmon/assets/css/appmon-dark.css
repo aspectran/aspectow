@@ -26,6 +26,9 @@
     .node-bar {
         border-color: #353b3e;
     }
+    .app-bar {
+        border-color: #495057 !important;
+    }
     .metrics-bar .metric:hover {
         background-color: rgba(255, 255, 255, .06);
     }
@@ -118,9 +121,8 @@
         color: #fff;
     }
     .event-box .title-bar {
-        background-color: #24272e;
+        background-color: #3c201f;
         color: #eee;
-        box-shadow: none;
     }
     .event-box .title-bar.on {
         background-color: #709185;

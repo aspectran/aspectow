@@ -27,6 +27,10 @@
     z-index: 1050;
     cursor: pointer;
 }
+.popup.monitoring-page #header-bar {
+    height: auto;
+    border-bottom: none;
+}
 .monitoring-page .group.tabs {
     box-shadow: none;
     @media screen and (min-width: 768px) {
@@ -47,19 +51,18 @@
     }
 }
 
-.tabs > .tabs-title .indicator {
-    padding: 0;
-}
-
 .group-bar {
     display: none;
 }
-
 .node-bar {
     border-top: 1px solid #ddd;
     border-bottom: 1px solid #ddd;
 }
-.node.tabs {
+.app-bar {
+    border-bottom: 1px solid #dee2e6 !important;
+}
+
+.tabs {
     box-shadow: none;
     @media screen and (max-width: 768px) {
         height: auto;
@@ -69,15 +72,21 @@
     }
 }
 @media screen and (min-width: 768px) {
-    .node.tabs > .tabs-title > a {
+    .tabs > .tabs-title > a {
         padding: 3px 12px !important;
     }
 }
-.node.tabs .tabs-title .indicator.disconnected {
+.tabs > .tabs-title .indicator {
+    padding: 0;
+}
+.tabs > .tabs-title .indicator.disconnected {
     color: #ff9900;
 }
-.node.tabs .tabs-title .indicator.error {
+.tabs > .tabs-title .indicator.error {
     color: #a01f27;
+}
+.app.tabs {
+    box-shadow: none;
 }
 
 .metrics-bar {
@@ -346,13 +355,10 @@
 .control-bar {
     background-color: #677278;
     color: #eee;
-    padding : 4px 6px;
+    padding : 0 6px;
     box-shadow: 0 6px 10px -10px rgba(50, 50, 50, 0.45);
     text-align: right;
-    border-top-right-radius: 3px;
-    @media screen and (max-width: 768px) {
-        border-top-left-radius: 3px;
-    }
+    border-radius: 3px 3px 0 0;
 }
 .control-bar .options > .bi {
     color: #d6e5e4;
@@ -363,6 +369,7 @@
     margin: 0;
 }
 .control-bar .options .btn-group .btn {
+    border-radius: 0;
     padding: 3px 8px;
     font-size: .9em;
     background-color: #545a5d;
@@ -381,11 +388,10 @@
     display: none;
 }
 .event-box .title-bar {
-    background-color: #242c43;
+    background-color: #572b2a;
     color: #eee;
     padding : 0 7px 0 10px;
     height: 29px;
-    box-shadow: inset -20px 20px 20px -20px #394e59;
 }
 .event-box .title-bar.on {
     background-color: #709185;
