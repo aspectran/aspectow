@@ -9,8 +9,8 @@
     <script th:src="|https://cdn.jsdelivr.net/gh/aspectran/aspectow@main/assets/appmon@4.2/js/appmon-bundle.min.js|"></script>
 </th:block>
 <th:block th:if="${#{currentEnvironment}.matchesProfiles('(!cdn-assets, !dev)')}">
-    <link rel="stylesheet" th:href="@{/assets/css/appmon-bundle.min.css?v=20260909}"/>
-    <script th:src="@{/assets/js/appmon-bundle.min.js?v=20260909}"></script>
+    <link rel="stylesheet" th:href="@{/assets/css/appmon-bundle.min.css?v=20260917}"/>
+    <script th:src="@{/assets/js/appmon-bundle.min.js?v=20260917}"></script>
 </th:block>
 <th:block th:if="${#{currentEnvironment}.matchesProfiles('dev')}">
     <link rel="stylesheet" th:href="@{/assets/css/appmon.css}"/>
@@ -84,7 +84,7 @@
                 </div>
             </div>
         </div>
-        <div class="row g-0">
+        <div class="view-box row g-0">
             <div class="col-12 col-lg-6 event-box">
                 <div class="title-bar">
                     <i class="bi bi-server"></i><span class="number"></span>
@@ -175,6 +175,9 @@
                 </div>
                 <pre class="console"></pre>
             </div>
+        </div>
+        <div id="appmon-loading-message" class="text-center my-5 p-4 p-md-5" style="display: none;">
+            <div class="d-flex flex-column align-items-center gap-4 text-muted"><span class="spinner-border text-primary"></span><span>Loading Dashboard...</span></div>
         </div>
         <div id="appmon-empty-message" class="text-center my-5 p-4 p-md-5 border rounded bg-light-subtle shadow-sm" style="display: none;">
             <i class="bi bi-box-seam display-1 text-muted mb-4 d-block"></i>

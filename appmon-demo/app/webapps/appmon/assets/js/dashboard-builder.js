@@ -19,7 +19,7 @@
  * Responsible for assembling the dashboard UI based on configuration data.
  *
  * @version 4.2
- * @last-modified 2026-09-16
+ * @last-modified 2026-09-17
  */
 class DashboardBuilder {
     constructor(options = {}) {
@@ -53,7 +53,7 @@ class DashboardBuilder {
         }
 
         this.suspendMonitoring();
-        this.clearView();
+        this.showLoadingMessage();
         this.currentAjax = $.ajax({
             url: baseUrl + "/appmon/config/data",
             type: "get",
@@ -814,21 +814,13 @@ class DashboardBuilder {
         this.sharedClient = null;
     }
 
-    showPopupModeMessage() {
+    showLoadingMessage() {
         this.clearView();
-        $(".group-bar, .node-bar, .node.metrics-bar, .app.tabs, .control-bar, .row.g-0").hide();
-        const $messageBox = $("#appmon-popup-message");
-        if ($messageBox.length > 0) {
-            $messageBox.find(".resume-here").off("click").on("click", () => {
-                location.reload();
-            });
-            $messageBox.show();
-        }
+        $("#appmon-loading-message").show();
     }
 
     showEmptyAppMessage() {
         this.clearView();
-        $(".group-bar, .node-bar, .node.metrics-bar, .app.tabs, .control-bar, .row.g-0").hide();
         const $emptyBox = $("#appmon-empty-message");
         if ($emptyBox.length > 0) {
             $emptyBox.find(".retry-btn").off("click").on("click", () => {
@@ -839,9 +831,22 @@ class DashboardBuilder {
         }
     }
 
+    showPopupModeMessage() {
+        this.clearView();
+        const $messageBox = $("#appmon-popup-message");
+        if ($messageBox.length > 0) {
+            $messageBox.find(".resume-here").off("click").on("click", () => {
+                location.reload();
+            });
+            $messageBox.show();
+        }
+    }
+
     clearView() {
-        $("#appmon-popup-message").hide();
+        $("#appmon-loading-message").hide();
         $("#appmon-empty-message").hide();
+        $("#appmon-popup-message").hide();
+        $(".group-bar, .node-bar, .node.metrics-bar, .app.tabs, .control-bar, .view-box").hide();
         $(".group.tabs .tabs-title.available, .node.tabs .tabs-title.available, .app.tabs .tabs-title.available, " +
           ".node.metrics-bar.available, .node.metrics-bar .metric.available, .control-bar.available, " +
           ".event-box.available, .visual-box.available, .chart-box.available, .console-box.available").remove();
@@ -858,7 +863,7 @@ class DashboardBuilder {
     }
 
     buildView() {
-        $(".node-bar, .app.tabs, .row.g-0").show();
+        $(".node-bar, .app.tabs, .view-box").show();
         if (this.groups.length > 0) {
             $(".group-bar").show();
             this.groups.forEach(group => {

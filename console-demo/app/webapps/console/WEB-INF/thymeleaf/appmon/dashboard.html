@@ -98,7 +98,7 @@
                 </div>
             </div>
         </div>
-        <div class="row g-0">
+        <div class="view-box row g-0">
             <div class="col-12 col-lg-6 event-box">
                 <div class="title-bar">
                     <i class="bi bi-server"></i><span class="number"></span>
@@ -190,13 +190,8 @@
                 <pre class="console"></pre>
             </div>
         </div>
-        <div id="appmon-popup-message" class="text-center my-5 p-3 p-md-5 border rounded bg-light-subtle" style="display: none;">
-            <i class="bi bi-window-stack display-1 text-muted mb-4"></i>
-            <h3>Application Monitoring is running in a popup window</h3>
-            <p class="text-muted">Monitoring has been suspended in this window to save resources.</p>
-            <button type="button" class="btn btn-primary mt-3 resume-here">
-                <i class="bi bi-play-fill"></i> Resume monitoring here
-            </button>
+        <div id="appmon-loading-message" class="text-center my-5 p-4 p-md-5" style="display: none;">
+            <div class="d-flex flex-column align-items-center gap-4 text-muted"><span class="spinner-border text-primary"></span><span>Loading Dashboard...</span></div>
         </div>
         <div id="appmon-empty-message" class="text-center my-5 p-4 p-md-5 border rounded bg-light-subtle shadow-sm" style="display: none;">
             <i class="bi bi-box-seam display-1 text-muted mb-4 d-block"></i>
@@ -208,6 +203,14 @@
                     <i class="bi bi-arrow-clockwise me-1"></i> Retry
                 </button>
             </div>
+        </div>
+        <div id="appmon-popup-message" class="text-center my-5 p-3 p-md-5 border rounded bg-light-subtle" style="display: none;">
+            <i class="bi bi-window-stack display-1 text-muted mb-4"></i>
+            <h3>Application Monitoring is running in a popup window</h3>
+            <p class="text-muted">Monitoring has been suspended in this window to save resources.</p>
+            <button type="button" class="btn btn-primary mt-3 resume-here">
+                <i class="bi bi-play-fill"></i> Resume monitoring here
+            </button>
         </div>
         <div id="metric-popover" class="metric-popover" style="display: none;">
             <div class="popover-arrow"></div>
