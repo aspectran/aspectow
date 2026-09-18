@@ -25,8 +25,6 @@ import com.aspectran.daemon.service.DefaultDaemonServiceBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.reflect.Method;
-
 /**
  * LocalCommandService handles the actual execution of daemon commands
  * within the local node using DaemonService.
@@ -115,16 +113,9 @@ public class LocalCommandService {
             if ("pause".equalsIgnoreCase(commandTrimmed)) {
                 boolean found = false;
                 for (CoreService service : CoreServiceHolder.getAllServices()) {
-                    if (service.getClass().getName().endsWith("WebService") ||
-                            service.getClass().getSimpleName().contains("WebService")) {
-                        try {
-                            Method getContextNameMethod = service.getClass().getMethod("getContextName");
-                            String contextName = (String)getContextNameMethod.invoke(service);
-                            if ("console".equals(contextName)) {
-                                continue;
-                            }
-                        } catch (Exception ignored) {
-                            // ignore
+                    if (service.isWebService()) {
+                        if ("console".equals(service.getContextName())) {
+                            continue;
                         }
                         try {
                             service.getServiceLifeCycle().pause();
@@ -145,16 +136,9 @@ public class LocalCommandService {
             } else if ("resume".equalsIgnoreCase(commandTrimmed)) {
                 boolean found = false;
                 for (CoreService service : CoreServiceHolder.getAllServices()) {
-                    if (service.getClass().getName().endsWith("WebService") ||
-                            service.getClass().getSimpleName().contains("WebService")) {
-                        try {
-                            Method getContextNameMethod = service.getClass().getMethod("getContextName");
-                            String contextName = (String)getContextNameMethod.invoke(service);
-                            if ("console".equals(contextName)) {
-                                continue;
-                            }
-                        } catch (Exception ignored) {
-                            // ignore
+                    if (service.isWebService()) {
+                        if ("console".equals(service.getContextName())) {
+                            continue;
                         }
                         try {
                             service.getServiceLifeCycle().resume();
