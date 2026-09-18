@@ -2374,7 +2374,7 @@ class DashboardViewer {
  * Responsible for assembling the dashboard UI based on configuration data.
  *
  * @version 4.2
- * @last-modified 2026-09-17
+ * @last-modified 2026-09-18
  */
 class DashboardBuilder {
     constructor(options = {}) {
@@ -3405,7 +3405,7 @@ class DashboardBuilder {
 
     addChartBox($visualBox, nodeInfo, appInfo, eventInfo) {
         const $chart = $visualBox.find(".chart-box");
-        return $chart.first().hide().clone().addClass("available col-12 col-lg-6")
+        return $chart.first().hide().clone().addClass("available")
             .attr({ "data-node-index": nodeInfo.index, "data-app-id": appInfo.id, "data-event-id": eventInfo.id })
             .appendTo($visualBox).show();
     }

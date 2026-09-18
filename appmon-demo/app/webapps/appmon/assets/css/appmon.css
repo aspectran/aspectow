@@ -16,20 +16,22 @@
 
 /*
  * @version 4.2
- * @last-modified 2026-09-17
+ * @last-modified 2026-09-18
  */
 
-/* For console-integrated */
-.monitoring-page #content-area > .container-fluid {
+/* For console-integrated & standalone page-content */
+.monitoring-page #content-area > .container-fluid,
+.page-content:has(.node-bar),
+.page-content:has(.app-bar),
+.monitoring-page .page-content {
+    max-width: 100% !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
     @media screen and (max-width: 768px) {
         padding-top: 0.5rem !important;
-        padding-left: 0.5rem !important;
-        padding-right: 0.5rem !important;
     }
     @media screen and (min-width: 768px) {
         padding-top: 0.75rem !important;
-        padding-left: 0.75rem !important;
-        padding-right: 0.75rem !important;
     }
 }
 .popup-close-btn {
@@ -48,22 +50,20 @@
 .monitoring-page .group.tabs > .tabs-title > a {
     margin-right: 4px;
     border-radius: 30px !important;
-    @media screen and (min-width: 768px) {
-        padding: 3px 13px !important;
-        font-size: .8em !important;
-    }
+    padding: 3px 13px !important;
+    font-size: .8em !important;
 }
-.monitoring-page .app-bar {
+.app-bar {
     position: sticky;
     top: 0;
     z-index: 1010;
     background-color: var(--bs-body-bg);
     transition: top 0.3s ease;
 }
-.monitoring-page #header-bar ~ #content-area .app-bar {
+#header-bar ~ #content-area .app-bar {
     top: var(--top-bar-height);
 }
-.monitoring-page #header-bar.header-hidden ~ #content-area .app-bar {
+#header-bar.header-hidden ~ #content-area .app-bar {
     top: 0;
 }
 @media screen and (max-width: 768px) {
@@ -72,6 +72,18 @@
     }
 }
 
+.group-bar,
+.node-bar,
+.node.metrics-bar,
+.app-bar,
+.dashboard-content {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    @media screen and (min-width: 768px) {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+    }
+}
 .group-bar {
     display: none;
 }
@@ -85,30 +97,14 @@
 
 .tabs {
     box-shadow: none;
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    overflow-y: hidden;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
     border-radius: 0;
     @media screen and (max-width: 768px) {
         height: auto;
     }
-    @media screen and (min-width: 768px) {
-        margin-top: 1px;
-    }
-}
-.tabs::-webkit-scrollbar {
-    display: none;
-}
-.tabs > .tabs-title {
-    flex-shrink: 0;
-    white-space: nowrap;
 }
 @media screen and (min-width: 768px) {
     .tabs > .tabs-title > a {
-        padding: 3px 12px !important;
+        padding: 4px 12px !important;
     }
 }
 .tabs > .tabs-title .indicator {
@@ -553,7 +549,6 @@
 }
 .visual-box .chart-box {
     position: relative;
-    width: 100%;
     height: 188px;
     padding: 4px 0 0 4px;
     background-color: #fff;
