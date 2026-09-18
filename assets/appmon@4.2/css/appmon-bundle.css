@@ -397,7 +397,7 @@
     display: none;
 }
 .event-box .title-bar {
-    background-color: #572b2a;
+    background-color: #503043;
     color: #eee;
     padding : 0 7px 0 10px;
     height: 29px;
@@ -753,7 +753,7 @@
     box-shadow: -20px 20px 20px -20px #42494e inset;
 }
 .console-box .status-bar.on {
-    background-color: #709185;
+    background-color: #6b8682;
 }
 .console-box .status-bar h4 {
     flex: 1;
@@ -972,17 +972,17 @@
         color: #fff;
     }
     .event-box .title-bar {
-        background-color: #3c201f;
+        background-color: #3a1b30;
         color: #eee;
     }
     .event-box .title-bar.on {
         background-color: #709185;
     }
     .track-box {
-        background-color: #0d1324;
+        background-color: #081129;
     }
     .track-box .track-stack {
-        background-color: #1d0c17;
+        background-color: #2b1223;
     }
     .track-stack .activity-status-plate .bottom-plate-left {
         background-color: #3c201f;
@@ -993,7 +993,7 @@
         color: #eee;
     }
     .track-stack .activity-status {
-        color: #6471a1;
+        color: #8892b6;
     }
     .track-stack .activity-status p.interim {
         color: #1f8c45;
@@ -1029,7 +1029,7 @@
         color: #709185;
     }
     .session-box .panel {
-        background-color: #212c28;
+        background-color: #26322d;
     }
     .session-box .panel.status .knob {
         background-color: #567181;
@@ -1068,7 +1068,7 @@
         color: #b1aeae;
     }
     .console-box .status-bar {
-        background-color: #2f3437;
+        background-color: #3b3f42;
         color: #eee;
         box-shadow: -20px 20px 20px -25px #2e3234 inset;
     }

@@ -397,7 +397,7 @@
     display: none;
 }
 .event-box .title-bar {
-    background-color: #572b2a;
+    background-color: #503043;
     color: #eee;
     padding : 0 7px 0 10px;
     height: 29px;
@@ -753,7 +753,7 @@
     box-shadow: -20px 20px 20px -20px #42494e inset;
 }
 .console-box .status-bar.on {
-    background-color: #709185;
+    background-color: #6b8682;
 }
 .console-box .status-bar h4 {
     flex: 1;
