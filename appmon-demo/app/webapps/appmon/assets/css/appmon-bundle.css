@@ -397,7 +397,7 @@
     display: none;
 }
 .event-box .title-bar {
-    background-color: #503043;
+    background-color: #773c3b;
     color: #eee;
     padding : 0 7px 0 10px;
     height: 29px;
@@ -972,8 +972,8 @@
         color: #fff;
     }
     .event-box .title-bar {
-        background-color: #3a1b30;
-        color: #eee;
+        background-color: #432120;
+        color: #ccc;
     }
     .event-box .title-bar.on {
         background-color: #709185;
