@@ -15,8 +15,8 @@
  */
 
 /*
- * @version 4.0
- * @last-modified 2026-08-08
+ * @version 4.2
+ * @last-modified 2026-09-17
  */
 
 [data-bs-theme=dark] {
@@ -26,22 +26,76 @@
     .node-bar {
         border-color: #353b3e;
     }
-    .metrics-bar {
-        background-color: #3b3f42;
+    .app-bar {
+        border-color: #353b3e;
+    }
+    .metrics-bar .metric:hover {
+        background-color: rgba(255, 255, 255, .06);
+    }
+    .metrics-bar .metric dl dt .name {
+        background-color: #50585d;
     }
     .node.metrics-bar {
         border-bottom: 1px solid #353b3e;
-        background-color: #24282b;
         box-shadow: none;
     }
-    .node.metrics-bar .title {
-        color: #677278;
+    .node.metrics-bar .node-badge {
+        border-left: 1px solid #353b3e;
     }
-    .node.metrics-bar .metric {
+    .node.metrics-bar .node-metrics {
         border-left: 1px solid #3b3f42;
-        @media screen and (max-width: 768px) {
-            border-right: 1px solid #3b3f42;
-        }
+        border-right: 1px solid #3b3f42;
+    }
+    .node.metrics-bar .app-metrics {
+        border-top: 1px solid #3b3f42;
+        border-left: 1px solid #3b3f42;
+        border-right: 1px solid #3b3f42;
+        background-color: #191c1d;
+    }
+    .metric-popover {
+        background: #1e293b;
+        border-color: #334155;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, .5), 0 8px 10px -6px rgba(0, 0, 0, .3);
+        color: #e2e8f0;
+    }
+    .metric-popover .popover-arrow {
+        background: #1e293b;
+        border-left-color: #334155;
+        border-top-color: #334155;
+    }
+    .metric-popover .popover-title {
+        color: #f8fafc;
+    }
+    .metric-popover .popover-current {
+        color: #38bdf8;
+    }
+    .metric-popover .btn-close-popover {
+        color: #64748b;
+    }
+    .metric-popover .btn-close-popover:hover {
+        color: #cbd5e1;
+    }
+    .metric-popover .popover-chart-wrap {
+        background: #0f172a;
+    }
+    .metric-popover .popover-stats {
+        border-top-color: #334155;
+    }
+    .metric-popover .stat-label {
+        color: #94a3b8;
+    }
+    .metric-popover .stat-val {
+        color: #f1f5f9;
+    }
+    .metric-popover .popover-details {
+        color: #94a3b8;
+    }
+    .metric-popover .popover-details span {
+        background: #334155;
+        color: #e2e8f0;
+    }
+    .metric-popover .popover-details strong {
+        color: #f8fafc;
     }
     .instance.metrics-bar {
         background-color: #2a2f33;
@@ -55,21 +109,20 @@
         color: #d6e5e4;
     }
     .control-bar .options .btn-group .btn {
-        background-color: #313639;
+        background-color: #243640;
         color: #cfcfcf;
     }
     .control-bar .options .btn-group .btn:hover {
-        background-color: #43494c;
+        background-color: #294556;
         color: #fff;
     }
     .control-bar .options .btn-group .btn.on {
-        background-color: #1e2b32;
+        background-color: #2e5469;
         color: #fff;
     }
     .event-box .title-bar {
-        background-color: #24272e;
+        background-color: #3c201f;
         color: #eee;
-        box-shadow: none;
     }
     .event-box .title-bar.on {
         background-color: #709185;
@@ -103,25 +156,25 @@
     .track-stack .activity-status .sampling-timer-bar {
         background-color: #9b6485;
     }
-    .visual-box {
+    .charts-box {
         background-color: #000;
         box-shadow: 0 8px 10px -10px rgba(50, 50, 50, 0.33);
     }
-    .visual-box .chart-box {
+    .charts-box .chart-box {
         background-color: #000;
         border-top: 1px solid #212426;
         box-shadow: 0 6px 10px -10px rgba(50, 50, 50, 0.45);
     }
-    .visual-box .chart-box .chart .reset-zoom {
+    .charts-box .chart-box .chart .reset-zoom {
         background-color: #744065;
         color: #fff;
         border-radius: 3px 0 0 3px;
         z-index: 1;
     }
-    .visual-box .chart-box .loading-overlay {
+    .charts-box .chart-box .loading-overlay {
         background-color: rgba(0, 0, 0, 0.4);
     }
-    .visual-box .chart-box .loading-overlay .spinner-border {
+    .charts-box .chart-box .loading-overlay .spinner-border {
         color: #709185;
     }
     .session-box .panel {

@@ -415,8 +415,8 @@ class DashboardBuilder {
         const selector = `[data-node-index=${node.index}][data-app-id=${appId}]`;
         const otherSelector = `[data-node-index=${node.index}][data-app-id!=${appId}]`;
 
-        $(`.event-box${otherSelector}, .visual-box${otherSelector}, .console-box${otherSelector}`).hide();
-        $(`.event-box${selector}, .visual-box${selector}, .console-box${selector}`)[action]();
+        $(`.event-box${otherSelector}, .charts-box${otherSelector}, .console-box${otherSelector}`).hide();
+        $(`.event-box${selector}, .charts-box${selector}, .console-box${selector}`)[action]();
 
         this.viewers[node.index].setVisible(isVisible);
         if (isVisible) {
@@ -547,10 +547,10 @@ class DashboardBuilder {
         }
         this.apps.forEach(app => {
             const $eventBox = $(`.event-box[data-app-id=${app.id}]`);
-            const $visualBox = $(`.visual-box[data-app-id=${app.id}]`);
-            if ($eventBox.length && $visualBox.length && $eventBox.find(".session-box.available").length === 0) {
+            const $chartsBox = $(`.charts-box[data-app-id=${app.id}]`);
+            if ($eventBox.length && $chartsBox.length && $eventBox.find(".session-box.available").length === 0) {
                 $eventBox.removeClass("col-lg-6").addClass("fixed-layout");
-                $visualBox.removeClass("col-lg-6").addClass("fixed-layout");
+                $chartsBox.removeClass("col-lg-6").addClass("fixed-layout");
             }
         });
     }
@@ -576,13 +576,13 @@ class DashboardBuilder {
                 if (isCompact) {
                     $btn.addClass("on");
                     $(`.event-box.available:not(.fixed-layout)[data-app-id=${appId}], 
-                       .visual-box.available:not(.fixed-layout)[data-app-id=${appId}], 
+                       .charts-box.available:not(.fixed-layout)[data-app-id=${appId}], 
                        .console-box.available[data-app-id=${appId}]`).addClass("col-lg-6");
                 }
             } else if (isCompact) {
                 $btn.removeClass("on");
                 $(`.event-box.available:not(.fixed-layout)[data-app-id=${appId}], 
-                   .visual-box.available:not(.fixed-layout)[data-app-id=${appId}], 
+                   .charts-box.available:not(.fixed-layout)[data-app-id=${appId}], 
                    .console-box.available[data-app-id=${appId}]`).removeClass("col-lg-6");
             }
             this.viewers.forEach(v => v.updateCanvasWidth());
@@ -856,10 +856,10 @@ class DashboardBuilder {
         $("#appmon-loading-message").hide();
         $("#appmon-empty-message").hide();
         $("#appmon-popup-message").hide();
-        $(".group-bar, .node-bar, .node.metrics-bar, .app-bar, .app.tabs, .control-bar, .view-box").hide();
+        $(".group-bar, .node-bar, .node.metrics-bar, .app-bar, .app.tabs, .control-bar, .dashboard-grid").hide();
         $(".group.tabs .tabs-title.available, .node.tabs .tabs-title.available, .app.tabs .tabs-title.available, " +
           ".node.metrics-bar.available, .node.metrics-bar .metric.available, .control-bar.available, " +
-          ".event-box.available, .visual-box.available, .chart-box.available, .console-box.available").remove();
+          ".event-box.available, .charts-box.available, .chart-box.available, .console-box.available").remove();
         $(".group.tabs .tabs-title:not(.available), .node.tabs .tabs-title:not(.available), .app.tabs .tabs-title:not(.available), " +
           ".node.metrics-bar:not(.available), .console-box:not(.available)").hide();
     }
@@ -873,7 +873,7 @@ class DashboardBuilder {
     }
 
     buildView() {
-        $(".node-bar, .app-bar, .app.tabs, .view-box").show();
+        $(".node-bar, .app-bar, .app.tabs, .dashboard-grid").show();
         if (this.groups.length > 0) {
             $(".group-bar").show();
             this.groups.forEach(group => {
@@ -921,10 +921,10 @@ class DashboardBuilder {
                                 viewer.putDisplay$(app.id, event.id, this.addSessionBox($eventBox, node, app, event));
                             }
                         });
-                        const $visualBox = this.addVisualBox(node, app);
+                        const $chartsBox = this.addChartsBox(node, app);
                         app.events.forEach(event => {
                             if (event.id === "activity" || event.id === "session") {
-                                viewer.putChart$(app.id, event.id, this.addChartBox($visualBox, node, app, event).find(".chart"));
+                                viewer.putChart$(app.id, event.id, this.addChartBox($chartsBox, node, app, event).find(".chart"));
                             }
                         });
                     }
@@ -1042,17 +1042,17 @@ class DashboardBuilder {
             .insertAfter($session.last()).show();
     }
 
-    addVisualBox(nodeInfo, appInfo) {
-        return $(".visual-box").first().hide().clone().addClass("available")
+    addChartsBox(nodeInfo, appInfo) {
+        return $(".charts-box").first().hide().clone().addClass("available")
             .attr({ "data-node-index": nodeInfo.index, "data-app-id": appInfo.id })
             .insertBefore($(".console-box").first()).show();
     }
 
-    addChartBox($visualBox, nodeInfo, appInfo, eventInfo) {
-        const $chart = $visualBox.find(".chart-box");
+    addChartBox($chartsBox, nodeInfo, appInfo, eventInfo) {
+        const $chart = $chartsBox.find(".chart-box");
         return $chart.first().hide().clone().addClass("available")
             .attr({ "data-node-index": nodeInfo.index, "data-app-id": appInfo.id, "data-event-id": eventInfo.id })
-            .appendTo($visualBox).show();
+            .appendTo($chartsBox).show();
     }
 
     addConsoleBox(nodeInfo, appInfo, logInfo) {

@@ -18,8 +18,8 @@
  * The builder component for the AppMon dashboard.
  * Responsible for assembling the dashboard UI based on configuration data.
  *
- * @version 4.0
- * @last-modified 2026-08-25
+ * @version 4.2
+ * @last-modified 2026-09-18
  */
 class DashboardBuilder {
     constructor(options = {}) {
@@ -36,6 +36,8 @@ class DashboardBuilder {
         this.clients = [];
         this.currentGroupId = null;
         this.selectedNodeIdByGroup = {};
+        this.currentAjax = null;
+        this.nodeJoinedTimer = null;
     }
 
     build(baseUrl, appsToSubscribe, nodeToSubscribe) {
@@ -44,9 +46,15 @@ class DashboardBuilder {
         this.nodeToSubscribe = nodeToSubscribe;
         this.currentGroupId = null;
         this.selectedNodeIdByGroup = {};
+
+        if (this.currentAjax) {
+            this.currentAjax.abort();
+            this.currentAjax = null;
+        }
+
         this.suspendMonitoring();
-        this.clearView();
-        $.ajax({
+        this.showLoadingMessage();
+        this.currentAjax = $.ajax({
             url: baseUrl + "/appmon/config/data",
             type: "get",
             dataType: "json",
@@ -55,9 +63,10 @@ class DashboardBuilder {
                 appsToSubscribe: appsToSubscribe || null
             },
             success: (data) => {
+                this.currentAjax = null;
                 if (data) {
-                    if (!data.appsToSubscribe) {
-                        alert("No verified apps found. Please check the configuration of the backend.");
+                    if (!data.appsToSubscribe || !data.apps || data.apps.length === 0) {
+                        this.showEmptyAppMessage();
                         return;
                     }
 
@@ -123,6 +132,7 @@ class DashboardBuilder {
                         console.log("app", app);
                     });
 
+                    this.clearView();
                     this.buildView();
                     this.bindEvents();
                     if (this.nodes.length) {
@@ -156,7 +166,11 @@ class DashboardBuilder {
                     }
                 }
             },
-            error: (xhr) => {
+            error: (xhr, status) => {
+                this.currentAjax = null;
+                if (status === "abort") {
+                    return;
+                }
                 if (xhr.status === 403) {
                     alert("Authentication has expired. You will be redirected to the main page.");
                     location.href = baseUrl;
@@ -166,6 +180,10 @@ class DashboardBuilder {
     }
 
     rebuild() {
+        if (this.nodeJoinedTimer) {
+            clearTimeout(this.nodeJoinedTimer);
+            this.nodeJoinedTimer = null;
+        }
         this.build(this.baseUrl, this.appsToSubscribe, this.nodeToSubscribe);
     }
 
@@ -179,7 +197,6 @@ class DashboardBuilder {
             node.subscribed = true;
             node.subscribeAttempts++;
             console.log(node.id, "subscribe attempts:", node.subscribeAttempts);
-            //this.clearConsole(node.index);
             this.changeNodeState(node);
             if (node.subscribeAttempts === 1) {
                 this.initView();
@@ -235,7 +252,13 @@ class DashboardBuilder {
         const onNodeJoined = (node) => {
             this.groups.forEach(group => {
                 if (group.id === node.group) {
-                    this.showNewNodeNotification(node.id);
+                    if (this.nodeJoinedTimer) {
+                        clearTimeout(this.nodeJoinedTimer);
+                    }
+                    this.nodeJoinedTimer = setTimeout(() => {
+                        this.nodeJoinedTimer = null;
+                        this.showNewNodeNotification(node.id);
+                    }, 3000);
                 }
             });
         };
@@ -309,6 +332,7 @@ class DashboardBuilder {
         if ($notification.length > 0) {
             $notification.find(".node-id").text(nodeId);
             $notification.find(".refresh-btn").off("click").on("click", () => {
+                $notification.hide();
                 this.rebuild();
             });
             $notification.fadeIn();
@@ -375,8 +399,12 @@ class DashboardBuilder {
         const availableTabs = $(`.node.tabs .tabs-title[data-group-id=${this.currentGroupId}]`);
         availableTabs.removeClass("active");
         this.nodes.filter(d => d.active && d.group === this.currentGroupId).forEach(d => {
-            $(".node.tabs .tabs-title[data-node-index=" + d.index + "]").addClass("active");
-        })
+            const $tab = $(".node.tabs .tabs-title[data-node-index=" + d.index + "]");
+            $tab.addClass("active");
+            if ($tab.length && $tab[0].scrollIntoView) {
+                $tab[0].scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
+            }
+        });
     }
 
     updateNodeVisibility(node, appId) {
@@ -387,8 +415,8 @@ class DashboardBuilder {
         const selector = `[data-node-index=${node.index}][data-app-id=${appId}]`;
         const otherSelector = `[data-node-index=${node.index}][data-app-id!=${appId}]`;
 
-        $(`.event-box${otherSelector}, .visual-box${otherSelector}, .console-box${otherSelector}`).hide();
-        $(`.event-box${selector}, .visual-box${selector}, .console-box${selector}`)[action]();
+        $(`.event-box${otherSelector}, .charts-box${otherSelector}, .console-box${otherSelector}`).hide();
+        $(`.event-box${selector}, .charts-box${selector}, .console-box${selector}`)[action]();
 
         this.viewers[node.index].setVisible(isVisible);
         if (isVisible) {
@@ -399,9 +427,9 @@ class DashboardBuilder {
                     this.viewers[node.index].refreshConsole($console);
                 }
             });
-            $(`.node.metrics-bar[data-node-index=${node.index}]`).show();
+            $(`.node.metrics-bar[data-node-index=${node.index}][data-has-metrics=true]`).show();
         } else {
-            $(`.node.metrics-bar[data-node-index=${node.index}]`).hide();
+            $(`.node.metrics-bar[data-node-index=${node.index}][data-has-metrics=true]`).hide();
         }
     }
 
@@ -428,6 +456,9 @@ class DashboardBuilder {
             if (group.id === groupId) {
                 group.active = true;
                 $tabTitle.addClass("active");
+                if ($tabTitle.length && $tabTitle[0].scrollIntoView) {
+                    $tabTitle[0].scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
+                }
             } else {
                 group.active = false;
                 $tabTitle.removeClass("active");
@@ -478,6 +509,9 @@ class DashboardBuilder {
                 app.active = true;
                 setTimeout(() => this.showNodeApp(appId), 0);
                 $tabTitle.addClass("active");
+                if ($tabTitle.length && $tabTitle[0].scrollIntoView) {
+                    $tabTitle[0].scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
+                }
                 exists = true;
                 this.nodes.forEach(node => {
                     if (node.primary) {
@@ -513,10 +547,10 @@ class DashboardBuilder {
         }
         this.apps.forEach(app => {
             const $eventBox = $(`.event-box[data-app-id=${app.id}]`);
-            const $visualBox = $(`.visual-box[data-app-id=${app.id}]`);
-            if ($eventBox.length && $visualBox.length && $eventBox.find(".session-box.available").length === 0) {
+            const $chartsBox = $(`.charts-box[data-app-id=${app.id}]`);
+            if ($eventBox.length && $chartsBox.length && $eventBox.find(".session-box.available").length === 0) {
                 $eventBox.removeClass("col-lg-6").addClass("fixed-layout");
-                $visualBox.removeClass("col-lg-6").addClass("fixed-layout");
+                $chartsBox.removeClass("col-lg-6").addClass("fixed-layout");
             }
         });
     }
@@ -542,13 +576,13 @@ class DashboardBuilder {
                 if (isCompact) {
                     $btn.addClass("on");
                     $(`.event-box.available:not(.fixed-layout)[data-app-id=${appId}], 
-                       .visual-box.available:not(.fixed-layout)[data-app-id=${appId}], 
+                       .charts-box.available:not(.fixed-layout)[data-app-id=${appId}], 
                        .console-box.available[data-app-id=${appId}]`).addClass("col-lg-6");
                 }
             } else if (isCompact) {
                 $btn.removeClass("on");
                 $(`.event-box.available:not(.fixed-layout)[data-app-id=${appId}], 
-                   .visual-box.available:not(.fixed-layout)[data-app-id=${appId}], 
+                   .charts-box.available:not(.fixed-layout)[data-app-id=${appId}], 
                    .console-box.available[data-app-id=${appId}]`).removeClass("col-lg-6");
             }
             this.viewers.forEach(v => v.updateCanvasWidth());
@@ -596,7 +630,7 @@ class DashboardBuilder {
                 url += "?nodeId=" + encodeURIComponent(this.nodeToSubscribe);
             }
             const name = "appmon_dashboard_popup";
-            const features = "width=1500,height=1070,menubar=no,toolbar=no,location=no,status=no,resizable=yes,scrollbars=yes";
+            const features = "width=1500,height=1045,menubar=no,toolbar=no,location=no,status=no,resizable=yes,scrollbars=yes";
             const popup = window.open(url, name, features);
             if (popup) {
                 this.suspendMonitoring();
@@ -712,6 +746,36 @@ class DashboardBuilder {
                 });
             }
         });
+        $(document).off("click.metricPopover", ".metrics-bar .metric.available")
+            .on("click.metricPopover", ".metrics-bar .metric.available", (e) => {
+                e.stopPropagation();
+                const $metric = $(e.currentTarget);
+                const nodeIndex = $metric.data("node-index");
+                const exporterKey = $metric.data("exporter-key");
+                if (nodeIndex !== undefined && this.viewers[nodeIndex]) {
+                    this.viewers.forEach((v, idx) => {
+                        if (idx !== nodeIndex) v.hideMetricPopover();
+                    });
+                    this.viewers[nodeIndex].toggleMetricPopover(exporterKey, $metric);
+                }
+            });
+        $(document).off("click.metricPopoverClose", "#metric-popover .btn-close-popover")
+            .on("click.metricPopoverClose", "#metric-popover .btn-close-popover", (e) => {
+                e.stopPropagation();
+                this.viewers.forEach(v => v.hideMetricPopover());
+            });
+        $(document).off("click.metricPopoverOutside")
+            .on("click.metricPopoverOutside", (e) => {
+                if (!$(e.target).closest("#metric-popover, .metrics-bar .metric.available").length) {
+                    this.viewers.forEach(v => v.hideMetricPopover());
+                }
+            });
+        $(document).off("keydown.metricPopover")
+            .on("keydown.metricPopover", (e) => {
+                if (e.key === "Escape") {
+                    this.viewers.forEach(v => v.hideMetricPopover());
+                }
+            });
     }
 
     refreshData(appId, withLogs, dateOffset) {
@@ -747,6 +811,10 @@ class DashboardBuilder {
     }
 
     suspendMonitoring() {
+        if (this.nodeJoinedTimer) {
+            clearTimeout(this.nodeJoinedTimer);
+            this.nodeJoinedTimer = null;
+        }
         this.clients.forEach(client => {
             if (client) client.stop();
         });
@@ -756,10 +824,25 @@ class DashboardBuilder {
         this.sharedClient = null;
     }
 
+    showLoadingMessage() {
+        this.clearView();
+        $("#appmon-loading-message").show();
+    }
+
+    showEmptyAppMessage() {
+        this.clearView();
+        const $emptyBox = $("#appmon-empty-message");
+        if ($emptyBox.length > 0) {
+            $emptyBox.find(".retry-btn").off("click").on("click", () => {
+                $emptyBox.hide();
+                this.rebuild();
+            });
+            $emptyBox.show();
+        }
+    }
+
     showPopupModeMessage() {
         this.clearView();
-        const $container = $("#content-area > .container-fluid");
-        $container.find(".row, .tabs, .control-bar, .console-box").hide();
         const $messageBox = $("#appmon-popup-message");
         if ($messageBox.length > 0) {
             $messageBox.find(".resume-here").off("click").on("click", () => {
@@ -770,11 +853,15 @@ class DashboardBuilder {
     }
 
     clearView() {
+        $("#appmon-loading-message").hide();
+        $("#appmon-empty-message").hide();
         $("#appmon-popup-message").hide();
+        $(".group-bar, .node-bar, .node.metrics-bar, .app-bar, .app.tabs, .control-bar, .dashboard-grid").hide();
         $(".group.tabs .tabs-title.available, .node.tabs .tabs-title.available, .app.tabs .tabs-title.available, " +
-          ".node.metrics-bar.available, .app.metrics-bar.available, .control-bar.available, " +
-          ".event-box.available, .visual-box.available, .chart-box.available, .console-box.available").remove();
-        $(".group.tabs .tabs-title, .node.tabs .tabs-title, .app.tabs .tabs-title, .app.metrics-bar, .console-box").show();
+          ".node.metrics-bar.available, .node.metrics-bar .metric.available, .control-bar.available, " +
+          ".event-box.available, .charts-box.available, .chart-box.available, .console-box.available").remove();
+        $(".group.tabs .tabs-title:not(.available), .node.tabs .tabs-title:not(.available), .app.tabs .tabs-title:not(.available), " +
+          ".node.metrics-bar:not(.available), .console-box:not(.available)").hide();
     }
 
     clearConsole(nodeIndex) {
@@ -786,6 +873,7 @@ class DashboardBuilder {
     }
 
     buildView() {
+        $(".node-bar, .app-bar, .app.tabs, .dashboard-grid").show();
         if (this.groups.length > 0) {
             $(".group-bar").show();
             this.groups.forEach(group => {
@@ -813,6 +901,15 @@ class DashboardBuilder {
                 if (!app.group || app.group === node.group) {
                     const viewer = this.viewers[node.index];
                     viewer.putIndicator$("app", "event", app.id, $appIndicator);
+                    if (app.metrics && app.metrics.length) {
+                        app.metrics.forEach(metric => {
+                            const $metric = metric.heading ?
+                                this.addNodeMetric(node, metric) :
+                                this.addAppMetric(node, app, metric);
+                            $metric.data("exporter-key", app.id + ":metric:" + metric.id);
+                            viewer.putMetric$(app.id, metric.id, $metric);
+                        });
+                    }
                     if (app.events && app.events.length) {
                         const $eventBox = this.addEventBox(node, app);
                         app.events.forEach(event => {
@@ -824,20 +921,11 @@ class DashboardBuilder {
                                 viewer.putDisplay$(app.id, event.id, this.addSessionBox($eventBox, node, app, event));
                             }
                         });
-                        const $visualBox = this.addVisualBox(node, app);
+                        const $chartsBox = this.addChartsBox(node, app);
                         app.events.forEach(event => {
                             if (event.id === "activity" || event.id === "session") {
-                                viewer.putChart$(app.id, event.id, this.addChartBox($visualBox, node, app, event).find(".chart"));
+                                viewer.putChart$(app.id, event.id, this.addChartBox($chartsBox, node, app, event).find(".chart"));
                             }
-                        });
-                    }
-                    if (app.metrics && app.metrics.length) {
-                        const $eventBox = $(`.event-box[data-node-index=${node.index}][data-app-id=${app.id}]`);
-                        app.metrics.forEach(metric => {
-                            const $metric = (metric.heading || !$eventBox.length) ? 
-                                this.addNodeMetric(node, metric) :
-                                this.addAppMetric($eventBox, node, app, metric);
-                            viewer.putMetric$(app.id, metric.id, $metric);
                         });
                     }
                     if (app.logs) {
@@ -886,17 +974,36 @@ class DashboardBuilder {
     }
 
     addNodeMetricsBar(nodeInfo) {
-        const $metricsBar = $(".node.metrics-bar");
-        const $newBar = $metricsBar.first().hide().clone().addClass("available").attr("data-node-index", nodeInfo.index);
+        const $bar = $(".node.metrics-bar");
+        const $newBar = $bar.first().hide().clone().addClass("available").attr("data-node-index", nodeInfo.index);
         $newBar.find(".number").text(" " + nodeInfo.nodeNoInGroup);
-        return $newBar.insertAfter($metricsBar.last());
+        return $newBar.insertAfter($bar.last());
     }
 
     addNodeMetric(nodeInfo, metricInfo) {
         const $bar = $(`.node.metrics-bar[data-node-index=${nodeInfo.index}]`).show();
-        const $metric = $bar.find(".metric").first().hide().clone().addClass("available");
-        $metric.find("dt").text(metricInfo.title + " :").attr("title", metricInfo.description);
-        return $metric.appendTo($bar).show();
+        $bar.attr("data-has-metrics", true);
+        const $container = $bar.find(".node-metrics").show();
+        const $metric = $container.find(".metric").first().hide().clone().addClass("available")
+            .attr({ "data-node-index": nodeInfo.index, "data-metric-id": metricInfo.id });
+        $metric.find("dt .name").text(metricInfo.title).attr("title", metricInfo.description);
+        if (metricInfo.unit) {
+            $metric.find(".unit").text(metricInfo.unit);
+        }
+        return $metric.appendTo($container).show();
+    }
+
+    addAppMetric(nodeInfo, appInfo, metricInfo) {
+        const $bar = $(`.node.metrics-bar[data-node-index=${nodeInfo.index}]`).show();
+        $bar.attr("data-has-metrics", true);
+        const $container = $bar.find(".app-metrics").show();
+        const $metric = $container.find(".metric").first().hide().clone().addClass("available")
+            .attr({ "data-node-index": nodeInfo.index, "data-app-id": appInfo.id, "data-metric-id": metricInfo.id });
+        $metric.find("dt .name").text(metricInfo.title).attr("title", metricInfo.description);
+        if (metricInfo.unit) {
+            $metric.find(".unit").text(metricInfo.unit);
+        }
+        return $metric.appendTo($container).show();
     }
 
     addControlBar(appInfo) {
@@ -911,7 +1018,7 @@ class DashboardBuilder {
             .attr({ "data-node-index": nodeInfo.index, "data-app-id": appInfo.id });
         const $titleBar = $box.find(".title-bar");
         $titleBar.find("h4").text(nodeInfo.title || nodeInfo.id);
-        
+
         const nodesInGroup = this.nodes.filter(n => n.group === nodeInfo.group);
         if (nodesInGroup.length > 1) {
             $titleBar.find(".number").text(" " + nodeInfo.nodeNoInGroup);
@@ -928,14 +1035,6 @@ class DashboardBuilder {
             .insertAfter($track.last()).show();
     }
 
-    addAppMetric($eventBox, nodeInfo, appInfo, metricInfo) {
-        const $bar = $eventBox.find(".metrics-bar").show();
-        const $metric = $bar.find(".metric").first().hide().clone().addClass("available")
-            .attr({ "data-node-index": nodeInfo.index, "data-app-id": appInfo.id, "data-metric-id": metricInfo.id });
-        $metric.find("dt").text(metricInfo.title + " :").attr("title", metricInfo.description);
-        return $metric.appendTo($bar).show();
-    }
-
     addSessionBox($eventBox, nodeInfo, appInfo, eventInfo) {
         const $session = $eventBox.find(".session-box");
         return $session.first().hide().clone().addClass("available")
@@ -943,17 +1042,17 @@ class DashboardBuilder {
             .insertAfter($session.last()).show();
     }
 
-    addVisualBox(nodeInfo, appInfo) {
-        return $(".visual-box").first().hide().clone().addClass("available")
+    addChartsBox(nodeInfo, appInfo) {
+        return $(".charts-box").first().hide().clone().addClass("available")
             .attr({ "data-node-index": nodeInfo.index, "data-app-id": appInfo.id })
             .insertBefore($(".console-box").first()).show();
     }
 
-    addChartBox($visualBox, nodeInfo, appInfo, eventInfo) {
-        const $chart = $visualBox.find(".chart-box");
-        return $chart.first().hide().clone().addClass("available col-12 col-lg-6")
+    addChartBox($chartsBox, nodeInfo, appInfo, eventInfo) {
+        const $chart = $chartsBox.find(".chart-box");
+        return $chart.first().hide().clone().addClass("available")
             .attr({ "data-node-index": nodeInfo.index, "data-app-id": appInfo.id, "data-event-id": eventInfo.id })
-            .appendTo($visualBox).show();
+            .appendTo($chartsBox).show();
     }
 
     addConsoleBox(nodeInfo, appInfo, logInfo) {
