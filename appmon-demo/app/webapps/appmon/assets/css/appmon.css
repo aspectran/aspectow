@@ -25,33 +25,16 @@
 .page-content:has(.app-bar),
 .monitoring-page .page-content {
     max-width: 100% !important;
+    padding-top: 0 !important;
     padding-left: 0 !important;
     padding-right: 0 !important;
-    @media screen and (max-width: 768px) {
-        padding-top: 0.5rem !important;
-    }
-    @media screen and (min-width: 768px) {
-        padding-top: 0.75rem !important;
-    }
 }
 .popup-close-btn {
     position: absolute;
-    top: 14px;
-    right: 16px;
+    top: 3px;
+    right: 8px;
     z-index: 1050;
     cursor: pointer;
-}
-.monitoring-page .group.tabs {
-    box-shadow: none;
-    @media screen and (min-width: 768px) {
-        margin-top: 1px;
-    }
-}
-.monitoring-page .group.tabs > .tabs-title > a {
-    margin-right: 4px;
-    border-radius: 30px !important;
-    padding: 3px 13px !important;
-    font-size: .8em !important;
 }
 .app-bar {
     position: sticky;
@@ -66,10 +49,8 @@
 #header-bar.header-hidden ~ #content-area .app-bar {
     top: 0;
 }
-@media screen and (max-width: 768px) {
-    .monitoring-page:has(.popup-close-btn) .group.tabs {
-        margin-right: 2.5rem;
-    }
+.monitoring-page:has(.popup-close-btn) .group-bar {
+    margin-right: 1.9rem;
 }
 
 .group-bar,
@@ -102,10 +83,8 @@
         height: auto;
     }
 }
-@media screen and (min-width: 993px) {
-    .tabs > .tabs-title > a {
-        padding: 4px 12px !important;
-    }
+.tabs > .tabs-title > a {
+    padding: 4px 12px !important;
 }
 .tabs > .tabs-title .indicator {
     padding: 0;

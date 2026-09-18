@@ -27,7 +27,7 @@
 <body>
     <th:block layout:fragment="content">
         <button type="button" class="btn-close popup-close-btn" onclick="window.close()" aria-label="Close" title="Close" th:if="${page.layout == 'popup'}"></button>
-        <div class="group-bar pb-1">
+        <div class="group-bar">
             <ul class="group tabs flat nav nav-tabs">
                 <li class="tabs-title nav-item">
                     <a class="nav-link">
@@ -37,7 +37,7 @@
                 </li>
             </ul>
         </div>
-        <div class="node-bar py-1 py-md-0">
+        <div class="node-bar">
             <ul class="node tabs flat nav nav-tabs">
                 <li class="tabs-title nav-item">
                     <a class="nav-link">
