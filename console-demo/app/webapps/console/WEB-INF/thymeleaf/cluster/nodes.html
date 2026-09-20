@@ -68,7 +68,7 @@
             </div>
 
             <th:block th:if="${page.clusterMode == 'gateway' and page.groups != null}">
-                <ul class="nav nav-tabs mobile-btn-tabs mb-3" id="clusterTabs" role="tablist">
+                <ul class="nav nav-btn-tabs mb-3" id="clusterTabs" role="tablist">
                     <li class="nav-item" role="presentation">
                         <button class="nav-link active" id="all-tab" data-bs-toggle="tab" data-bs-target="#all-nodes" type="button" role="tab">
                             All Nodes <span class="badge bg-body-secondary text-body-secondary ms-auto" th:text="${page.nodes != null ? #lists.size(page.nodes) : 0}">0</span>
