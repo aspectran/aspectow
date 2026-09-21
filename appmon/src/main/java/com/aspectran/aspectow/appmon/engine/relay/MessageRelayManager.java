@@ -299,7 +299,7 @@ public class MessageRelayManager {
         Assert.notNull(message, "message must not be null");
         String messageNodeId = extractNodeId(message);
         String messageAppId = extractAppId(message);
-        boolean isLog = isLogMessage(message);
+        boolean focusedOn = isFocusedOn(message);
         Set<String> sessionIds;
         if (messageAppId != null) {
             sessionIds = subscriptionRegistry.getSessionsSubscribedToApp(messageAppId);
@@ -311,7 +311,7 @@ public class MessageRelayManager {
             if (relayer != null) {
                 RelaySession session = relayer.findRelaySession(sid);
                 if (session != null) {
-                    relayLocally(relayer, session, message, messageNodeId, messageAppId, isLog);
+                    relayLocally(relayer, session, message, messageNodeId, messageAppId, focusedOn);
                 }
             }
         }
@@ -332,22 +332,22 @@ public class MessageRelayManager {
             if (session != null) {
                 String messageNodeId = extractNodeId(message);
                 String messageAppId = extractAppId(message);
-                boolean isLog = isLogMessage(message);
-                relayLocally(relayer, session, message, messageNodeId, messageAppId, isLog);
+                boolean focusedOn = isFocusedOn(message);
+                relayLocally(relayer, session, message, messageNodeId, messageAppId, focusedOn);
             }
         }
     }
 
     private void relayLocally(
             @NonNull MessageRelayer relayer, @NonNull RelaySession session, @NonNull String message,
-            @Nullable String messageNodeId, @Nullable String messageAppId, boolean isLog) {
+            @Nullable String messageNodeId, @Nullable String messageAppId, boolean focusedOn) {
         String subscribedNodeId = session.getSubscribedNodeId();
         if (StringUtils.hasText(subscribedNodeId) && messageNodeId != null) {
             if (!subscribedNodeId.equals(messageNodeId)) {
                 return;
             }
         }
-        if (messageAppId != null && isLog) {
+        if (messageAppId != null && focusedOn) {
             String focusedAppId = session.getFocusedAppId();
             if (focusedAppId != null && !focusedAppId.equals(messageAppId)) {
                 return;
@@ -396,8 +396,9 @@ public class MessageRelayManager {
         return null;
     }
 
-    private boolean isLogMessage(@NonNull String message) {
-        return "log".equals(extractType(message));
+    private boolean isFocusedOn(@NonNull String message) {
+        String type = extractType(message);
+        return (!"event".equals(type) && !"metric".equals(type));
     }
 
     /**
