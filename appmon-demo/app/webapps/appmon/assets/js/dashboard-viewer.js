@@ -19,7 +19,7 @@
  * Responsible for rendering monitoring data, including logs, metrics, and charts.
  *
  * @version 4.2
- * @last-modified 2026-09-08
+ * @last-modified 2026-09-21
  */
 class DashboardViewer {
     constructor(sampleInterval, options = {}) {
@@ -167,6 +167,18 @@ class DashboardViewer {
 
     clearConsole($console) {
         if ($console) {
+            let timer = $console.data("timer");
+            if (timer) {
+                clearTimeout(timer);
+                $console.removeData("timer");
+            }
+            $console.removeData("log-buffer");
+            let prevTimer = $console.data("prev-timer");
+            if (prevTimer) {
+                clearTimeout(prevTimer);
+                $console.removeData("prev-timer");
+            }
+            $console.removeData("log-prev-buffer");
             $console.empty();
         }
     }

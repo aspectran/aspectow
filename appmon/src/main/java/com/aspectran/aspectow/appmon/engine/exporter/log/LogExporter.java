@@ -35,6 +35,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * An exporter that tails a log file and broadcasts new lines.
@@ -51,6 +53,9 @@ public class LogExporter extends AbstractExporter {
     private static final Charset DEFAULT_CHARSET = Charset.defaultCharset();
 
     private static final long DEFAULT_SAMPLE_INTERVAL = 1000L;
+
+    private static final Pattern ARCHIVED_FILE_PATTERN =
+            Pattern.compile(".*\\.(\\d{4}-\\d{2}-\\d{2})(?:\\.(\\d+))?\\.(?:log|log\\.gz)$");
 
     private final ExporterManager exporterManager;
 
@@ -251,7 +256,25 @@ public class LogExporter extends AbstractExporter {
         final String fileNamePrefix = baseName + ".";
         File[] archivedFiles = archivedDir.listFiles((dir, name) -> name.startsWith(fileNamePrefix));
         if (archivedFiles != null && archivedFiles.length > 0) {
-            Arrays.sort(archivedFiles, (f1, f2) -> Long.compare(f2.lastModified(), f1.lastModified()));
+            Arrays.sort(archivedFiles, (f1, f2) -> {
+                Matcher m1 = ARCHIVED_FILE_PATTERN.matcher(f1.getName());
+                Matcher m2 = ARCHIVED_FILE_PATTERN.matcher(f2.getName());
+                if (m1.matches() && m2.matches()) {
+                    String date1 = m1.group(1);
+                    String date2 = m2.group(1);
+                    int cmp = date2.compareTo(date1);
+                    if (cmp != 0) {
+                        return cmp;
+                    }
+                    int idx1 = m1.group(2) != null ? Integer.parseInt(m1.group(2)) : 0;
+                    int idx2 = m2.group(2) != null ? Integer.parseInt(m2.group(2)) : 0;
+                    int idxCmp = Integer.compare(idx2, idx1);
+                    if (idxCmp != 0) {
+                        return idxCmp;
+                    }
+                }
+                return Long.compare(f2.lastModified(), f1.lastModified());
+            });
         }
         return archivedFiles;
     }

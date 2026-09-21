@@ -869,7 +869,13 @@ class DashboardBuilder {
     }
 
     clearConsole(nodeIndex) {
-        $(`.console-box[data-node-index=${nodeIndex}] .console`).empty();
+        $(`.console-box[data-node-index=${nodeIndex}] .console`).each((_, el) => {
+            if (this.viewers[nodeIndex]) {
+                this.viewers[nodeIndex].clearConsole($(el));
+            } else {
+                $(el).empty();
+            }
+        });
     }
 
     clearSessions(nodeIndex) {
