@@ -267,9 +267,11 @@ class DashboardViewer {
                     let anchor = $console.data("prev-anchor");
                     if (!anchor || anchor.parentNode !== el) {
                         anchor = el.firstChild;
-                        $console.data("prev-anchor", anchor);
+                        if (anchor) {
+                            $console.data("prev-anchor", anchor);
+                        }
                     }
-                    if (anchor) {
+                    if (anchor && anchor.parentNode === el) {
                         el.insertBefore(fragment, anchor);
                     } else {
                         el.appendChild(fragment);

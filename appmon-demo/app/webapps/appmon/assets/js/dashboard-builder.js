@@ -725,7 +725,7 @@ class DashboardBuilder {
             const nodeIndex = $consoleBox.data("node-index");
             const appId = $consoleBox.data("app-id");
             const logId = $consoleBox.data("log-id");
-            const loadedLines = $console.find("p").length;
+            const loadedLines = $console.find("p").not(".event").length;
 
             if ($console.data("tailing")) {
                 $console.data("tailing", false);
@@ -734,7 +734,13 @@ class DashboardBuilder {
                 $tailingSwitch.attr("title", $tailingSwitch.data("title-off"));
             }
 
-            $console.removeData("prev-anchor");
+            const el = $console[0];
+            if (el && el.firstChild) {
+                $console.data("prev-anchor", el.firstChild);
+            } else {
+                $console.removeData("prev-anchor");
+            }
+
             this.clients[nodeIndex].loadPrevious(appId, logId, loadedLines, this.nodes[nodeIndex].id);
         });
         $(window).off("resize").on("resize", () => {
