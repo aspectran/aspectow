@@ -435,6 +435,8 @@
             let activeTargetNodes = [];
             let nodeExecutions = {};
             let allLogs = [];
+            let selectedNodeId = currentNodeId || myNodeId || (nodes && nodes[0] ? nodes[0].id : null);
+            let selectedGroupId = null;
 
             function ensureNode(nodeId) {
                 if (!nodeId) nodeId = 'unknown';
@@ -478,7 +480,7 @@
                 const val = $('#target-value').val();
 
                 if (type === 'node') {
-                    const targetId = val || currentNodeId || myNodeId;
+                    const targetId = val || selectedNodeId || currentNodeId || myNodeId;
                     if (!targetId) {
                         return { executable: false, reason: 'No target node selected.' };
                     }
@@ -531,12 +533,14 @@
                 const val = $select.val();
 
                 if (type === 'node') {
+                    selectedNodeId = val;
                     if (val) {
                         updateUrl(val);
                     } else {
                         updateUrl(null);
                     }
                 } else if (type === 'group') {
+                    selectedGroupId = val;
                     updateUrl(null);
                 }
                 updateTargetWarningBadge();
@@ -547,7 +551,6 @@
                 const type = $('#target-type').val();
                 const $container = $('#target-value-container');
                 const $select = $('#target-value');
-                const prevValue = $select.val();
                 $select.empty();
 
                 if (type === 'services') {
@@ -558,11 +561,19 @@
                     updateUrl(null);
                 } else if (type === 'group') {
                     $container.show();
+                    updateUrl(null);
                     const groups = [...new Set(nodes.map(n => n.group).filter(g => g))];
                     groups.forEach(g => $select.append(new Option(g, g)));
+                    if (selectedGroupId && groups.includes(selectedGroupId)) {
+                        $select.val(selectedGroupId);
+                    } else if (groups.length > 0) {
+                        selectedGroupId = groups[0];
+                        $select.val(selectedGroupId);
+                    }
                 } else {
                     $container.show();
                     let targetFound = false;
+                    const targetNodeId = selectedNodeId || currentNodeId || myNodeId || (nodes[0] ? nodes[0].id : '');
                     nodes.forEach(n => {
                         let label = n.title + ' (' + n.id + ')';
                         if (n.console) {
@@ -576,12 +587,11 @@
                             $(option).addClass('text-danger');
                         }
                         $select.append(option);
-                        if (n.id === (prevValue || currentNodeId)) {
+                        if (n.id === targetNodeId) {
                             targetFound = true;
                         }
                     });
 
-                    const targetNodeId = prevValue || currentNodeId || myNodeId || (nodes[0] ? nodes[0].id : '');
                     if (targetNodeId) {
                         if (!targetFound && targetNodeId !== myNodeId) {
                             const option = new Option(targetNodeId + ' [Offline / History]', targetNodeId);
@@ -589,6 +599,7 @@
                             $select.append(option);
                         }
                         $select.val(targetNodeId);
+                        selectedNodeId = targetNodeId;
                         updateUrl(targetNodeId);
                     }
                 }
@@ -1083,7 +1094,7 @@
                     targetLabel = `Group '${targetVal}'`;
                     activeTargetNodes = nodes.filter(n => n.group === targetVal).map(n => n.id);
                 } else {
-                    targetNodeId = targetVal || currentNodeId || myNodeId;
+                    targetNodeId = targetVal || selectedNodeId || currentNodeId || myNodeId;
                     targetLabel = `Node '${targetNodeId}'`;
                     activeTargetNodes = [targetNodeId];
                 }
@@ -1192,7 +1203,7 @@
                         if (sent === 0 && currentExecutionId) {
                             let fallbackNodeId = null;
                             if (targetType === 'node') {
-                                fallbackNodeId = targetVal || currentNodeId || myNodeId;
+                                fallbackNodeId = targetVal || selectedNodeId || currentNodeId || myNodeId;
                             } else if (activeTargetNodes.length === 1) {
                                 fallbackNodeId = activeTargetNodes[0];
                             }
@@ -1643,7 +1654,7 @@
                         const groupVal = $('#target-value').val();
                         activeTargetNodes = nodes.filter(n => n.group === groupVal).map(n => n.id);
                     } else {
-                        const nodeVal = $('#target-value').val() || currentNodeId || myNodeId;
+                        const nodeVal = $('#target-value').val() || selectedNodeId || currentNodeId || myNodeId;
                         activeTargetNodes = nodeVal ? [nodeVal] : [];
                     }
                 }
