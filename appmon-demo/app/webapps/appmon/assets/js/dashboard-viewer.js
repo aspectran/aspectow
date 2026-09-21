@@ -420,7 +420,14 @@ class DashboardViewer {
                     buffer = [];
                     $console.data("log-buffer", buffer);
                 }
-                buffer.push(messageContent);
+                if (messageContent.includes("\n")) {
+                    const lines = messageContent.split("\n");
+                    for (let i = 0; i < lines.length; i++) {
+                        buffer.push(lines[i]);
+                    }
+                } else {
+                    buffer.push(messageContent);
+                }
                 this.appendToConsole($console);
             }
         }

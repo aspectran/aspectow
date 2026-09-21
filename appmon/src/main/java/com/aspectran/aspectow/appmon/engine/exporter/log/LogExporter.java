@@ -129,7 +129,7 @@ public class LogExporter extends AbstractExporter {
                     }
                 }
                 if (!lines.isEmpty()) {
-                    messages.addAll(lines);
+                    messages.add(prefix + String.join("\n", lines));
                 }
             } catch (IOException e) {
                 logger.error("Failed to read log file {}", logFile, e);
@@ -290,7 +290,7 @@ public class LogExporter extends AbstractExporter {
                 if (line == null) {
                     break;
                 }
-                list.add(prefix + line);
+                list.add(line);
             }
             Collections.reverse(list);
         }
