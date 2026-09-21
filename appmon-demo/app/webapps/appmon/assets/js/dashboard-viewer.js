@@ -237,49 +237,51 @@ class DashboardViewer {
             clearTimeout(timer);
         }
         timer = setTimeout(() => {
-            const el = $console[0];
-            if (!el) return;
+            requestAnimationFrame(() => {
+                const el = $console[0];
+                if (!el) return;
 
-            const buffer = $console.data("log-prev-buffer");
-            if (buffer && buffer.length > 0) {
-                const oldScrollHeight = el.scrollHeight;
-                const oldScrollTop = el.scrollTop;
+                const buffer = $console.data("log-prev-buffer");
+                if (buffer && buffer.length > 0) {
+                    const oldScrollHeight = el.scrollHeight;
+                    const oldScrollTop = el.scrollTop;
 
-                const fragment = document.createDocumentFragment();
-                while (buffer.length > 0) {
-                    const item = buffer.shift();
-                    const p = document.createElement("p");
-                    if (typeof item === "string") {
-                        p.textContent = item;
-                    } else {
-                        if (item.html) p.innerHTML = item.html;
-                        else p.textContent = item.text;
-                        if (item.className) p.className = item.className;
-                    }
-                    fragment.appendChild(p);
-                }
-
-                if (noAnchoring) {
-                    el.prepend(fragment);
-                    el.scrollTop = 0;
-                    $console.removeData("prev-anchor");
-                } else {
-                    let anchor = $console.data("prev-anchor");
-                    if (!anchor || anchor.parentNode !== el) {
-                        anchor = el.firstChild;
-                        if (anchor) {
-                            $console.data("prev-anchor", anchor);
+                    const fragment = document.createDocumentFragment();
+                    while (buffer.length > 0) {
+                        const item = buffer.shift();
+                        const p = document.createElement("p");
+                        if (typeof item === "string") {
+                            p.textContent = item;
+                        } else {
+                            if (item.html) p.innerHTML = item.html;
+                            else p.textContent = item.text;
+                            if (item.className) p.className = item.className;
                         }
+                        fragment.appendChild(p);
                     }
-                    if (anchor && anchor.parentNode === el) {
-                        el.insertBefore(fragment, anchor);
+
+                    if (noAnchoring) {
+                        el.prepend(fragment);
+                        el.scrollTop = 0;
+                        $console.removeData("prev-anchor");
                     } else {
-                        el.appendChild(fragment);
+                        let anchor = $console.data("prev-anchor");
+                        if (!anchor || anchor.parentNode !== el) {
+                            anchor = el.firstChild;
+                            if (anchor) {
+                                $console.data("prev-anchor", anchor);
+                            }
+                        }
+                        if (anchor && anchor.parentNode === el) {
+                            el.insertBefore(fragment, anchor);
+                        } else {
+                            el.appendChild(fragment);
+                        }
+                        el.scrollTop = oldScrollTop + (el.scrollHeight - oldScrollHeight);
                     }
-                    el.scrollTop = oldScrollTop + (el.scrollHeight - oldScrollHeight);
                 }
-            }
-        }, 100);
+            });
+        }, 50);
         $console.data("prev-timer", timer);
     }
 
