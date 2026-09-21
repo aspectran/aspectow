@@ -155,11 +155,11 @@ class DashboardViewer {
 
     refreshConsole($console) {
         if ($console) {
-            this.scrollToBottom($console);
+            this.appendToConsole($console);
         } else {
             for (let key in this.consoles) {
                 if (!this.consoles[key].data("pause")) {
-                    this.scrollToBottom(this.consoles[key]);
+                    this.appendToConsole(this.consoles[key]);
                 }
             }
         }
@@ -184,7 +184,29 @@ class DashboardViewer {
         }
     }
 
-    scrollToBottom($console) {
+    prepareToLoadPrevious($console) {
+        if (!$console) return 0;
+        const loadedLines = $console.find("p").not(".event").length;
+
+        if ($console.data("tailing")) {
+            $console.data("tailing", false);
+            const $consoleBox = $console.closest(".console-box");
+            const $tailingSwitch = $consoleBox.find(".tailing-switch");
+            $consoleBox.find(".tailing-status").removeClass("on");
+            $tailingSwitch.attr("title", $tailingSwitch.data("title-off"));
+        }
+
+        const el = $console[0];
+        if (el && el.firstChild) {
+            $console.data("prev-anchor", el.firstChild);
+        } else {
+            $console.removeData("prev-anchor");
+        }
+
+        return loadedLines;
+    }
+
+    appendToConsole($console) {
         if (!$console) return;
         let timer = $console.data("timer");
         if (timer) {
@@ -265,13 +287,7 @@ class DashboardViewer {
                         el.scrollTop = 0;
                         $console.removeData("prev-anchor");
                     } else {
-                        let anchor = $console.data("prev-anchor");
-                        if (!anchor || anchor.parentNode !== el) {
-                            anchor = el.firstChild;
-                            if (anchor) {
-                                $console.data("prev-anchor", anchor);
-                            }
-                        }
+                        const anchor = $console.data("prev-anchor");
                         if (anchor && anchor.parentNode === el) {
                             el.insertBefore(fragment, anchor);
                         } else {
@@ -295,7 +311,7 @@ class DashboardViewer {
                     $console.data("log-buffer", buffer);
                 }
                 buffer.push({ html: message, className: "event ellipses" });
-                this.scrollToBottom($console);
+                this.appendToConsole($console);
             }
         } else {
             for (let key in this.consoles) {
@@ -314,7 +330,7 @@ class DashboardViewer {
                     $console.data("log-buffer", buffer);
                 }
                 buffer.push({ html: message, className: "event error" });
-                this.scrollToBottom($console);
+                this.appendToConsole($console);
             }
         } else {
             for (let key in this.consoles) {
@@ -378,12 +394,15 @@ class DashboardViewer {
         if ($console) {
             if (subType === "p") {
                 if (messageContent) {
+                    const lines = messageContent.split("\n");
                     let prevBuffer = $console.data("log-prev-buffer");
                     if (!prevBuffer) {
                         prevBuffer = [];
                         $console.data("log-prev-buffer", prevBuffer);
                     }
-                    prevBuffer.push(messageContent);
+                    for (let i = 0; i < lines.length; i++) {
+                        prevBuffer.push(lines[i]);
+                    }
                     this.prependToConsole($console);
                 } else {
                     let prevBuffer = $console.data("log-prev-buffer");
@@ -402,7 +421,7 @@ class DashboardViewer {
                     $console.data("log-buffer", buffer);
                 }
                 buffer.push(messageContent);
-                this.scrollToBottom($console);
+                this.appendToConsole($console);
             }
         }
     }

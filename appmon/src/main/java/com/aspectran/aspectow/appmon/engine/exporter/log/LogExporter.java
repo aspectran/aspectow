@@ -147,9 +147,7 @@ public class LogExporter extends AbstractExporter {
                 int loadedLines = commandOptions.getLoadedLines();
                 List<String> lines = readPreviousLines(loadedLines, lastLines);
                 if (!lines.isEmpty()) {
-                    for (String line : lines) {
-                        messages.add(plogPrefix + line);
-                    }
+                    messages.add(plogPrefix + String.join("\n", lines));
                 } else {
                     messages.add(plogPrefix);
                 }

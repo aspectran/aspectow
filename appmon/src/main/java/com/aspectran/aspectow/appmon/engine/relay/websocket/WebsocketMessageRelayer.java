@@ -182,8 +182,8 @@ public class WebsocketMessageRelayer extends SimplifiedEndpoint implements Messa
             if (messageRelayManager.subscribe(relaySession, nodeId, isExplicitNode)) {
                 if (messageRelayManager.isSameNode(nodeId)) {
                     List<String> messages = messageRelayManager.getLastMessages(relaySession);
-                    for (String message : messages) {
-                        sendText(session, message);
+                    if (messages != null && !messages.isEmpty()) {
+                        sendText(session, messages);
                     }
                 }
             }
@@ -202,10 +202,8 @@ public class WebsocketMessageRelayer extends SimplifiedEndpoint implements Messa
     private void refreshData(@NonNull Session session, @NonNull CommandOptions commandOptions) {
         RelaySession relaySession = new WebsocketRelaySession(session);
         List<String> messages = messageRelayManager.refreshData(relaySession, commandOptions);
-        if (messages != null) {
-            for (String message : messages) {
-                sendText(session, message);
-            }
+        if (messages != null && !messages.isEmpty()) {
+            sendText(session, messages);
         }
     }
 
