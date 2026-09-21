@@ -734,6 +734,7 @@ class DashboardBuilder {
                 $tailingSwitch.attr("title", $tailingSwitch.data("title-off"));
             }
 
+            $console.removeData("prev-anchor");
             this.clients[nodeIndex].loadPrevious(appId, logId, loadedLines, this.nodes[nodeIndex].id);
         });
         $(window).off("resize").on("resize", () => {

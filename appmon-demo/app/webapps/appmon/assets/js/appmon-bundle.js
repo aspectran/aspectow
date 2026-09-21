@@ -1305,6 +1305,7 @@ class DashboardViewer {
                 $console.removeData("prev-timer");
             }
             $console.removeData("log-prev-buffer");
+            $console.removeData("prev-anchor");
             $console.empty();
         }
     }
@@ -1383,12 +1384,22 @@ class DashboardViewer {
                     }
                     fragment.appendChild(p);
                 }
-                el.prepend(fragment);
 
-                // Maintain scroll position (anchoring)
                 if (noAnchoring) {
+                    el.prepend(fragment);
                     el.scrollTop = 0;
+                    $console.removeData("prev-anchor");
                 } else {
+                    let anchor = $console.data("prev-anchor");
+                    if (!anchor || anchor.parentNode !== el) {
+                        anchor = el.firstChild;
+                        $console.data("prev-anchor", anchor);
+                    }
+                    if (anchor) {
+                        el.insertBefore(fragment, anchor);
+                    } else {
+                        el.appendChild(fragment);
+                    }
                     el.scrollTop = oldScrollTop + (el.scrollHeight - oldScrollHeight);
                 }
             }
@@ -3101,6 +3112,7 @@ class DashboardBuilder {
                 $tailingSwitch.attr("title", $tailingSwitch.data("title-off"));
             }
 
+            $console.removeData("prev-anchor");
             this.clients[nodeIndex].loadPrevious(appId, logId, loadedLines, this.nodes[nodeIndex].id);
         });
         $(window).off("resize").on("resize", () => {
