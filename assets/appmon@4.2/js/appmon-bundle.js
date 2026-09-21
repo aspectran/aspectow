@@ -2374,7 +2374,7 @@ class DashboardViewer {
  * Responsible for assembling the dashboard UI based on configuration data.
  *
  * @version 4.2
- * @last-modified 2026-09-18
+ * @last-modified 2026-09-21
  */
 class DashboardBuilder {
     constructor(options = {}) {
@@ -2735,7 +2735,9 @@ class DashboardBuilder {
                 this.nodes.forEach(n => {
                     if (n.primary) {
                         const client = this.clients[n.index];
-                        if (client && client.focus) client.focus(activeApp.id, targetNodeId);
+                        if (client && client.focus) {
+                            setTimeout(() => client.focus(activeApp.id, targetNodeId), 10);
+                        }
                     }
                 });
             }
@@ -2872,7 +2874,10 @@ class DashboardBuilder {
                     if (node.primary) {
                         const client = this.clients[node.index];
                         if (client && client.focus) {
-                            setTimeout(() => client.focus(appId, node.id), 10);
+                            setTimeout(() => {
+                                client.focus(appId, node.id);
+                                this.refreshData(appId, true);
+                            }, 10);
                         }
                     }
                 });
@@ -3095,8 +3100,8 @@ class DashboardBuilder {
                     v.resetCurrentActivityCounts();
                 });
                 this.apps.forEach(app => {
-                    if (this.nodeToSubscribe || !app.hidden) {
-                        this.refreshData(app.id, true);
+                    if (app.active) {
+                        this.refreshData(app.id, app.active);
                     }
                 });
             }
@@ -3154,7 +3159,6 @@ class DashboardBuilder {
         setTimeout(() => {
             const activeNodesInGroup = this.nodes.filter(n => n.group === this.currentGroupId && n.active);
             this.nodes.forEach(node => {
-                console.log("Refreshing node:", node);
                 const isVisible = (node.group === this.currentGroupId && (activeNodesInGroup.length === 0 || node.active));
                 if (isVisible && node.alive) {
                     this.viewers[node.index].setLoading(appId, true);
