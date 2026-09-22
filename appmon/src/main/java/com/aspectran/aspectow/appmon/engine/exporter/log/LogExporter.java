@@ -73,8 +73,14 @@ public class LogExporter extends AbstractExporter {
 
     private final int lastLines;
 
+    private final int maxBatchSize;
+
+    private final long flushDelayMillis;
+
     /** the log file to tail */
     private final File logFile;
+
+    private LogTailerListener tailerListener;
 
     private Tailer tailer;
 
@@ -96,6 +102,8 @@ public class LogExporter extends AbstractExporter {
         this.charset = (logInfo.getCharset() != null ? Charset.forName(logInfo.getCharset()): DEFAULT_CHARSET);
         this.sampleInterval = (logInfo.getSampleInterval() > 0 ? logInfo.getSampleInterval() : DEFAULT_SAMPLE_INTERVAL);
         this.lastLines = logInfo.getLastLines();
+        this.maxBatchSize = logInfo.getMaxBatchSize();
+        this.flushDelayMillis = logInfo.getFlushDelayMillis();
         this.logFile = logFile;
     }
 
@@ -302,11 +310,22 @@ public class LogExporter extends AbstractExporter {
         exporterManager.broadcast(prefix + message);
     }
 
+    public void broadcast(List<String> lines) {
+        if (lines != null && !lines.isEmpty()) {
+            if (lines.size() == 1) {
+                broadcast(lines.get(0));
+            } else {
+                exporterManager.broadcast(prefix + String.join("\n", lines));
+            }
+        }
+    }
+
     @Override
     protected void doStart() throws Exception {
+        tailerListener = new LogTailerListener(this, exporterManager.getScheduler(), maxBatchSize, flushDelayMillis);
         tailer = Tailer.builder()
                 .setFile(logFile)
-                .setTailerListener(new LogTailerListener(this))
+                .setTailerListener(tailerListener)
                 .setDelayDuration(Duration.ofMillis(sampleInterval))
                 .setTailFromEnd(true)
                 .get();
@@ -317,6 +336,10 @@ public class LogExporter extends AbstractExporter {
         if (tailer != null) {
             tailer.close();
             tailer = null;
+        }
+        if (tailerListener != null) {
+            tailerListener.close();
+            tailerListener = null;
         }
     }
 

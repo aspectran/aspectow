@@ -33,18 +33,22 @@ public class LogInfo extends DefaultParameters {
     private static final ParameterKey archivedDir;
     private static final ParameterKey charset;
     private static final ParameterKey sampleInterval;
+    private static final ParameterKey maxBatchSize;
+    private static final ParameterKey flushDelayMillis;
     private static final ParameterKey lastLines;
 
     private static final ParameterKey[] parameterKeys;
 
     static {
         id = new ParameterKey("id", ValueType.STRING);
-        file = new ParameterKey("file", ValueType.STRING);
         title = new ParameterKey("title", ValueType.STRING);
+        file = new ParameterKey("file", ValueType.STRING);
+        archivedDir = new ParameterKey("archivedDir", ValueType.STRING);
         charset = new ParameterKey("charset", ValueType.STRING);
         sampleInterval = new ParameterKey("sampleInterval", ValueType.LONG);
+        maxBatchSize = new ParameterKey("maxBatchSize", ValueType.INT);
+        flushDelayMillis = new ParameterKey("flushDelayMillis", ValueType.LONG);
         lastLines = new ParameterKey("lastLines", ValueType.INT);
-        archivedDir = new ParameterKey("archivedDir", ValueType.STRING);
 
         parameterKeys = new ParameterKey[] {
                 id,
@@ -53,6 +57,8 @@ public class LogInfo extends DefaultParameters {
                 archivedDir,
                 charset,
                 sampleInterval,
+                maxBatchSize,
+                flushDelayMillis,
                 lastLines
         };
     }
@@ -194,6 +200,38 @@ public class LogInfo extends DefaultParameters {
      */
     public void setSampleInterval(long sampleInterval) {
         putValue(LogInfo.sampleInterval, sampleInterval);
+    }
+
+    /**
+     * Returns the maximum number of log lines to buffer before an immediate flush.
+     * @return the maximum batch size
+     */
+    public int getMaxBatchSize() {
+        return getInt(maxBatchSize, 0);
+    }
+
+    /**
+     * Sets the maximum number of log lines to buffer before an immediate flush.
+     * @param maxBatchSize the maximum batch size
+     */
+    public void setMaxBatchSize(int maxBatchSize) {
+        putValue(LogInfo.maxBatchSize, maxBatchSize);
+    }
+
+    /**
+     * Returns the delay (in milliseconds) before flushing buffered log lines.
+     * @return the flush delay in milliseconds
+     */
+    public long getFlushDelayMillis() {
+        return getLong(flushDelayMillis, 0L);
+    }
+
+    /**
+     * Sets the delay (in milliseconds) before flushing buffered log lines.
+     * @param flushDelayMillis the flush delay in milliseconds
+     */
+    public void setFlushDelayMillis(long flushDelayMillis) {
+        putValue(LogInfo.flushDelayMillis, flushDelayMillis);
     }
 
     /**
