@@ -136,7 +136,7 @@ public class WebsocketMessageRelayer extends SimplifiedEndpoint implements Messa
 
     private void pong(Session session) {
         String newToken = AppMonTokenIssuer.issueToken(1800); // 30 min.
-        sendText(session, appMonManager.getNodeId() + "::" + RESPONSE_PONG + newToken);
+        sendTextAsync(session, appMonManager.getNodeId() + "::" + RESPONSE_PONG + newToken);
     }
 
     private void subscribe(Session session, @NonNull CommandOptions commandOptions) {
@@ -183,7 +183,7 @@ public class WebsocketMessageRelayer extends SimplifiedEndpoint implements Messa
                 if (messageRelayManager.isSameNode(nodeId)) {
                     List<String> messages = messageRelayManager.getLastMessages(relaySession);
                     if (messages != null && !messages.isEmpty()) {
-                        sendText(session, messages);
+                        sendTextAsync(session, messages);
                     }
                 }
             }
@@ -203,7 +203,7 @@ public class WebsocketMessageRelayer extends SimplifiedEndpoint implements Messa
         RelaySession relaySession = new WebsocketRelaySession(session);
         List<String> messages = messageRelayManager.refreshData(relaySession, commandOptions);
         if (messages != null && !messages.isEmpty()) {
-            sendText(session, messages);
+            sendTextAsync(session, messages);
         }
     }
 
@@ -215,13 +215,13 @@ public class WebsocketMessageRelayer extends SimplifiedEndpoint implements Messa
 
     @Override
     public void relay(String message) {
-        broadcast(message);
+        broadcastAsync(message);
     }
 
     @Override
     public void relay(@NonNull RelaySession relaySession, String message) {
         if (relaySession instanceof WebsocketRelaySession wrappedSession) {
-            sendText(wrappedSession.getSession(), message);
+            sendTextAsync(wrappedSession.getSession(), message);
         }
     }
 
