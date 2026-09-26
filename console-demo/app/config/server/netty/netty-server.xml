@@ -10,9 +10,6 @@
     <environment>
         <property name="netty.server.listener.http.port" valueType="int">%{system:netty.server.listener.http.port:8082}</property>
         <property name="netty.server.listener.http.host">0.0.0.0</property>
-        <properties profile="prod">
-            <item name="netty.server.domain">aspectran.com</item>
-        </properties>
     </environment>
 
     <bean id="netty.server" class="com.aspectran.netty.server.DefaultNettyServer">
