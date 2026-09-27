@@ -183,13 +183,12 @@ public class PollingMessageRelayer implements MessageRelayer {
         Assert.hasText(nodeId, "Node ID cannot be empty");
         String nodeToSubscribe = commandOptions.getNodeToSubscribe();
         boolean isExplicitNode = StringUtils.hasText(nodeToSubscribe);
-        if (messageRelayManager.isSameNode(nodeId) || isExplicitNode) {
-            if (messageRelayManager.subscribe(relaySession, nodeId, isExplicitNode)) {
-                if (messageRelayManager.isSameNode(nodeId)) {
-                    List<String> messages = messageRelayManager.getLastMessages(relaySession);
-                    for (String message : messages) {
-                        pollingSessionManager.push(relaySession, message);
-                    }
+        String targetNodeId = (isExplicitNode ? nodeToSubscribe : nodeId);
+        if (messageRelayManager.subscribe(relaySession, targetNodeId, isExplicitNode)) {
+            if (messageRelayManager.isSameNode(targetNodeId)) {
+                List<String> messages = messageRelayManager.getLastMessages(relaySession);
+                for (String message : messages) {
+                    pollingSessionManager.push(relaySession, message);
                 }
             }
         }

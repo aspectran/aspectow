@@ -177,14 +177,13 @@ public class WebsocketMessageRelayer extends SimplifiedEndpoint implements Messa
         Assert.hasText(nodeId, "Node ID cannot be empty");
         String nodeToSubscribe = commandOptions.getNodeToSubscribe();
         boolean isExplicitNode = StringUtils.hasText(nodeToSubscribe);
-        if (messageRelayManager.isSameNode(nodeId) || isExplicitNode) {
-            RelaySession relaySession = new WebsocketRelaySession(session);
-            if (messageRelayManager.subscribe(relaySession, nodeId, isExplicitNode)) {
-                if (messageRelayManager.isSameNode(nodeId)) {
-                    List<String> messages = messageRelayManager.getLastMessages(relaySession);
-                    if (messages != null && !messages.isEmpty()) {
-                        sendTextAsync(session, messages);
-                    }
+        String targetNodeId = (isExplicitNode ? nodeToSubscribe : nodeId);
+        RelaySession relaySession = new WebsocketRelaySession(session);
+        if (messageRelayManager.subscribe(relaySession, targetNodeId, isExplicitNode)) {
+            if (messageRelayManager.isSameNode(targetNodeId)) {
+                List<String> messages = messageRelayManager.getLastMessages(relaySession);
+                if (messages != null && !messages.isEmpty()) {
+                    sendTextAsync(session, messages);
                 }
             }
         }
