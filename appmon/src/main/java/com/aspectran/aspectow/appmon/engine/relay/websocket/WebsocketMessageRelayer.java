@@ -146,7 +146,7 @@ public class WebsocketMessageRelayer extends SimplifiedEndpoint implements Messa
         String nodeToSubscribe = commandOptions.getNodeToSubscribe();
         String appsToSubscribe = commandOptions.getAppsToSubscribe();
         boolean isExplicitNode = StringUtils.hasText(nodeToSubscribe);
-        if (messageRelayManager.isSameNode(nodeId) || isExplicitNode || StringUtils.hasText(appsToSubscribe)) {
+        if (messageRelayManager.isGatewayMode() || messageRelayManager.isSameNode(nodeId)) {
             if (addSession(session)) {
                 messageRelayManager.registerSession(session.getId(), this);
                 WebsocketRelaySession relaySession = new WebsocketRelaySession(session);
@@ -173,11 +173,11 @@ public class WebsocketMessageRelayer extends SimplifiedEndpoint implements Messa
                 String alive = (!messageRelayManager.isGatewayMode() ||
                         messageRelayManager.getNodeRegistry().isFound(nodeId)) ? "alive" : "";
                 relay(relaySession, nodeId + "::" + RESPONSE_SUBSCRIBED + "primary:" + alive);
+            } else if (messageRelayManager.isGatewayMode()){
+                String alive = messageRelayManager.getNodeRegistry().isFound(nodeId) ? "alive" : "";
+                WebsocketRelaySession relaySession = new WebsocketRelaySession(session);
+                relay(relaySession, nodeId + "::" + RESPONSE_SUBSCRIBED + alive);
             }
-        } else if (messageRelayManager.isGatewayMode()) {
-            String alive = messageRelayManager.getNodeRegistry().isFound(nodeId) ? "alive" : "";
-            WebsocketRelaySession relaySession = new WebsocketRelaySession(session);
-            relay(relaySession, nodeId + "::" + RESPONSE_SUBSCRIBED + alive);
         }
     }
 
