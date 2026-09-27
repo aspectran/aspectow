@@ -62,39 +62,6 @@
             <setting name="characterEncoding" value="utf-8"/>
             <setting name="viewDispatcher" value="thymeleafViewDispatcher"/>
         </settings>
-        <advice>
-            <before>
-                <headers>
-                    <item name="X-Frame-Options">SAMEORIGIN</item>
-                    <item name="X-Content-Type-Options">nosniff</item>
-                    <item name="X-XSS-Protection">1; mode=block</item>
-                    <item name="Referrer-Policy">strict-origin-when-cross-origin</item>
-                </headers>
-            </before>
-        </advice>
-    </aspect>
-
-    <aspect id="htmlWebSecuritySettings">
-        <description style="apon">
-            |Aspect to inject security response headers specifically for HTML view requests.
-            |- Triggered declaratively only for browser HTML page requests matching the 'Accept=text/html' joinpoint header condition.
-            |- Configures Content-Security-Policy (CSP) to mitigate XSS attacks and permit trusted external CDN/font domains (jsdelivr, jquery, googleapis, gstatic).
-        </description>
-        <joinpoint>
-            headers: [
-                "Accept=text/html"
-            ]
-            pointcut: {
-                +: /**
-            }
-        </joinpoint>
-        <advice>
-            <before>
-                <headers>
-                    <item name="Content-Security-Policy">default-src 'self'; connect-src 'self' ws: wss: localhost:* 127.0.0.1:*; script-src 'self' 'unsafe-inline' 'unsafe-eval' cdn.jsdelivr.net code.jquery.com; style-src 'self' 'unsafe-inline' localhost:* cdn.jsdelivr.net code.jquery.com fonts.googleapis.com; img-src 'self' data: cdn.jsdelivr.net code.jquery.com; font-src 'self' data: cdn.jsdelivr.net fonts.gstatic.com;</item>
-                </headers>
-            </before>
-        </advice>
     </aspect>
 
 </aspectran>

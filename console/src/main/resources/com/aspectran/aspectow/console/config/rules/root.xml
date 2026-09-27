@@ -24,6 +24,7 @@
     <append resource="com/aspectran/aspectow/appmon/config/rules/scheduler.xml"/>
     <append resource="com/aspectran/aspectow/console/config/rules/db.xml"/>
     <append resource="com/aspectran/aspectow/console/config/rules/web.xml" profile="[console.ui, console.custom-ui]"/>
+    <append resource="com/aspectran/aspectow/console/config/rules/web-security.xml" profile="([console.ui, console.custom-ui], !console.no-web-security)"/>
     <append resource="com/aspectran/aspectow/console/framework/asel-test-rules.xml" profile="[console.ui, console.custom-ui]"/>
 
 </aspectran>

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE aspectran PUBLIC "-//ASPECTRAN//DTD Aspectran 9.0//EN"
+        "https://aspectran.com/dtd/aspectran-9.dtd">
+<aspectran>
+
+    <description>
+        Aspectran configuration to inject web security response headers.
+    </description>
+
+    <aspect id="htmlWebSecuritySettings">
+        <description style="apon">
+            |Aspect to inject security response headers specifically for HTML view requests.
+            |- Declaratively triggered only for browser HTML page requests matching the 'Accept=text/html' joinpoint header condition.
+            |- Configures X-Frame-Options (SAMEORIGIN), X-Content-Type-Options (nosniff), X-XSS-Protection, and Referrer-Policy.
+            |- Configures Content-Security-Policy (CSP) to mitigate XSS attacks and permit trusted external CDN/font domains (jsdelivr, jquery, googleapis, gstatic).
+        </description>
+        <joinpoint>
+            headers: [
+                "Accept=text/html"
+            ]
+            pointcut: {
+                +: /**
+            }
+        </joinpoint>
+        <advice>
+            <before>
+                <headers>
+                    <item name="X-Frame-Options">SAMEORIGIN</item>
+                    <item name="X-Content-Type-Options">nosniff</item>
+                    <item name="X-XSS-Protection">1; mode=block</item>
+                    <item name="Referrer-Policy">strict-origin-when-cross-origin</item>
+                    <item name="Content-Security-Policy">default-src 'self'; connect-src 'self' ws: wss: localhost:* 127.0.0.1:*; script-src 'self' 'unsafe-inline' 'unsafe-eval' cdn.jsdelivr.net code.jquery.com; style-src 'self' 'unsafe-inline' localhost:* cdn.jsdelivr.net code.jquery.com fonts.googleapis.com; img-src 'self' data: cdn.jsdelivr.net code.jquery.com; font-src 'self' data: cdn.jsdelivr.net fonts.gstatic.com;</item>
+                </headers>
+            </before>
+        </advice>
+    </aspect>
+
+</aspectran>
