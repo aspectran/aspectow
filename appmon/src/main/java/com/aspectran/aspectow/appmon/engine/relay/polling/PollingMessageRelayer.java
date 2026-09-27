@@ -15,6 +15,7 @@
  */
 package com.aspectran.aspectow.appmon.engine.relay.polling;
 
+import com.aspectran.aspectow.appmon.engine.config.AppInfo;
 import com.aspectran.aspectow.appmon.engine.config.PollingConfig;
 import com.aspectran.aspectow.appmon.engine.manager.AppMonManager;
 import com.aspectran.aspectow.appmon.engine.relay.CommandOptions;
@@ -101,8 +102,16 @@ public class PollingMessageRelayer implements MessageRelayer {
         boolean isExplicitNode = StringUtils.hasText(nodeToSubscribe);
         if (messageRelayManager.isSameNode(nodeId) || isExplicitNode) {
             String appsToSubscribe = translet.getParameter("appsToSubscribe");
+            List<AppInfo> appInfoList;
+            if (isExplicitNode) {
+                appInfoList = appMonManager.getClusterAppInfoListByNode(nodeToSubscribe);
+            } else if (!messageRelayManager.isGatewayMode()) {
+                appInfoList = appMonManager.getAppInfoList();
+            } else {
+                appInfoList = appMonManager.getClusterAppInfoList();
+            }
             String[] appIds = StringUtils.splitWithComma(appsToSubscribe);
-            appIds = appMonManager.getVerifiedAppIds(appIds, appMonManager.getClusterAppInfoList(), isExplicitNode);
+            appIds = appMonManager.getVerifiedAppIds(appIds, appInfoList, isExplicitNode);
 
             PollingRelaySession relaySession = pollingSessionManager.createSession(translet, appIds);
             String timeZone = translet.getParameter("timeZone");

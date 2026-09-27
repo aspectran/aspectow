@@ -71,15 +71,6 @@ public class WebsocketRelaySession extends WrappedSession implements RelaySessio
         getSession().getUserProperties().put(TIME_ZONE_PROPERTY, timeZone);
     }
 
-    /**
-     * Returns the array of application IDs subscribed to in this WebSocket session.
-     * @return an array of subscribed application IDs
-     */
-    @Override
-    public String[] getSubscribedApps() {
-        return (String[])getSession().getUserProperties().get(SUBSCRIBED_APPS_PROPERTY);
-    }
-
     @Override
     public String getSubscribedNodeId() {
         return (String)getSession().getUserProperties().get(SUBSCRIBED_NODE_ID_PROPERTY);
@@ -92,6 +83,15 @@ public class WebsocketRelaySession extends WrappedSession implements RelaySessio
         } else {
             getSession().getUserProperties().remove(SUBSCRIBED_NODE_ID_PROPERTY);
         }
+    }
+
+    /**
+     * Returns the array of application IDs subscribed to in this WebSocket session.
+     * @return an array of subscribed application IDs
+     */
+    @Override
+    public String[] getSubscribedApps() {
+        return (String[])getSession().getUserProperties().get(SUBSCRIBED_APPS_PROPERTY);
     }
 
     /**

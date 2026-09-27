@@ -41,6 +41,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -169,6 +170,26 @@ public class AppMonManager extends InstantActivitySupport {
     }
 
     /**
+     * Gets node information for the specified node ID.
+     * In gateway mode, if not found locally, it retrieves it from the Redis registry.
+     * @param nodeId the node identifier
+     * @return the node information, or null if not found
+     */
+    public NodeInfo getNodeInfo(String nodeId) {
+        if (nodeId == null) {
+            return null;
+        }
+        NodeInfo nodeInfo = nodeInfoHolder.getNodeInfo(nodeId);
+        if (nodeInfo == null && isGatewayMode()) {
+            NodeRegistry nodeRegistry = nodeManager.getNodeRegistry();
+            if (nodeRegistry != null) {
+                nodeInfo = nodeRegistry.getNodeInfo(nodeId);
+            }
+        }
+        return nodeInfo;
+    }
+
+    /**
      * Gets the list of instance information.
      * @return the list of instance information
      */
@@ -209,6 +230,67 @@ public class AppMonManager extends InstantActivitySupport {
             return apps;
         } else {
             return appInfoHolder.getAppInfoList();
+        }
+    }
+
+    /**
+     * Gets the list of all application definitions for the specified group.
+     * In gateway mode, this retrieves information from the Redis registry.
+     * @param groupId the group identifier
+     * @return the list of application definitions for the group
+     */
+    public List<AppInfo> getClusterAppInfoListByGroup(String groupId) {
+        if (groupId == null) {
+            return Collections.emptyList();
+        }
+        if (isGatewayMode()) {
+            NodeRegistry nodeRegistry = nodeManager.getNodeRegistry();
+            if (nodeRegistry != null) {
+                List<AppInfo> apps = new ArrayList<>();
+                Map<String, String> allApps = nodeRegistry.getAllApps(groupId);
+                for (String aponData : allApps.values()) {
+                    try {
+                        AppInfo appInfo = new AppInfo();
+                        appInfo.readFrom(aponData);
+                        apps.add(appInfo);
+                    } catch (Exception e) {
+                        // ignore
+                    }
+                }
+                return apps;
+            } else {
+                return Collections.emptyList();
+            }
+        } else {
+            if (groupId.equals(getGroupId())) {
+                return appInfoHolder.getAppInfoList();
+            } else {
+                return Collections.emptyList();
+            }
+        }
+    }
+
+    /**
+     * Gets the list of all application definitions for the group that the specified node belongs to.
+     * @param nodeId the node identifier
+     * @return the list of application definitions for the node's group
+     */
+    public List<AppInfo> getClusterAppInfoListByNode(String nodeId) {
+        if (nodeId == null) {
+            return Collections.emptyList();
+        }
+        if (isGatewayMode()) {
+            NodeInfo nodeInfo = getNodeInfo(nodeId);
+            if (nodeInfo != null && nodeInfo.getGroup() != null) {
+                return getClusterAppInfoListByGroup(nodeInfo.getGroup());
+            }
+            return Collections.emptyList();
+        } else {
+            if (nodeId.equals(getNodeId())) {
+                return appInfoHolder.getAppInfoList();
+            } else {
+                return Collections.emptyList();
+            }
         }
     }
 

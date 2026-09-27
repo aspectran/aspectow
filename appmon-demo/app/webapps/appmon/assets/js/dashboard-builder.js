@@ -19,7 +19,7 @@
  * Responsible for assembling the dashboard UI based on configuration data.
  *
  * @version 4.2
- * @last-modified 2026-09-21
+ * @last-modified 2026-09-27
  */
 class DashboardBuilder {
     constructor(options = {}) {
@@ -74,6 +74,7 @@ class DashboardBuilder {
                     this.clusterMode = this.settings.clusterMode || "direct";
                     this.isGatewayMode = (this.settings.clusterMode === "gateway");
                     this.counterPersistInterval = this.settings.counterPersistInterval || 5;
+                    this.appsToSubscribe = data.appsToSubscribe;
                     this.groups = [];
                     this.nodes = [];
                     this.apps = [];

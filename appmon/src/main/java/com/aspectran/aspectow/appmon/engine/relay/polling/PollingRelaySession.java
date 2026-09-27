@@ -124,11 +124,6 @@ public class PollingRelaySession implements RelaySession {
     }
 
     @Override
-    public String[] getSubscribedApps() {
-        return subscribedApps;
-    }
-
-    @Override
     public String getSubscribedNodeId() {
         return subscribedNodeId;
     }
@@ -140,6 +135,11 @@ public class PollingRelaySession implements RelaySession {
         } else {
             this.subscribedNodeId = null;
         }
+    }
+
+    @Override
+    public String[] getSubscribedApps() {
+        return subscribedApps;
     }
 
     @Override

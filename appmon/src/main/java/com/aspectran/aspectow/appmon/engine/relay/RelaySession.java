@@ -36,12 +36,6 @@ public interface RelaySession {
     String getTimeZone();
 
     /**
-     * Gets the names of the apps that this session has subscribed to.
-     * @return an array of app names
-     */
-    String[] getSubscribedApps();
-
-    /**
      * Gets the ID of the node that this session has subscribed to.
      * @return the subscribed node ID
      */
@@ -52,6 +46,12 @@ public interface RelaySession {
      * @param nodeId the subscribed node ID
      */
     void setSubscribedNodeId(String nodeId);
+
+    /**
+     * Gets the names of the apps that this session has subscribed to.
+     * @return an array of app names
+     */
+    String[] getSubscribedApps();
 
     /**
      * Sets the names of the apps that this session has subscribed to.

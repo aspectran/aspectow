@@ -16,6 +16,7 @@
 package com.aspectran.aspectow.appmon.engine.relay.websocket;
 
 import com.aspectran.aspectow.appmon.common.auth.AppMonTokenIssuer;
+import com.aspectran.aspectow.appmon.engine.config.AppInfo;
 import com.aspectran.aspectow.appmon.engine.manager.AppMonManager;
 import com.aspectran.aspectow.appmon.engine.relay.CommandOptions;
 import com.aspectran.aspectow.appmon.engine.relay.MessageRelayManager;
@@ -156,8 +157,16 @@ public class WebsocketMessageRelayer extends SimplifiedEndpoint implements Messa
                 if (StringUtils.hasText(timeZone)) {
                     relaySession.setTimeZone(timeZone);
                 }
+                List<AppInfo> appInfoList;
+                if (isExplicitNode) {
+                    appInfoList = appMonManager.getClusterAppInfoListByNode(nodeToSubscribe);
+                } else if (!messageRelayManager.isGatewayMode()) {
+                    appInfoList = appMonManager.getAppInfoList();
+                } else {
+                    appInfoList = appMonManager.getClusterAppInfoList();
+                }
                 String[] appIds = StringUtils.splitWithComma(appsToSubscribe);
-                appIds = appMonManager.getVerifiedAppIds(appIds, appMonManager.getClusterAppInfoList(), isExplicitNode);
+                appIds = appMonManager.getVerifiedAppIds(appIds, appInfoList, isExplicitNode);
                 if (appIds.length > 0) {
                     relaySession.setSubscribedApps(appIds);
                 }
