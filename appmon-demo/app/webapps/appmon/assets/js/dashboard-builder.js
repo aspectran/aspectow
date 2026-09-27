@@ -69,12 +69,14 @@ class DashboardBuilder {
                         this.showEmptyAppMessage();
                         return;
                     }
+                    if (appsToSubscribe) {
+                        this.appsToSubscribe = data.appsToSubscribe;
+                    }
 
                     this.settings = { ...data.settings };
                     this.clusterMode = this.settings.clusterMode || "direct";
                     this.isGatewayMode = (this.settings.clusterMode === "gateway");
                     this.counterPersistInterval = this.settings.counterPersistInterval || 5;
-                    this.appsToSubscribe = data.appsToSubscribe;
                     this.groups = [];
                     this.nodes = [];
                     this.apps = [];
