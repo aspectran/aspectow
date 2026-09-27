@@ -7,43 +7,14 @@ pollingConfig: {
 }
 counterPersistInterval: 5
 app: {
-    id: console-visible
-    title: Visible Console
+    id: console
+    title: Console
     event: {
         id: activity
         target: console
         parameters: {
             +: /**
-            -: /nodes/**/polling/**  # Ignore polling requests
-        }
-    }
-    event: {
-        id: session
-        target: netty.server/console
-    }
-    log: {
-        id: app
-        file: console.log
-        sampleInterval: 300
-        lastLines: 100
-    }
-    log: {
-        id: access
-        file: console-access.log
-        sampleInterval: 300
-        lastLines: 100
-    }
-}
-app: {
-    id: console-hidden
-    node: console-node1
-    title: Hidden Console
-    hidden: true
-    event: {
-        id: activity
-        target: console
-        parameters: {
-            +: /**
+            -: /nodes/**/ping        # Ignore ping requests
             -: /nodes/**/polling/**  # Ignore polling requests
         }
     }
@@ -72,7 +43,8 @@ app: {
         target: root
         parameters: {
             +: /**
-            -: /nodes/**/appmon/polling/**  # Ignore polling requests
+            -: /nodes/**/ping        # Ignore ping requests
+            -: /nodes/**/polling/**  # Ignore polling requests
         }
     }
     metric: {

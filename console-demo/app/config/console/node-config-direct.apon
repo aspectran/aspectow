@@ -7,16 +7,15 @@ cluster: {
     }
 }
 node: {
-    id: console-node1
-    title: Node-1
-    console: true
+    id: dev-console-node1
+    title: Console-1
     port: 8082
     endpoint: {
         mode: auto
     }
 }
 node: {
-    id: node1
+    id: dev-node1
     title: Node-1
     port: 8091
     endpoint: {
@@ -24,7 +23,7 @@ node: {
     }
 }
 node: {
-    id: node2
+    id: dev-node2
     title: Node-2
     port: 8092
     endpoint: {
