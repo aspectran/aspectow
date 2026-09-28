@@ -5,6 +5,9 @@
       layout:decorate="~{templates/default}">
 <head>
     <style layout:fragment="style">
+        :root {
+            --accent-color: #3ecf8e;
+        }
         .card-body .row .col {
             margin-bottom: 0.75rem;
         }
@@ -14,12 +17,13 @@
             width: 100%;
             height: 100%;
             padding: 0.5rem 0.75rem;
-            border: 1px solid #dee2e6;
+            border: 1px solid var(--bs-border-color);
             border-radius: 0.25rem;
             text-decoration: none;
             transition: all 0.2s ease-in-out;
         }
         .card-body a:hover {
+            border-color: var(--accent-color);
             transform: translateY(-2px);
             box-shadow: 0 4px 8px rgba(0,0,0,0.05);
         }
@@ -171,34 +175,34 @@
     </div>
 
     <script layout:fragment="script">
-    $(function() {
-        $('.node-link').on('click', function(e) {
-            e.preventDefault();
+        $(function() {
+            $('.node-link').on('click', function(e) {
+                e.preventDefault();
 
-            let $apps = $(this).closest('.card-body').find('.app-link');
-            if ($apps.length === 0) {
-                $apps = $('.app-link');
-            }
-            if ($apps.length === 0) {
-                return;
-            }
+                let $apps = $(this).closest('.card-body').find('.app-link');
+                if ($apps.length === 0) {
+                    $apps = $('.app-link');
+                }
+                if ($apps.length === 0) {
+                    return;
+                }
 
-            let delay = 0;
-            const blinkDuration = 300; // The duration of the highlight
-            const blinkInterval = 150; // The time between the start of each blink
+                let delay = 0;
+                const blinkDuration = 300; // The duration of the highlight
+                const blinkInterval = 150; // The time between the start of each blink
 
-            $apps.each(function() {
-                const $app = $(this);
-                setTimeout(function() {
-                    $app.addClass('highlight-blink');
+                $apps.each(function() {
+                    const $app = $(this);
                     setTimeout(function() {
-                        $app.removeClass('highlight-blink');
-                    }, blinkDuration);
-                }, delay);
-                delay += blinkInterval;
+                        $app.addClass('highlight-blink');
+                        setTimeout(function() {
+                            $app.removeClass('highlight-blink');
+                        }, blinkDuration);
+                    }, delay);
+                    delay += blinkInterval;
+                });
             });
         });
-    });
     </script>
 </body>
 </html>

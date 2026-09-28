@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Handles requests from the frontend user interface.
@@ -64,9 +65,15 @@ public class HomeActivity {
             nodeInfoList.sort(Comparator.comparing(NodeInfo::getId, Comparator.nullsLast(String::compareTo)));
         }
         List<GroupInfo> groupInfoList = appMonManager.getGroupInfoList();
+
         List<AppInfo> appInfoList = appMonManager.getClusterAppInfoList();
+        appInfoList = appInfoList.stream()
+                .filter(app -> !app.isHidden())
+                .toList();
+
         Map<String, ActivityContext> contexts = AnatomyActivity.prepareContextMap();
         List<String> allContextNames = new ArrayList<>(contexts.keySet());
+
         return Map.of(
                 "style", "fluid compact",
                 "nodeInfoList", nodeInfoList,
