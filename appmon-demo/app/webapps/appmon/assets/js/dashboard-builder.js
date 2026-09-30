@@ -19,7 +19,7 @@
  * Responsible for assembling the dashboard UI based on configuration data.
  *
  * @version 4.2
- * @last-modified 2026-09-27
+ * @last-modified 2026-09-30
  */
 class DashboardBuilder {
     constructor(options = {}) {
@@ -205,6 +205,7 @@ class DashboardBuilder {
                 this.initView();
             } else {
                 this.clearSessions(node.index);
+                this.clearConsole(node.index);
             }
             if (node.alive) this.viewers[node.index].setEnable(true);
             if (node.alive && node.active) this.viewers[node.index].setVisible(true);
