@@ -2427,7 +2427,7 @@ class DashboardViewer {
  * Responsible for assembling the dashboard UI based on configuration data.
  *
  * @version 4.2
- * @last-modified 2026-09-30
+ * @last-modified 2026-10-03
  */
 class DashboardBuilder {
     constructor(options = {}) {
@@ -2473,7 +2473,7 @@ class DashboardBuilder {
             success: (data) => {
                 this.currentAjax = null;
                 if (data) {
-                    if (!data.appsToSubscribe || !data.apps || data.apps.length === 0) {
+                    if (!data.nodes || !data.nodes.length || !data.appsToSubscribe || !data.apps || !data.apps.length) {
                         this.showEmptyAppMessage();
                         return;
                     }
