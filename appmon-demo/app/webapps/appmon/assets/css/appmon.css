@@ -16,7 +16,7 @@
 
 /*
  * @version 4.2
- * @last-modified 2026-09-29
+ * @last-modified 2026-10-03
  */
 
 /* For console-integrated & standalone page-content */
@@ -72,9 +72,6 @@
         padding-right: 0.75rem;
     }
 }
-.group-bar {
-    display: none;
-}
 .node-bar {
     border-top: 1px solid #ddd;
     border-bottom: 1px solid #ddd;
@@ -84,7 +81,6 @@
 }
 
 .tabs {
-    box-shadow: none;
     border-radius: 0;
     @media screen and (max-width: 993px) {
         height: auto;
@@ -102,8 +98,11 @@
 .tabs > .tabs-title .indicator.error {
     color: #a01f27;
 }
-.app.tabs {
-    box-shadow: none;
+.group.tabs > :nth-child(1 of .tabs-title.available) > a {
+    border-top-left-radius: var(--bs-border-radius);
+}
+.group.tabs > :nth-last-child(1 of .tabs-title.available) > a {
+    border-top-right-radius: var(--bs-border-radius);
 }
 
 .metrics-bar {
