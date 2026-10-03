@@ -47,7 +47,7 @@
     position: sticky;
     top: 0;
     z-index: 1010;
-    background-color: var(--bs-body-bg);
+    background-color: #f8f9fa;
     transition: top 0.3s ease;
 }
 #header-bar ~ #content-area .app-bar {
@@ -73,6 +73,7 @@
     }
 }
 .node-bar {
+    background-color: #f8f9fa;
     border-top: 1px solid #ddd;
     border-bottom: 1px solid #ddd;
 }
@@ -870,7 +871,7 @@
 
 /*
  * @version 4.2
- * @last-modified 2026-09-29
+ * @last-modified 2026-10-03
  */
 
 [data-bs-theme=dark] {
@@ -878,9 +879,11 @@
         filter: invert(1) hue-rotate(180deg);
     }
     .node-bar {
+        background-color: #111;
         border-color: #353b3e;
     }
     .app-bar {
+        background-color: #111;
         border-color: #353b3e;
     }
     .metrics-bar .metric:hover {

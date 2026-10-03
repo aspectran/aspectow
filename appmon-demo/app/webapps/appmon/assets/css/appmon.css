@@ -47,7 +47,7 @@
     position: sticky;
     top: 0;
     z-index: 1010;
-    background-color: var(--bs-body-bg);
+    background-color: #f8f9fa;
     transition: top 0.3s ease;
 }
 #header-bar ~ #content-area .app-bar {
@@ -73,6 +73,7 @@
     }
 }
 .node-bar {
+    background-color: #f8f9fa;
     border-top: 1px solid #ddd;
     border-bottom: 1px solid #ddd;
 }
