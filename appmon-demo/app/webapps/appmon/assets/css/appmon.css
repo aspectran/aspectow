@@ -668,7 +668,7 @@
     margin-bottom: 5px;
     height: 25px;
     line-height: 25px;
-    border-radius: 5px;
+    border-radius: 0 6px 6px 0;
     background-color: #fff;
 }
 .session-box ul.sessions li.inactive {
@@ -684,8 +684,8 @@
     line-height: 25px;
     vertical-align: top;
     color: transparent;
-    background-color: #8396a2;
-    border-left: 3px solid #008100;
+    background-color: #5886a2;
+    border-left: 3px solid #009800;
     font-size: .85em;
 }
 .session-box ul.sessions li .count.active {
@@ -706,12 +706,16 @@
 }
 .session-box ul.sessions li .username {
     display: inline-block;
+    max-width: 78px;
     height: 25px;
     line-height: 25px;
+    padding-left: 3px;
+    padding-right: 3px;
+    border-radius: 0 4px 4px 0;
     vertical-align: top;
-    padding-left: 6px;
-    padding-right: 6px;
-    font-size: .85em;
+    font-size: .8em;
+    overflow: hidden;
+    text-overflow: ellipsis;
     background-color: #d3d3d3;
 }
 .session-box ul.sessions li .detail {
