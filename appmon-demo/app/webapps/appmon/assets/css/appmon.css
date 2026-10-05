@@ -16,7 +16,7 @@
 
 /*
  * @version 4.2
- * @last-modified 2026-10-03
+ * @last-modified 2026-10-05
  */
 
 /* For console-integrated & standalone page-content */
@@ -721,7 +721,7 @@
     line-height: .9;
     border-radius: 0  0 3px 3px;
     background-color: #fff;
-    border-top: 1px solid #638499;
+    border-top: 1px solid #546e7f;
     border-left: 1px solid #748fa0;
     border-right: 1px solid #748fa0;
     border-bottom: 1px solid #748fa0;
