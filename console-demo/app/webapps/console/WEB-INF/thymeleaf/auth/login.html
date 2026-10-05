@@ -10,12 +10,28 @@
             margin: 100px auto;
             background: var(--bs-tertiary-bg);
         }
+        @media screen and (max-width: 768px) {
+            body {
+                background: var(--bs-tertiary-bg);
+            }
+            #content-area {
+                background: transparent;
+            }
+            #content-area > .container-fluid {
+                padding: 0;
+                background: transparent;
+            }
+            .login-card {
+                border: 0;
+                box-shadow: none !important;
+            }
+        }
     </style>
 </head>
 <body>
-    <div layout:fragment="content">
-        <div class="card login-card shadow">
-            <div class="card-body p-5 text-center">
+    <th:block layout:fragment="content">
+        <div class="card login-card shadow p-3 p-md-0">
+            <div class="card-body p-4 p-md-5 text-center">
                 <img src="https://cdn.jsdelivr.net/gh/aspectran/aspectran-assets@main/assets/img/aspectran-logo.svg" class="mb-4" style="height: 48px;" alt="Aspectow Console"/>
 
                 <form id="login-form">
@@ -78,7 +94,7 @@
                 </div>
             </div>
         </div>
-    </div>
+    </th:block>
 
     <th:block layout:fragment="script">
         <script th:inline="javascript">
