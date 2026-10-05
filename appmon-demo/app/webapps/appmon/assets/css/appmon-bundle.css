@@ -669,7 +669,7 @@
     height: 25px;
     line-height: 25px;
     border-radius: 0 6px 6px 0;
-    background-color: #fff;
+    background-color: #d3d3d3;
 }
 .session-box ul.sessions li.inactive {
     opacity: .475;
@@ -709,34 +709,25 @@
     max-width: 78px;
     height: 25px;
     line-height: 25px;
-    padding-left: 3px;
-    padding-right: 3px;
+    padding: 0 2px 0 3px;
     border-radius: 0 4px 4px 0;
     vertical-align: top;
     font-size: .8em;
     overflow: hidden;
     text-overflow: ellipsis;
-    background-color: #d3d3d3;
 }
 .session-box ul.sessions li .detail {
     display: none;
     line-height: .9;
-    border-top: 1px solid #638499;
-}
-.session-box ul.sessions li.designated {
-    padding: 0 0 3px 0;
-    border-radius: 3px;
+    border-radius: 0  0 3px 3px;
     background-color: #fff;
-    border: 1px solid #748fa0;
-}
-.session-box ul.sessions li.designated .count {
-    border-top-left-radius: 2px;
-}
-.session-box ul.sessions li.designated .detail {
-    display: block;
+    border-top: 1px solid #638499;
+    border-left: 1px solid #748fa0;
+    border-right: 1px solid #748fa0;
+    border-bottom: 1px solid #748fa0;
 }
 .session-box ul.sessions li .detail p {
-    padding: 2px;
+    padding: 2px 2px 3px 2px;
     margin: 0;
     font-size: .8em;
     text-align: right;
@@ -749,6 +740,20 @@
 }
 .session-box ul.sessions li .detail p:last-child {
     font-size: .74em;
+}
+.session-box ul.sessions li.designated .detail {
+    display: block;
+}
+.session-box ul.sessions li.designated {
+    border-radius: 3px;
+}
+.session-box ul.sessions li.designated .count {
+    border-top-left-radius: 2px;
+}
+.session-box ul.sessions li.designated .username {
+    max-width: none;
+    border-radius: 0;
+    overflow: auto;
 }
 
 .console-box .status-bar {
@@ -1047,7 +1052,7 @@
         background-color: #191c1d;
     }
     .session-box ul.sessions li {
-        background-color: #575757;
+        background-color: #3b4548;
     }
     .session-box ul.sessions li .count {
         background-color: #436173;
@@ -1062,15 +1067,12 @@
     .session-box ul.sessions li.inactive .count.counting {
         border-left-color: #959494;
     }
-    .session-box ul.sessions li .username {
-        background-color: #525552;
-    }
     .session-box ul.sessions li .detail {
-        border-top: 1px solid #336382;
-    }
-    .session-box ul.sessions li.designated {
         background-color: #1a252d;
-        border: 1px solid #48585e;
+        border-top: 1px solid #336382;
+        border-left: 1px solid #48585e;
+        border-right: 1px solid #48585e;
+        border-bottom: 1px solid #48585e;
     }
     .session-box ul.sessions li .detail p:first-child {
         background-color: #18486b;

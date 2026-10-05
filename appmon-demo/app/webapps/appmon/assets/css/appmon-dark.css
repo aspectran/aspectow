@@ -188,7 +188,7 @@
         background-color: #191c1d;
     }
     .session-box ul.sessions li {
-        background-color: #575757;
+        background-color: #3b4548;
     }
     .session-box ul.sessions li .count {
         background-color: #436173;
@@ -203,15 +203,12 @@
     .session-box ul.sessions li.inactive .count.counting {
         border-left-color: #959494;
     }
-    .session-box ul.sessions li .username {
-        background-color: #525552;
-    }
     .session-box ul.sessions li .detail {
-        border-top: 1px solid #336382;
-    }
-    .session-box ul.sessions li.designated {
         background-color: #1a252d;
-        border: 1px solid #48585e;
+        border-top: 1px solid #336382;
+        border-left: 1px solid #48585e;
+        border-right: 1px solid #48585e;
+        border-bottom: 1px solid #48585e;
     }
     .session-box ul.sessions li .detail p:first-child {
         background-color: #18486b;
