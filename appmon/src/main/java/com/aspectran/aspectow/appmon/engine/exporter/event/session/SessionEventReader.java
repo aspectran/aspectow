@@ -355,6 +355,12 @@ public class SessionEventReader extends AbstractEventReader {
         getEventExporter().broadcast(json);
     }
 
+    void sessionIdChanged(@NonNull Session session, @NonNull String oldSessionId) {
+        changed = true;
+        String json = readWithChangedSession(session, oldSessionId);
+        getEventExporter().broadcast(json);
+    }
+
     void attributeAdded(Session session, String name) {
         if ((rootAttributeName != null && rootAttributeName.equals(name)) || USER_NAME.equals(name)) {
             sessionCreated(session);
@@ -370,6 +376,12 @@ public class SessionEventReader extends AbstractEventReader {
     private String readWithCreatedSession(Session session) {
         SessionEventData data = load();
         data.setCreatedSessions(new JsonString[] { serialize(session) });
+        return data.toJson();
+    }
+
+    private String readWithChangedSession(Session session, String oldSessionId) {
+        SessionEventData data = load();
+        data.setChangedSessions(Map.of(oldSessionId, serialize(session)));
         return data.toJson();
     }
 

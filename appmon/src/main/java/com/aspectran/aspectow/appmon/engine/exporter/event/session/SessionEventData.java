@@ -18,6 +18,8 @@ package com.aspectran.aspectow.appmon.engine.exporter.event.session;
 import com.aspectran.utils.json.JsonBuilder;
 import com.aspectran.utils.json.JsonString;
 
+import java.util.Map;
+
 /**
  * A data transfer object (DTO) for session-related event data.
  * It holds statistics and lists of recent session activities.
@@ -49,6 +51,8 @@ public class SessionEventData {
     private String[] evictedSessions;
 
     private JsonString[] residedSessions;
+
+    private Map<String, JsonString> changedSessions;
 
     public long getNumberOfCreated() {
         return numberOfCreated;
@@ -144,6 +148,14 @@ public class SessionEventData {
 
     public void setResidedSessions(JsonString[] residedSessions) {
         this.residedSessions = residedSessions;
+    }
+
+    public Map<String, JsonString> getChangedSessions() {
+        return changedSessions;
+    }
+
+    public void setChangedSessions(Map<String, JsonString> changedSessions) {
+        this.changedSessions = changedSessions;
     }
 
     @Override

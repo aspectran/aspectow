@@ -1145,7 +1145,7 @@ class DashboardChart {
  * Responsible for rendering monitoring data, including logs, metrics, and charts.
  *
  * @version 4.2
- * @last-modified 2026-09-21
+ * @last-modified 2026-10-06
  */
 class DashboardViewer {
     constructor(sampleInterval, options = {}) {
@@ -2257,7 +2257,21 @@ class DashboardViewer {
                 //console.log("Resided sessions:", eventData.residedSessions);
                 eventData.residedSessions.forEach(session => this.addSession($sessions, typeof session === "string" ? JSON.parse(session) : session));
             }
+            if (eventData.changedSessions) {
+                for (let oldSessionId in eventData.changedSessions) {
+                    const session = eventData.changedSessions[oldSessionId];
+                    this.changeSessionId($sessions, oldSessionId, typeof session === "string" ? JSON.parse(session) : session);
+                }
+            }
         }
+    }
+
+    changeSessionId($sessions, oldSessionId, session) {
+        $sessions.find("li[data-sid='" + oldSessionId + "']").each(function () {
+            const timer = $(this).data("timer");
+            if (timer) clearTimeout(timer);
+        }).remove();
+        this.addSession($sessions, session);
     }
 
     addSession($sessions, session) {

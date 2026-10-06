@@ -67,4 +67,9 @@ public class SessionEventReadingListener implements SessionListener {
         eventReader.attributeUpdated(session, name);
     }
 
+    @Override
+    public void sessionIdChanged(@NonNull Session session, @NonNull String oldSessionId) {
+        eventReader.sessionIdChanged(session, oldSessionId);
+    }
+
 }
