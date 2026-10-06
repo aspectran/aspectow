@@ -491,15 +491,15 @@ public class MessageRelayManager {
             for (String appId : subscribedApps) {
                 if (!subscriptionRegistry.isAppInUse(appId)) {
                     stopExporters(appId);
-                }
-                if (isGatewayMode()) {
-                    CommandOptions commandOptions = new CommandOptions();
-                    commandOptions.setCommand(COMMAND_UNSUBSCRIBE);
-                    commandOptions.setNodeId(getNodeId());
-                    commandOptions.setAppId(appId);
-                    for (NodeInfo nodeInfo : nodeRegistry.getNodes()) {
-                        if (!isSameNode(nodeInfo.getId())) {
-                            publishControl(nodeInfo.getId(), commandOptions);
+                    if (isGatewayMode()) {
+                        CommandOptions commandOptions = new CommandOptions();
+                        commandOptions.setCommand(COMMAND_UNSUBSCRIBE);
+                        commandOptions.setNodeId(getNodeId());
+                        commandOptions.setAppId(appId);
+                        for (NodeInfo nodeInfo : nodeRegistry.getNodes()) {
+                            if (!isSameNode(nodeInfo.getId())) {
+                                publishControl(nodeInfo.getId(), commandOptions);
+                            }
                         }
                     }
                 }
