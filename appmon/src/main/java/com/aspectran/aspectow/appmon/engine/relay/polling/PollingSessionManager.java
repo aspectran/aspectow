@@ -30,6 +30,8 @@ import com.aspectran.web.support.util.CookieGenerator;
 import com.aspectran.web.support.util.WebUtils;
 import org.jspecify.annotations.NonNull;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -206,16 +208,23 @@ public class PollingSessionManager extends AbstractComponent {
      */
     protected void scavenge() {
         if (!sessions.isEmpty()) {
-            sessions.entrySet().removeIf(entry -> {
-                PollingRelaySession session = entry.getValue();
+            List<PollingRelaySession> expiredSessions = null;
+            for (PollingRelaySession session : sessions.values()) {
                 if (session.isExpired()) {
+                    if (expiredSessions == null) {
+                        expiredSessions = new ArrayList<>();
+                    }
+                    expiredSessions.add(session);
+                }
+            }
+            if (expiredSessions != null) {
+                for (PollingRelaySession session : expiredSessions) {
+                    sessions.remove(session.getId());
                     messageRelayManager.unregisterSession(session.getId());
                     messageRelayManager.unsubscribe(session);
                     session.destroy();
-                    return true;
                 }
-                return false;
-            });
+            }
             if (sessions.isEmpty()) {
                 broadcastMessageBuffer.clear();
             } else {
