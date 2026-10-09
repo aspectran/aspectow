@@ -181,6 +181,7 @@ const appmonJsFiles = [
     "traffic-painter.js",
     "dashboard-chart.js",
     "dashboard-viewer.js",
+    "metrics-viewer.js",
     "dashboard-builder.js"
 ];
 const appmonCssFiles = [
