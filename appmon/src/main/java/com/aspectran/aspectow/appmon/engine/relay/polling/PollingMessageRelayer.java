@@ -197,14 +197,7 @@ public class PollingMessageRelayer implements MessageRelayer {
         String nodeToSubscribe = commandOptions.getNodeToSubscribe();
         boolean isExplicitNode = StringUtils.hasText(nodeToSubscribe);
         String targetNodeId = (isExplicitNode ? nodeToSubscribe : nodeId);
-        if (messageRelayManager.subscribe(relaySession, targetNodeId, isExplicitNode)) {
-            if (messageRelayManager.isSameNode(targetNodeId)) {
-                List<String> messages = messageRelayManager.getLastMessages(relaySession);
-                for (String message : messages) {
-                    pollingSessionManager.push(relaySession, message);
-                }
-            }
-        }
+        messageRelayManager.subscribe(relaySession, targetNodeId, isExplicitNode);
     }
 
     private void focus(@NonNull PollingRelaySession relaySession, @NonNull CommandOptions commandOptions) {

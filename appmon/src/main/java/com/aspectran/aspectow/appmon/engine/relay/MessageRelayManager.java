@@ -488,7 +488,6 @@ public class MessageRelayManager {
         Assert.notNull(commandOptions, "Command options must not be null");
         String nodeId = commandOptions.getNodeId();
         String appId = commandOptions.getAppId();
-        String sessionId = commandOptions.getSessionId();
 
         boolean matched = false;
         for (ExporterManager exporterManager : exporterManagers) {
@@ -505,10 +504,6 @@ public class MessageRelayManager {
             startExporters(appId);
         }
         subscriptionRegistry.addRemoteSubscription(nodeId, appId);
-        List<String> messages = getLastMessages(commandOptions);
-        if (sessionId != null && !messages.isEmpty()) {
-            publishRelay(nodeId, sessionId, messages);
-        }
     }
 
     /**

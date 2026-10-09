@@ -999,6 +999,9 @@ class DashboardViewer {
         const data2 = chartData.data2.map(n => (eventId === "activity" ? n : null));
 
         if (!dashboardChart.isDrawn() || !chartData.rolledUp) {
+            if (this.isGroupView && this.expectedNodesInGroup && this.expectedNodesInGroup.length > 1 && chartData.scope !== "group") {
+                return;
+            }
             dashboardChart.ensureCanvas();
             this.pruneDataPoints(labels, data1, data2, dashboardChart.$container);
             dashboardChart.draw(dateUnit, labels, data1, data2);

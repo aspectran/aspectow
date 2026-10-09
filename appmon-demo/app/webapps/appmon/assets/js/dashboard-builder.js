@@ -183,7 +183,16 @@ class DashboardBuilder {
                     }
 
                     if (this.nodes.length) {
-                        this.connect(0);
+                        let initialNodeIndex = 0;
+                        if (this.isGatewayMode && data.myNodeId) {
+                            const myIndex = this.nodes.findIndex(n => n.id === data.myNodeId);
+                            if (myIndex !== -1) {
+                                initialNodeIndex = myIndex;
+                            }
+                        }
+                        console.log("cluster mode:", this.clusterMode);
+                        console.log("endpoint mode:", this.nodes[initialNodeIndex].endpoint.mode);
+                        this.connect(initialNodeIndex);
                     }
                 }
             },
@@ -265,6 +274,14 @@ class DashboardBuilder {
             const activeApp = this.apps.find(a => a.active);
             if (activeApp) {
                 this.updateVisibility(activeApp.id);
+                const shouldRefresh = this.isGatewayMode ? primary : (node.index === this.nodes.length - 1);
+                if (shouldRefresh) {
+                    const client = this.clients[node.index];
+                    if (client && client.focus) {
+                        client.focus(activeApp.id, node.id);
+                    }
+                    this.refreshData(activeApp.id, true);
+                }
             }
             if (!this.isGatewayMode && node.subscribeAttempts === 1 && node.index + 1 < this.nodes.length) {
                 console.log("connecting next node:", node.index + 1);
@@ -365,19 +382,15 @@ class DashboardBuilder {
             this.rebuild();
         };
 
-        const node = this.nodes[nodeIndex];
-        if (nodeIndex === 0) {
-            console.log("cluster mode:", this.clusterMode);
-            console.log("endpoint mode:", node.endpoint.mode);
-        }
         console.log("connecting node:", nodeIndex);
-
-        if (node.subscribed) return;
-        const viewer = this.viewers[nodeIndex];
-
         if (this.isGatewayMode && this.sharedClient) {
             return;
         }
+
+        const node = this.nodes[nodeIndex];
+        if (node.subscribed) return;
+
+        const viewer = this.viewers[nodeIndex];
 
         let client;
         if (node.endpoint.mode === "polling") {
@@ -448,7 +461,16 @@ class DashboardBuilder {
 
         const nodesInGroup = this.nodes.filter(n => n.group === node.group);
         if (nodesInGroup.length <= 1) {
-            // If only one node in group, keep node active and stay in Node View
+            // Single node in group: keep node active and trigger refresh
+            node.active = true;
+            this.selectedNodeIdByGroup[this.currentGroupId] = node.id;
+            this.sendSelectCommand(node.id);
+            this.updateNodeTabs();
+            const activeApp = this.apps.find(a => a.active);
+            if (activeApp) {
+                this.updateVisibility(activeApp.id);
+                this.refreshData(activeApp.id, true);
+            }
             return;
         }
 
@@ -681,17 +703,16 @@ class DashboardBuilder {
                     $tabTitle[0].scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
                 }
                 exists = true;
-                this.nodes.forEach(node => {
-                    if (node.primary) {
-                        const client = this.clients[node.index];
-                        if (client && client.focus) {
-                            setTimeout(() => {
-                                client.focus(appId, node.id);
-                                this.refreshData(appId, true);
-                            }, 10);
-                        }
+                const activeNode = this.nodes.find(n => n.primary) || this.nodes.find(n => n.subscribed);
+                if (activeNode) {
+                    const client = this.clients[activeNode.index];
+                    if (client && client.focus) {
+                        setTimeout(() => {
+                            client.focus(appId, activeNode.id);
+                            this.refreshData(appId, true);
+                        }, 10);
                     }
-                });
+                }
             } else {
                 app.active = false;
                 $tabTitle.removeClass("active");
@@ -966,6 +987,17 @@ class DashboardBuilder {
     }
 
     refreshData(appId, withLogs, dateOffset) {
+        if (!appId) {
+            const activeApp = this.apps.find(a => a.active);
+            if (!activeApp) return;
+            appId = activeApp.id;
+        }
+
+        if (this.refreshTimer) {
+            clearTimeout(this.refreshTimer);
+            this.refreshTimer = null;
+        }
+
         const groupId = this.currentGroupId;
         const nodesInGroup = this.nodes.filter(n => n.group === groupId);
         const isSingleNodeGroup = (nodesInGroup.length <= 1);
@@ -994,7 +1026,8 @@ class DashboardBuilder {
             }
         }
 
-        setTimeout(() => {
+        this.refreshTimer = setTimeout(() => {
+            this.refreshTimer = null;
             if (isGroupView) {
                 const groupViewer = this.groupViewers[groupId];
                 if (groupViewer) groupViewer.setLoading(appId, true);
@@ -1008,32 +1041,45 @@ class DashboardBuilder {
                     }
                 }
 
-                const aliveNodesInGroup = this.nodes.filter(n => n.group === groupId && n.alive);
+                const aliveNodesInGroup = this.nodes.filter(n => n.group === groupId && (n.alive || n.subscribed));
                 if (aliveNodesInGroup.length > 0) {
                     const repNode = aliveNodesInGroup.find(n => n.primary) || aliveNodesInGroup[0];
-                    const chartOptions = [...options, "scope:group"];
-                    this.clients[repNode.index].refresh(chartOptions, repNode.id, "group");
+                    const chartOptions = [...options];
+                    const repClient = this.clients[repNode.index] || this.sharedClient;
+                    if (repClient) {
+                        repClient.refresh(chartOptions, repNode.id, "group");
+                    }
 
                     aliveNodesInGroup.forEach(node => {
-                        const refreshOptions = ["appId:" + appId];
+                        const refreshOptions = ["appId:" + appId, "scope:none"];
                         if (withLogs) refreshOptions.push("withLogs:true");
-                        this.clients[node.index].refresh(refreshOptions, node.id);
+                        const client = this.clients[node.index] || this.sharedClient;
+                        if (client) {
+                            client.refresh(refreshOptions, node.id);
+                        }
                     });
                 }
             } else {
                 const selectedNode = this.nodes.find(n => n.id === selectedNodeId);
-                if (selectedNode && selectedNode.alive) {
+                if (selectedNode) {
                     this.viewers[selectedNode.index].setLoading(appId, true);
                     if (withLogs) this.clearConsole(selectedNode.index);
                     const nodeOptions = [...options];
                     if (withLogs) nodeOptions.push("withLogs:true");
-                    this.clients[selectedNode.index].refresh(nodeOptions, selectedNode.id);
+                    const client = this.clients[selectedNode.index] || this.sharedClient;
+                    if (client) {
+                        client.refresh(nodeOptions, selectedNode.id);
+                    }
                 }
             }
         }, 50);
     }
 
     suspendMonitoring() {
+        if (this.refreshTimer) {
+            clearTimeout(this.refreshTimer);
+            this.refreshTimer = null;
+        }
         if (this.nodeJoinedTimer) {
             clearTimeout(this.nodeJoinedTimer);
             this.nodeJoinedTimer = null;

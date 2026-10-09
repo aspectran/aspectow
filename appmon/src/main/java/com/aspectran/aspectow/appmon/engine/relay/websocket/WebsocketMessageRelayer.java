@@ -148,7 +148,7 @@ public class WebsocketMessageRelayer extends SimplifiedEndpoint implements Messa
     private void subscribe(Session session, @NonNull CommandOptions commandOptions) {
         String nodeId = commandOptions.getNodeId();
         Assert.hasText(nodeId, "Node ID cannot be empty");
-        if (!messageRelayManager.isGatewayMode() && !messageRelayManager.isSameNode(nodeId)) {
+        if (!messageRelayManager.isSameNode(nodeId)) {
             return;
         }
         if (addSession(session)) {
@@ -177,9 +177,7 @@ public class WebsocketMessageRelayer extends SimplifiedEndpoint implements Messa
             if (appIds.length > 0) {
                 relaySession.setSubscribedApps(appIds);
             }
-            String alive = (!messageRelayManager.isGatewayMode() ||
-                    messageRelayManager.getNodeRegistry().isFound(nodeId)) ? "alive" : "";
-            relay(relaySession, nodeId + "::" + RESPONSE_SUBSCRIBED + "primary:" + alive);
+            relay(relaySession, nodeId + "::" + RESPONSE_SUBSCRIBED + "primary:alive");
             if (messageRelayManager.isGatewayMode() && !isExplicitNode) {
                 for (NodeInfo nodeInfo : messageRelayManager.getNodeRegistry().getNodes()) {
                     if (!messageRelayManager.isSameNode(nodeInfo.getId())) {
@@ -198,14 +196,7 @@ public class WebsocketMessageRelayer extends SimplifiedEndpoint implements Messa
         boolean isExplicitNode = StringUtils.hasText(nodeToSubscribe);
         String targetNodeId = (isExplicitNode ? nodeToSubscribe : nodeId);
         RelaySession relaySession = new WebsocketRelaySession(session);
-        if (messageRelayManager.subscribe(relaySession, targetNodeId, isExplicitNode)) {
-            if (messageRelayManager.isSameNode(targetNodeId)) {
-                List<String> messages = messageRelayManager.getLastMessages(relaySession);
-                if (messages != null && !messages.isEmpty()) {
-                    sendTextAsync(session, messages);
-                }
-            }
-        }
+        messageRelayManager.subscribe(relaySession, targetNodeId, isExplicitNode);
     }
 
     private void focus(@NonNull Session session, @NonNull CommandOptions commandOptions) {

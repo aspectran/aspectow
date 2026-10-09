@@ -79,13 +79,19 @@ public class ChartDataExporter extends AbstractExporter implements EventCountRol
 
     @Override
     public void read(@NonNull List<String> messages, CommandOptions commandOptions) {
+        if (commandOptions != null && "none".equalsIgnoreCase(commandOptions.getScope())) {
+            return;
+        }
         messages.add(prefix + readChartData(commandOptions));
     }
 
     @Override
     public void readIfChanged(@NonNull List<String> messages, CommandOptions commandOptions) {
-        if (commandOptions != null && commandOptions.hasCommand(CommandOptions.COMMAND_LOAD_PREVIOUS)) {
-            return;
+        if (commandOptions != null) {
+            if (commandOptions.hasCommand(CommandOptions.COMMAND_LOAD_PREVIOUS) ||
+                    "none".equalsIgnoreCase(commandOptions.getScope())) {
+                return;
+            }
         }
         messages.add(prefix + readChartData(commandOptions));
     }
