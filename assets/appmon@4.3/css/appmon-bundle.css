@@ -388,6 +388,10 @@
     background-color: #314959;
     color: #e6e6e6;
     transition: all 0.2s ease-in-out;
+    @media screen and (max-width: 768px) {
+        padding-top: 5px;
+        padding-bottom: 5px;
+    }
 }
 .control-bar .options .btn-group .btn:hover {
     background-color: #335a73;
