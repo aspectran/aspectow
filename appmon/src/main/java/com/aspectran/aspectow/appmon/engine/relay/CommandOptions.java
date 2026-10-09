@@ -52,6 +52,9 @@ public class CommandOptions extends DefaultParameters {
     /** Command to focus on a specific app */
     public static final String COMMAND_FOCUS = "focus";
 
+    /** Command to dynamically select a specific node or clear selection */
+    public static final String COMMAND_SELECT = "select";
+
     private static final ParameterKey command;
     private static final ParameterKey nodeId;
     private static final ParameterKey groupId;
@@ -59,6 +62,8 @@ public class CommandOptions extends DefaultParameters {
     private static final ParameterKey sessionId;
     private static final ParameterKey nodeToSubscribe;
     private static final ParameterKey appsToSubscribe;
+    private static final ParameterKey nodeToSelect;
+    private static final ParameterKey scope;
     private static final ParameterKey logId;
     private static final ParameterKey loadedLines;
     private static final ParameterKey withLogs;
@@ -76,6 +81,8 @@ public class CommandOptions extends DefaultParameters {
         sessionId = new ParameterKey("sessionId", ValueType.STRING);
         nodeToSubscribe = new ParameterKey("nodeToSubscribe", ValueType.STRING);
         appsToSubscribe = new ParameterKey("appsToSubscribe", ValueType.STRING);
+        nodeToSelect = new ParameterKey("nodeToSelect", ValueType.STRING);
+        scope = new ParameterKey("scope", ValueType.STRING);
         logId = new ParameterKey("logId", ValueType.STRING);
         loadedLines = new ParameterKey("loadedLines", ValueType.INT);
         withLogs = new ParameterKey("withLogs", ValueType.BOOLEAN);
@@ -91,6 +98,8 @@ public class CommandOptions extends DefaultParameters {
                 sessionId,
                 nodeToSubscribe,
                 appsToSubscribe,
+                nodeToSelect,
+                scope,
                 logId,
                 loadedLines,
                 withLogs,
@@ -245,6 +254,46 @@ public class CommandOptions extends DefaultParameters {
      */
     public void setNodeToSubscribe(String nodeToSubscribe) {
         putValue(CommandOptions.nodeToSubscribe, nodeToSubscribe);
+    }
+
+    /**
+     * Returns the node ID to select dynamically.
+     * @return the node ID to select
+     */
+    public String getNodeToSelect() {
+        return getString(nodeToSelect);
+    }
+
+    /**
+     * Sets the node ID to select dynamically.
+     * @param nodeToSelect the node ID to select
+     */
+    public void setNodeToSelect(String nodeToSelect) {
+        putValue(CommandOptions.nodeToSelect, nodeToSelect);
+    }
+
+    /**
+     * Returns the scope of the request (e.g. "group" or "node").
+     * @return the scope
+     */
+    public String getScope() {
+        return getString(scope);
+    }
+
+    /**
+     * Sets the scope of the request (e.g. "group" or "node").
+     * @param scope the scope to set
+     */
+    public void setScope(String scope) {
+        putValue(CommandOptions.scope, scope);
+    }
+
+    /**
+     * Checks if a scope is specified in the options.
+     * @return true if a scope exists, false otherwise
+     */
+    public boolean hasScope() {
+        return hasValue(scope);
     }
 
     /**

@@ -16,6 +16,7 @@
 package com.aspectran.aspectow.appmon.engine.relay;
 
 import com.aspectran.aspectow.appmon.engine.exporter.ExporterManager;
+import com.aspectran.aspectow.appmon.engine.exporter.ExporterType;
 import com.aspectran.aspectow.node.config.NodeInfo;
 import com.aspectran.aspectow.node.manager.NodeManager;
 import com.aspectran.aspectow.node.manager.NodeMessagePublisher;
@@ -52,6 +53,8 @@ public class MessageRelayManager {
     public static final String CATEGORY_APPMON = "appmon";
 
     private static final char DELIMITER = ':';
+
+    private static final long INDICATE_THROTTLE_INTERVAL_MILLIS = 400L;
 
     private final Map<String, MessageRelayer> sessionRelayerMap = new ConcurrentHashMap<>();
 
@@ -353,6 +356,29 @@ public class MessageRelayManager {
                 return;
             }
         }
+        String selectedNodeId = session.getSelectedNodeId();
+        if (StringUtils.hasText(selectedNodeId) && messageNodeId != null && !selectedNodeId.equals(messageNodeId)) {
+            // In Node View mode, handle messages from non-selected background nodes:
+            ExporterType type = extractExporterType(message);
+            if (type == ExporterType.METRIC) {
+                // Metrics are always relayed to maintain continuous real-time charts
+                if (session.isValid()) {
+                    relayer.relay(session, message);
+                }
+            } else if (type == ExporterType.EVENT) {
+                // Throttle event notifications to lightweight ping for tab indicator blinking
+                if (!session.shouldThrottleIndication(messageNodeId, INDICATE_THROTTLE_INTERVAL_MILLIS)) {
+                    if (session.isValid()) {
+                        String indicateMessage = messageNodeId + DELIMITER +
+                                (messageAppId != null ? messageAppId : "") + DELIMITER +
+                                ExporterType.EVENT + DELIMITER + "_indicate" + DELIMITER;
+                        relayer.relay(session, indicateMessage);
+                    }
+                }
+            }
+            // Other types (log stream, full chart data) are skipped for background nodes
+            return;
+        }
         if (session.isValid()) {
             relayer.relay(session, message);
         }
@@ -396,9 +422,15 @@ public class MessageRelayManager {
         return null;
     }
 
-    private boolean isFocusedOn(@NonNull String message) {
+    @Nullable
+    private ExporterType extractExporterType(@NonNull String message) {
         String type = extractType(message);
-        return (!"event".equals(type) && !"metric".equals(type));
+        return (type != null ? ExporterType.resolve(type) : null);
+    }
+
+    private boolean isFocusedOn(@NonNull String message) {
+        ExporterType type = extractExporterType(message);
+        return (type != ExporterType.EVENT && type != ExporterType.METRIC);
     }
 
     /**

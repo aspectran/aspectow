@@ -18,8 +18,8 @@
  * WebSocket implementation of the AppMon client.
  * In Gateway Mode, it manages a single physical connection for the entire cluster.
  *
- * @version 4.2
- * @last-modified 2026-09-15
+ * @version 4.3
+ * @last-modified 2026-10-09
  */
 class WebsocketClient extends BaseClient {
     constructor(node, viewer, onSubscribed, onClosed, onFailed, isGatewayMode) {
@@ -37,8 +37,27 @@ class WebsocketClient extends BaseClient {
     }
 
     stop() {
+        super.stop();
         this.closeSocket();
         this.handshakeSuccessful = false;
+    }
+
+    isConnected() {
+        return !!(this.socket && this.socket.readyState === WebSocket.OPEN && this.handshakeSuccessful);
+    }
+
+    onResume() {
+        if (!this.socket || this.socket.readyState === WebSocket.CLOSING || this.socket.readyState === WebSocket.CLOSED || !this.handshakeSuccessful) {
+            if (this.lastResumeReconnect && (Date.now() - this.lastResumeReconnect < 500)) {
+                return;
+            }
+            this.lastResumeReconnect = Date.now();
+            console.log(this.node.id, "WebSocket disconnected while in background, reconnecting immediately");
+            this.closeSocket(true);
+            this.reconnect(true);
+        } else if (this.socket.readyState === WebSocket.OPEN) {
+            this.sendPing();
+        }
     }
 
     openSocket() {
@@ -55,6 +74,11 @@ class WebsocketClient extends BaseClient {
         this.socket.onopen = () => {
             this.handshakeSuccessful = true;
             this.everConnected = true;
+            this.reconnecting = false;
+            if (this.retryTimer) {
+                clearTimeout(this.retryTimer);
+                this.retryTimer = null;
+            }
             console.log(this.node.id, "websocket connected");
 
             // Connect to the current node
@@ -106,11 +130,21 @@ class WebsocketClient extends BaseClient {
                 }
 
                 // Data messages
-                const viewer = this.getViewer(nodeId);
-                if (viewer) {
-                    viewer.processMessage(message);
+                const idx1 = message.indexOf(":");
+                const idx2 = (idx1 !== -1 ? message.indexOf(":", idx1 + 1) : -1);
+                const type = (idx1 !== -1 && idx2 !== -1) ? message.substring(idx1 + 1, idx2) : "";
+
+                if (type === "metric" || type.startsWith("metric/")) {
+                    if (this.metricsViewer) {
+                        this.metricsViewer.processMessage(nodeId, message);
+                    }
                 } else {
-                    console.warn("No viewer registered for nodeId:", nodeId, "Message:", message);
+                    const viewer = this.getViewer(nodeId);
+                    if (viewer) {
+                        viewer.processMessage(nodeId, message);
+                    } else {
+                        console.warn("No viewer registered for nodeId:", nodeId, "Message:", message);
+                    }
                 }
             } else if (message.startsWith(":subscribed:")) {
                 const primary = message.startsWith(":subscribed:primary:");
@@ -149,7 +183,7 @@ class WebsocketClient extends BaseClient {
                 this.printMessage("Websocket connection closed.");
             }
             if (event.code !== 1000) {
-                setTimeout(() => this.reconnect(), 1000);
+                this.reconnect();
             }
         };
 

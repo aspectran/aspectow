@@ -18,8 +18,8 @@
  * The builder component for the AppMon dashboard.
  * Responsible for assembling the dashboard UI based on configuration data.
  *
- * @version 4.2
- * @last-modified 2026-10-03
+ * @version 4.3
+ * @last-modified 2026-10-09
  */
 class DashboardBuilder {
     constructor(options = {}) {
@@ -33,9 +33,12 @@ class DashboardBuilder {
         this.apps = [];
         this.metrics = [];
         this.viewers = [];
+        this.groupViewers = {};
+        this.metricsViewer = new MetricsViewer();
         this.clients = [];
         this.currentGroupId = null;
         this.selectedNodeIdByGroup = {};
+        this.metricsExpandedByGroup = {};
         this.currentAjax = null;
         this.nodeJoinedTimer = null;
     }
@@ -46,6 +49,7 @@ class DashboardBuilder {
         this.nodeToSubscribe = nodeToSubscribe;
         this.currentGroupId = null;
         this.selectedNodeIdByGroup = {};
+        this.metricsExpandedByGroup = {};
 
         if (this.currentAjax) {
             this.currentAjax.abort();
@@ -81,6 +85,8 @@ class DashboardBuilder {
                     this.nodes = [];
                     this.apps = [];
                     this.viewers = [];
+                    this.groupViewers = {};
+                    this.metricsViewer.clear();
                     this.clients = [];
 
                     let index = 0;
@@ -91,7 +97,7 @@ class DashboardBuilder {
                         const node = {
                             ...nodeInfo,
                             index: index++,
-                            active: true,
+                            active: false,
                             alive: false,
                             primary: false,
                             subscribed: false,
@@ -128,6 +134,15 @@ class DashboardBuilder {
                             }
                         });
                     }
+
+                    // Create a Group DashboardViewer for each group
+                    this.groups.forEach(group => {
+                        const groupViewer = new DashboardViewer(this.counterPersistInterval * 60, this.options);
+                        groupViewer.setIsGroupView(true, group.id);
+                        const nodeIdsInGroup = this.nodes.filter(n => n.group === group.id).map(n => n.id);
+                        groupViewer.setExpectedNodesInGroup(nodeIdsInGroup);
+                        this.groupViewers[group.id] = groupViewer;
+                    });
 
                     data.apps.forEach(appInfo => {
                         const app = { ...appInfo, active: false };
@@ -190,6 +205,37 @@ class DashboardBuilder {
         this.build(this.baseUrl, this.appsToSubscribe, this.nodeToSubscribe);
     }
 
+    configureViewerResolver(client) {
+        if (!client) return;
+        client.setViewerResolver((nodeId, defaultViewer) => {
+            const node = this.nodes.find(n => n.id === nodeId);
+            const groupId = node ? node.group : this.currentGroupId;
+            const nodesInGroup = this.nodes.filter(n => n.group === groupId);
+
+            if (nodesInGroup.length <= 1) {
+                return (node ? this.viewers[node.index] : defaultViewer) || defaultViewer;
+            }
+
+            const selectedNodeId = groupId ? this.selectedNodeIdByGroup[groupId] : null;
+
+            if (!selectedNodeId) {
+                // Group View mode: route to Group DashboardViewer
+                if (groupId && this.groupViewers[groupId]) {
+                    return this.groupViewers[groupId];
+                }
+                return defaultViewer;
+            }
+
+            // Node View mode: route to the corresponding node DashboardViewer
+            // (the selected node's viewer is visible, while background node viewers update their tab indicators and internal state)
+            if (node) {
+                return this.viewers[node.index] || defaultViewer;
+            }
+
+            return defaultViewer;
+        });
+    }
+
     connect(nodeIndex) {
         const onSubscribed = (node, primary) => {
             if (node.subscribed && node.subscribeAttempts > 0) return;
@@ -207,8 +253,16 @@ class DashboardBuilder {
                 this.clearSessions(node.index);
                 this.clearConsole(node.index);
             }
-            if (node.alive) this.viewers[node.index].setEnable(true);
-            if (node.alive && node.active) this.viewers[node.index].setVisible(true);
+            if (node.alive) {
+                this.viewers[node.index].setEnable(true);
+                if (node.group && this.groupViewers[node.group]) {
+                    this.groupViewers[node.group].setEnable(true);
+                }
+            }
+            const activeApp = this.apps.find(a => a.active);
+            if (activeApp) {
+                this.updateVisibility(activeApp.id);
+            }
             if (node.subscribeAttempts === 1 && node.index + 1 < this.nodes.length) {
                 console.log("connecting next node:", node.index + 1);
                 this.connect(node.index + 1);
@@ -221,6 +275,9 @@ class DashboardBuilder {
             node.primary = false;
             this.changeNodeState(node);
             this.viewers[node.index].setEnable(false);
+            if (node.group && this.groupViewers[node.group]) {
+                this.groupViewers[node.group].onNodeLeft(node.id);
+            }
         };
 
         const onFailed = (node) => {
@@ -237,6 +294,8 @@ class DashboardBuilder {
                     }
                     const viewer = this.viewers[node.index];
                     const client = new PollingClient(node, viewer, onSubscribed, onClosed, onFailed, this.isGatewayMode);
+                    client.setMetricsViewer(this.metricsViewer);
+                    this.configureViewerResolver(client);
                     if (this.isGatewayMode) {
                         this.sharedClient = client;
                         client.addClusterViewer(node.id, viewer);
@@ -282,6 +341,9 @@ class DashboardBuilder {
                 node.alive = false;
                 this.changeNodeState(node);
                 this.viewers[node.index].setEnable(false);
+                if (node.group && this.groupViewers[node.group]) {
+                    this.groupViewers[node.group].onNodeLeft(nodeId);
+                }
                 if (!node.primary) {
                     this.viewers[node.index].printErrorMessage("Node " + nodeId + " is left");
                 }
@@ -317,6 +379,8 @@ class DashboardBuilder {
         } else {
             client = new WebsocketClient(node, viewer, onSubscribed, onClosed, onFailed, this.isGatewayMode);
         }
+        client.setMetricsViewer(this.metricsViewer);
+        this.configureViewerResolver(client);
         if (this.isGatewayMode) {
             this.sharedClient = client;
             client.addClusterViewer(node.id, viewer);
@@ -348,11 +412,32 @@ class DashboardBuilder {
         }
     }
 
-    changeNode(nodeIndex) {
-        const availableTabs = $(".node.tabs .tabs-title.available");
-        if (availableTabs.length <= 1) return;
+    sendSelectCommand(selectedNodeId) {
+        const targetNodeToSelect = selectedNodeId || "";
+        if (this.isGatewayMode && this.sharedClient && this.sharedClient.select) {
+            this.sharedClient.select(targetNodeToSelect);
+        } else {
+            this.nodes.forEach(n => {
+                if (n.group === this.currentGroupId) {
+                    const client = this.clients[n.index];
+                    if (client && client.select) {
+                        client.select(targetNodeToSelect, n.id);
+                    }
+                }
+            });
+        }
+    }
 
+    changeNode(nodeIndex) {
         const node = this.nodes[nodeIndex];
+        if (!node) return;
+
+        const nodesInGroup = this.nodes.filter(n => n.group === node.group);
+        if (nodesInGroup.length <= 1) {
+            // If only one node in group, keep node active and stay in Node View
+            return;
+        }
+
         const wasActive = node.active;
 
         // Reset all nodes in the current group
@@ -370,35 +455,16 @@ class DashboardBuilder {
             delete this.selectedNodeIdByGroup[this.currentGroupId];
         }
 
-        this.nodes.forEach(n => {
-            if (n.group === this.currentGroupId) {
-                this.showNode(n);
-            }
-        });
+        const selectedNodeId = this.selectedNodeIdByGroup[this.currentGroupId] || "";
+        this.sendSelectCommand(selectedNodeId);
+
         this.updateNodeTabs();
 
-        if (this.isGatewayMode) {
-            const activeApp = this.apps.find(a => a.active);
-            if (activeApp) {
-                const targetNodeId = (node.active ? node.id : null);
-                this.nodes.forEach(n => {
-                    if (n.primary) {
-                        const client = this.clients[n.index];
-                        if (client && client.focus) {
-                            setTimeout(() => client.focus(activeApp.id, targetNodeId), 10);
-                        }
-                    }
-                });
-            }
+        const activeApp = this.apps.find(a => a.active);
+        if (activeApp) {
+            this.updateVisibility(activeApp.id);
+            this.refreshData(activeApp.id, true);
         }
-    }
-
-    showNode(node) {
-        this.apps.forEach(app => {
-            if (app.active) {
-                this.updateNodeVisibility(node, app.id);
-            }
-        });
     }
 
     updateNodeTabs() {
@@ -413,29 +479,111 @@ class DashboardBuilder {
         });
     }
 
-    updateNodeVisibility(node, appId) {
-        const activeNodesInGroup = this.nodes.filter(n => n.group === this.currentGroupId && n.active);
-        const isVisible = (node.group === this.currentGroupId && (activeNodesInGroup.length === 0 || node.active));
-        const action = isVisible ? "show" : "hide";
+    updateVisibility(appId) {
+        const groupId = this.currentGroupId;
+        const nodesInGroup = this.nodes.filter(n => n.group === groupId);
+        const isSingleNodeGroup = (nodesInGroup.length <= 1);
+        const selectedNodeId = isSingleNodeGroup ? (nodesInGroup[0] ? nodesInGroup[0].id : null) : this.selectedNodeIdByGroup[groupId];
+        const isGroupView = !isSingleNodeGroup && !selectedNodeId;
 
-        const selector = `[data-node-index=${node.index}][data-app-id=${appId}]`;
-        const otherSelector = `[data-node-index=${node.index}][data-app-id!=${appId}]`;
+        // Control Group-view DOM
+        const groupSelector = `[data-group-id=${groupId}][data-app-id=${appId}]`;
+        if (isGroupView) {
+            $(`.event-box.group-view${groupSelector}`).show();
+            $(`.charts-box.group-view${groupSelector}`).show();
+            $(`.console-box.group-view${groupSelector}`).show();
 
-        $(`.event-box${otherSelector}, .charts-box${otherSelector}, .console-box${otherSelector}`).hide();
-        $(`.event-box${selector}, .charts-box${selector}, .console-box${selector}`)[action]();
+            $(`.event-box.group-view:not(${groupSelector})`).hide();
+            $(`.charts-box.group-view:not(${groupSelector})`).hide();
+            $(`.console-box.group-view:not(${groupSelector})`).hide();
 
-        this.viewers[node.index].setVisible(isVisible);
-        if (isVisible) {
-            $(`.track-box[data-node-index=${node.index}] .bullet`).remove();
-            $(`.console-box${selector}`).each((_, el) => {
-                const $console = $(el).find(".console");
-                if (!$console.data("pause")) {
-                    this.viewers[node.index].refreshConsole($console);
-                }
-            });
-            $(`.node.metrics-bar[data-node-index=${node.index}][data-has-metrics=true]`).show();
+            if (this.groupViewers[groupId]) {
+                this.groupViewers[groupId].setVisible(true);
+                $(`.console-box.group-view${groupSelector}`).each((_, el) => {
+                    const $console = $(el).find(".console");
+                    if (!$console.data("pause")) {
+                        this.groupViewers[groupId].refreshConsole($console);
+                    }
+                });
+                this.groupViewers[groupId].updateCanvasWidth();
+            }
         } else {
-            $(`.node.metrics-bar[data-node-index=${node.index}][data-has-metrics=true]`).hide();
+            $(`.event-box.group-view, .charts-box.group-view, .console-box.group-view`).hide();
+            if (this.groupViewers[groupId]) {
+                this.groupViewers[groupId].setVisible(false);
+            }
+        }
+
+        // Control Node-view DOM
+        this.nodes.forEach(node => {
+            const isNodeVisible = (!isGroupView && node.group === groupId && (isSingleNodeGroup || node.id === selectedNodeId));
+            const action = isNodeVisible ? "show" : "hide";
+
+            const nodeSelector = `[data-node-index=${node.index}][data-app-id=${appId}]`;
+            const otherAppSelector = `[data-node-index=${node.index}][data-app-id!=${appId}]`;
+
+            $(`.event-box:not(.group-view)${otherAppSelector}, .charts-box:not(.group-view)${otherAppSelector}, .console-box:not(.group-view)${otherAppSelector}`).hide();
+            $(`.event-box:not(.group-view)${nodeSelector}, .charts-box:not(.group-view)${nodeSelector}, .console-box:not(.group-view)${nodeSelector}`)[action]();
+
+            this.viewers[node.index].setVisible(isNodeVisible);
+            if (isNodeVisible) {
+                $(`.track-box[data-node-index=${node.index}] .bullet`).remove();
+                $(`.console-box:not(.group-view)${nodeSelector}`).each((_, el) => {
+                    const $console = $(el).find(".console");
+                    if (!$console.data("pause")) {
+                        this.viewers[node.index].refreshConsole($console);
+                    }
+                });
+                this.viewers[node.index].updateCanvasWidth();
+            }
+        });
+
+        this.updateMetricsVisibility();
+    }
+
+    isMetricsExpanded(groupId) {
+        if (!groupId) groupId = this.currentGroupId;
+        if (this.metricsExpandedByGroup[groupId] !== undefined) {
+            return this.metricsExpandedByGroup[groupId];
+        }
+        const nodesInGroup = this.nodes.filter(n => n.group === groupId);
+        return (nodesInGroup.length <= 4);
+    }
+
+    updateMetricsVisibility() {
+        const groupId = this.currentGroupId;
+        const nodesInGroup = this.nodes.filter(n => n.group === groupId);
+        const isSingleNodeGroup = (nodesInGroup.length <= 1);
+        const selectedNodeId = isSingleNodeGroup ? (nodesInGroup[0] ? nodesInGroup[0].id : null) : this.selectedNodeIdByGroup[groupId];
+        const isGroupView = !isSingleNodeGroup && !selectedNodeId;
+        const $metricsOptions = $(".metrics-options");
+        const $metricsToggle = $(".metrics-options .metrics-toggle");
+
+        if (isGroupView) {
+            $metricsOptions.show();
+            const isExpanded = this.isMetricsExpanded(groupId);
+            if (isExpanded) {
+                $metricsToggle.addClass("on");
+                $(`.node.metrics-bar`).hide();
+                $(`.node.metrics-bar[data-has-metrics=true]`).each((_, el) => {
+                    const nodeIdx = $(el).data("node-index");
+                    const node = this.nodes[nodeIdx];
+                    if (node && node.group === groupId) {
+                        $(el).show();
+                    }
+                });
+            } else {
+                $metricsToggle.removeClass("on");
+                $(`.node.metrics-bar`).hide();
+            }
+        } else {
+            $metricsOptions.hide();
+            $(`.node.metrics-bar`).hide();
+            const targetNodeId = isSingleNodeGroup ? (nodesInGroup[0] ? nodesInGroup[0].id : null) : selectedNodeId;
+            const selectedNode = this.nodes.find(n => n.id === targetNodeId && n.group === groupId);
+            if (selectedNode) {
+                $(`.node.metrics-bar[data-node-index=${selectedNode.index}][data-has-metrics=true]`).show();
+            }
         }
     }
 
@@ -472,24 +620,24 @@ class DashboardBuilder {
         });
 
         // Filter Node Tabs
-        let nodeCount = 0;
-        const selectedNodeId = this.selectedNodeIdByGroup[groupId];
+        const nodesInGroup = this.nodes.filter(n => n.group === groupId);
+        let selectedNodeId = this.selectedNodeIdByGroup[groupId];
+        if (nodesInGroup.length === 1) {
+            selectedNodeId = nodesInGroup[0].id;
+            this.selectedNodeIdByGroup[groupId] = selectedNodeId;
+        }
+
         this.nodes.forEach(node => {
             const $tab = $(".node.tabs .tabs-title[data-node-index=" + node.index + "]");
             if (!groupId || node.group === groupId) $tab.show(); else $tab.hide();
             if (selectedNodeId) {
                 node.active = (node.id === selectedNodeId);
             } else {
-                node.active = false; // Start with no nodes explicitly active
+                node.active = false; // Start in Group View mode when multiple nodes
             }
-            if (node.group === groupId) nodeCount++;
         });
 
-        if (!selectedNodeId && nodeCount === 1) {
-            this.nodes.forEach(node => {
-                if (node.group === groupId) node.active = true;
-            });
-        }
+        this.sendSelectCommand(selectedNodeId || "");
 
         // Filter App Tabs
         this.apps.forEach(app => {
@@ -542,9 +690,7 @@ class DashboardBuilder {
     showNodeApp(appId) {
         $(".control-bar[data-app-id!=" + appId + "]").hide();
         $(".control-bar[data-app-id=" + appId + "]").show();
-        this.nodes.forEach(node => {
-            this.updateNodeVisibility(node, appId);
-        });
+        this.updateVisibility(appId);
         this.updateNodeTabs();
     }
 
@@ -577,26 +723,6 @@ class DashboardBuilder {
             const appId = $(e.currentTarget).closest(".tabs-title").data("app-id");
             this.changeApp(appId);
         });
-        $(".layout-options .btn").off().on("click", (e) => {
-            const $btn = $(e.currentTarget);
-            const appId = $btn.closest(".control-bar").data("app-id");
-            const isCompact = $btn.hasClass("compact");
-            if (!$btn.hasClass("on")) {
-                if (isCompact) {
-                    $btn.addClass("on");
-                    $(`.event-box.available:not(.fixed-layout)[data-app-id=${appId}], 
-                       .charts-box.available:not(.fixed-layout)[data-app-id=${appId}], 
-                       .console-box.available[data-app-id=${appId}]`).addClass("col-lg-6");
-                }
-            } else if (isCompact) {
-                $btn.removeClass("on");
-                $(`.event-box.available:not(.fixed-layout)[data-app-id=${appId}], 
-                   .charts-box.available:not(.fixed-layout)[data-app-id=${appId}], 
-                   .console-box.available[data-app-id=${appId}]`).removeClass("col-lg-6");
-            }
-            this.viewers.forEach(v => v.updateCanvasWidth());
-            this.refreshData(appId, false);
-        });
         $(".date-unit-options .btn").off().on("click", (e) => {
             const $btn = $(e.currentTarget);
             const $controlBar = $btn.closest(".control-bar");
@@ -606,6 +732,7 @@ class DashboardBuilder {
             $btn.addClass("on");
             $controlBar.find(".date-offset-options").data("offset", "").find(".btn.current").removeClass("on");
             this.viewers.forEach(v => v.updateCanvasWidth());
+            Object.values(this.groupViewers).forEach(v => v.updateCanvasWidth());
             this.refreshData(appId, false);
         });
         $(".date-offset-options .btn").off().on("click", (e) => {
@@ -622,6 +749,12 @@ class DashboardBuilder {
             }
             $parent.data("offset", offset);
             this.refreshData(appId, false, offset);
+        });
+        $(".metrics-options .metrics-toggle").off("click").on("click", (e) => {
+            const groupId = this.currentGroupId;
+            const currentExpanded = this.isMetricsExpanded(groupId);
+            this.metricsExpandedByGroup[groupId] = !currentExpanded;
+            this.updateMetricsVisibility();
         });
         $(".speed-options .btn").off().on("click", (e) => {
             const $btn = $(e.currentTarget);
@@ -651,6 +784,23 @@ class DashboardBuilder {
             .on("click", ".session-box .panel.status .knob-bar", function() {
                 $(this).parent().toggleClass("expanded");
             });
+        $(document).off("click", ".session-box .session-node-filter .btn")
+            .on("click", ".session-box .session-node-filter .btn", (e) => {
+                const $btn = $(e.currentTarget);
+                const $filter = $btn.closest(".session-node-filter");
+                const $sessionBox = $btn.closest(".session-box");
+                const groupId = $sessionBox.data("group-id");
+                const appId = $sessionBox.data("app-id");
+                const eventId = $sessionBox.data("event-id");
+                const nodeId = $btn.attr("data-node-id") || "";
+
+                $filter.find(".btn").removeClass("on");
+                $btn.addClass("on");
+
+                if (groupId && this.groupViewers[groupId]) {
+                    this.groupViewers[groupId].setSessionFilter(appId, eventId, nodeId);
+                }
+            });
         $(document).off("click", ".session-box ul.sessions li")
             .on("click", ".session-box ul.sessions li", function() {
                 $(this).toggleClass("designated");
@@ -660,6 +810,7 @@ class DashboardBuilder {
             const $consoleBox = $btn.closest(".console-box");
             const $console = $consoleBox.find(".console");
             const nodeIndex = $consoleBox.data("node-index");
+            const groupId = $consoleBox.data("group-id");
             const isTailing = !!$console.data("tailing");
             const newTailingState = !isTailing;
 
@@ -668,7 +819,11 @@ class DashboardBuilder {
             $btn.attr("title", newTailingState ? $btn.data("title-on") : $btn.data("title-off"));
 
             if (newTailingState) {
-                this.viewers[nodeIndex].refreshConsole($console);
+                if (groupId && this.groupViewers[groupId]) {
+                    this.groupViewers[groupId].refreshConsole($console);
+                } else if (nodeIndex !== undefined && this.viewers[nodeIndex]) {
+                    this.viewers[nodeIndex].refreshConsole($console);
+                }
             }
         });
         $(".console-box .pause-switch").off("click").on("click", function() {
@@ -711,7 +866,13 @@ class DashboardBuilder {
         });
         $(".console-box .clear-screen").off("click").on("click", (e) => {
             const $consoleBox = $(e.currentTarget).closest(".console-box");
-            this.viewers[$consoleBox.data("node-index")].clearConsole($consoleBox.find(".console"));
+            const groupId = $consoleBox.data("group-id");
+            const nodeIndex = $consoleBox.data("node-index");
+            if (groupId && this.groupViewers[groupId]) {
+                this.groupViewers[groupId].clearConsole($consoleBox.find(".console"));
+            } else if (nodeIndex !== undefined && this.viewers[nodeIndex]) {
+                this.viewers[nodeIndex].clearConsole($consoleBox.find(".console"));
+            }
         });
         $(".console-box .console").off("scroll").on("scroll", (e) => {
             const $console = $(e.currentTarget);
@@ -727,17 +888,31 @@ class DashboardBuilder {
             const $consoleBox = $btn.closest(".console-box");
             const $console = $consoleBox.find(".console");
             const nodeIndex = $consoleBox.data("node-index");
+            const groupId = $consoleBox.data("group-id");
             const appId = $consoleBox.data("app-id");
             const logId = $consoleBox.data("log-id");
-            const loadedLines = this.viewers[nodeIndex].prepareToLoadPrevious($console);
-            this.clients[nodeIndex].loadPrevious(appId, logId, loadedLines, this.nodes[nodeIndex].id);
+
+            if (groupId && this.groupViewers[groupId]) {
+                const loadedLines = this.groupViewers[groupId].prepareToLoadPrevious($console);
+                const aliveNodes = this.nodes.filter(n => n.group === groupId && n.alive);
+                aliveNodes.forEach(node => {
+                    this.clients[node.index].loadPrevious(appId, logId, loadedLines, node.id);
+                });
+            } else if (nodeIndex !== undefined && this.viewers[nodeIndex]) {
+                const loadedLines = this.viewers[nodeIndex].prepareToLoadPrevious($console);
+                this.clients[nodeIndex].loadPrevious(appId, logId, loadedLines, this.nodes[nodeIndex].id);
+            }
         });
         $(window).off("resize").on("resize", () => {
             this.viewers.forEach(v => v.updateCanvasWidth());
+            Object.values(this.groupViewers).forEach(v => v.updateCanvasWidth());
         });
         $(document).off("visibilitychange").on("visibilitychange", () => {
             if (!document.hidden) {
                 this.viewers.forEach(v => {
+                    v.resetCurrentActivityCounts();
+                });
+                Object.values(this.groupViewers).forEach(v => {
                     v.resetCurrentActivityCounts();
                 });
                 this.apps.forEach(app => {
@@ -753,43 +928,50 @@ class DashboardBuilder {
                 const $metric = $(e.currentTarget);
                 const nodeIndex = $metric.data("node-index");
                 const exporterKey = $metric.data("exporter-key");
-                if (nodeIndex !== undefined && this.viewers[nodeIndex]) {
-                    this.viewers.forEach((v, idx) => {
-                        if (idx !== nodeIndex) v.hideMetricPopover();
-                    });
-                    this.viewers[nodeIndex].toggleMetricPopover(exporterKey, $metric);
-                }
+                const node = (nodeIndex !== undefined) ? this.nodes[nodeIndex] : null;
+                const nodeId = node ? node.id : null;
+                this.metricsViewer.toggleMetricPopover(exporterKey, $metric, nodeId);
             });
         $(document).off("click.metricPopoverClose", "#metric-popover .btn-close-popover")
             .on("click.metricPopoverClose", "#metric-popover .btn-close-popover", (e) => {
                 e.stopPropagation();
-                this.viewers.forEach(v => v.hideMetricPopover());
+                this.metricsViewer.hideMetricPopover();
             });
         $(document).off("click.metricPopoverOutside")
             .on("click.metricPopoverOutside", (e) => {
                 if (!$(e.target).closest("#metric-popover, .metrics-bar .metric.available").length) {
-                    this.viewers.forEach(v => v.hideMetricPopover());
+                    this.metricsViewer.hideMetricPopover();
                 }
             });
         $(document).off("keydown.metricPopover")
             .on("keydown.metricPopover", (e) => {
                 if (e.key === "Escape") {
-                    this.viewers.forEach(v => v.hideMetricPopover());
+                    this.metricsViewer.hideMetricPopover();
                 }
             });
     }
 
     refreshData(appId, withLogs, dateOffset) {
+        const groupId = this.currentGroupId;
+        const nodesInGroup = this.nodes.filter(n => n.group === groupId);
+        const isSingleNodeGroup = (nodesInGroup.length <= 1);
+        const selectedNodeId = isSingleNodeGroup ? (nodesInGroup[0] ? nodesInGroup[0].id : null) : this.selectedNodeIdByGroup[groupId];
+        const isGroupView = !isSingleNodeGroup && !selectedNodeId;
+
         const options = ["appId:" + appId];
-        if (withLogs) options.push("withLogs:true");
         const dateUnit = $(".control-bar[data-app-id=" + appId + "] .date-unit-options").data("unit");
         if (dateUnit) options.push("dateUnit:" + dateUnit);
+
         if (dateOffset === "previous") {
             let maxStartDate = "";
-            this.viewers.forEach(v => {
-                const startDate = v.getMaxStartDatetime(appId);
-                if (startDate > maxStartDate) maxStartDate = startDate;
-            });
+            if (isGroupView && this.groupViewers[groupId]) {
+                maxStartDate = this.groupViewers[groupId].getMaxStartDatetime(appId);
+            } else if (!isGroupView) {
+                const node = this.nodes.find(n => n.id === selectedNodeId);
+                if (node && this.viewers[node.index]) {
+                    maxStartDate = this.viewers[node.index].getMaxStartDatetime(appId);
+                }
+            }
             if (maxStartDate) {
                 options.push("dateOffset:" + maxStartDate);
             } else {
@@ -797,16 +979,43 @@ class DashboardBuilder {
                 return;
             }
         }
+
         setTimeout(() => {
-            const activeNodesInGroup = this.nodes.filter(n => n.group === this.currentGroupId && n.active);
-            this.nodes.forEach(node => {
-                const isVisible = (node.group === this.currentGroupId && (activeNodesInGroup.length === 0 || node.active));
-                if (isVisible && node.alive) {
-                    this.viewers[node.index].setLoading(appId, true);
-                    if (withLogs) this.clearConsole(node.index);
-                    this.clients[node.index].refresh(options, node.id);
+            if (isGroupView) {
+                const groupViewer = this.groupViewers[groupId];
+                if (groupViewer) groupViewer.setLoading(appId, true);
+                if (withLogs && groupViewer) {
+                    if (groupViewer.clearAllConsoles) {
+                        groupViewer.clearAllConsoles();
+                    } else {
+                        $(`.console-box.group-view[data-group-id=${groupId}] .console`).each((_, el) => {
+                            groupViewer.clearConsole($(el));
+                        });
+                    }
                 }
-            });
+
+                const aliveNodesInGroup = this.nodes.filter(n => n.group === groupId && n.alive);
+                if (aliveNodesInGroup.length > 0) {
+                    const repNode = aliveNodesInGroup.find(n => n.primary) || aliveNodesInGroup[0];
+                    const chartOptions = [...options, "scope:group"];
+                    this.clients[repNode.index].refresh(chartOptions, repNode.id, "group");
+
+                    if (withLogs) {
+                        aliveNodesInGroup.forEach(node => {
+                            this.clients[node.index].refresh(["appId:" + appId, "withLogs:true"], node.id);
+                        });
+                    }
+                }
+            } else {
+                const selectedNode = this.nodes.find(n => n.id === selectedNodeId);
+                if (selectedNode && selectedNode.alive) {
+                    this.viewers[selectedNode.index].setLoading(appId, true);
+                    if (withLogs) this.clearConsole(selectedNode.index);
+                    const nodeOptions = [...options];
+                    if (withLogs) nodeOptions.push("withLogs:true");
+                    this.clients[selectedNode.index].refresh(nodeOptions, selectedNode.id);
+                }
+            }
         }, 50);
     }
 
@@ -819,6 +1028,9 @@ class DashboardBuilder {
             if (client) client.stop();
         });
         this.viewers.forEach(viewer => {
+            if (viewer) viewer.setEnable(false);
+        });
+        Object.values(this.groupViewers).forEach(viewer => {
             if (viewer) viewer.setEnable(false);
         });
         this.sharedClient = null;
@@ -885,24 +1097,74 @@ class DashboardBuilder {
             this.groups.forEach(group => {
                 const $groupTab = this.addGroupTab(group);
                 const $groupIndicator = $groupTab.find(".indicator");
+                const groupViewer = this.groupViewers[group.id];
+                if (groupViewer) {
+                    groupViewer.putIndicator$("group", "event", "", $groupIndicator);
+                }
                 this.nodes.forEach(node => {
                     if (node.group === group.id) {
                         this.viewers[node.index].putIndicator$("group", "event", "", $groupIndicator);
                     }
-                })
+                });
             });
         } else {
             $(".group-bar").hide();
         }
+
         this.nodes.forEach(node => {
             const $nodeTab = this.addNodeTab(node);
-            this.viewers[node.index].putIndicator$("node", "event", "", $nodeTab.find(".indicator"));
+            const $nodeIndicator = $nodeTab.find(".indicator");
+            this.viewers[node.index].putIndicator$("node", "event", "", $nodeIndicator);
+            if (node.group && this.groupViewers[node.group]) {
+                this.groupViewers[node.group].putNodeIndicator$(node.id, $nodeIndicator);
+            }
             this.addNodeMetricsBar(node);
         });
+
         this.apps.forEach(app => {
             const $appTab = this.addAppTab(app);
             const $appIndicator = $appTab.find(".indicator");
             this.addControlBar(app);
+
+            // Setup Group-level DOM and Viewers for multi-node groups
+            this.groups.forEach(group => {
+                const nodesInGroup = this.nodes.filter(n => n.group === group.id);
+                if (nodesInGroup.length > 1 && (!app.group || app.group === group.id)) {
+                    const groupViewer = this.groupViewers[group.id];
+                    if (groupViewer) {
+                        groupViewer.putIndicator$("app", "event", app.id, $appIndicator);
+                        if (app.events && app.events.length) {
+                            const $groupEventBox = this.addGroupEventBox(group, app);
+                            app.events.forEach(event => {
+                                if (event.id === "activity") {
+                                    const $trackBox = this.addGroupTrackBox($groupEventBox, group, app, event);
+                                    groupViewer.putDisplay$(app.id, event.id, $trackBox);
+                                    groupViewer.putIndicator$(app.id, "event", event.id, $trackBox.find(".activity-status"));
+                                } else if (event.id === "session") {
+                                    groupViewer.putDisplay$(app.id, event.id, this.addGroupSessionBox($groupEventBox, group, app, event));
+                                }
+                            });
+                            const $groupChartsBox = this.addGroupChartsBox(group, app);
+                            app.events.forEach(event => {
+                                if (event.id === "activity" || event.id === "session") {
+                                    groupViewer.putChart$(app.id, event.id, this.addGroupChartBox($groupChartsBox, group, app, event).find(".chart"));
+                                }
+                            });
+                        }
+                        if (app.logs) {
+                            app.logs.forEach(logInfo => {
+                                const $groupConsoleBox = this.addGroupConsoleBox(group, app, logInfo);
+                                const $console = $groupConsoleBox.find(".console").data("tailing", true);
+                                $groupConsoleBox.find(".tailing-status").addClass("on");
+                                groupViewer.putConsole$(app.id, logInfo.id, $console);
+                                groupViewer.putIndicator$(app.id, "log", logInfo.id, $groupConsoleBox.find(".status-bar"));
+                            });
+                        }
+                    }
+                }
+            });
+
+            // Setup Node-level DOM and Viewers
             this.nodes.forEach(node => {
                 if (!app.group || app.group === node.group) {
                     const viewer = this.viewers[node.index];
@@ -913,7 +1175,7 @@ class DashboardBuilder {
                                 this.addNodeMetric(node, metric) :
                                 this.addAppMetric(node, app, metric);
                             $metric.data("exporter-key", app.id + ":metric:" + metric.id);
-                            viewer.putMetric$(app.id, metric.id, $metric);
+                            this.metricsViewer.putMetric$(node.id, app.id, metric.id, $metric);
                         });
                     }
                     if (app.events && app.events.length) {
@@ -1019,6 +1281,75 @@ class DashboardBuilder {
         return $newBar.insertAfter($bar.last());
     }
 
+    addGroupEventBox(groupInfo, appInfo) {
+        const $box = $(".event-box").first().hide().clone().addClass("available group-view")
+            .attr({ "data-group-id": groupInfo.id, "data-app-id": appInfo.id });
+        const $titleBar = $box.find(".title-bar");
+        $titleBar.find("i").removeClass("bi-server").addClass("bi-collection");
+        $titleBar.find(".number").empty();
+        $titleBar.find("h4").text(groupInfo.title || groupInfo.id);
+        return $box.insertBefore($(".console-box").first());
+    }
+
+    addGroupTrackBox($eventBox, groupInfo, appInfo, eventInfo) {
+        const $track = $eventBox.find(".track-box");
+        return $track.first().hide().clone().addClass("available")
+            .attr({ "data-group-id": groupInfo.id, "data-app-id": appInfo.id, "data-event-id": eventInfo.id })
+            .insertAfter($track.last()).show();
+    }
+
+    addGroupSessionBox($eventBox, groupInfo, appInfo, eventInfo) {
+        const $session = $eventBox.find(".session-box");
+        const $newSession = $session.first().hide().clone().addClass("available")
+            .attr({ "data-group-id": groupInfo.id, "data-app-id": appInfo.id, "data-event-id": eventInfo.id });
+
+        const nodesInGroup = this.nodes.filter(n => n.group === groupInfo.id);
+        if (nodesInGroup.length > 1) {
+            const $filter = $newSession.find(".session-node-filter").show();
+            $filter.empty();
+            $(`<button type="button" class="btn btn-node on" data-node-id="">All</button>`).appendTo($filter);
+            nodesInGroup.forEach(node => {
+                const label = node.nodeNoInGroup || node.id;
+                $(`<button type="button" class="btn btn-node" data-node-id="${node.id}" title="${node.id}" style="display: none;">${label}</button>`).appendTo($filter);
+            });
+
+            const sessionsEl = $newSession.find("ul.sessions")[0];
+            if (sessionsEl && window.MutationObserver) {
+                const observer = new MutationObserver(() => {
+                    const groupViewer = this.groupViewers[groupInfo.id];
+                    if (groupViewer) {
+                        groupViewer.updateSessionNodeFilterButtons($newSession);
+                    }
+                });
+                observer.observe(sessionsEl, { childList: true });
+            }
+        }
+
+        return $newSession.insertAfter($session.last()).show();
+    }
+
+    addGroupChartsBox(groupInfo, appInfo) {
+        return $(".charts-box").first().hide().clone().addClass("available group-view")
+            .attr({ "data-group-id": groupInfo.id, "data-app-id": appInfo.id })
+            .insertBefore($(".console-box").first()).show();
+    }
+
+    addGroupChartBox($chartsBox, groupInfo, appInfo, eventInfo) {
+        const $chart = $chartsBox.find(".chart-box");
+        return $chart.first().hide().clone().addClass("available")
+            .attr({ "data-group-id": groupInfo.id, "data-app-id": appInfo.id, "data-event-id": eventInfo.id })
+            .appendTo($chartsBox).show();
+    }
+
+    addGroupConsoleBox(groupInfo, appInfo, logInfo) {
+        const $console = $(".console-box");
+        const $newBox = $console.first().hide().clone().addClass("available group-view col-lg-6")
+            .attr({ "data-group-id": groupInfo.id, "data-app-id": appInfo.id, "data-log-id": logInfo.id });
+        //$newBox.find(".status-bar i").removeClass("bi-server").addClass("bi-collection");
+        $newBox.find(".status-bar h4").text(logInfo.file);
+        return $newBox.insertAfter($console.last());
+    }
+
     addEventBox(nodeInfo, appInfo) {
         const $box = $(".event-box").first().hide().clone().addClass("available")
             .attr({ "data-node-index": nodeInfo.index, "data-app-id": appInfo.id });
@@ -1065,7 +1396,7 @@ class DashboardBuilder {
         const $console = $(".console-box");
         const $newBox = $console.first().hide().clone().addClass("available col-lg-6")
             .attr({ "data-node-index": nodeInfo.index, "data-app-id": appInfo.id, "data-log-id": logInfo.id });
-        $newBox.find(".status-bar h4").text((nodeInfo.title || nodeInfo.id) + " ›› " + logInfo.file);
+        $newBox.find(".status-bar h4").text(logInfo.file);
         return $newBox.insertAfter($console.last());
     }
 }

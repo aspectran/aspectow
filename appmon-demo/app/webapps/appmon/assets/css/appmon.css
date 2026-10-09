@@ -15,8 +15,8 @@
  */
 
 /*
- * @version 4.2
- * @last-modified 2026-10-05
+ * @version 4.3
+ * @last-modified 2026-10-09
  */
 
 /* For console-integrated & standalone page-content */
@@ -656,6 +656,46 @@
     height: 24px;
     white-space: nowrap;
 }
+.session-box .session-node-filter {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    float: right;
+    margin-bottom: 4px;
+    max-width: 100%;
+    display: inline-flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    background-color: rgba(0, 0, 0, 0.12);
+}
+.session-box .session-node-filter::-webkit-scrollbar {
+    display: none;
+}
+.session-box .session-node-filter .btn {
+    padding: 1px 7px;
+    font-size: 11px;
+    line-height: 18px;
+    height: 20px;
+    background-color: transparent;
+    color: #3b5059;
+    border: none;
+    font-weight: 600;
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: all 0.15s ease-in-out;
+}
+.session-box .session-node-filter .btn:hover {
+    background-color: rgba(255, 255, 255, 0.35);
+    color: #1a2d36;
+}
+.session-box .session-node-filter .btn.on {
+    background-color: #517386;
+    color: #fff;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+}
 .session-box ul.sessions {
     margin: 0;
     padding: 0;
@@ -670,6 +710,9 @@
     line-height: 25px;
     border-radius: 0 3px 3px 0;
     background-color: #d3d3d3;
+}
+.session-box ul.sessions li.filtered-out {
+    display: none !important;
 }
 .session-box ul.sessions li.inactive {
     opacity: .475;
@@ -833,7 +876,7 @@
     border: 1px solid #54656f;
     border-radius: 0;
 }
-.console-box .console p {
+.console-box .console div {
     font-size: 12px;
     line-height: 16px;
     white-space: pre;
@@ -843,10 +886,26 @@
     width: fit-content;
     min-width: 100%;
 }
-.console-box .console p:hover {
+.console-box .console div:hover {
     color: #fbf1a2;
 }
-.console-box .console p.event {
+.console-box .console div .node-badge {
+    display: inline-block;
+    padding: 0 5px;
+    margin-right: 6px;
+    font-size: 10px;
+    line-height: 14px;
+    font-weight: 600;
+    border-radius: 3px;
+    background-color: #4a5568;
+    color: #cccbc6;
+    vertical-align: middle;
+    letter-spacing: 0;
+}
+.console-box .console div:hover .node-badge {
+    color: #fbf1a2;
+}
+.console-box .console div.event {
     border-radius: 20px;
     text-align: center;
     border: 1px solid rgba(186, 254, 230, 0.53);
@@ -855,7 +914,7 @@
     color: #fff;
     background-color: #333;
 }
-.console-box .console p.event.error {
+.console-box .console div.event.error {
     background-color: #3e132d;
     border: 1px solid #db7093;
     color: #fff;

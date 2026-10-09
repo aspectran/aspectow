@@ -19,7 +19,7 @@
 
     <groupId>com.aspectran</groupId>
     <artifactId>aspectow</artifactId>
-    <version>4.2.1-SNAPSHOT</version>
+    <version>4.3.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>Aspectow</name>
@@ -492,7 +492,7 @@
                                     <executable>node</executable>
                                     <arguments>
                                         <argument>${main.basedir}/.mvn/bundle-assets.js</argument>
-                                        <argument>4.2</argument>
+                                        <argument>4.3</argument>
                                     </arguments>
                                 </configuration>
                             </execution>

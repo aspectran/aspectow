@@ -21,6 +21,9 @@ import com.aspectran.utils.StringUtils;
 import com.aspectran.web.websocket.jsr356.WrappedSession;
 import jakarta.websocket.Session;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 /**
  * A {@link RelaySession} implementation that wraps a JSR-356 {@link Session}.
  * It stores session-specific data, like subscribed instances, in the WebSocket session's user properties.
@@ -32,6 +35,10 @@ public class WebsocketRelaySession extends WrappedSession implements RelaySessio
     private static final String SUBSCRIBED_APPS_PROPERTY = "appmon:subscribedApps";
 
     private static final String SUBSCRIBED_NODE_ID_PROPERTY = "appmon:subscribedNodeId";
+
+    private static final String SELECTED_NODE_ID_PROPERTY = "appmon:selectedNodeId";
+
+    private static final String LAST_INDICATION_TIMES_PROPERTY = "appmon:lastIndicationTimes";
 
     private static final String TIME_ZONE_PROPERTY = "appmon:timeZone";
 
@@ -83,6 +90,37 @@ public class WebsocketRelaySession extends WrappedSession implements RelaySessio
         } else {
             getSession().getUserProperties().remove(SUBSCRIBED_NODE_ID_PROPERTY);
         }
+    }
+
+    @Override
+    public String getSelectedNodeId() {
+        return (String)getSession().getUserProperties().get(SELECTED_NODE_ID_PROPERTY);
+    }
+
+    @Override
+    public void setSelectedNodeId(String nodeId) {
+        if (StringUtils.hasText(nodeId)) {
+            getSession().getUserProperties().put(SELECTED_NODE_ID_PROPERTY, nodeId);
+        } else {
+            getSession().getUserProperties().remove(SELECTED_NODE_ID_PROPERTY);
+        }
+    }
+
+    @Override
+    public boolean shouldThrottleIndication(String nodeId, long intervalMillis) {
+        if (!StringUtils.hasText(nodeId)) {
+            return false;
+        }
+        @SuppressWarnings("unchecked")
+        Map<String, Long> map = (Map<String, Long>)getSession().getUserProperties().computeIfAbsent(
+                LAST_INDICATION_TIMES_PROPERTY, k -> new ConcurrentHashMap<String, Long>());
+        long now = System.currentTimeMillis();
+        Long last = map.get(nodeId);
+        if (last != null && now - last < intervalMillis) {
+            return true;
+        }
+        map.put(nodeId, now);
+        return false;
     }
 
     /**

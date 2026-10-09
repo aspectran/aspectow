@@ -18,8 +18,8 @@
  * The viewer component for the AppMon dashboard.
  * Responsible for rendering monitoring data, including logs, metrics, and charts.
  *
- * @version 4.2
- * @last-modified 2026-10-06
+ * @version 4.3
+ * @last-modified 2026-10-09
  */
 class DashboardViewer {
     constructor(sampleInterval, options = {}) {
@@ -30,8 +30,14 @@ class DashboardViewer {
         this.client = null;
         this.enable = false;
         this.visible = false;
+        this.isGroupView = false;
+        this.groupId = null;
+        this.nodeIndicators = {};
+        this.expectedNodesInGroup = [];
+        this.activitiesByNode = {};
+        this.sessionStatsByNode = {};
+        this.rollupBuffer = {};
         this.displays = {};
-        this.metrics = {};
         this.charts = {};
         this.consoles = {};
         this.indicators = {};
@@ -40,9 +46,36 @@ class DashboardViewer {
         this.activeBulletCount = 0;
         this.maxBullets = 500;
         this.painters = {};
-        this.metricHistories = {};
-        this.maxMetricHistory = 60;
-        this.activePopoverKey = null;
+        this.sessionFilterByDisplay = {};
+    }
+
+    setIsGroupView(flag, groupId) {
+        this.isGroupView = !!flag;
+        this.groupId = groupId || null;
+    }
+
+    putNodeIndicator$(nodeId, $indicator) {
+        this.nodeIndicators[nodeId] = $indicator;
+    }
+
+    setExpectedNodesInGroup(nodes) {
+        this.expectedNodesInGroup = nodes || [];
+    }
+
+    onNodeLeft(nodeId) {
+        if (this.isGroupView && nodeId) {
+            delete this.activitiesByNode[nodeId];
+            delete this.sessionStatsByNode[nodeId];
+            for (let key in this.displays) {
+                if (key.includes(":event:session")) {
+                    this.displays[key].find(`ul.sessions li[data-node-id='${nodeId}']`).each(function () {
+                        const timer = $(this).data("timer");
+                        if (timer) clearTimeout(timer);
+                        $(this).remove();
+                    });
+                }
+            }
+        }
     }
 
     setClient(client) {
@@ -74,10 +107,6 @@ class DashboardViewer {
         }
     }
 
-    putMetric$(appId, metricId, $metric) {
-        this.metrics[appId + ":metric:" + metricId] = $metric;
-    }
-
     putChart$(appId, eventId, $chart) {
         const key = appId + ":data:" + eventId;
         this.charts[key] = new DashboardChart($chart, eventId);
@@ -93,10 +122,6 @@ class DashboardViewer {
 
     getDisplay$(key) {
         return this.displays[key] || null;
-    }
-
-    getMetric$(key) {
-        return this.metrics[key] || null;
     }
 
     getChart$(key) {
@@ -128,13 +153,82 @@ class DashboardViewer {
     clearAllSessions() {
         for (let key in this.displays) {
             if (key.includes(":event:session")) {
-                const $sessions = this.displays[key].find("ul.sessions");
+                const $display = this.displays[key];
+                const $sessions = $display.find("ul.sessions");
                 $sessions.find("li").each(function () {
                     const timer = $(this).data("timer");
                     if (timer) clearTimeout(timer);
                 });
                 $sessions.empty();
+                if (this.isGroupView) {
+                    this.updateSessionNodeFilterButtons($display);
+                }
             }
+        }
+    }
+
+    setSessionFilter(appId, eventId, nodeId) {
+        const key = appId + ":event:" + eventId;
+        this.sessionFilterByDisplay[key] = nodeId || null;
+        const $display = this.getDisplay$(key);
+        if ($display) {
+            this.applySessionFilter($display, nodeId || null);
+        }
+    }
+
+    applySessionFilter($display, targetNodeId) {
+        const $sessions = $display.find("ul.sessions");
+        if (!targetNodeId) {
+            $sessions.find("li").removeClass("filtered-out");
+        } else {
+            $sessions.find("li").each(function () {
+                const nid = $(this).attr("data-node-id");
+                $(this).toggleClass("filtered-out", String(nid) !== String(targetNodeId));
+            });
+        }
+    }
+
+    updateSessionNodeFilterButtons($display) {
+        if (!this.isGroupView || !$display || !$display.length) return;
+        const $sessionBox = $display.hasClass("session-box") ? $display : $display.closest(".session-box");
+        if (!$sessionBox.length) return;
+
+        const $filter = $sessionBox.find(".session-node-filter");
+        if (!$filter.length) return;
+
+        const $sessions = $sessionBox.find("ul.sessions");
+        const nodeCounts = {};
+        $sessions.find("li").each(function () {
+            const nid = $(this).attr("data-node-id");
+            if (nid) {
+                nodeCounts[nid] = (nodeCounts[nid] || 0) + 1;
+            }
+        });
+
+        const appId = $sessionBox.data("app-id") || $sessionBox.attr("data-app-id");
+        const eventId = $sessionBox.data("event-id") || $sessionBox.attr("data-event-id");
+        const key = appId + ":event:" + eventId;
+        const currentFilterNodeId = this.sessionFilterByDisplay[key];
+
+        $filter.find(".btn-node").each(function () {
+            const nid = $(this).attr("data-node-id");
+            if (!nid) {
+                return; // "All" button remains visible
+            }
+            const count = nodeCounts[nid] || 0;
+            if (count > 0) {
+                $(this).show();
+            } else {
+                $(this).hide();
+            }
+        });
+
+        if (currentFilterNodeId && (!nodeCounts[currentFilterNodeId] || nodeCounts[currentFilterNodeId] <= 0)) {
+            $filter.find(".btn-node").removeClass("on");
+            $filter.find(".btn-node").filter(function () {
+                return !$(this).attr("data-node-id");
+            }).addClass("on");
+            this.setSessionFilter(appId, eventId, null);
         }
     }
 
@@ -184,9 +278,15 @@ class DashboardViewer {
         }
     }
 
+    clearAllConsoles() {
+        for (let key in this.consoles) {
+            this.clearConsole(this.consoles[key]);
+        }
+    }
+
     prepareToLoadPrevious($console) {
         if (!$console) return 0;
-        const loadedLines = $console.find("p").not(".event").length;
+        const loadedLines = $console.find("div").not(".event").length;
 
         if ($console.data("tailing")) {
             $console.data("tailing", false);
@@ -222,15 +322,15 @@ class DashboardViewer {
                 const fragment = document.createDocumentFragment();
                 while (buffer.length > 0) {
                     const item = buffer.shift();
-                    const p = document.createElement("p");
+                    const div = document.createElement("div");
                     if (typeof item === "string") {
-                        p.textContent = item;
+                        div.textContent = item;
                     } else {
-                        if (item.html) p.innerHTML = item.html;
-                        else p.textContent = item.text;
-                        if (item.className) p.className = item.className;
+                        if (item.html) div.innerHTML = item.html;
+                        else div.textContent = item.text;
+                        if (item.className) div.className = item.className;
                     }
-                    fragment.appendChild(p);
+                    fragment.appendChild(div);
                 }
                 el.appendChild(fragment);
             }
@@ -241,11 +341,11 @@ class DashboardViewer {
             }
 
             // Truncate old messages
-            const pList = el.getElementsByTagName("p");
-            if (pList.length > 11000) {
-                const removeCount = pList.length - 10000;
+            const divList = el.getElementsByTagName("div");
+            if (divList.length > 11000) {
+                const removeCount = divList.length - 10000;
                 for (let i = 0; i < removeCount; i++) {
-                    el.removeChild(pList[0]);
+                    el.removeChild(divList[0]);
                 }
             }
         }, 300);
@@ -271,15 +371,15 @@ class DashboardViewer {
                     const fragment = document.createDocumentFragment();
                     while (buffer.length > 0) {
                         const item = buffer.shift();
-                        const p = document.createElement("p");
+                        const div = document.createElement("div");
                         if (typeof item === "string") {
-                            p.textContent = item;
+                            div.textContent = item;
                         } else {
-                            if (item.html) p.innerHTML = item.html;
-                            else p.textContent = item.text;
-                            if (item.className) p.className = item.className;
+                            if (item.html) div.innerHTML = item.html;
+                            else div.textContent = item.text;
+                            if (item.className) div.className = item.className;
                         }
-                        fragment.appendChild(p);
+                        fragment.appendChild(div);
                     }
 
                     if (noAnchoring) {
@@ -339,7 +439,7 @@ class DashboardViewer {
         }
     }
 
-    processMessage(message) {
+    processMessage(nodeId, message) {
         const idx1 = message.indexOf(":");
         const idx2 = (idx1 !== -1 ? message.indexOf(":", idx1 + 1) : -1);
         const idx3 = (idx2 !== -1 ? message.indexOf(":", idx2 + 1) : -1);
@@ -363,35 +463,42 @@ class DashboardViewer {
 
         switch (exporterType) {
             case "event":
+                if (exporterName === "_indicate") {
+                    this.indicate(nodeId, appId, exporterType, exporterName);
+                    return;
+                }
                 if (messageContent.length) {
                     const eventData = JSON.parse(messageContent);
-                    this.processEventData(appId, exporterType, exporterName, exporterKey, eventData);
+                    this.processEventData(nodeId, appId, exporterType, exporterName, exporterKey, eventData);
                 }
                 break;
             case "data":
                 if (messageContent.length) {
                     if (subType === "chart") {
                         const chartData = JSON.parse(messageContent);
-                        this.processChartData(appId, exporterType, exporterName, exporterKey, chartData);
+                        this.processChartData(nodeId, appId, exporterType, exporterName, exporterKey, chartData);
                     }
                 }
                 break;
-            case "metric":
-                if (messageContent.length) {
-                    const metricData = JSON.parse(messageContent);
-                    this.processMetricData(appId, exporterType, exporterName, exporterKey, metricData);
-                }
-                break;
             case "log":
-                this.printLogMessage(appId, exporterType, exporterName, exporterKey, messageContent, subType);
+                this.printLogMessage(nodeId, appId, exporterType, exporterName, exporterKey, messageContent, subType);
                 break;
         }
     }
 
-    printLogMessage(appId, exporterType, logId, exporterKey, messageContent, subType) {
-        this.indicate(appId, exporterType, logId);
+    printLogMessage(nodeId, appId, exporterType, logId, exporterKey, messageContent, subType) {
+        this.indicate(nodeId, appId, exporterType, logId);
         const $console = this.getConsole$(exporterKey);
         if ($console) {
+            const formatLine = (line) => {
+                if (this.isGroupView && nodeId) {
+                    const safeNodeId = String(nodeId).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                    const safeLine = String(line).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                    return { html: `<span class="node-badge" title="${safeNodeId}">${safeNodeId}</span>` + safeLine };
+                }
+                return line;
+            };
+
             if (subType === "p") {
                 if (messageContent) {
                     const lines = messageContent.split("\n");
@@ -401,7 +508,7 @@ class DashboardViewer {
                         $console.data("log-prev-buffer", prevBuffer);
                     }
                     for (let i = 0; i < lines.length; i++) {
-                        prevBuffer.push(lines[i]);
+                        prevBuffer.push(formatLine(lines[i]));
                     }
                     this.prependToConsole($console);
                 } else {
@@ -410,7 +517,8 @@ class DashboardViewer {
                         prevBuffer = [];
                         $console.data("log-prev-buffer", prevBuffer);
                     }
-                    prevBuffer.push({ html: "No more logs to load.", className: "event ellipses" });
+                    const msg = (this.isGroupView && nodeId ? `[${nodeId}] ` : "") + "No more logs to load.";
+                    prevBuffer.push({ html: msg, className: "event ellipses" });
                     this.prependToConsole($console, true);
                     $console.closest(".console-box").find(".load-previous").hide();
                 }
@@ -423,22 +531,36 @@ class DashboardViewer {
                 if (messageContent.includes("\n")) {
                     const lines = messageContent.split("\n");
                     for (let i = 0; i < lines.length; i++) {
-                        buffer.push(lines[i]);
+                        buffer.push(formatLine(lines[i]));
                     }
                 } else {
-                    buffer.push(messageContent);
+                    buffer.push(formatLine(messageContent));
                 }
                 this.appendToConsole($console);
             }
         }
     }
 
-    processEventData(appId, exporterType, eventId, exporterKey, eventData) {
+    processEventData(nodeId, appId, exporterType, eventId, exporterKey, eventData) {
         switch (eventId) {
             case "activity":
-                this.indicate(appId, exporterType, eventId);
+                this.indicate(nodeId, appId, exporterType, eventId);
                 if (eventData.activities) {
-                    this.printActivityStatus(exporterKey, eventData.activities);
+                    if (this.isGroupView && nodeId) {
+                        this.activitiesByNode[nodeId] = eventData.activities;
+                        let interim = 0, errors = 0, total = 0;
+                        for (let nid in this.activitiesByNode) {
+                            const act = this.activitiesByNode[nid];
+                            if (act) {
+                                interim += (act.interim || 0);
+                                errors += (act.errors || 0);
+                                total += (act.total || 0);
+                            }
+                        }
+                        this.printActivityStatus(exporterKey, { interim, errors, total });
+                    } else {
+                        this.printActivityStatus(exporterKey, eventData.activities);
+                    }
                 }
                 if (this.visible) {
                     const $track = this.getDisplay$(exporterKey);
@@ -462,485 +584,55 @@ class DashboardViewer {
                     this.printCurrentActivityCount(exporterKey, 0);
                 }
                 this.updateActivityCount(
+                    nodeId,
                     appId + ":" + exporterType + ":session",
                     eventData.sessionId,
                     eventData.activityCount || 0);
                 break;
             case "session":
-                this.printSessionEventData(exporterKey, eventData);
+                if (this.isGroupView && nodeId) {
+                    this.sessionStatsByNode[nodeId] = eventData;
+                    let numberOfCreated = 0;
+                    let numberOfExpired = 0;
+                    let numberOfActives = 0;
+                    let highestNumberOfActives = 0;
+                    let numberOfUnmanaged = 0;
+                    let numberOfRejected = 0;
+                    let minStartTime = null;
+
+                    for (let nid in this.sessionStatsByNode) {
+                        const s = this.sessionStatsByNode[nid];
+                        if (s) {
+                            numberOfCreated += (s.numberOfCreated || 0);
+                            numberOfExpired += (s.numberOfExpired || 0);
+                            numberOfActives += (s.numberOfActives || 0);
+                            highestNumberOfActives += (s.highestNumberOfActives || 0);
+                            numberOfUnmanaged += (s.numberOfUnmanaged || 0);
+                            numberOfRejected += (s.numberOfRejected || 0);
+                            if (s.startTime) {
+                                if (!minStartTime || s.startTime < minStartTime) {
+                                    minStartTime = s.startTime;
+                                }
+                            }
+                        }
+                    }
+
+                    const aggregatedEventData = {
+                        ...eventData,
+                        numberOfCreated,
+                        numberOfExpired,
+                        numberOfActives,
+                        highestNumberOfActives,
+                        numberOfUnmanaged,
+                        numberOfRejected,
+                        startTime: minStartTime
+                    };
+                    this.printSessionEventData(nodeId, exporterKey, aggregatedEventData);
+                } else {
+                    this.printSessionEventData(nodeId, exporterKey, eventData);
+                }
                 break;
         }
-    }
-
-    processMetricData(appId, exporterType, metricId, exporterKey, metricData) {
-        const $metric = this.getMetric$(exporterKey);
-        if ($metric) {
-            const $dd = $metric.find("dd").not(".sparkline-wrap");
-            let $val = $dd.find(".value");
-            if (!$val.length) {
-                $dd.empty();
-                $val = $("<span class=\"value\"></span>").appendTo($dd);
-                if (metricData.unit) {
-                    $("<small class=\"unit\"></small>").text(metricData.unit).appendTo($dd);
-                }
-            } else {
-                const $unit = $dd.find(".unit");
-                if ($unit.length && !$unit.text() && metricData.unit) {
-                    $unit.text(metricData.unit);
-                }
-            }
-            let formatted = metricData.format;
-            for (let key in metricData.data) {
-                formatted = formatted.replace("{" + key + "}", metricData.data[key]);
-            }
-            $val.text(formatted);
-            $metric.attr("title", JSON.stringify(metricData.data, null, 2));
-
-            // Record history and render sparkline
-            this.recordMetricHistory(exporterKey, metricId, metricData, formatted);
-            const $sparkline = $metric.find("canvas.sparkline");
-            if ($sparkline.length) {
-                this.renderSparkline($sparkline[0], exporterKey, metricId);
-            }
-
-            // Update popover chart if this metric is currently displayed
-            if (this.activePopoverKey === exporterKey) {
-                this.renderPopoverChart();
-            }
-        }
-    }
-
-    recordMetricHistory(exporterKey, metricId, metricData, formatted) {
-        if (!this.metricHistories[exporterKey]) {
-            this.metricHistories[exporterKey] = [];
-        }
-        const history = this.metricHistories[exporterKey];
-        const data = metricData.data || {};
-
-        let val1 = 0;
-        let val2 = null;
-        let label1 = "Value";
-        let label2 = null;
-
-        if (metricId === "cpu") {
-            val1 = (typeof data.processCpu === "number" ? data.processCpu : 0);
-            val2 = (typeof data.systemCpu === "number" && data.systemCpu >= 0 ? data.systemCpu : null);
-            label1 = "Process CPU";
-            label2 = "System CPU";
-        } else if (metricId === "heap") {
-            val1 = (typeof data.used === "number" ? data.used : 0);
-            val2 = (typeof data.max === "number" && data.max > 0 ? data.max : (typeof data.committed === "number" ? data.committed : null));
-            label1 = "Used Memory";
-            label2 = (typeof data.max === "number" && data.max > 0 ? "Max Memory" : "Committed");
-        } else if (metricId.endsWith("-tp") || metricId === "tp") {
-            val1 = (typeof data.active === "number" ? data.active : 0);
-            val2 = (typeof data.total === "number" ? data.total : null);
-            label1 = "Active Threads";
-            label2 = "Total Threads";
-        } else if (metricId.startsWith("cp") || metricId.endsWith("-cp") || metricId === "cp" || data.poolName) {
-            val1 = (typeof data.used === "number" ? data.used : (typeof data.active === "number" ? data.active : 0));
-            val2 = (typeof data.total === "number" ? data.total : (typeof data.max === "number" ? data.max : null));
-            label1 = "Used Connections";
-            label2 = "Total Connections";
-        } else {
-            // Determine primary and secondary values from format string if available
-            const formatKeys = [];
-            if (metricData.format) {
-                const matches = metricData.format.match(/\{([a-zA-Z0-9_-]+)\}/g);
-                if (matches) {
-                    matches.forEach(m => {
-                        const k = m.slice(1, -1);
-                        if (typeof data[k] === "number" && !formatKeys.includes(k)) {
-                            formatKeys.push(k);
-                        }
-                    });
-                }
-            }
-            if (formatKeys.length > 0) {
-                val1 = data[formatKeys[0]];
-                label1 = formatKeys[0];
-                if (formatKeys.length > 1) {
-                    val2 = data[formatKeys[1]];
-                    label2 = formatKeys[1];
-                }
-            } else {
-                const priorityKeys = ["used", "active", "current", "count", "value", "total"];
-                const numKeys = Object.keys(data).filter(k => typeof data[k] === "number");
-                const pKey = priorityKeys.find(k => typeof data[k] === "number");
-                if (pKey) {
-                    val1 = data[pKey];
-                    label1 = pKey;
-                    const remKeys = numKeys.filter(k => k !== pKey);
-                    if (remKeys.length > 0) {
-                        val2 = data[remKeys[0]];
-                        label2 = remKeys[0];
-                    }
-                } else if (numKeys.length > 0) {
-                    val1 = data[numKeys[0]];
-                    label1 = numKeys[0];
-                    if (numKeys.length > 1) {
-                        val2 = data[numKeys[1]];
-                        label2 = numKeys[1];
-                    }
-                }
-            }
-        }
-
-        history.push({
-            time: Date.now(),
-            val1,
-            val2,
-            label1,
-            label2,
-            formatted,
-            unit: metricData.unit || "",
-            title: metricData.title || metricId,
-            metricId,
-            data
-        });
-
-        if (history.length > this.maxMetricHistory) {
-            history.shift();
-        }
-    }
-
-    renderSparkline(canvas, exporterKey, metricId) {
-        const history = this.metricHistories[exporterKey];
-        if (!history || history.length < 2) return;
-
-        const dpr = window.devicePixelRatio || 1;
-        const width = 48;
-        const height = 16;
-        if (canvas.width !== width * dpr || canvas.height !== height * dpr) {
-            canvas.width = width * dpr;
-            canvas.height = height * dpr;
-        }
-
-        const ctx = canvas.getContext("2d");
-        ctx.save();
-        ctx.scale(dpr, dpr);
-        ctx.clearRect(0, 0, width, height);
-
-        let min = Infinity;
-        let max = -Infinity;
-        for (let i = 0; i < history.length; i++) {
-            const v = history[i].val1;
-            if (v < min) min = v;
-            if (v > max) max = v;
-        }
-        if (metricId === "cpu") {
-            min = 0;
-            max = Math.max(max, 100);
-        } else if (max === min) {
-            max += 1;
-            min = Math.max(0, min - 1);
-        }
-        const range = max - min || 1;
-        const paddingY = 2;
-        const paddingX = 2;
-        const usableH = height - (paddingY * 2);
-        const usableW = width - (paddingX * 2);
-        const stepX = usableW / (history.length - 1);
-
-        const points = [];
-        for (let i = 0; i < history.length; i++) {
-            const x = paddingX + (i * stepX);
-            const normY = (history[i].val1 - min) / range;
-            const y = height - paddingY - (normY * usableH);
-            points.push({ x, y });
-        }
-
-        const isHigh = (metricId === "cpu" && history[history.length - 1].val1 >= 85);
-        const strokeColor = isHigh ? "#ef4444" : "#0284c7";
-        const fillColor = isHigh ? "rgba(239, 68, 68, 0.3)" : "rgba(2, 132, 199, 0.25)";
-
-        // Gradient Fill
-        ctx.beginPath();
-        ctx.moveTo(points[0].x, height);
-        points.forEach(p => ctx.lineTo(p.x, p.y));
-        ctx.lineTo(points[points.length - 1].x, height);
-        ctx.closePath();
-        ctx.fillStyle = fillColor;
-        ctx.fill();
-
-        // Stroke Line
-        ctx.beginPath();
-        points.forEach((p, idx) => {
-            if (idx === 0) ctx.moveTo(p.x, p.y);
-            else ctx.lineTo(p.x, p.y);
-        });
-        ctx.strokeStyle = strokeColor;
-        ctx.lineWidth = 1.2;
-        ctx.lineCap = "round";
-        ctx.lineJoin = "round";
-        ctx.stroke();
-
-        // Last Point Dot
-        const last = points[points.length - 1];
-        ctx.beginPath();
-        ctx.arc(last.x, last.y, 1.8, 0, Math.PI * 2);
-        ctx.fillStyle = strokeColor;
-        ctx.fill();
-
-        ctx.restore();
-    }
-
-    toggleMetricPopover(exporterKey, $metric) {
-        if (this.activePopoverKey === exporterKey) {
-            this.hideMetricPopover();
-        } else {
-            this.showMetricPopover(exporterKey, $metric);
-        }
-    }
-
-    showMetricPopover(exporterKey, $metric) {
-        const history = this.metricHistories[exporterKey];
-        if (!history || !history.length) return;
-
-        this.activePopoverKey = exporterKey;
-
-        const $popover = $("#metric-popover");
-        if (!$popover.length) return;
-
-        const offset = $metric.offset();
-        const mWidth = $metric.outerWidth();
-        const mHeight = $metric.outerHeight();
-        const pWidth = 310;
-
-        let top = offset.top + mHeight + 7;
-        let left = offset.left + (mWidth / 2) - (pWidth / 2);
-        left = Math.max(10, Math.min(left, $(window).width() - pWidth - 10));
-
-        const arrowLeft = offset.left + (mWidth / 2) - left;
-        $popover.find(".popover-arrow").css("left", Math.max(14, Math.min(arrowLeft, pWidth - 18)) + "px");
-
-        $popover.css({ top: top + "px", left: left + "px" }).fadeIn(120);
-        this.renderPopoverChart();
-    }
-
-    hideMetricPopover() {
-        this.activePopoverKey = null;
-        $("#metric-popover").hide();
-    }
-
-    renderPopoverChart() {
-        if (!this.activePopoverKey) return;
-        const history = this.metricHistories[this.activePopoverKey];
-        if (!history || !history.length) return;
-
-        const $popover = $("#metric-popover");
-        const last = history[history.length - 1];
-
-        $popover.find(".popover-title").text(last.title || last.metricId);
-        $popover.find(".popover-current").text(last.formatted + (last.unit ? " " + last.unit : ""));
-
-        // Calculate Min, Max, Avg for val1
-        let min1 = Infinity;
-        let max1 = -Infinity;
-        let sum1 = 0;
-        let count1 = 0;
-        history.forEach(h => {
-            if (typeof h.val1 === "number") {
-                if (h.val1 < min1) min1 = h.val1;
-                if (h.val1 > max1) max1 = h.val1;
-                sum1 += h.val1;
-                count1++;
-            }
-        });
-        const avg1 = count1 > 0 ? (sum1 / count1) : 0;
-
-        const formatVal = (v) => {
-            if (last.metricId === "cpu") return v.toFixed(1) + "%";
-            if (last.metricId === "heap") {
-                if (v >= 1048576) return (v / 1048576).toFixed(1) + " GB";
-                return (v / 1024).toFixed(0) + " MB";
-            }
-            return Number.isInteger(v) ? v : v.toFixed(1);
-        };
-
-        $popover.find(".stat-min").text(count1 > 0 ? formatVal(min1) : "-");
-        $popover.find(".stat-max").text(count1 > 0 ? formatVal(max1) : "-");
-        $popover.find(".stat-avg").text(count1 > 0 ? formatVal(avg1) : "-");
-
-        // Details breakdown
-        const $details = $popover.find(".popover-details").empty();
-        if (last.metricId === "cpu") {
-            if (typeof last.data.systemCpu === "number" && last.data.systemCpu >= 0) {
-                $details.append(`<span><strong>System:</strong>${last.data.systemCpu}%</span>`);
-            }
-            if (last.data.systemLoad !== undefined && last.data.systemLoad >= 0) {
-                $details.append(`<span><strong>Load:</strong>${last.data.systemLoad}</span>`);
-            }
-            if (last.data.processors) {
-                $details.append(`<span><strong>Cores:</strong>${last.data.processors}</span>`);
-            }
-        } else if (last.metricId === "heap") {
-            if (last.data.maxKB) {
-                $details.append(`<span><strong>Max:</strong>${last.data.maxKB}</span>`);
-            }
-            if (last.data.usedKB) {
-                $details.append(`<span><strong>Used:</strong>${last.data.usedKB}</span>`);
-            }
-        } else if (last.metricId.endsWith("-tp") || last.metricId === "tp") {
-            if (last.data.max !== undefined) {
-                $details.append(`<span><strong>Max Pool:</strong>${last.data.max < 0 ? 'Unbounded' : last.data.max}</span>`);
-            }
-            if (last.data.queued !== undefined) {
-                $details.append(`<span><strong>Queued:</strong>${last.data.queued}</span>`);
-            }
-            if (last.data.workerName) {
-                $details.append(`<span><strong>Worker:</strong>${last.data.workerName}</span>`);
-            }
-        } else if (last.metricId.startsWith("cp") || last.metricId.endsWith("-cp") || last.metricId === "cp" || last.data.poolName) {
-            if (last.data.idle !== undefined) {
-                $details.append(`<span><strong>Idle:</strong>${last.data.idle}</span>`);
-            }
-            if (last.data.awaiting !== undefined) {
-                $details.append(`<span><strong>Awaiting:</strong>${last.data.awaiting}</span>`);
-            }
-            if (last.data.active !== undefined) {
-                $details.append(`<span><strong>Active:</strong>${last.data.active}</span>`);
-            }
-            if (last.data.poolName) {
-                $details.append(`<span><strong>Pool:</strong>${last.data.poolName}</span>`);
-            }
-        }
-
-        // Render Canvas
-        const canvas = $popover.find("canvas.popover-chart")[0];
-        if (!canvas) return;
-
-        const dpr = window.devicePixelRatio || 1;
-        const width = 286;
-        const height = 110;
-        if (canvas.width !== width * dpr || canvas.height !== height * dpr) {
-            canvas.width = width * dpr;
-            canvas.height = height * dpr;
-        }
-
-        const ctx = canvas.getContext("2d");
-        ctx.save();
-        ctx.scale(dpr, dpr);
-        ctx.clearRect(0, 0, width, height);
-
-        // Overall scale calculation
-        let chartMin = min1;
-        let chartMax = max1;
-        if (last.val2 !== null) {
-            history.forEach(h => {
-                if (typeof h.val2 === "number") {
-                    if (h.val2 < chartMin) chartMin = h.val2;
-                    if (h.val2 > chartMax) chartMax = h.val2;
-                }
-            });
-        }
-        if (last.metricId === "cpu") {
-            chartMin = 0;
-            chartMax = Math.max(chartMax, 100);
-        } else if (chartMax === chartMin) {
-            chartMax += 1;
-            chartMin = Math.max(0, chartMin - 1);
-        }
-        const range = chartMax - chartMin || 1;
-        const padTop = 14;
-        const padBottom = 16;
-        const padLeft = 36;
-        const padRight = 8;
-        const plotW = width - padLeft - padRight;
-        const plotH = height - padTop - padBottom;
-
-        // Grid lines (3 horizontal lines)
-        const gridColor = "rgba(0, 0, 0, 0.08)";
-        const textColor = "#64748b";
-
-        ctx.strokeStyle = gridColor;
-        ctx.lineWidth = 1;
-        ctx.font = "9px tabular-nums, sans-serif";
-        ctx.fillStyle = textColor;
-        ctx.textAlign = "right";
-
-        for (let i = 0; i <= 2; i++) {
-            const y = padTop + (plotH * (i / 2));
-            ctx.beginPath();
-            ctx.moveTo(padLeft, y);
-            ctx.lineTo(width - padRight, y);
-            ctx.stroke();
-
-            const gridVal = chartMax - (range * (i / 2));
-            ctx.fillText(formatVal(gridVal), padLeft - 4, y + 3);
-        }
-
-        if (history.length >= 2) {
-            const stepX = plotW / (history.length - 1);
-
-            // Render Secondary line (val2) if present
-            if (last.val2 !== null) {
-                const p2 = [];
-                history.forEach((h, i) => {
-                    if (typeof h.val2 === "number") {
-                        const x = padLeft + (i * stepX);
-                        const normY = (h.val2 - chartMin) / range;
-                        const y = padTop + plotH - (normY * plotH);
-                        p2.push({ x, y });
-                    }
-                });
-                if (p2.length >= 2) {
-                    ctx.save();
-                    ctx.setLineDash([3, 3]);
-                    ctx.beginPath();
-                    p2.forEach((p, idx) => {
-                        if (idx === 0) ctx.moveTo(p.x, p.y);
-                        else ctx.lineTo(p.x, p.y);
-                    });
-                    ctx.strokeStyle = "#94a3b8";
-                    ctx.lineWidth = 1.2;
-                    ctx.stroke();
-                    ctx.restore();
-                }
-            }
-
-            // Render Primary line (val1)
-            const p1 = [];
-            history.forEach((h, i) => {
-                const x = padLeft + (i * stepX);
-                const normY = (h.val1 - chartMin) / range;
-                const y = padTop + plotH - (normY * plotH);
-                p1.push({ x, y });
-            });
-
-            // Primary Gradient Fill
-            ctx.beginPath();
-            ctx.moveTo(p1[0].x, padTop + plotH);
-            p1.forEach(p => ctx.lineTo(p.x, p.y));
-            ctx.lineTo(p1[p1.length - 1].x, padTop + plotH);
-            ctx.closePath();
-            const grad = ctx.createLinearGradient(0, padTop, 0, padTop + plotH);
-            grad.addColorStop(0, "rgba(2, 132, 199, 0.35)");
-            grad.addColorStop(1, "rgba(2, 132, 199, 0.0)");
-            ctx.fillStyle = grad;
-            ctx.fill();
-
-            // Primary Stroke
-            ctx.beginPath();
-            p1.forEach((p, idx) => {
-                if (idx === 0) ctx.moveTo(p.x, p.y);
-                else ctx.lineTo(p.x, p.y);
-            });
-            ctx.strokeStyle = "#0284c7";
-            ctx.lineWidth = 1.8;
-            ctx.lineCap = "round";
-            ctx.lineJoin = "round";
-            ctx.stroke();
-
-            // Last Dot
-            const lastP = p1[p1.length - 1];
-            ctx.beginPath();
-            ctx.arc(lastP.x, lastP.y, 2.5, 0, Math.PI * 2);
-            ctx.fillStyle = "#0284c7";
-            ctx.fill();
-        }
-
-        ctx.restore();
     }
 
     launchBullet($track, eventData, onLeaving, onArriving) {
@@ -983,9 +675,13 @@ class DashboardViewer {
         this.activeBulletCount = 0;
     }
 
-    indicate(appId, exporterType, exporterName) {
+    indicate(nodeId, appId, exporterType, exporterName) {
         this.blink(this.getIndicator$("group:event:"));
-        this.blink(this.getIndicator$("node:event:"));
+        if (nodeId && this.nodeIndicators[nodeId]) {
+            this.blink(this.nodeIndicators[nodeId]);
+        } else {
+            this.blink(this.getIndicator$("node:event:"));
+        }
         if (this.visible) {
             this.blink(this.getIndicator$("app:event:" + appId));
             if (exporterType === "log") {
@@ -1075,7 +771,7 @@ class DashboardViewer {
         }
     }
 
-    printSessionEventData(exporterKey, eventData) {
+    printSessionEventData(nodeId, exporterKey, eventData) {
         const $display = this.getDisplay$(exporterKey);
         if ($display) {
             $display.find(".numberOfCreated").text(eventData.numberOfCreated);
@@ -1089,32 +785,37 @@ class DashboardViewer {
             }
             const $sessions = $display.find("ul.sessions");
 
-            if (eventData.fullSync && eventData.createdSessions) {
-                const newSids = eventData.createdSessions.map(s => {
+            if (eventData.fullSync) {
+                const newSids = (eventData.createdSessions || []).map(s => {
                     const session = (typeof s === "string" ? JSON.parse(s) : s);
                     return session.sessionId;
                 });
                 $sessions.find("li").each(function () {
-                    const sid = $(this).data("sid");
-                    if (sid && !newSids.includes(sid)) {
-                        const timer = $(this).data("timer");
+                    const $li = $(this);
+                    const sid = $li.attr("data-sid") || $li.data("sid");
+                    const nid = $li.attr("data-node-id");
+                    if ((!nodeId || !nid || String(nid) === String(nodeId)) && !newSids.includes(sid)) {
+                        const timer = $li.data("timer");
                         if (timer) clearTimeout(timer);
-                        $(this).remove();
+                        $li.remove();
                     }
                 });
             }
 
             if (eventData.createdSessions) {
-                //console.log("Created sessions:", eventData.createdSessions);
-                eventData.createdSessions.forEach(session => this.addSession($sessions, typeof session === "string" ? JSON.parse(session) : session));
+                eventData.createdSessions.forEach(session => this.addSession($sessions, typeof session === "string" ? JSON.parse(session) : session, nodeId));
             }
             if (eventData.destroyedSessions) {
-                eventData.destroyedSessions.forEach(sessionId => $sessions.find("li[data-sid='" + sessionId + "']").remove());
+                eventData.destroyedSessions.forEach(sessionId => {
+                    const nodeSelector = (this.isGroupView && nodeId) ? `[data-node-id='${nodeId}']` : "";
+                    $sessions.find(`li[data-sid='${sessionId}']${nodeSelector}`).remove();
+                });
             }
             if (eventData.evictedSessions) {
+                const nodeSelector = (this.isGroupView && nodeId) ? `[data-node-id='${nodeId}']` : "";
                 eventData.evictedSessions.forEach(sessionId => {
-                    const $li = $sessions.find("li[data-sid='" + sessionId + "']");
-                    let timer = $(this).data("timer");
+                    const $li = $sessions.find(`li[data-sid='${sessionId}']${nodeSelector}`);
+                    let timer = $li.data("timer");
                     if (timer) clearTimeout(timer);
                     if ($li.data("temp-resident")) {
                         $li.remove(); // Temp resident session removed immediately upon eviction
@@ -1123,34 +824,42 @@ class DashboardViewer {
                     $li.addClass("inactive");
                     let inactiveInterval = $li.data("inactive-interval") || 0;
                     inactiveInterval = (inactiveInterval <= 0 ? this.tempResidentInactiveSecs : Math.min(inactiveInterval, this.tempResidentInactiveSecs)) * 1000;
-                    timer = setTimeout(() => $li.remove(), inactiveInterval);
+                    timer = setTimeout(() => {
+                        $li.remove();
+                        if (this.isGroupView) {
+                            this.updateSessionNodeFilterButtons($display);
+                        }
+                    }, inactiveInterval);
                     $li.data("timer", timer);
                 });
             }
             if (eventData.residedSessions) {
-                //console.log("Resided sessions:", eventData.residedSessions);
-                eventData.residedSessions.forEach(session => this.addSession($sessions, typeof session === "string" ? JSON.parse(session) : session));
+                eventData.residedSessions.forEach(session => this.addSession($sessions, typeof session === "string" ? JSON.parse(session) : session, nodeId));
             }
             if (eventData.changedSessions) {
                 for (let oldSessionId in eventData.changedSessions) {
                     const session = eventData.changedSessions[oldSessionId];
-                    this.changeSessionId($sessions, oldSessionId, typeof session === "string" ? JSON.parse(session) : session);
+                    this.changeSessionId($sessions, oldSessionId, typeof session === "string" ? JSON.parse(session) : session, nodeId);
                 }
+            }
+            if (this.isGroupView) {
+                this.updateSessionNodeFilterButtons($display);
             }
         }
     }
 
-    changeSessionId($sessions, oldSessionId, session) {
-        $sessions.find("li[data-sid='" + oldSessionId + "']").each(function () {
+    changeSessionId($sessions, oldSessionId, session, nodeId) {
+        const nodeSelector = (this.isGroupView && nodeId) ? `[data-node-id='${nodeId}']` : "";
+        $sessions.find(`li[data-sid='${oldSessionId}']${nodeSelector}`).each(function () {
             const timer = $(this).data("timer");
             if (timer) clearTimeout(timer);
         }).remove();
-        this.addSession($sessions, session);
+        this.addSession($sessions, session, nodeId);
     }
 
-    addSession($sessions, session) {
-        //console.log("Adding session:", session);
-        $sessions.find("li[data-sid='" + session.sessionId + "']").each(function () {
+    addSession($sessions, session, nodeId) {
+        const nodeSelector = (this.isGroupView && nodeId) ? `[data-node-id='${nodeId}']` : "";
+        $sessions.find(`li[data-sid='${session.sessionId}']${nodeSelector}`).each(function () {
             const timer = $(this).data("timer");
             if (timer) clearTimeout(timer);
         }).remove();
@@ -1165,10 +874,27 @@ class DashboardViewer {
             .attr("data-inactive-interval", session.inactiveInterval)
             .append($count);
 
+        if (this.isGroupView && nodeId) {
+            $li.attr("data-node-id", nodeId);
+            const $sessionBox = $sessions.closest(".session-box");
+            const appId = $sessionBox.data("app-id");
+            const eventId = $sessionBox.data("event-id");
+            const key = appId + ":event:" + eventId;
+            const currentFilter = this.sessionFilterByDisplay[key];
+            if (currentFilter && String(currentFilter) !== String(nodeId)) {
+                $li.addClass("filtered-out");
+            }
+        }
+
         const inactiveInterval = session.inactiveInterval;
         if (inactiveInterval && inactiveInterval > 0) {
-            $li.attr("data-inactive-interval", inactiveInterval)
-            const timer = setTimeout(() => $li.remove(), inactiveInterval * 1000);
+            $li.attr("data-inactive-interval", inactiveInterval);
+            const timer = setTimeout(() => {
+                $li.remove();
+                if (this.isGroupView) {
+                    this.updateSessionNodeFilterButtons($sessions.closest(".session-box"));
+                }
+            }, inactiveInterval * 1000);
             $li.data("timer", timer);
         }
 
@@ -1201,10 +927,11 @@ class DashboardViewer {
         else $li.prependTo($sessions);
     }
 
-    updateActivityCount(exporterKey, sessionId, activityCount) {
+    updateActivityCount(nodeId, exporterKey, sessionId, activityCount) {
         const $display = this.getDisplay$(exporterKey);
         if ($display) {
-            const $li = $display.find("ul.sessions li[data-sid='" + sessionId + "']");
+            const nodeSelector = (this.isGroupView && nodeId) ? `[data-node-id='${nodeId}']` : "";
+            const $li = $display.find(`ul.sessions li[data-sid='${sessionId}']${nodeSelector}`);
             const $count = $li.find(".count").text(activityCount);
             if (activityCount > 1) $count.addClass("counting");
             $li.show();
@@ -1212,13 +939,18 @@ class DashboardViewer {
             if (inactiveInterval) {
                 let timer = $li.data("timer");
                 if (timer) clearTimeout(timer);
-                timer = setTimeout(() => $li.remove(), inactiveInterval * 1000);
+                timer = setTimeout(() => {
+                    $li.remove();
+                    if (this.isGroupView) {
+                        this.updateSessionNodeFilterButtons($display);
+                    }
+                }, inactiveInterval * 1000);
                 $li.data("timer", timer);
             }
         }
     }
 
-    processChartData(appId, exporterType, eventId, exporterKey, chartData) {
+    processChartData(nodeId, appId, exporterType, eventId, exporterKey, chartData) {
         const dashboardChart = this.getChart$(exporterKey);
         if (!dashboardChart) return;
         this.setLoading(appId, false);
@@ -1227,10 +959,28 @@ class DashboardViewer {
             const prefix = appId + ":event:" + eventId;
             if (!dashboardChart.isDrawn()) this.resetInterimTimer(prefix);
             else if (chartData.rolledUp) {
-                this.resetInterimTimer(prefix);
-                this.resetInterimActivityStatus(prefix);
+                if (this.isGroupView && nodeId) {
+                    if (this.activitiesByNode[nodeId]) {
+                        this.activitiesByNode[nodeId].interim = 0;
+                        this.activitiesByNode[nodeId].errors = 0;
+                        let interim = 0, errors = 0, total = 0;
+                        for (let nid in this.activitiesByNode) {
+                            const act = this.activitiesByNode[nid];
+                            if (act) {
+                                interim += (act.interim || 0);
+                                errors += (act.errors || 0);
+                                total += (act.total || 0);
+                            }
+                        }
+                        this.printActivityStatus(prefix, { interim, errors, total });
+                    }
+                } else {
+                    this.resetInterimTimer(prefix);
+                    this.resetInterimActivityStatus(prefix);
+                }
             }
         }
+
         const dateUnit = (chartData.rolledUp ? dashboardChart.dateUnit : chartData.dateUnit);
         const dateOffset = (chartData.rolledUp ? dashboardChart.dateOffset : chartData.dateOffset);
         const labels = chartData.labels;
@@ -1243,20 +993,93 @@ class DashboardViewer {
             dashboardChart.draw(dateUnit, labels, data1, data2);
             dashboardChart.dateOffset = dateOffset;
         } else if (!dateOffset) {
-            if (!dateUnit) {
-                dashboardChart.rollup(labels, data1, data2);
-                this.pruneDataPoints(dashboardChart.getLabels(), dashboardChart.getDataset(0), dashboardChart.getDataset(1), dashboardChart.$container);
-                dashboardChart.update();
-            } else if (this.client) {
-                setTimeout(() => {
-                    const options = [
-                        "appId:" + appId,
-                        "dateUnit:" + dateUnit,
-                        "timeZone:" + Intl.DateTimeFormat().resolvedOptions().timeZone
-                    ];
-                    this.client.refresh(options);
-                }, 900);
+            if (this.isGroupView) {
+                this.bufferGroupRollup(nodeId, appId, eventId, exporterKey, dateUnit, labels[0], data1[0], data2[0]);
+            } else {
+                if (!dateUnit) {
+                    dashboardChart.rollup(labels, data1, data2, true);
+                    this.pruneDataPoints(dashboardChart.getLabels(), dashboardChart.getDataset(0), dashboardChart.getDataset(1), dashboardChart.$container);
+                    dashboardChart.update();
+                } else if (this.client) {
+                    setTimeout(() => {
+                        const options = [
+                            "appId:" + appId,
+                            "dateUnit:" + dateUnit,
+                            "timeZone:" + Intl.DateTimeFormat().resolvedOptions().timeZone
+                        ];
+                        this.client.refresh(options);
+                    }, 900);
+                }
             }
+        }
+    }
+
+    bufferGroupRollup(nodeId, appId, eventId, exporterKey, dateUnit, label, delta, error) {
+        const dashboardChart = this.getChart$(exporterKey);
+        if (!dashboardChart || !label) return;
+
+        const bufferKey = exporterKey + ":" + label;
+        if (!this.rollupBuffer[bufferKey]) {
+            this.rollupBuffer[bufferKey] = {
+                appId,
+                eventId,
+                exporterKey,
+                dateUnit,
+                label,
+                nodes: {},
+                timer: null
+            };
+        }
+
+        const entry = this.rollupBuffer[bufferKey];
+        entry.nodes[nodeId || "unknown"] = { delta: delta || 0, error: (error !== null ? (error || 0) : null) };
+
+        const expectedCount = (this.expectedNodesInGroup && this.expectedNodesInGroup.length > 0)
+            ? this.expectedNodesInGroup.filter(n => n.alive).length
+            : 1;
+
+        if (Object.keys(entry.nodes).length >= expectedCount) {
+            if (entry.timer) {
+                clearTimeout(entry.timer);
+                entry.timer = null;
+            }
+            this.flushGroupRollup(bufferKey);
+        } else if (!entry.timer) {
+            entry.timer = setTimeout(() => {
+                this.flushGroupRollup(bufferKey);
+            }, 3000);
+        }
+    }
+
+    flushGroupRollup(bufferKey) {
+        const entry = this.rollupBuffer[bufferKey];
+        if (!entry) return;
+        delete this.rollupBuffer[bufferKey];
+
+        const dashboardChart = this.getChart$(entry.exporterKey);
+        if (!dashboardChart) return;
+
+        let totalDelta = 0;
+        let totalError = (entry.eventId === "activity" ? 0 : null);
+        for (let nid in entry.nodes) {
+            const item = entry.nodes[nid];
+            totalDelta += (item.delta || 0);
+            if (totalError !== null && item.error !== null) {
+                totalError += (item.error || 0);
+            }
+        }
+
+        if (!entry.dateUnit) {
+            dashboardChart.rollup([entry.label], [totalDelta], [totalError], true);
+            this.pruneDataPoints(dashboardChart.getLabels(), dashboardChart.getDataset(0), dashboardChart.getDataset(1), dashboardChart.$container);
+            dashboardChart.update();
+        } else {
+            dashboardChart.rollupDateUnit(entry.dateUnit, entry.label, totalDelta, totalError);
+        }
+
+        if (entry.eventId === "activity") {
+            const prefix = entry.appId + ":event:" + entry.eventId;
+            this.resetInterimTimer(prefix);
         }
     }
 

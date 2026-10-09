@@ -18,7 +18,7 @@
  * ConsoleClient provides a unified interface for real-time communication with Console activities,
  * automatically falling back to HTTP long-polling if WebSockets are unavailable.
  *
- * @version 4.2
+ * @version 4.3
  * @last-modified 2026-09-05
  */
 class ConsoleClient {

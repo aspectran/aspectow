@@ -18,8 +18,8 @@
  * The chart component for the AppMon dashboard.
  * Responsible for rendering and updating individual charts using Chart.js.
  *
- * @version 4.2
- * @last-modified 2026-08-29
+ * @version 4.3
+ * @last-modified 2026-10-09
  */
 class DashboardChart {
     constructor($container, eventId) {
@@ -224,7 +224,7 @@ class DashboardChart {
         }
     }
 
-    rollup(labels, data1, data2) {
+    rollup(labels, data1, data2, useMaxRule = false) {
         if (this.chart) {
             const chartLabels = this.chart.data.labels;
             const chartData1 = this.chart.data.datasets[0].data;
@@ -232,6 +232,12 @@ class DashboardChart {
             if (chartLabels.length > 0) {
                 const lastIndex = chartLabels.length - 1;
                 if (chartLabels[lastIndex] >= labels[0]) {
+                    if (useMaxRule && chartLabels[lastIndex] === labels[0]) {
+                        data1[0] = Math.max(chartData1[lastIndex] || 0, data1[0] || 0);
+                        if (data2 && data2[0] !== null) {
+                            data2[0] = Math.max(chartData2[lastIndex] || 0, data2[0] || 0);
+                        }
+                    }
                     chartLabels.splice(lastIndex, 1);
                     chartData1.splice(lastIndex, 1);
                     chartData2.splice(lastIndex, 1);
@@ -240,6 +246,48 @@ class DashboardChart {
             chartLabels.push(...labels);
             chartData1.push(...data1);
             chartData2.push(...data2);
+        }
+    }
+
+    rollupDateUnit(dateUnit, datetimeStr, delta, error) {
+        if (!this.chart || !dateUnit) return;
+        const chartLabels = this.chart.data.labels;
+        const chartData1 = this.chart.data.datasets[0].data;
+        const chartData2 = this.chart.data.datasets[1].data;
+        if (!chartLabels.length) return;
+
+        const incoming = dayjs(datetimeStr);
+        let normalizedIncoming;
+        switch (dateUnit) {
+            case "hour": normalizedIncoming = incoming.startOf("hour"); break;
+            case "day": normalizedIncoming = incoming.startOf("day"); break;
+            case "month": normalizedIncoming = incoming.startOf("month"); break;
+            case "year": normalizedIncoming = incoming.startOf("year"); break;
+            default: normalizedIncoming = incoming.startOf("minute"); break;
+        }
+
+        const lastIndex = chartLabels.length - 1;
+        const lastLabelDate = dayjs(chartLabels[lastIndex]);
+        let normalizedLast;
+        switch (dateUnit) {
+            case "hour": normalizedLast = lastLabelDate.startOf("hour"); break;
+            case "day": normalizedLast = lastLabelDate.startOf("day"); break;
+            case "month": normalizedLast = lastLabelDate.startOf("month"); break;
+            case "year": normalizedLast = lastLabelDate.startOf("year"); break;
+            default: normalizedLast = lastLabelDate.startOf("minute"); break;
+        }
+
+        if (normalizedIncoming.isSame(normalizedLast)) {
+            chartData1[lastIndex] = (chartData1[lastIndex] || 0) + (delta || 0);
+            if (chartData2[lastIndex] !== null && error !== null) {
+                chartData2[lastIndex] = (chartData2[lastIndex] || 0) + (error || 0);
+            }
+            this.update();
+        } else if (normalizedIncoming.isAfter(normalizedLast)) {
+            chartLabels.push(normalizedIncoming.toISOString());
+            chartData1.push(delta || 0);
+            chartData2.push(error !== null ? (error || 0) : null);
+            this.update();
         }
     }
 

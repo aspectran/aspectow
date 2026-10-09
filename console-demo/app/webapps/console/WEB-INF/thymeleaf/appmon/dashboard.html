@@ -18,6 +18,7 @@
     <script th:src="@{/assets/appmon/js/dashboard-builder.js}"></script>
     <script th:src="@{/assets/appmon/js/dashboard-viewer.js}"></script>
     <script th:src="@{/assets/appmon/js/dashboard-chart.js}"></script>
+    <script th:src="@{/assets/appmon/js/metrics-viewer.js}"></script>
     <script th:src="@{/assets/appmon/js/traffic-painter.js}"></script>
     <script th:src="@{/assets/appmon/js/base-client.js}"></script>
     <script th:src="@{/assets/appmon/js/websocket-client.js}"></script>
@@ -80,9 +81,8 @@
         <div class="dashboard-content">
             <div class="control-bar mt-2">
                 <div class="options">
-                    <i class="bi bi-columns-gap d-none d-lg-inline-block"></i>
-                    <div class="layout-options btn-group d-none d-lg-inline-block" title="Layout options">
-                        <a class="btn compact on">Compact</a>
+                    <div class="metrics-options btn-group me-1" style="display: none;" title="Toggle metrics in Group View">
+                        <a class="btn metrics-toggle" title="Toggle metrics"><i class="bi bi-speedometer2"></i></a>
                     </div>
                     <i class="bi bi-bar-chart-line"></i>
                     <div class="date-unit-options btn-group" title="Date unit options">
@@ -145,6 +145,9 @@
                             </div>
                             <div class="col-sm-12 col-md-8">
                                 <div class="panel ground">
+                                    <div class="session-node-filter btn-group" style="display: none;">
+                                        <button type="button" class="btn btn-node on" data-node-id="">All</button>
+                                    </div>
                                     <ul class="sessions"></ul>
                                 </div>
                             </div>

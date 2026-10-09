@@ -18,8 +18,8 @@
  * Advanced Canvas-based particle engine for AppMon traffic visualization.
  * Handles tab visibility to prevent "bullet bursts" when returning to the tab.
  *
- * @version 4.2
- * @last-modified 2026-08-29
+ * @version 4.3
+ * @last-modified 2026-10-09
  */
 class TrafficPainter {
     constructor(canvas) {

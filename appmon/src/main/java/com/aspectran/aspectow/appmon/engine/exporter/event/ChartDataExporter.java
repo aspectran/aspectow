@@ -107,7 +107,7 @@ public class ChartDataExporter extends AbstractExporter implements EventCountRol
         String[] labels = new String[] { datetime };
         long[] data1 = new long[] { eventCount.getTallied().getDelta() };
         long[] data2 = new long[] { eventCount.getTallied().getError() };
-        String message = toJson(null, null, labels, data1, data2, true);
+        String message = toJson(null, null, null, labels, data1, data2, true);
         broadcast(message);
     }
 
@@ -115,6 +115,8 @@ public class ChartDataExporter extends AbstractExporter implements EventCountRol
         String timeZone = (commandOptions != null ? commandOptions.getTimeZone() : null);
         String dateUnit = (commandOptions != null ? commandOptions.getDateUnit() : null);
         String dateOffsetStr = (commandOptions != null ? commandOptions.getDateOffset() : null);
+        String scope = (commandOptions != null ? commandOptions.getScope() : null);
+        boolean isGroupScope = "group".equalsIgnoreCase(scope);
 
         int zoneOffsetInSeconds = 0;
         if (timeZone != null) {
@@ -143,15 +145,26 @@ public class ChartDataExporter extends AbstractExporter implements EventCountRol
         EventCountMapper dao = exporterManager.getBean(EventCountMapper.class);
         List<EventCountVO> list = exporterManager.instantActivity(() -> {
             String nodeId = eventInfo.getNodeId();
+            String groupId = exporterManager.getAppMonManager().getGroupId();
             String appId = eventInfo.getAppId();
             String eventId = eventInfo.getEventId();
-            return switch (dateUnit) {
-                case "hour" -> dao.getChartDataByHour(nodeId, appId, eventId, finalZoneOffsetInSeconds, finalDateOffset);
-                case "day" -> dao.getChartDataByDay(nodeId, appId, eventId, finalZoneOffsetInSeconds, finalDateOffset);
-                case "month" -> dao.getChartDataByMonth(nodeId, appId, eventId, finalZoneOffsetInSeconds, finalDateOffset);
-                case "year" -> dao.getChartDataByYear(nodeId, appId, eventId, finalZoneOffsetInSeconds, finalDateOffset);
-                case null, default -> dao.getChartData(nodeId, appId, eventId, finalDateOffset);
-            };
+            if (isGroupScope && groupId != null) {
+                return switch (dateUnit) {
+                    case "hour" -> dao.getGroupChartDataByHour(groupId, appId, eventId, finalZoneOffsetInSeconds, finalDateOffset);
+                    case "day" -> dao.getGroupChartDataByDay(groupId, appId, eventId, finalZoneOffsetInSeconds, finalDateOffset);
+                    case "month" -> dao.getGroupChartDataByMonth(groupId, appId, eventId, finalZoneOffsetInSeconds, finalDateOffset);
+                    case "year" -> dao.getGroupChartDataByYear(groupId, appId, eventId, finalZoneOffsetInSeconds, finalDateOffset);
+                    case null, default -> dao.getGroupChartData(groupId, appId, eventId, finalDateOffset);
+                };
+            } else {
+                return switch (dateUnit) {
+                    case "hour" -> dao.getChartDataByHour(nodeId, appId, eventId, finalZoneOffsetInSeconds, finalDateOffset);
+                    case "day" -> dao.getChartDataByDay(nodeId, appId, eventId, finalZoneOffsetInSeconds, finalDateOffset);
+                    case "month" -> dao.getChartDataByMonth(nodeId, appId, eventId, finalZoneOffsetInSeconds, finalDateOffset);
+                    case "year" -> dao.getChartDataByYear(nodeId, appId, eventId, finalZoneOffsetInSeconds, finalDateOffset);
+                    case null, default -> dao.getChartData(nodeId, appId, eventId, finalDateOffset);
+                };
+            }
         });
 
         int size = list.size();
@@ -167,7 +180,7 @@ public class ChartDataExporter extends AbstractExporter implements EventCountRol
 
         String effectiveDateOffset = (dateOffset != null ?
                 dateOffset.atZone(ZoneOffset.UTC).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME) : null);
-        return toJson(dateUnit, effectiveDateOffset, labels, data1, data2, false);
+        return toJson(isGroupScope ? "group" : null, dateUnit, effectiveDateOffset, labels, data1, data2, false);
     }
 
     @Nullable
@@ -203,12 +216,13 @@ public class ChartDataExporter extends AbstractExporter implements EventCountRol
     }
 
     private String toJson(
-            String dateUnit, String dateOffset, String[] labels,
+            String scope, String dateUnit, String dateOffset, String[] labels,
             long[] data1, long[] data2, boolean rolledUp) {
         return new JsonBuilder()
                 .prettyPrint(false)
                 .nullWritable(false)
                 .object()
+                    .put("scope", scope)
                     .put("dateUnit", dateUnit)
                     .put("dateOffset", dateOffset)
                     .put("labels", labels)

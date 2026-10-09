@@ -37,6 +37,8 @@ public enum ExporterType {
     /** For performance metrics */
     METRIC("metric");
 
+    private static final ExporterType[] VALUES = values();
+
     private final String alias;
 
     ExporterType(String alias) {
@@ -56,8 +58,13 @@ public enum ExporterType {
      */
     @Nullable
     public static ExporterType resolve(String alias) {
-        for (ExporterType type : values()) {
-            if (type.alias.equals(alias)) {
+        if (alias == null || alias.isEmpty()) {
+            return null;
+        }
+        int slashIdx = alias.indexOf('/');
+        String baseAlias = (slashIdx != -1 ? alias.substring(0, slashIdx) : alias);
+        for (ExporterType type : VALUES) {
+            if (type.alias.equals(baseAlias)) {
                 return type;
             }
         }

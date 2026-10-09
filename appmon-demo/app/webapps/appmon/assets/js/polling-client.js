@@ -17,8 +17,8 @@
 /**
  * HTTP Polling implementation of the AppMon client.
  *
- * @version 4.2
- * @last-modified 2026-08-29
+ * @version 4.3
+ * @last-modified 2026-10-09
  */
 class PollingClient extends BaseClient {
     constructor(node, viewer, onSubscribed, onClosed, onFailed, isGatewayMode = false) {
@@ -42,12 +42,28 @@ class PollingClient extends BaseClient {
     }
 
     stop() {
+        super.stop();
         this.stopped = true;
         this.primary = false;
         this.primaryNodeId = null;
         if (this.pollingTimer) {
             clearTimeout(this.pollingTimer);
             this.pollingTimer = null;
+        }
+    }
+
+    isConnected() {
+        return !this.stopped && this.everConnected && !this.reconnecting;
+    }
+
+    onResume() {
+        if (!this.stopped && (!this.everConnected || this.reconnecting)) {
+            if (this.lastResumeReconnect && (Date.now() - this.lastResumeReconnect < 500)) {
+                return;
+            }
+            this.lastResumeReconnect = Date.now();
+            console.log(this.node.id, "PollingClient resumed while disconnected, reconnecting immediately");
+            this.reconnect(true);
         }
     }
 
@@ -70,6 +86,11 @@ class PollingClient extends BaseClient {
                     }
 
                     this.everConnected = true;
+                    this.reconnecting = false;
+                    if (this.retryTimer) {
+                        clearTimeout(this.retryTimer);
+                        this.retryTimer = null;
+                    }
                     if (data.primary) {
                         this.retryCount = 0;
                         this.node.endpoint['mode'] = "polling";
@@ -206,11 +227,21 @@ class PollingClient extends BaseClient {
                     }
 
                     // Data messages
-                    const viewer = this.getViewer(nodeId);
-                    if (viewer) {
-                        viewer.processMessage(message);
+                    const idx1 = message.indexOf(":");
+                    const idx2 = (idx1 !== -1 ? message.indexOf(":", idx1 + 1) : -1);
+                    const type = (idx1 !== -1 && idx2 !== -1) ? message.substring(idx1 + 1, idx2) : "";
+
+                    if (type === "metric" || type.startsWith("metric/")) {
+                        if (this.metricsViewer) {
+                            this.metricsViewer.processMessage(nodeId, message);
+                        }
                     } else {
-                        console.warn("No viewer registered for nodeId:", nodeId, "Message:", message);
+                        const viewer = this.getViewer(nodeId);
+                        if (viewer) {
+                            viewer.processMessage(nodeId, message);
+                        } else {
+                            console.warn("No viewer registered for nodeId:", nodeId, "Message:", message);
+                        }
                     }
                 } else {
                     console.error("Unexpected message received before primary connection established:", message);

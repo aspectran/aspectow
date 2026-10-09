@@ -15,8 +15,8 @@
  */
 
 /*
- * @version 4.2
- * @last-modified 2026-10-05
+ * @version 4.3
+ * @last-modified 2026-10-09
  */
 
 [data-bs-theme=dark] {
@@ -187,6 +187,20 @@
     .session-box .panel.ground {
         background-color: #191c1d;
     }
+    .session-box .session-node-filter {
+        background-color: rgba(0, 0, 0, 0.4);
+    }
+    .session-box .session-node-filter .btn {
+        color: #94a3b8;
+    }
+    .session-box .session-node-filter .btn:hover {
+        background-color: rgba(255, 255, 255, 0.12);
+        color: #f1f5f9;
+    }
+    .session-box .session-node-filter .btn.on {
+        background-color: #2e5469;
+        color: #fff;
+    }
     .session-box ul.sessions li {
         background-color: #3b4548;
     }
@@ -242,18 +256,25 @@
         background-color: #191919;
         border: 1px solid #2f3437;
     }
-    .console-box .console p {
+    .console-box .console div {
         color: #bbb;
     }
-    .console-box .console p:hover {
+    .console-box .console div:hover {
         color: #cabe60;
     }
-    .console-box .console p.event {
+    .console-box .console div .node-badge {
+        background-color: #383d46;
+        color: #c7c7c7;
+    }
+    .console-box .console div:hover .node-badge {
+        color: #cabe60;
+    }
+    .console-box .console div.event {
         border: 1px solid rgba(92, 218, 173, 0.53);
         color: #ddd;
         background-color: #333;
     }
-    .console-box .console p.event.error {
+    .console-box .console div.event.error {
         background-color: #3e132d;
         border: 1px solid #db7093;
         color: #fff;
