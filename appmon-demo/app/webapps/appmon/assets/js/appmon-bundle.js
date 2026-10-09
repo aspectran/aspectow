@@ -418,26 +418,22 @@ class WebsocketClient extends BaseClient {
                 }
             }
 
-            if (this.established || this.primary) {
-                // Data messages
-                const idx1 = message.indexOf(":");
-                const idx2 = (idx1 !== -1 ? message.indexOf(":", idx1 + 1) : -1);
-                const type = (idx1 !== -1 && idx2 !== -1) ? message.substring(idx1 + 1, idx2) : "";
+            // Data messages
+            const idx1 = message.indexOf(":");
+            const idx2 = (idx1 !== -1 ? message.indexOf(":", idx1 + 1) : -1);
+            const type = (idx1 !== -1 && idx2 !== -1) ? message.substring(idx1 + 1, idx2) : "";
 
-                if (type === "metric" || type.startsWith("metric/")) {
-                    if (this.metricsViewer) {
-                        this.metricsViewer.processMessage(nodeId, message);
-                    }
-                } else {
-                    const viewer = this.getViewer(nodeId);
-                    if (viewer) {
-                        viewer.processMessage(nodeId, message);
-                    } else {
-                        console.warn("No viewer registered for nodeId:", nodeId, "Message:", message);
-                    }
+            if (type === "metric" || type.startsWith("metric/")) {
+                if (this.metricsViewer) {
+                    this.metricsViewer.processMessage(nodeId, message);
                 }
             } else {
-                console.error("Unexpected message received before connection established:", message);
+                const viewer = this.getViewer(nodeId);
+                if (viewer) {
+                    viewer.processMessage(nodeId, message);
+                } else {
+                    console.warn("No viewer registered for nodeId:", nodeId, "Message:", message);
+                }
             }
         };
 
@@ -490,10 +486,15 @@ class WebsocketClient extends BaseClient {
         this.primaryNodeId = null;
         this.established = false;
         if (this.socket) {
-            if (!afterClosing) {
-                this.socket.close(1000, "Normal closure");
-            }
+            const socket = this.socket;
             this.socket = null;
+            socket.onopen = null;
+            socket.onmessage = null;
+            socket.onerror = null;
+            socket.onclose = null;
+            if (!afterClosing) {
+                socket.close(1000, "Normal closure");
+            }
         }
         if (this.heartbeatTimer) {
             clearTimeout(this.heartbeatTimer);
@@ -555,6 +556,8 @@ class WebsocketClient extends BaseClient {
                 }
             }
             this.reconnecting = false;
+        }
+        if (primary || !this.isGatewayMode) {
             const options = ["command:established"];
             if (this.nodeToSubscribe) options.push("nodeToSubscribe:" + this.nodeToSubscribe);
             if (this.appsToSubscribe) options.push("appsToSubscribe:" + this.appsToSubscribe);
@@ -802,26 +805,22 @@ class PollingClient extends BaseClient {
                     }
                 }
 
-                if (this.established || this.primary) {
-                    // Data messages
-                    const idx1 = message.indexOf(":");
-                    const idx2 = (idx1 !== -1 ? message.indexOf(":", idx1 + 1) : -1);
-                    const type = (idx1 !== -1 && idx2 !== -1) ? message.substring(idx1 + 1, idx2) : "";
+                // Data messages
+                const idx1 = message.indexOf(":");
+                const idx2 = (idx1 !== -1 ? message.indexOf(":", idx1 + 1) : -1);
+                const type = (idx1 !== -1 && idx2 !== -1) ? message.substring(idx1 + 1, idx2) : "";
 
-                    if (type === "metric" || type.startsWith("metric/")) {
-                        if (this.metricsViewer) {
-                            this.metricsViewer.processMessage(nodeId, message);
-                        }
-                    } else {
-                        const viewer = this.getViewer(nodeId);
-                        if (viewer) {
-                            viewer.processMessage(nodeId, message);
-                        } else {
-                            console.warn("No viewer registered for nodeId:", nodeId, "Message:", message);
-                        }
+                if (type === "metric" || type.startsWith("metric/")) {
+                    if (this.metricsViewer) {
+                        this.metricsViewer.processMessage(nodeId, message);
                     }
                 } else {
-                    console.error("Unexpected message received before connection established:", message);
+                    const viewer = this.getViewer(nodeId);
+                    if (viewer) {
+                        viewer.processMessage(nodeId, message);
+                    } else {
+                        console.warn("No viewer registered for nodeId:", nodeId, "Message:", message);
+                    }
                 }
             });
         }
@@ -876,6 +875,8 @@ class PollingClient extends BaseClient {
                 }
             }
             this.reconnecting = false;
+        }
+        if (primary || !this.isGatewayMode) {
             this.sendCommand(["command:established"], nodeId);
         }
     }
@@ -1415,8 +1416,12 @@ class DashboardViewer {
 
     onNodeLeft(nodeId) {
         if (this.isGroupView && nodeId) {
-            delete this.activitiesByNode[nodeId];
-            delete this.sessionStatsByNode[nodeId];
+            for (let exporterKey in this.activitiesByNode) {
+                delete this.activitiesByNode[exporterKey][nodeId];
+            }
+            for (let exporterKey in this.sessionStatsByNode) {
+                delete this.sessionStatsByNode[exporterKey][nodeId];
+            }
             for (let key in this.displays) {
                 if (key.includes(":event:session")) {
                     this.displays[key].find(`ul.sessions li[data-node-id='${nodeId}']`).each(function () {
@@ -1898,10 +1903,14 @@ class DashboardViewer {
                 this.indicate(nodeId, appId, exporterType, eventId);
                 if (eventData.activities) {
                     if (this.isGroupView && nodeId) {
-                        this.activitiesByNode[nodeId] = eventData.activities;
+                        if (!this.activitiesByNode[exporterKey]) {
+                            this.activitiesByNode[exporterKey] = {};
+                        }
+                        this.activitiesByNode[exporterKey][nodeId] = eventData.activities;
                         let interim = 0, errors = 0, total = 0;
-                        for (let nid in this.activitiesByNode) {
-                            const act = this.activitiesByNode[nid];
+                        const actMap = this.activitiesByNode[exporterKey];
+                        for (let nid in actMap) {
+                            const act = actMap[nid];
                             if (act) {
                                 interim += (act.interim || 0);
                                 errors += (act.errors || 0);
@@ -1942,7 +1951,10 @@ class DashboardViewer {
                 break;
             case "session":
                 if (this.isGroupView && nodeId) {
-                    this.sessionStatsByNode[nodeId] = eventData;
+                    if (!this.sessionStatsByNode[exporterKey]) {
+                        this.sessionStatsByNode[exporterKey] = {};
+                    }
+                    this.sessionStatsByNode[exporterKey][nodeId] = eventData;
                     let numberOfCreated = 0;
                     let numberOfExpired = 0;
                     let numberOfActives = 0;
@@ -1951,8 +1963,9 @@ class DashboardViewer {
                     let numberOfRejected = 0;
                     let minStartTime = null;
 
-                    for (let nid in this.sessionStatsByNode) {
-                        const s = this.sessionStatsByNode[nid];
+                    const statsMap = this.sessionStatsByNode[exporterKey];
+                    for (let nid in statsMap) {
+                        const s = statsMap[nid];
                         if (s) {
                             numberOfCreated += (s.numberOfCreated || 0);
                             numberOfExpired += (s.numberOfExpired || 0);
