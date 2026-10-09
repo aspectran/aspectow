@@ -153,11 +153,8 @@ class DashboardBuilder {
                     this.clearView();
                     this.buildView();
                     this.bindEvents();
-                    if (this.nodes.length) {
-                        this.connect(0);
-                    }
 
-                    // Select the initial group
+                    // Select the initial group and app synchronously before connecting
                     if (this.groups.length > 0) {
                         let initialGroupId = null;
                         if (this.nodeToSubscribe) {
@@ -170,6 +167,8 @@ class DashboardBuilder {
                             initialGroupId = this.groups[0].id;
                         }
                         this.changeGroup(initialGroupId);
+                    } else {
+                        this.changeApp();
                     }
 
                     if (location.hash) {
@@ -181,6 +180,10 @@ class DashboardBuilder {
                             }
                             this.changeApp(appId);
                         }
+                    }
+
+                    if (this.nodes.length) {
+                        this.connect(0);
                     }
                 }
             },
@@ -661,7 +664,7 @@ class DashboardBuilder {
             const $tabTitle = $(".app.tabs .tabs-title[data-app-id=" + app.id + "]");
             if (app.id === appId) {
                 app.active = true;
-                setTimeout(() => this.showNodeApp(appId), 0);
+                this.showNodeApp(appId);
                 $tabTitle.addClass("active");
                 if ($tabTitle.length && $tabTitle[0].scrollIntoView) {
                     $tabTitle[0].scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
@@ -1303,6 +1306,9 @@ class DashboardBuilder {
         const $newSession = $session.first().hide().clone().addClass("available")
             .attr({ "data-group-id": groupInfo.id, "data-app-id": appInfo.id, "data-event-id": eventInfo.id });
 
+        // Unmanaged sessions are not relevant in group view aggregation
+        $newSession.find(".session-stats dt:has(+ dd .numberOfUnmanaged), .session-stats dd:has(.numberOfUnmanaged)").remove();
+
         const nodesInGroup = this.nodes.filter(n => n.group === groupInfo.id);
         if (nodesInGroup.length > 1) {
             const $filter = $newSession.find(".session-node-filter").show();
@@ -1331,7 +1337,7 @@ class DashboardBuilder {
     addGroupChartsBox(groupInfo, appInfo) {
         return $(".charts-box").first().hide().clone().addClass("available group-view")
             .attr({ "data-group-id": groupInfo.id, "data-app-id": appInfo.id })
-            .insertBefore($(".console-box").first()).show();
+            .insertBefore($(".console-box").first());
     }
 
     addGroupChartBox($chartsBox, groupInfo, appInfo, eventInfo) {
@@ -1382,7 +1388,7 @@ class DashboardBuilder {
     addChartsBox(nodeInfo, appInfo) {
         return $(".charts-box").first().hide().clone().addClass("available")
             .attr({ "data-node-index": nodeInfo.index, "data-app-id": appInfo.id })
-            .insertBefore($(".console-box").first()).show();
+            .insertBefore($(".console-box").first());
     }
 
     addChartBox($chartsBox, nodeInfo, appInfo, eventInfo) {

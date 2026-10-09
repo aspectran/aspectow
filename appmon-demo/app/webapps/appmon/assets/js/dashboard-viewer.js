@@ -934,7 +934,6 @@ class DashboardViewer {
             const $li = $display.find(`ul.sessions li[data-sid='${sessionId}']${nodeSelector}`);
             const $count = $li.find(".count").text(activityCount);
             if (activityCount > 1) $count.addClass("counting");
-            $li.show();
             const inactiveInterval = $li.data("inactive-interval");
             if (inactiveInterval) {
                 let timer = $li.data("timer");
