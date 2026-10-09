@@ -22,6 +22,7 @@ import com.aspectran.aspectow.appmon.engine.relay.CommandOptions;
 import com.aspectran.aspectow.appmon.engine.relay.MessageRelayManager;
 import com.aspectran.aspectow.appmon.engine.relay.MessageRelayer;
 import com.aspectran.aspectow.appmon.engine.relay.RelaySession;
+import com.aspectran.aspectow.node.config.NodeInfo;
 import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Component;
 import com.aspectran.utils.Assert;
@@ -147,40 +148,45 @@ public class WebsocketMessageRelayer extends SimplifiedEndpoint implements Messa
     private void subscribe(Session session, @NonNull CommandOptions commandOptions) {
         String nodeId = commandOptions.getNodeId();
         Assert.hasText(nodeId, "Node ID cannot be empty");
-        String nodeToSubscribe = commandOptions.getNodeToSubscribe();
-        String appsToSubscribe = commandOptions.getAppsToSubscribe();
-        boolean isExplicitNode = StringUtils.hasText(nodeToSubscribe);
-        if (messageRelayManager.isGatewayMode() || messageRelayManager.isSameNode(nodeId)) {
-            if (addSession(session)) {
-                messageRelayManager.registerSession(session.getId(), this);
-                WebsocketRelaySession relaySession = new WebsocketRelaySession(session);
-                if (isExplicitNode) {
-                    relaySession.setSubscribedNodeId(nodeToSubscribe);
+        if (!messageRelayManager.isGatewayMode() && !messageRelayManager.isSameNode(nodeId)) {
+            return;
+        }
+        if (addSession(session)) {
+            messageRelayManager.registerSession(session.getId(), this);
+            WebsocketRelaySession relaySession = new WebsocketRelaySession(session);
+            String nodeToSubscribe = commandOptions.getNodeToSubscribe();
+            boolean isExplicitNode = StringUtils.hasText(nodeToSubscribe);
+            if (isExplicitNode) {
+                relaySession.setSubscribedNodeId(nodeToSubscribe);
+            }
+            String timeZone = commandOptions.getTimeZone();
+            if (StringUtils.hasText(timeZone)) {
+                relaySession.setTimeZone(timeZone);
+            }
+            List<AppInfo> appInfoList;
+            if (isExplicitNode) {
+                appInfoList = appMonManager.getClusterAppInfoListByNode(nodeToSubscribe);
+            } else if (!messageRelayManager.isGatewayMode()) {
+                appInfoList = appMonManager.getAppInfoList();
+            } else {
+                appInfoList = appMonManager.getClusterAppInfoList();
+            }
+            String appsToSubscribe = commandOptions.getAppsToSubscribe();
+            String[] appIds = StringUtils.splitWithComma(appsToSubscribe);
+            appIds = appMonManager.getVerifiedAppIds(appIds, appInfoList, isExplicitNode);
+            if (appIds.length > 0) {
+                relaySession.setSubscribedApps(appIds);
+            }
+            String alive = (!messageRelayManager.isGatewayMode() ||
+                    messageRelayManager.getNodeRegistry().isFound(nodeId)) ? "alive" : "";
+            relay(relaySession, nodeId + "::" + RESPONSE_SUBSCRIBED + "primary:" + alive);
+            if (messageRelayManager.isGatewayMode() && !isExplicitNode) {
+                for (NodeInfo nodeInfo : messageRelayManager.getNodeRegistry().getNodes()) {
+                    if (!messageRelayManager.isSameNode(nodeInfo.getId())) {
+                        String remoteAlive = messageRelayManager.getNodeRegistry().isFound(nodeInfo.getId()) ? "alive" : "";
+                        relay(relaySession, nodeInfo.getId() + "::" + RESPONSE_SUBSCRIBED + remoteAlive);
+                    }
                 }
-                String timeZone = commandOptions.getTimeZone();
-                if (StringUtils.hasText(timeZone)) {
-                    relaySession.setTimeZone(timeZone);
-                }
-                List<AppInfo> appInfoList;
-                if (isExplicitNode) {
-                    appInfoList = appMonManager.getClusterAppInfoListByNode(nodeToSubscribe);
-                } else if (!messageRelayManager.isGatewayMode()) {
-                    appInfoList = appMonManager.getAppInfoList();
-                } else {
-                    appInfoList = appMonManager.getClusterAppInfoList();
-                }
-                String[] appIds = StringUtils.splitWithComma(appsToSubscribe);
-                appIds = appMonManager.getVerifiedAppIds(appIds, appInfoList, isExplicitNode);
-                if (appIds.length > 0) {
-                    relaySession.setSubscribedApps(appIds);
-                }
-                String alive = (!messageRelayManager.isGatewayMode() ||
-                        messageRelayManager.getNodeRegistry().isFound(nodeId)) ? "alive" : "";
-                relay(relaySession, nodeId + "::" + RESPONSE_SUBSCRIBED + "primary:" + alive);
-            } else if (messageRelayManager.isGatewayMode()){
-                String alive = messageRelayManager.getNodeRegistry().isFound(nodeId) ? "alive" : "";
-                WebsocketRelaySession relaySession = new WebsocketRelaySession(session);
-                relay(relaySession, nodeId + "::" + RESPONSE_SUBSCRIBED + alive);
             }
         }
     }

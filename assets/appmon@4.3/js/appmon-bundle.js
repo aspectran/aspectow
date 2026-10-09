@@ -3285,7 +3285,7 @@ class DashboardBuilder {
             if (activeApp) {
                 this.updateVisibility(activeApp.id);
             }
-            if (node.subscribeAttempts === 1 && node.index + 1 < this.nodes.length) {
+            if (!this.isGatewayMode && node.subscribeAttempts === 1 && node.index + 1 < this.nodes.length) {
                 console.log("connecting next node:", node.index + 1);
                 this.connect(node.index + 1);
             }
@@ -3320,15 +3320,23 @@ class DashboardBuilder {
                     this.configureViewerResolver(client);
                     if (this.isGatewayMode) {
                         this.sharedClient = client;
-                        client.addClusterViewer(node.id, viewer);
-                        client.addClusterNode(node, onSubscribed);
+                        this.nodes.forEach(n => {
+                            const v = this.viewers[n.index];
+                            client.addClusterViewer(n.id, v);
+                            client.addClusterNode(n, (nodeObj, primaryFlag) => {
+                                onSubscribed(nodeObj, primaryFlag);
+                            });
+                            v.setClient(client);
+                            this.clients[n.index] = client;
+                        });
                         client.onNodeJoined = onNodeJoined;
                         client.onNodeStatusChanged = onNodeStatusChanged;
                         client.onNodeLeft = onNodeLeft;
                         client.onRequireRebuild = onRequireRebuild;
+                    } else {
+                        viewer.setClient(client);
+                        this.clients[node.index] = client;
                     }
-                    this.viewers[node.index].setClient(client);
-                    this.clients[node.index] = client;
                     client.start(this.appsToSubscribe, this.nodeToSubscribe);
                 }, (node.index - 1) * 1000);
             }
@@ -3387,11 +3395,6 @@ class DashboardBuilder {
         const viewer = this.viewers[nodeIndex];
 
         if (this.isGatewayMode && this.sharedClient) {
-            this.sharedClient.addClusterViewer(node.id, viewer);
-            this.sharedClient.addClusterNode(node, onSubscribed);
-            viewer.setClient(this.sharedClient);
-            this.clients[node.index] = this.sharedClient;
-            this.sharedClient.connect(node.id);
             return;
         }
 
@@ -3405,15 +3408,23 @@ class DashboardBuilder {
         this.configureViewerResolver(client);
         if (this.isGatewayMode) {
             this.sharedClient = client;
-            client.addClusterViewer(node.id, viewer);
-            client.addClusterNode(node, onSubscribed);
+            this.nodes.forEach(n => {
+                const v = this.viewers[n.index];
+                client.addClusterViewer(n.id, v);
+                client.addClusterNode(n, (nodeObj, primaryFlag) => {
+                    onSubscribed(nodeObj, primaryFlag);
+                });
+                v.setClient(client);
+                this.clients[n.index] = client;
+            });
             client.onNodeJoined = onNodeJoined;
             client.onNodeStatusChanged = onNodeStatusChanged;
             client.onNodeLeft = onNodeLeft;
             client.onRequireRebuild = onRequireRebuild;
+        } else {
+            viewer.setClient(client);
+            this.clients[node.index] = client;
         }
-        viewer.setClient(client);
-        this.clients[node.index] = client;
         client.start(this.appsToSubscribe, this.nodeToSubscribe);
     }
 
