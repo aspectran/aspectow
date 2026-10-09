@@ -139,26 +139,22 @@ class WebsocketClient extends BaseClient {
                 }
             }
 
-            if (this.established || this.primary) {
-                // Data messages
-                const idx1 = message.indexOf(":");
-                const idx2 = (idx1 !== -1 ? message.indexOf(":", idx1 + 1) : -1);
-                const type = (idx1 !== -1 && idx2 !== -1) ? message.substring(idx1 + 1, idx2) : "";
+            // Data messages
+            const idx1 = message.indexOf(":");
+            const idx2 = (idx1 !== -1 ? message.indexOf(":", idx1 + 1) : -1);
+            const type = (idx1 !== -1 && idx2 !== -1) ? message.substring(idx1 + 1, idx2) : "";
 
-                if (type === "metric" || type.startsWith("metric/")) {
-                    if (this.metricsViewer) {
-                        this.metricsViewer.processMessage(nodeId, message);
-                    }
-                } else {
-                    const viewer = this.getViewer(nodeId);
-                    if (viewer) {
-                        viewer.processMessage(nodeId, message);
-                    } else {
-                        console.warn("No viewer registered for nodeId:", nodeId, "Message:", message);
-                    }
+            if (type === "metric" || type.startsWith("metric/")) {
+                if (this.metricsViewer) {
+                    this.metricsViewer.processMessage(nodeId, message);
                 }
             } else {
-                console.error("Unexpected message received before connection established:", message);
+                const viewer = this.getViewer(nodeId);
+                if (viewer) {
+                    viewer.processMessage(nodeId, message);
+                } else {
+                    console.warn("No viewer registered for nodeId:", nodeId, "Message:", message);
+                }
             }
         };
 
@@ -211,10 +207,15 @@ class WebsocketClient extends BaseClient {
         this.primaryNodeId = null;
         this.established = false;
         if (this.socket) {
-            if (!afterClosing) {
-                this.socket.close(1000, "Normal closure");
-            }
+            const socket = this.socket;
             this.socket = null;
+            socket.onopen = null;
+            socket.onmessage = null;
+            socket.onerror = null;
+            socket.onclose = null;
+            if (!afterClosing) {
+                socket.close(1000, "Normal closure");
+            }
         }
         if (this.heartbeatTimer) {
             clearTimeout(this.heartbeatTimer);
@@ -276,6 +277,8 @@ class WebsocketClient extends BaseClient {
                 }
             }
             this.reconnecting = false;
+        }
+        if (primary || !this.isGatewayMode) {
             const options = ["command:established"];
             if (this.nodeToSubscribe) options.push("nodeToSubscribe:" + this.nodeToSubscribe);
             if (this.appsToSubscribe) options.push("appsToSubscribe:" + this.appsToSubscribe);

@@ -64,8 +64,12 @@ class DashboardViewer {
 
     onNodeLeft(nodeId) {
         if (this.isGroupView && nodeId) {
-            delete this.activitiesByNode[nodeId];
-            delete this.sessionStatsByNode[nodeId];
+            for (let exporterKey in this.activitiesByNode) {
+                delete this.activitiesByNode[exporterKey][nodeId];
+            }
+            for (let exporterKey in this.sessionStatsByNode) {
+                delete this.sessionStatsByNode[exporterKey][nodeId];
+            }
             for (let key in this.displays) {
                 if (key.includes(":event:session")) {
                     this.displays[key].find(`ul.sessions li[data-node-id='${nodeId}']`).each(function () {
@@ -547,10 +551,14 @@ class DashboardViewer {
                 this.indicate(nodeId, appId, exporterType, eventId);
                 if (eventData.activities) {
                     if (this.isGroupView && nodeId) {
-                        this.activitiesByNode[nodeId] = eventData.activities;
+                        if (!this.activitiesByNode[exporterKey]) {
+                            this.activitiesByNode[exporterKey] = {};
+                        }
+                        this.activitiesByNode[exporterKey][nodeId] = eventData.activities;
                         let interim = 0, errors = 0, total = 0;
-                        for (let nid in this.activitiesByNode) {
-                            const act = this.activitiesByNode[nid];
+                        const actMap = this.activitiesByNode[exporterKey];
+                        for (let nid in actMap) {
+                            const act = actMap[nid];
                             if (act) {
                                 interim += (act.interim || 0);
                                 errors += (act.errors || 0);
@@ -591,7 +599,10 @@ class DashboardViewer {
                 break;
             case "session":
                 if (this.isGroupView && nodeId) {
-                    this.sessionStatsByNode[nodeId] = eventData;
+                    if (!this.sessionStatsByNode[exporterKey]) {
+                        this.sessionStatsByNode[exporterKey] = {};
+                    }
+                    this.sessionStatsByNode[exporterKey][nodeId] = eventData;
                     let numberOfCreated = 0;
                     let numberOfExpired = 0;
                     let numberOfActives = 0;
@@ -600,8 +611,9 @@ class DashboardViewer {
                     let numberOfRejected = 0;
                     let minStartTime = null;
 
-                    for (let nid in this.sessionStatsByNode) {
-                        const s = this.sessionStatsByNode[nid];
+                    const statsMap = this.sessionStatsByNode[exporterKey];
+                    for (let nid in statsMap) {
+                        const s = statsMap[nid];
                         if (s) {
                             numberOfCreated += (s.numberOfCreated || 0);
                             numberOfExpired += (s.numberOfExpired || 0);

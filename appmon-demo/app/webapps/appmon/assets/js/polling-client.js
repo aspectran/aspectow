@@ -229,26 +229,22 @@ class PollingClient extends BaseClient {
                     }
                 }
 
-                if (this.established || this.primary) {
-                    // Data messages
-                    const idx1 = message.indexOf(":");
-                    const idx2 = (idx1 !== -1 ? message.indexOf(":", idx1 + 1) : -1);
-                    const type = (idx1 !== -1 && idx2 !== -1) ? message.substring(idx1 + 1, idx2) : "";
+                // Data messages
+                const idx1 = message.indexOf(":");
+                const idx2 = (idx1 !== -1 ? message.indexOf(":", idx1 + 1) : -1);
+                const type = (idx1 !== -1 && idx2 !== -1) ? message.substring(idx1 + 1, idx2) : "";
 
-                    if (type === "metric" || type.startsWith("metric/")) {
-                        if (this.metricsViewer) {
-                            this.metricsViewer.processMessage(nodeId, message);
-                        }
-                    } else {
-                        const viewer = this.getViewer(nodeId);
-                        if (viewer) {
-                            viewer.processMessage(nodeId, message);
-                        } else {
-                            console.warn("No viewer registered for nodeId:", nodeId, "Message:", message);
-                        }
+                if (type === "metric" || type.startsWith("metric/")) {
+                    if (this.metricsViewer) {
+                        this.metricsViewer.processMessage(nodeId, message);
                     }
                 } else {
-                    console.error("Unexpected message received before connection established:", message);
+                    const viewer = this.getViewer(nodeId);
+                    if (viewer) {
+                        viewer.processMessage(nodeId, message);
+                    } else {
+                        console.warn("No viewer registered for nodeId:", nodeId, "Message:", message);
+                    }
                 }
             });
         }
@@ -303,6 +299,8 @@ class PollingClient extends BaseClient {
                 }
             }
             this.reconnecting = false;
+        }
+        if (primary || !this.isGatewayMode) {
             this.sendCommand(["command:established"], nodeId);
         }
     }
