@@ -1003,11 +1003,11 @@ class DashboardBuilder {
                     const chartOptions = [...options, "scope:group"];
                     this.clients[repNode.index].refresh(chartOptions, repNode.id, "group");
 
-                    if (withLogs) {
-                        aliveNodesInGroup.forEach(node => {
-                            this.clients[node.index].refresh(["appId:" + appId, "withLogs:true"], node.id);
-                        });
-                    }
+                    aliveNodesInGroup.forEach(node => {
+                        const refreshOptions = ["appId:" + appId];
+                        if (withLogs) refreshOptions.push("withLogs:true");
+                        this.clients[node.index].refresh(refreshOptions, node.id);
+                    });
                 }
             } else {
                 const selectedNode = this.nodes.find(n => n.id === selectedNodeId);

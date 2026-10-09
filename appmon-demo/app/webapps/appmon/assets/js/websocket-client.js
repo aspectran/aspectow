@@ -28,6 +28,7 @@ class WebsocketClient extends BaseClient {
         this.heartbeatTimer = null;
         this.socket = null;
         this.handshakeSuccessful = false;
+        this.established = false;
     }
 
     start(appsToSubscribe, nodeToSubscribe) {
@@ -99,36 +100,46 @@ class WebsocketClient extends BaseClient {
             const nodeId = msg.substring(0, idx);
             const message = msg.substring(idx + 1);
 
-            if (this.primary) {
-                // Standard control messages
-                if (message.startsWith(":pong:")) {
-                    this.node.endpoint.token = message.substring(6);
-                    this.sendPing();
-                    return;
-                }
+            // Standard control messages
+            if (message.startsWith(":pong:")) {
+                this.node.endpoint.token = message.substring(6);
+                this.sendPing();
+                return;
+            }
 
-                if (this.isGatewayMode) {
-                    if (message.startsWith(":subscribed:")) {
-                        const alive = (message === ":subscribed:alive");
-                        this.establish(nodeId, false, alive);
-                        return;
-                    }
-                    if (message.startsWith(":node:joined:")) {
+            if (message.startsWith(":subscribed:")) {
+                const primary = message.startsWith(":subscribed:primary:");
+                const alive = message.endsWith(":alive");
+                this.establish(nodeId, primary, alive);
+                return;
+            }
+
+            if (this.isGatewayMode) {
+                if (message.startsWith(":node:joined:")) {
+                    try {
                         const nodeInfo = JSON.parse(message.substring(13));
                         if (this.onNodeJoined) this.onNodeJoined(nodeInfo);
-                        return;
+                    } catch (e) {
+                        console.error("Failed to parse node:joined message:", message, e);
                     }
-                    if (message.startsWith(":node:statusChanged:")) {
+                    return;
+                }
+                if (message.startsWith(":node:statusChanged:")) {
+                    try {
                         const nodeInfo = JSON.parse(message.substring(20));
                         if (this.onNodeStatusChanged) this.onNodeStatusChanged(nodeInfo);
-                        return;
+                    } catch (e) {
+                        console.error("Failed to parse node:statusChanged message:", message, e);
                     }
-                    if (message === ":node:left") {
-                        if (this.onNodeLeft) this.onNodeLeft(nodeId);
-                        return;
-                    }
+                    return;
                 }
+                if (message === ":node:left") {
+                    if (this.onNodeLeft) this.onNodeLeft(nodeId);
+                    return;
+                }
+            }
 
+            if (this.established || this.primary) {
                 // Data messages
                 const idx1 = message.indexOf(":");
                 const idx2 = (idx1 !== -1 ? message.indexOf(":", idx1 + 1) : -1);
@@ -146,12 +157,8 @@ class WebsocketClient extends BaseClient {
                         console.warn("No viewer registered for nodeId:", nodeId, "Message:", message);
                     }
                 }
-            } else if (message.startsWith(":subscribed:")) {
-                const primary = message.startsWith(":subscribed:primary:");
-                const alive = message.endsWith(":alive");
-                this.establish(nodeId, primary, alive);
             } else {
-                console.error("Unexpected message received before primary connection established:", message);
+                console.error("Unexpected message received before connection established:", message);
             }
         };
 
@@ -202,6 +209,7 @@ class WebsocketClient extends BaseClient {
     closeSocket(afterClosing) {
         this.primary = false;
         this.primaryNodeId = null;
+        this.established = false;
         if (this.socket) {
             if (!afterClosing) {
                 this.socket.close(1000, "Normal closure");
@@ -227,6 +235,7 @@ class WebsocketClient extends BaseClient {
     }
 
     establish(nodeId, primary, alive) {
+        this.established = true;
         if (this.reconnecting && (!primary || !alive)) {
             console.log("Reconnect attempt failed, node is not primary or alive");
             if (this.onRequireRebuild) this.onRequireRebuild();

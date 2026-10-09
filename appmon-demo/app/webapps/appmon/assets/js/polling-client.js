@@ -26,6 +26,7 @@ class PollingClient extends BaseClient {
         this.pendingCommands = [];
         this.pollingTimer = null;
         this.stopped = false;
+        this.established = false;
 
         if (!this.isGatewayMode && this.node.port && (location.hostname === "localhost" || location.hostname === "127.0.0.1")) {
             const url = new URL(this.node.endpoint.path, location.href);
@@ -46,6 +47,7 @@ class PollingClient extends BaseClient {
         this.stopped = true;
         this.primary = false;
         this.primaryNodeId = null;
+        this.established = false;
         if (this.pollingTimer) {
             clearTimeout(this.pollingTimer);
             this.pollingTimer = null;
@@ -195,37 +197,39 @@ class PollingClient extends BaseClient {
                 const nodeId = msg.substring(0, idx);
                 const message = msg.substring(idx + 1);
 
-                if (this.primary) {
-                    if (this.isGatewayMode) {
-                        if (message.startsWith(":subscribed:")) {
-                            const alive = (message === ":subscribed:alive");
-                            this.establish(nodeId, false, alive);
-                            return;
-                        }
-                        if (message.startsWith(":node:joined:")) {
-                            try {
-                                const nodeInfo = JSON.parse(message.substring(13));
-                                if (this.onNodeJoined) this.onNodeJoined(nodeInfo);
-                            } catch (e) {
-                                console.error("Failed to parse node:joined message:", message, e);
-                            }
-                            return;
-                        }
-                        if (message.startsWith(":node:statusChanged:")) {
-                            try {
-                                const nodeInfo = JSON.parse(message.substring(20));
-                                if (this.onNodeStatusChanged) this.onNodeStatusChanged(nodeInfo);
-                            } catch (e) {
-                                console.error("Failed to parse node:statusChanged message:", message, e);
-                            }
-                            return;
-                        }
-                        if (message === ":node:left") {
-                            if (this.onNodeLeft) this.onNodeLeft(nodeId);
-                            return;
-                        }
-                    }
+                if (message.startsWith(":subscribed:")) {
+                    const primary = message.startsWith(":subscribed:primary:");
+                    const alive = message.endsWith(":alive");
+                    this.establish(nodeId, primary, alive);
+                    return;
+                }
 
+                if (this.isGatewayMode) {
+                    if (message.startsWith(":node:joined:")) {
+                        try {
+                            const nodeInfo = JSON.parse(message.substring(13));
+                            if (this.onNodeJoined) this.onNodeJoined(nodeInfo);
+                        } catch (e) {
+                            console.error("Failed to parse node:joined message:", message, e);
+                        }
+                        return;
+                    }
+                    if (message.startsWith(":node:statusChanged:")) {
+                        try {
+                            const nodeInfo = JSON.parse(message.substring(20));
+                            if (this.onNodeStatusChanged) this.onNodeStatusChanged(nodeInfo);
+                        } catch (e) {
+                            console.error("Failed to parse node:statusChanged message:", message, e);
+                        }
+                        return;
+                    }
+                    if (message === ":node:left") {
+                        if (this.onNodeLeft) this.onNodeLeft(nodeId);
+                        return;
+                    }
+                }
+
+                if (this.established || this.primary) {
                     // Data messages
                     const idx1 = message.indexOf(":");
                     const idx2 = (idx1 !== -1 ? message.indexOf(":", idx1 + 1) : -1);
@@ -244,13 +248,14 @@ class PollingClient extends BaseClient {
                         }
                     }
                 } else {
-                    console.error("Unexpected message received before primary connection established:", message);
+                    console.error("Unexpected message received before connection established:", message);
                 }
             });
         }
     }
 
     establish(nodeId, primary, alive) {
+        this.established = true;
         if (this.reconnecting && (!primary || !alive)) {
             console.log("Reconnect attempt failed, node is not primary or alive");
             if (this.onRequireRebuild) {
