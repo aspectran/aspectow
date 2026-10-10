@@ -22,6 +22,7 @@ import com.aspectran.aspectow.appmon.engine.relay.CommandOptions;
 import com.aspectran.aspectow.appmon.engine.relay.MessageRelayManager;
 import com.aspectran.aspectow.appmon.engine.relay.MessageRelayer;
 import com.aspectran.aspectow.appmon.engine.relay.RelaySession;
+import com.aspectran.aspectow.node.config.NodeInfo;
 import com.aspectran.core.activity.Translet;
 import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Component;
@@ -38,10 +39,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.aspectran.aspectow.appmon.engine.relay.CommandOptions.COMMAND_ESTABLISHED;
 import static com.aspectran.aspectow.appmon.engine.relay.CommandOptions.COMMAND_FOCUS;
 import static com.aspectran.aspectow.appmon.engine.relay.CommandOptions.COMMAND_LOAD_PREVIOUS;
 import static com.aspectran.aspectow.appmon.engine.relay.CommandOptions.COMMAND_REFRESH;
@@ -99,43 +100,56 @@ public class PollingMessageRelayer implements MessageRelayer {
     public Map<String, Object> subscribe(@NonNull Translet translet) throws IOException {
         String nodeId = translet.getParameter("nodeId");
         Assert.hasText(nodeId, "Node ID cannot be empty");
-        String nodeToSubscribe = translet.getParameter("nodeToSubscribe");
-        boolean isExplicitNode = StringUtils.hasText(nodeToSubscribe);
-        if (messageRelayManager.isSameNode(nodeId) || isExplicitNode) {
-            String appsToSubscribe = translet.getParameter("appsToSubscribe");
-            List<AppInfo> appInfoList;
-            if (isExplicitNode) {
-                appInfoList = appMonManager.getClusterAppInfoListByNode(nodeToSubscribe);
-            } else if (!messageRelayManager.isGatewayMode()) {
-                appInfoList = appMonManager.getAppInfoList();
-            } else {
-                appInfoList = appMonManager.getClusterAppInfoList();
-            }
-            String[] appIds = StringUtils.splitWithComma(appsToSubscribe);
-            appIds = appMonManager.getVerifiedAppIds(appIds, appInfoList, isExplicitNode);
-
-            PollingRelaySession relaySession = pollingSessionManager.createSession(translet, appIds);
-            String timeZone = translet.getParameter("timeZone");
-            if (StringUtils.hasText(timeZone)) {
-                relaySession.setTimeZone(timeZone);
-            }
-            messageRelayManager.registerSession(relaySession.getId(), this);
-            return Map.of(
-                    "appsToSubscribe", StringUtils.join(appIds, ","),
-                    "pollingInterval", relaySession.getPollingInterval(),
-                    "nodeId", nodeId,
-                    "primary", true,
-                    "alive", true
-            );
-        } else if (messageRelayManager.isGatewayMode()) {
-            return Map.of(
-                    "nodeId", nodeId,
-                    "primary", false,
-                    "alive", messageRelayManager.getNodeRegistry().isFound(nodeId)
-            );
-        } else {
+        if (!messageRelayManager.isSameNode(nodeId)) {
             return null;
         }
+
+        String nodeToSubscribe = translet.getParameter("nodeToSubscribe");
+        boolean isExplicitNode = StringUtils.hasText(nodeToSubscribe);
+
+        String appsToSubscribe = translet.getParameter("appsToSubscribe");
+        List<AppInfo> appInfoList;
+        if (isExplicitNode) {
+            appInfoList = appMonManager.getClusterAppInfoListByNode(nodeToSubscribe);
+        } else if (!messageRelayManager.isGatewayMode()) {
+            appInfoList = appMonManager.getAppInfoList();
+        } else {
+            appInfoList = appMonManager.getClusterAppInfoList();
+        }
+        String[] appIds = StringUtils.splitWithComma(appsToSubscribe);
+        appIds = appMonManager.getVerifiedAppIds(appIds, appInfoList, isExplicitNode);
+
+        PollingRelaySession relaySession = pollingSessionManager.createSession(translet, appIds);
+        String timeZone = translet.getParameter("timeZone");
+        if (StringUtils.hasText(timeZone)) {
+            relaySession.setTimeZone(timeZone);
+        }
+        messageRelayManager.registerSession(relaySession.getId(), this);
+
+        String targetNodeId = (isExplicitNode ? nodeToSubscribe : nodeId);
+        messageRelayManager.subscribe(relaySession, targetNodeId, isExplicitNode);
+
+        Map<String, Boolean> nodeAliveMap = new HashMap<>();
+        nodeAliveMap.put(nodeId, true);
+        if (messageRelayManager.isGatewayMode()) {
+            if (isExplicitNode) {
+                if (!messageRelayManager.isSameNode(nodeToSubscribe)) {
+                    nodeAliveMap.put(nodeToSubscribe, messageRelayManager.getNodeRegistry().isFound(nodeToSubscribe));
+                }
+            } else {
+                for (NodeInfo nodeInfo : messageRelayManager.getNodeRegistry().getNodes()) {
+                    if (!messageRelayManager.isSameNode(nodeInfo.getId())) {
+                        nodeAliveMap.put(nodeInfo.getId(), messageRelayManager.getNodeRegistry().isFound(nodeInfo.getId()));
+                    }
+                }
+            }
+        }
+
+        return Map.of(
+                "appsToSubscribe", StringUtils.join(appIds, ","),
+                "pollingInterval", relaySession.getPollingInterval(),
+                "nodeAliveMap", nodeAliveMap
+        );
     }
 
     /**
@@ -175,9 +189,6 @@ public class PollingMessageRelayer implements MessageRelayer {
             return;
         }
         switch (commandOptions.getCommand()) {
-            case COMMAND_ESTABLISHED:
-                established(relaySession, commandOptions);
-                break;
             case COMMAND_REFRESH:
             case COMMAND_LOAD_PREVIOUS:
                 refreshData(relaySession, commandOptions);

@@ -183,7 +183,7 @@ public abstract class NodeManagerBuilder {
 
         // Forcefully set the base path for node endpoint
         for (NodeInfo info : nodeInfoHolder.getNodeInfoList()) {
-            info.touchEndpointConfig().setPath(NodeMessageProtocol.NODES_BASE_PATH);
+            info.touchEndpointConfig().setPath(NodeMessageProtocol.NODES_BASE_PATH + "/" + nodeId);
         }
 
         // Auto-detect host if not specified

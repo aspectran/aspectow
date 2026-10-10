@@ -21,8 +21,8 @@
  * @last-modified 2026-10-09
  */
 class PollingClient extends BaseClient {
-    constructor(node, viewer, onSubscribed, onClosed, onFailed, isGatewayMode = false) {
-        super(node, viewer, onSubscribed, onClosed, onFailed, isGatewayMode);
+    constructor(primaryNodeId, node, viewer, onSubscribed, onClosed, onFailed, isGatewayMode = false) {
+        super(primaryNodeId, node, viewer, onSubscribed, onClosed, onFailed, isGatewayMode);
         this.pendingCommands = [];
         this.pollingTimer = null;
         this.stopped = false;
@@ -39,7 +39,7 @@ class PollingClient extends BaseClient {
         this.stopped = false;
         this.nodeToSubscribe = nodeToSubscribe;
         this.appsToSubscribe = appsToSubscribe;
-        this.connect(this.node.id);
+        this.subscribe();
     }
 
     stop() {
@@ -59,17 +59,17 @@ class PollingClient extends BaseClient {
     }
 
     onResume() {
-        if (!this.stopped && (!this.everConnected || this.reconnecting)) {
+        if (!this.stopped && this.reconnecting) {
             if (this.lastResumeReconnect && (Date.now() - this.lastResumeReconnect < 500)) {
                 return;
             }
             this.lastResumeReconnect = Date.now();
-            console.log(this.node.id, "PollingClient resumed while disconnected, reconnecting immediately");
+            console.log(this.primaryNodeId, "PollingClient resumed while disconnected, reconnecting immediately");
             this.reconnect(true);
         }
     }
 
-    connect(nodeId) {
+    subscribe(nodeId) {
         $.ajax({
             url: this.node.endpoint.path + "/appmon/polling/subscribe",
             type: "post",
@@ -82,7 +82,7 @@ class PollingClient extends BaseClient {
             },
             success: (data) => {
                 if (data) {
-                    if (data.primary && !data.appsToSubscribe) {
+                    if (!data.appsToSubscribe) {
                         console.warn("No verified apps found. Please check the configuration of the backend.");
                         return;
                     }
@@ -93,17 +93,21 @@ class PollingClient extends BaseClient {
                         clearTimeout(this.retryTimer);
                         this.retryTimer = null;
                     }
-                    if (data.primary) {
-                        this.retryCount = 0;
-                        this.node.endpoint['mode'] = "polling";
-                        this.node.endpoint['pollingInterval'] = data.pollingInterval;
+                    this.retryCount = 0;
+                    this.node.endpoint['mode'] = "polling";
+                    this.node.endpoint['pollingInterval'] = data.pollingInterval;
+
+                    if (this.isGatewayMode) {
+                        for (let id in this.clusterNodes) {
+                            this.establish(id, data.nodeAliveMap && data.nodeAliveMap[id]);
+                        }
+                    } else {
+                        this.establish(this.primaryNodeId, true);
                     }
 
-                    this.establish(data.nodeId, data.primary, data.alive);
-
-                    if (this.primary && !this.stopped) {
+                    if (!this.stopped) {
                         this.appsToSubscribe = data.appsToSubscribe;
-                        this.poll();
+                        this.immediatePoll();
                     }
                 } else {
                     console.log(this.node.id, "connection failed");
@@ -161,6 +165,11 @@ class PollingClient extends BaseClient {
         });
     }
 
+    immediatePoll() {
+        if (this.pollingTimer) clearTimeout(this.pollingTimer);
+        this.pollingTimer = setTimeout(() => this.poll(), 500);
+    }
+
     changePollingInterval(speed) {
         $.ajax({
             url: this.node.endpoint.path + "/appmon/polling/interval",
@@ -196,13 +205,6 @@ class PollingClient extends BaseClient {
 
                 const nodeId = msg.substring(0, idx);
                 const message = msg.substring(idx + 1);
-
-                if (message.startsWith(":subscribed:")) {
-                    const primary = message.startsWith(":subscribed:primary:");
-                    const alive = message.endsWith(":alive");
-                    this.establish(nodeId, primary, alive);
-                    return;
-                }
 
                 if (this.isGatewayMode) {
                     if (message.startsWith(":node:joined:")) {
@@ -250,31 +252,8 @@ class PollingClient extends BaseClient {
         }
     }
 
-    establish(nodeId, primary, alive) {
-        this.established = true;
-        if (this.reconnecting && (!primary || !alive)) {
-            console.log("Reconnect attempt failed, node is not primary or alive");
-            if (this.onRequireRebuild) {
-                this.onRequireRebuild();
-            }
-            return;
-        }
-
-        if (primary) {
-            // If an unknown node becomes primary in Gateway mode
-            // (e.g., topology change or gateway node restart with a new ID),
-            // request a full dashboard rebuild to refresh cluster node configurations.
-            if (this.isGatewayMode && !this.getNodeConfig(nodeId)) {
-                this.stop();
-                if (this.onRequireRebuild) {
-                    console.log(nodeId, "unknown primary node detected, requesting full rebuild");
-                    this.onRequireRebuild();
-                }
-                return;
-            }
-            this.primary = true;
-            this.primaryNodeId = nodeId;
-        }
+    establish(nodeId, alive) {
+        const primary = (nodeId === this.primaryNodeId);
 
         const config = this.getNodeConfig(nodeId);
         if (config) {
@@ -285,23 +264,12 @@ class PollingClient extends BaseClient {
         }
 
         const viewer = this.getViewer(nodeId);
-        if (!alive) {
-            viewer.printErrorMessage("Node " + nodeId + " not alive");
-        } else {
-            viewer.printMessage("Polling every " + this.node.endpoint.pollingInterval + " milliseconds.");
-        }
-        if (primary) {
-            if (this.isGatewayMode && this.reconnecting) {
-                for (let id in this.clusterNodes) {
-                    if (id !== nodeId) {
-                        this.connect(id);
-                    }
-                }
+        if (viewer) {
+            if (!alive) {
+                viewer.printErrorMessage("Node " + nodeId + " not alive");
+            } else {
+                viewer.printMessage(nodeId + "Polling every " + this.node.endpoint.pollingInterval + " milliseconds.");
             }
-            this.reconnecting = false;
-        }
-        if (primary || !this.isGatewayMode) {
-            this.sendCommand(["command:established"], nodeId);
         }
     }
 
@@ -313,6 +281,9 @@ class PollingClient extends BaseClient {
             console.log("send", cmd);
             if (!this.pendingCommands.includes(cmd)) {
                 this.pendingCommands.push(cmd);
+            }
+            if (cmd.startsWith("command:refresh;")) {
+                this.immediatePoll();
             }
         }
     }

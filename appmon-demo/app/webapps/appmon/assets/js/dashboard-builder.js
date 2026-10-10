@@ -104,7 +104,7 @@ class DashboardBuilder {
                             subscribeAttempts: 0
                         };
                         node.endpoint.mode = node.endpoint.mode || "auto";
-                        node.endpoint.path = baseUrl + node.endpoint.path + "/" + node.id;
+                        node.endpoint.path = baseUrl + node.endpoint.path;
                         node.endpoint.token = data.token;
                         this.nodes.push(node);
                         this.viewers[node.index] = new DashboardViewer(this.counterPersistInterval * 60, this.options);
@@ -190,9 +190,10 @@ class DashboardBuilder {
                                 initialNodeIndex = myIndex;
                             }
                         }
+                        const primaryNodeId = data.myNodeId || this.nodes[initialNodeIndex].id;
                         console.log("cluster mode:", this.clusterMode);
                         console.log("endpoint mode:", this.nodes[initialNodeIndex].endpoint.mode);
-                        this.connect(initialNodeIndex);
+                        this.connect(initialNodeIndex, primaryNodeId);
                     }
                 }
             },
@@ -248,7 +249,7 @@ class DashboardBuilder {
         });
     }
 
-    connect(nodeIndex) {
+    connect(nodeIndex, primaryNodeId) {
         const onSubscribed = (node, primary) => {
             if (node.subscribed && node.subscribeAttempts > 0) return;
             if (primary) {
@@ -274,7 +275,7 @@ class DashboardBuilder {
             const activeApp = this.apps.find(a => a.active);
             if (activeApp) {
                 this.updateVisibility(activeApp.id);
-                const shouldRefresh = this.isGatewayMode ? primary : (node.index === this.nodes.length - 1);
+                const shouldRefresh = this.isGatewayMode && primary || (this.nodes.length === 1);
                 if (shouldRefresh) {
                     const client = this.clients[node.index];
                     if (client && client.focus) {
@@ -284,8 +285,10 @@ class DashboardBuilder {
                 }
             }
             if (!this.isGatewayMode && node.subscribeAttempts === 1 && node.index + 1 < this.nodes.length) {
-                console.log("connecting next node:", node.index + 1);
-                this.connect(node.index + 1);
+                const nextNodeIndex = node.index + 1;
+                const primaryNodeId = this.nodes[nextNodeIndex].id;
+                console.log("connecting next node:", nextNodeIndex, primaryNodeId);
+                this.connect(nextNodeIndex, primaryNodeId);
             }
         };
 
@@ -307,13 +310,15 @@ class DashboardBuilder {
                 if (currentClient && currentClient.constructor.name === "PollingClient") {
                     return;
                 }
+                const client = this.clients[node.index] || this.sharedClient;
+                if (client) client.destroy();
                 setTimeout(() => {
                     const currentClientAsync = this.clients[node.index];
                     if (currentClientAsync && currentClientAsync.constructor.name === "PollingClient") {
                         return;
                     }
                     const viewer = this.viewers[node.index];
-                    const client = new PollingClient(node, viewer, onSubscribed, onClosed, onFailed, this.isGatewayMode);
+                    const client = new PollingClient(primaryNodeId, node, viewer, onSubscribed, onClosed, onFailed, this.isGatewayMode);
                     client.setMetricsViewer(this.metricsViewer);
                     this.configureViewerResolver(client);
                     if (this.isGatewayMode) {
@@ -382,10 +387,7 @@ class DashboardBuilder {
             this.rebuild();
         };
 
-        console.log("connecting node:", nodeIndex);
-        if (this.isGatewayMode && this.sharedClient) {
-            return;
-        }
+        console.log("connecting node:", nodeIndex, primaryNodeId);
 
         const node = this.nodes[nodeIndex];
         if (node.subscribed) return;
@@ -394,9 +396,9 @@ class DashboardBuilder {
 
         let client;
         if (node.endpoint.mode === "polling") {
-            client = new PollingClient(node, viewer, onSubscribed, onClosed, onFailed, this.isGatewayMode);
+            client = new PollingClient(primaryNodeId, node, viewer, onSubscribed, onClosed, onFailed, this.isGatewayMode);
         } else {
-            client = new WebsocketClient(node, viewer, onSubscribed, onClosed, onFailed, this.isGatewayMode);
+            client = new WebsocketClient(primaryNodeId, node, viewer, onSubscribed, onClosed, onFailed, this.isGatewayMode);
         }
         client.setMetricsViewer(this.metricsViewer);
         this.configureViewerResolver(client);

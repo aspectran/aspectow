@@ -22,8 +22,8 @@
  * @last-modified 2026-10-09
  */
 class WebsocketClient extends BaseClient {
-    constructor(node, viewer, onSubscribed, onClosed, onFailed, isGatewayMode) {
-        super(node, viewer, onSubscribed, onClosed, onFailed, isGatewayMode);
+    constructor(primaryNodeId, node, viewer, onSubscribed, onClosed, onFailed, isGatewayMode) {
+        super(primaryNodeId, node, viewer, onSubscribed, onClosed, onFailed, isGatewayMode);
         this.heartbeatInterval = 50000;
         this.heartbeatTimer = null;
         this.socket = null;
@@ -53,7 +53,7 @@ class WebsocketClient extends BaseClient {
                 return;
             }
             this.lastResumeReconnect = Date.now();
-            console.log(this.node.id, "WebSocket disconnected while in background, reconnecting immediately");
+            console.log(this.primaryNodeId, "WebSocket disconnected while in background, reconnecting immediately");
             this.closeSocket(true);
             this.reconnect(true);
         } else if (this.socket.readyState === WebSocket.OPEN) {
@@ -80,10 +80,10 @@ class WebsocketClient extends BaseClient {
                 clearTimeout(this.retryTimer);
                 this.retryTimer = null;
             }
-            console.log(this.node.id, "websocket connected");
+            console.log(this.primaryNodeId, "websocket connected");
 
             // Connect to the current node
-            this.connect(this.node.id);
+            this.subscribe();
             this.sendPing();
             this.retryCount = 0;
         };
@@ -108,9 +108,8 @@ class WebsocketClient extends BaseClient {
             }
 
             if (message.startsWith(":subscribed:")) {
-                const primary = message.startsWith(":subscribed:primary:");
                 const alive = message.endsWith(":alive");
-                this.establish(nodeId, primary, alive);
+                this.establish(nodeId, alive);
                 return;
             }
 
@@ -191,10 +190,10 @@ class WebsocketClient extends BaseClient {
         };
 
         this.socket.onerror = (event) => {
-            console.error(this.node.id, "websocket error:", event);
+            console.error(this.primaryNodeId, "websocket error:", event);
             if (!this.everConnected && this.node.endpoint.mode !== "polling") {
                 this.node.endpoint.mode = "polling";
-                this.printErrorMessage("WebSocket is not supported. Switching to polling mode.");
+                console.warn(this.primaryNodeId, "webSocket is not supported. Switching to polling mode.");
                 this.notifyFailed();
             } else {
                 this.printErrorMessage("Could not connect to the WebSocket server.");
@@ -203,8 +202,6 @@ class WebsocketClient extends BaseClient {
     }
 
     closeSocket(afterClosing) {
-        this.primary = false;
-        this.primaryNodeId = null;
         this.established = false;
         if (this.socket) {
             const socket = this.socket;
@@ -223,7 +220,7 @@ class WebsocketClient extends BaseClient {
         }
     }
 
-    connect(nodeId) {
+    subscribe() {
         const options = ["command:subscribe"];
         options.push("timeZone:" + Intl.DateTimeFormat().resolvedOptions().timeZone);
         if (this.nodeToSubscribe) {
@@ -232,32 +229,11 @@ class WebsocketClient extends BaseClient {
         if (this.appsToSubscribe) {
             options.push("appsToSubscribe:" + this.appsToSubscribe);
         }
-        this.sendCommand(options, nodeId);
+        this.sendCommand(options);
     }
 
-    establish(nodeId, primary, alive) {
-        this.established = true;
-        if (this.reconnecting && (!primary || !alive)) {
-            console.log("Reconnect attempt failed, node is not primary or alive");
-            if (this.onRequireRebuild) this.onRequireRebuild();
-            return;
-        }
-
-        if (primary) {
-            // If an unknown node becomes primary in Gateway mode
-            // (e.g., topology change or gateway node restart with a new ID),
-            // request a full dashboard rebuild to refresh cluster node configurations.
-            if (this.isGatewayMode && !this.getNodeConfig(nodeId)) {
-                this.stop();
-                if (this.onRequireRebuild) {
-                    console.log(nodeId, "unknown primary node detected, requesting full rebuild");
-                    this.onRequireRebuild();
-                }
-                return;
-            }
-            this.primary = true;
-            this.primaryNodeId = nodeId;
-        }
+    establish(nodeId, alive) {
+        const primary = (nodeId === this.primaryNodeId);
 
         const config = this.getNodeConfig(nodeId);
         if (config) {
@@ -267,25 +243,16 @@ class WebsocketClient extends BaseClient {
             }
         }
 
-        const viewer = this.getViewer(nodeId);
         if (primary) {
-            if (this.isGatewayMode && this.reconnecting) {
-                for (let id in this.clusterNodes) {
-                    if (id !== nodeId) {
-                        this.connect(id);
-                    }
-                }
-            }
-            this.reconnecting = false;
-        }
-        if (primary || !this.isGatewayMode) {
+            this.established = true;
             const options = ["command:established"];
             if (this.nodeToSubscribe) options.push("nodeToSubscribe:" + this.nodeToSubscribe);
             if (this.appsToSubscribe) options.push("appsToSubscribe:" + this.appsToSubscribe);
-            this.sendCommand(options, nodeId);
+            this.sendCommand(options);
         }
         if (!alive) {
-            viewer.printErrorMessage("Node " + nodeId + " not alive");
+            const viewer = this.getViewer(nodeId);
+            if (viewer) viewer.printErrorMessage("Node " + nodeId + " not alive");
         }
     }
 

@@ -152,10 +152,11 @@ public class WebsocketMessageRelayer extends SimplifiedEndpoint implements Messa
             return;
         }
         if (addSession(session)) {
-            messageRelayManager.registerSession(session.getId(), this);
-            WebsocketRelaySession relaySession = new WebsocketRelaySession(session);
             String nodeToSubscribe = commandOptions.getNodeToSubscribe();
             boolean isExplicitNode = StringUtils.hasText(nodeToSubscribe);
+
+            messageRelayManager.registerSession(session.getId(), this);
+            WebsocketRelaySession relaySession = new WebsocketRelaySession(session);
             if (isExplicitNode) {
                 relaySession.setSubscribedNodeId(nodeToSubscribe);
             }
@@ -177,12 +178,19 @@ public class WebsocketMessageRelayer extends SimplifiedEndpoint implements Messa
             if (appIds.length > 0) {
                 relaySession.setSubscribedApps(appIds);
             }
-            relay(relaySession, nodeId + "::" + RESPONSE_SUBSCRIBED + "primary:alive");
-            if (messageRelayManager.isGatewayMode() && !isExplicitNode) {
-                for (NodeInfo nodeInfo : messageRelayManager.getNodeRegistry().getNodes()) {
-                    if (!messageRelayManager.isSameNode(nodeInfo.getId())) {
-                        String remoteAlive = messageRelayManager.getNodeRegistry().isFound(nodeInfo.getId()) ? "alive" : "";
-                        relay(relaySession, nodeInfo.getId() + "::" + RESPONSE_SUBSCRIBED + remoteAlive);
+            relay(relaySession, nodeId + "::" + RESPONSE_SUBSCRIBED + "alive");
+            if (messageRelayManager.isGatewayMode()) {
+                if (isExplicitNode) {
+                    if (!messageRelayManager.isSameNode(nodeToSubscribe)) {
+                        String remoteAlive = messageRelayManager.getNodeRegistry().isFound(nodeToSubscribe) ? "alive" : "";
+                        relay(relaySession, nodeToSubscribe + "::" + RESPONSE_SUBSCRIBED + remoteAlive);
+                    }
+                } else {
+                    for (NodeInfo nodeInfo : messageRelayManager.getNodeRegistry().getNodes()) {
+                        if (!messageRelayManager.isSameNode(nodeInfo.getId())) {
+                            String remoteAlive = messageRelayManager.getNodeRegistry().isFound(nodeInfo.getId()) ? "alive" : "";
+                            relay(relaySession, nodeInfo.getId() + "::" + RESPONSE_SUBSCRIBED + remoteAlive);
+                        }
                     }
                 }
             }
