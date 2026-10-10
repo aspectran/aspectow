@@ -24,6 +24,8 @@ import org.jspecify.annotations.NonNull;
 
 import java.util.List;
 
+import static com.aspectran.aspectow.appmon.engine.relay.CommandOptions.COMMAND_REFRESH;
+
 /**
  * An exporter for collecting and broadcasting metric data.
  * It uses a {@link MetricReader} to read data and can periodically sample and export it.
@@ -102,6 +104,10 @@ public class MetricExporter extends AbstractExporter {
 
     @Override
     public void readIfChanged(@NonNull List<String> messages, CommandOptions commandOptions) {
+        if (commandOptions != null && commandOptions.hasCommand(COMMAND_REFRESH)) {
+            read(messages, commandOptions);
+            return;
+        }
         MetricData metricData = metricReader.getMetricDataIfChanged();
         if (metricData != null) {
             String json = metricData.toJson();

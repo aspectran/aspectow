@@ -710,7 +710,8 @@ public class MessageRelayManager {
 
     private void collectNewMessages(String appId, List<String> messages, CommandOptions commandOptions) {
         for (ExporterManager exporterManager : exporterManagers) {
-            if (appId == null || appId.equals(exporterManager.getAppId())) {
+            if (appId == null || appId.equals(exporterManager.getAppId()) ||
+                    exporterManager.getExporterType() == ExporterType.METRIC) {
                 exporterManager.collectNewMessages(messages, commandOptions);
             }
         }

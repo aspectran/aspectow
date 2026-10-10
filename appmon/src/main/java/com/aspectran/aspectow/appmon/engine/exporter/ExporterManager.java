@@ -61,6 +61,14 @@ public class ExporterManager {
     }
 
     /**
+     * Gets the type of exporters to manage.
+     * @return the {@link ExporterType}
+     */
+    public ExporterType getExporterType() {
+        return exporterType;
+    }
+
+    /**
      * Gets the main application manager.
      * @return the {@link AppMonManager}
      */
@@ -68,6 +76,10 @@ public class ExporterManager {
         return appMonManager;
     }
 
+    /**
+     * Gets the node id of the instance this manager belongs to.
+     * @return the node id
+     */
     public String getNodeId() {
         return appMonManager.getNodeId();
     }
