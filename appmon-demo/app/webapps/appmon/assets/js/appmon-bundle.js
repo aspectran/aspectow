@@ -22,7 +22,8 @@
  * @last-modified 2026-10-09
  */
 class BaseClient {
-    constructor(node, viewer, onSubscribed, onClosed, onFailed, isGatewayMode) {
+    constructor(primaryNodeId, node, viewer, onSubscribed, onClosed, onFailed, isGatewayMode) {
+        this.primaryNodeId = primaryNodeId;
         this.node = node;
         this.viewer = viewer;
         this.clusterViewers = {};
@@ -37,8 +38,6 @@ class BaseClient {
         this.isGatewayMode = isGatewayMode;
         this.nodeToSubscribe = null;
         this.appsToSubscribe = null;
-        this.primary = false;
-        this.primaryNodeId = node.id
         this.retryCount = 0;
         this.reconnecting = false;
         this.maxRetries = 10;
@@ -173,7 +172,7 @@ class BaseClient {
                 return;
             }
             this.lastResumeReconnect = Date.now();
-            console.log(this.node.id, "app/page resumed, attempting immediate reconnect");
+            console.log(this.primaryNodeId, "app/page resumed, attempting immediate reconnect");
             this.reconnect(true);
         }
     }
@@ -260,7 +259,7 @@ class BaseClient {
         if (immediate) {
             this.retryCount = 0;
             this.reconnecting = true;
-            console.log(this.node.id, "trying to reconnect immediately");
+            console.log(this.primaryNodeId, "trying to reconnect immediately");
             this.printMessage("Trying to reconnect immediately...");
             this.start(this.appsToSubscribe, this.nodeToSubscribe);
             return;
@@ -271,18 +270,18 @@ class BaseClient {
             const jitter = Math.floor(Math.random() * 1000);
             const retryInterval = (this.retryInterval * this.retryCount) + (nodeIndex * 200) + jitter;
             const status = "(" + this.retryCount + "/" + this.maxRetries + ", interval=" + retryInterval + "ms)";
-            console.log(this.node.id, "trying to reconnect", status);
+            console.log(this.primaryNodeId, "trying to reconnect", status);
             this.printMessage("Trying to reconnect... " + status);
             this.retryTimer = setTimeout(() => {
                 this.retryTimer = null;
                 this.start(this.appsToSubscribe, this.nodeToSubscribe);
             }, retryInterval);
         } else {
-            console.log(this.node.id, "max connection attempts exceeded");
+            console.log(this.primaryNodeId, "max connection attempts exceeded");
             this.printMessage("Max connection attempts exceeded.");
             this.notifyFailed();
             if (this.everConnected) {
-                console.log(this.node.id, "will keep retrying connection in background...");
+                console.log(this.primaryNodeId, "will keep retrying connection in background...");
                 this.retryTimer = setTimeout(() => {
                     this.retryTimer = null;
                     this.retryCount = Math.max(0, this.maxRetries - 2);
@@ -301,8 +300,8 @@ class BaseClient {
  * @last-modified 2026-10-09
  */
 class WebsocketClient extends BaseClient {
-    constructor(node, viewer, onSubscribed, onClosed, onFailed, isGatewayMode) {
-        super(node, viewer, onSubscribed, onClosed, onFailed, isGatewayMode);
+    constructor(primaryNodeId, node, viewer, onSubscribed, onClosed, onFailed, isGatewayMode) {
+        super(primaryNodeId, node, viewer, onSubscribed, onClosed, onFailed, isGatewayMode);
         this.heartbeatInterval = 50000;
         this.heartbeatTimer = null;
         this.socket = null;
@@ -332,7 +331,7 @@ class WebsocketClient extends BaseClient {
                 return;
             }
             this.lastResumeReconnect = Date.now();
-            console.log(this.node.id, "WebSocket disconnected while in background, reconnecting immediately");
+            console.log(this.primaryNodeId, "WebSocket disconnected while in background, reconnecting immediately");
             this.closeSocket(true);
             this.reconnect(true);
         } else if (this.socket.readyState === WebSocket.OPEN) {
@@ -359,10 +358,10 @@ class WebsocketClient extends BaseClient {
                 clearTimeout(this.retryTimer);
                 this.retryTimer = null;
             }
-            console.log(this.node.id, "websocket connected");
+            console.log(this.primaryNodeId, "websocket connected");
 
             // Connect to the current node
-            this.connect(this.node.id);
+            this.subscribe();
             this.sendPing();
             this.retryCount = 0;
         };
@@ -387,9 +386,8 @@ class WebsocketClient extends BaseClient {
             }
 
             if (message.startsWith(":subscribed:")) {
-                const primary = message.startsWith(":subscribed:primary:");
                 const alive = message.endsWith(":alive");
-                this.establish(nodeId, primary, alive);
+                this.establish(nodeId, alive);
                 return;
             }
 
@@ -470,10 +468,10 @@ class WebsocketClient extends BaseClient {
         };
 
         this.socket.onerror = (event) => {
-            console.error(this.node.id, "websocket error:", event);
+            console.error(this.primaryNodeId, "websocket error:", event);
             if (!this.everConnected && this.node.endpoint.mode !== "polling") {
                 this.node.endpoint.mode = "polling";
-                this.printErrorMessage("WebSocket is not supported. Switching to polling mode.");
+                console.warn(this.primaryNodeId, "webSocket is not supported. Switching to polling mode.");
                 this.notifyFailed();
             } else {
                 this.printErrorMessage("Could not connect to the WebSocket server.");
@@ -482,8 +480,6 @@ class WebsocketClient extends BaseClient {
     }
 
     closeSocket(afterClosing) {
-        this.primary = false;
-        this.primaryNodeId = null;
         this.established = false;
         if (this.socket) {
             const socket = this.socket;
@@ -502,7 +498,7 @@ class WebsocketClient extends BaseClient {
         }
     }
 
-    connect(nodeId) {
+    subscribe() {
         const options = ["command:subscribe"];
         options.push("timeZone:" + Intl.DateTimeFormat().resolvedOptions().timeZone);
         if (this.nodeToSubscribe) {
@@ -511,32 +507,11 @@ class WebsocketClient extends BaseClient {
         if (this.appsToSubscribe) {
             options.push("appsToSubscribe:" + this.appsToSubscribe);
         }
-        this.sendCommand(options, nodeId);
+        this.sendCommand(options);
     }
 
-    establish(nodeId, primary, alive) {
-        this.established = true;
-        if (this.reconnecting && (!primary || !alive)) {
-            console.log("Reconnect attempt failed, node is not primary or alive");
-            if (this.onRequireRebuild) this.onRequireRebuild();
-            return;
-        }
-
-        if (primary) {
-            // If an unknown node becomes primary in Gateway mode
-            // (e.g., topology change or gateway node restart with a new ID),
-            // request a full dashboard rebuild to refresh cluster node configurations.
-            if (this.isGatewayMode && !this.getNodeConfig(nodeId)) {
-                this.stop();
-                if (this.onRequireRebuild) {
-                    console.log(nodeId, "unknown primary node detected, requesting full rebuild");
-                    this.onRequireRebuild();
-                }
-                return;
-            }
-            this.primary = true;
-            this.primaryNodeId = nodeId;
-        }
+    establish(nodeId, alive) {
+        const primary = (nodeId === this.primaryNodeId);
 
         const config = this.getNodeConfig(nodeId);
         if (config) {
@@ -546,25 +521,16 @@ class WebsocketClient extends BaseClient {
             }
         }
 
-        const viewer = this.getViewer(nodeId);
         if (primary) {
-            if (this.isGatewayMode && this.reconnecting) {
-                for (let id in this.clusterNodes) {
-                    if (id !== nodeId) {
-                        this.connect(id);
-                    }
-                }
-            }
-            this.reconnecting = false;
-        }
-        if (primary || !this.isGatewayMode) {
+            this.established = true;
             const options = ["command:established"];
             if (this.nodeToSubscribe) options.push("nodeToSubscribe:" + this.nodeToSubscribe);
             if (this.appsToSubscribe) options.push("appsToSubscribe:" + this.appsToSubscribe);
-            this.sendCommand(options, nodeId);
+            this.sendCommand(options);
         }
         if (!alive) {
-            viewer.printErrorMessage("Node " + nodeId + " not alive");
+            const viewer = this.getViewer(nodeId);
+            if (viewer) viewer.printErrorMessage("Node " + nodeId + " not alive");
         }
     }
 
@@ -597,8 +563,8 @@ class WebsocketClient extends BaseClient {
  * @last-modified 2026-10-09
  */
 class PollingClient extends BaseClient {
-    constructor(node, viewer, onSubscribed, onClosed, onFailed, isGatewayMode = false) {
-        super(node, viewer, onSubscribed, onClosed, onFailed, isGatewayMode);
+    constructor(primaryNodeId, node, viewer, onSubscribed, onClosed, onFailed, isGatewayMode = false) {
+        super(primaryNodeId, node, viewer, onSubscribed, onClosed, onFailed, isGatewayMode);
         this.pendingCommands = [];
         this.pollingTimer = null;
         this.stopped = false;
@@ -615,7 +581,7 @@ class PollingClient extends BaseClient {
         this.stopped = false;
         this.nodeToSubscribe = nodeToSubscribe;
         this.appsToSubscribe = appsToSubscribe;
-        this.connect(this.node.id);
+        this.subscribe();
     }
 
     stop() {
@@ -635,17 +601,17 @@ class PollingClient extends BaseClient {
     }
 
     onResume() {
-        if (!this.stopped && (!this.everConnected || this.reconnecting)) {
+        if (!this.stopped && this.reconnecting) {
             if (this.lastResumeReconnect && (Date.now() - this.lastResumeReconnect < 500)) {
                 return;
             }
             this.lastResumeReconnect = Date.now();
-            console.log(this.node.id, "PollingClient resumed while disconnected, reconnecting immediately");
+            console.log(this.primaryNodeId, "PollingClient resumed while disconnected, reconnecting immediately");
             this.reconnect(true);
         }
     }
 
-    connect(nodeId) {
+    subscribe(nodeId) {
         $.ajax({
             url: this.node.endpoint.path + "/appmon/polling/subscribe",
             type: "post",
@@ -658,7 +624,7 @@ class PollingClient extends BaseClient {
             },
             success: (data) => {
                 if (data) {
-                    if (data.primary && !data.appsToSubscribe) {
+                    if (!data.appsToSubscribe) {
                         console.warn("No verified apps found. Please check the configuration of the backend.");
                         return;
                     }
@@ -669,17 +635,21 @@ class PollingClient extends BaseClient {
                         clearTimeout(this.retryTimer);
                         this.retryTimer = null;
                     }
-                    if (data.primary) {
-                        this.retryCount = 0;
-                        this.node.endpoint['mode'] = "polling";
-                        this.node.endpoint['pollingInterval'] = data.pollingInterval;
+                    this.retryCount = 0;
+                    this.node.endpoint['mode'] = "polling";
+                    this.node.endpoint['pollingInterval'] = data.pollingInterval;
+
+                    if (this.isGatewayMode) {
+                        for (let id in this.clusterNodes) {
+                            this.establish(id, data.nodeAliveMap && data.nodeAliveMap[id]);
+                        }
+                    } else {
+                        this.establish(this.primaryNodeId, true);
                     }
 
-                    this.establish(data.nodeId, data.primary, data.alive);
-
-                    if (this.primary && !this.stopped) {
+                    if (!this.stopped) {
                         this.appsToSubscribe = data.appsToSubscribe;
-                        this.poll();
+                        this.immediatePoll();
                     }
                 } else {
                     console.log(this.node.id, "connection failed");
@@ -737,6 +707,11 @@ class PollingClient extends BaseClient {
         });
     }
 
+    immediatePoll() {
+        if (this.pollingTimer) clearTimeout(this.pollingTimer);
+        this.pollingTimer = setTimeout(() => this.poll(), 500);
+    }
+
     changePollingInterval(speed) {
         $.ajax({
             url: this.node.endpoint.path + "/appmon/polling/interval",
@@ -772,13 +747,6 @@ class PollingClient extends BaseClient {
 
                 const nodeId = msg.substring(0, idx);
                 const message = msg.substring(idx + 1);
-
-                if (message.startsWith(":subscribed:")) {
-                    const primary = message.startsWith(":subscribed:primary:");
-                    const alive = message.endsWith(":alive");
-                    this.establish(nodeId, primary, alive);
-                    return;
-                }
 
                 if (this.isGatewayMode) {
                     if (message.startsWith(":node:joined:")) {
@@ -826,31 +794,8 @@ class PollingClient extends BaseClient {
         }
     }
 
-    establish(nodeId, primary, alive) {
-        this.established = true;
-        if (this.reconnecting && (!primary || !alive)) {
-            console.log("Reconnect attempt failed, node is not primary or alive");
-            if (this.onRequireRebuild) {
-                this.onRequireRebuild();
-            }
-            return;
-        }
-
-        if (primary) {
-            // If an unknown node becomes primary in Gateway mode
-            // (e.g., topology change or gateway node restart with a new ID),
-            // request a full dashboard rebuild to refresh cluster node configurations.
-            if (this.isGatewayMode && !this.getNodeConfig(nodeId)) {
-                this.stop();
-                if (this.onRequireRebuild) {
-                    console.log(nodeId, "unknown primary node detected, requesting full rebuild");
-                    this.onRequireRebuild();
-                }
-                return;
-            }
-            this.primary = true;
-            this.primaryNodeId = nodeId;
-        }
+    establish(nodeId, alive) {
+        const primary = (nodeId === this.primaryNodeId);
 
         const config = this.getNodeConfig(nodeId);
         if (config) {
@@ -861,23 +806,12 @@ class PollingClient extends BaseClient {
         }
 
         const viewer = this.getViewer(nodeId);
-        if (!alive) {
-            viewer.printErrorMessage("Node " + nodeId + " not alive");
-        } else {
-            viewer.printMessage("Polling every " + this.node.endpoint.pollingInterval + " milliseconds.");
-        }
-        if (primary) {
-            if (this.isGatewayMode && this.reconnecting) {
-                for (let id in this.clusterNodes) {
-                    if (id !== nodeId) {
-                        this.connect(id);
-                    }
-                }
+        if (viewer) {
+            if (!alive) {
+                viewer.printErrorMessage("Node " + nodeId + " not alive");
+            } else {
+                viewer.printMessage(nodeId + "Polling every " + this.node.endpoint.pollingInterval + " milliseconds.");
             }
-            this.reconnecting = false;
-        }
-        if (primary || !this.isGatewayMode) {
-            this.sendCommand(["command:established"], nodeId);
         }
     }
 
@@ -889,6 +823,9 @@ class PollingClient extends BaseClient {
             console.log("send", cmd);
             if (!this.pendingCommands.includes(cmd)) {
                 this.pendingCommands.push(cmd);
+            }
+            if (cmd.startsWith("command:refresh;")) {
+                this.immediatePoll();
             }
         }
     }
@@ -3126,7 +3063,7 @@ class DashboardBuilder {
                             subscribeAttempts: 0
                         };
                         node.endpoint.mode = node.endpoint.mode || "auto";
-                        node.endpoint.path = baseUrl + node.endpoint.path + "/" + node.id;
+                        node.endpoint.path = baseUrl + node.endpoint.path;
                         node.endpoint.token = data.token;
                         this.nodes.push(node);
                         this.viewers[node.index] = new DashboardViewer(this.counterPersistInterval * 60, this.options);
@@ -3212,9 +3149,10 @@ class DashboardBuilder {
                                 initialNodeIndex = myIndex;
                             }
                         }
+                        const primaryNodeId = data.myNodeId || this.nodes[initialNodeIndex].id;
                         console.log("cluster mode:", this.clusterMode);
                         console.log("endpoint mode:", this.nodes[initialNodeIndex].endpoint.mode);
-                        this.connect(initialNodeIndex);
+                        this.connect(initialNodeIndex, primaryNodeId);
                     }
                 }
             },
@@ -3270,7 +3208,7 @@ class DashboardBuilder {
         });
     }
 
-    connect(nodeIndex) {
+    connect(nodeIndex, primaryNodeId) {
         const onSubscribed = (node, primary) => {
             if (node.subscribed && node.subscribeAttempts > 0) return;
             if (primary) {
@@ -3296,7 +3234,7 @@ class DashboardBuilder {
             const activeApp = this.apps.find(a => a.active);
             if (activeApp) {
                 this.updateVisibility(activeApp.id);
-                const shouldRefresh = this.isGatewayMode ? primary : (node.index === this.nodes.length - 1);
+                const shouldRefresh = this.isGatewayMode && primary || (this.nodes.length === 1);
                 if (shouldRefresh) {
                     const client = this.clients[node.index];
                     if (client && client.focus) {
@@ -3306,8 +3244,10 @@ class DashboardBuilder {
                 }
             }
             if (!this.isGatewayMode && node.subscribeAttempts === 1 && node.index + 1 < this.nodes.length) {
-                console.log("connecting next node:", node.index + 1);
-                this.connect(node.index + 1);
+                const nextNodeIndex = node.index + 1;
+                const primaryNodeId = this.nodes[nextNodeIndex].id;
+                console.log("connecting next node:", nextNodeIndex, primaryNodeId);
+                this.connect(nextNodeIndex, primaryNodeId);
             }
         };
 
@@ -3329,13 +3269,15 @@ class DashboardBuilder {
                 if (currentClient && currentClient.constructor.name === "PollingClient") {
                     return;
                 }
+                const client = this.clients[node.index] || this.sharedClient;
+                if (client) client.destroy();
                 setTimeout(() => {
                     const currentClientAsync = this.clients[node.index];
                     if (currentClientAsync && currentClientAsync.constructor.name === "PollingClient") {
                         return;
                     }
                     const viewer = this.viewers[node.index];
-                    const client = new PollingClient(node, viewer, onSubscribed, onClosed, onFailed, this.isGatewayMode);
+                    const client = new PollingClient(primaryNodeId, node, viewer, onSubscribed, onClosed, onFailed, this.isGatewayMode);
                     client.setMetricsViewer(this.metricsViewer);
                     this.configureViewerResolver(client);
                     if (this.isGatewayMode) {
@@ -3404,10 +3346,7 @@ class DashboardBuilder {
             this.rebuild();
         };
 
-        console.log("connecting node:", nodeIndex);
-        if (this.isGatewayMode && this.sharedClient) {
-            return;
-        }
+        console.log("connecting node:", nodeIndex, primaryNodeId);
 
         const node = this.nodes[nodeIndex];
         if (node.subscribed) return;
@@ -3416,9 +3355,9 @@ class DashboardBuilder {
 
         let client;
         if (node.endpoint.mode === "polling") {
-            client = new PollingClient(node, viewer, onSubscribed, onClosed, onFailed, this.isGatewayMode);
+            client = new PollingClient(primaryNodeId, node, viewer, onSubscribed, onClosed, onFailed, this.isGatewayMode);
         } else {
-            client = new WebsocketClient(node, viewer, onSubscribed, onClosed, onFailed, this.isGatewayMode);
+            client = new WebsocketClient(primaryNodeId, node, viewer, onSubscribed, onClosed, onFailed, this.isGatewayMode);
         }
         client.setMetricsViewer(this.metricsViewer);
         this.configureViewerResolver(client);
