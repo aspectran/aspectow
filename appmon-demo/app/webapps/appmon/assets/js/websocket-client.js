@@ -108,6 +108,9 @@ class WebsocketClient extends BaseClient {
             }
 
             if (message.startsWith(":subscribed:")) {
+                if (this.isGatewayMode && !this.established) {
+                    this.primaryNodeId = nodeId;
+                }
                 const alive = message.endsWith(":alive");
                 this.establish(nodeId, alive);
                 return;
@@ -151,7 +154,7 @@ class WebsocketClient extends BaseClient {
                 const viewer = this.getViewer(nodeId);
                 if (viewer) {
                     viewer.processMessage(nodeId, message);
-                } else {
+                } else if (!this.isGatewayMode || this.clusterNodes[nodeId]) {
                     console.warn("No viewer registered for nodeId:", nodeId, "Message:", message);
                 }
             }
@@ -193,6 +196,14 @@ class WebsocketClient extends BaseClient {
             console.error(this.primaryNodeId, "websocket error:", event);
             if (!this.everConnected && this.node.endpoint.mode !== "polling") {
                 this.node.endpoint.mode = "polling";
+                if (this.isGatewayMode) {
+                    for (let id in this.clusterNodes) {
+                        const config = this.clusterNodes[id];
+                        if (config && config.node && config.node.endpoint) {
+                            config.node.endpoint.mode = "polling";
+                        }
+                    }
+                }
                 console.warn(this.primaryNodeId, "webSocket is not supported. Switching to polling mode.");
                 this.notifyFailed();
             } else {
@@ -243,7 +254,8 @@ class WebsocketClient extends BaseClient {
             }
         }
 
-        if (primary) {
+        const shouldSendEstablished = this.isGatewayMode ? !this.established : primary;
+        if (shouldSendEstablished) {
             this.established = true;
             const options = ["command:established"];
             if (this.nodeToSubscribe) options.push("nodeToSubscribe:" + this.nodeToSubscribe);

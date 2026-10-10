@@ -97,6 +97,10 @@ class PollingClient extends BaseClient {
                     this.node.endpoint['mode'] = "polling";
                     this.node.endpoint['pollingInterval'] = data.pollingInterval;
 
+                    if (data.nodeId) {
+                        this.primaryNodeId = data.nodeId;
+                    }
+
                     if (this.isGatewayMode) {
                         for (let id in this.clusterNodes) {
                             this.establish(id, data.nodeAliveMap && data.nodeAliveMap[id]);
@@ -244,7 +248,7 @@ class PollingClient extends BaseClient {
                     const viewer = this.getViewer(nodeId);
                     if (viewer) {
                         viewer.processMessage(nodeId, message);
-                    } else {
+                    } else if (!this.isGatewayMode || this.clusterNodes[nodeId]) {
                         console.warn("No viewer registered for nodeId:", nodeId, "Message:", message);
                     }
                 }

@@ -100,7 +100,7 @@ public class PollingMessageRelayer implements MessageRelayer {
     public Map<String, Object> subscribe(@NonNull Translet translet) throws IOException {
         String nodeId = translet.getParameter("nodeId");
         Assert.hasText(nodeId, "Node ID cannot be empty");
-        if (!messageRelayManager.isSameNode(nodeId)) {
+        if (!messageRelayManager.isGatewayMode() && !messageRelayManager.isSameNode(nodeId)) {
             return null;
         }
 
@@ -126,11 +126,11 @@ public class PollingMessageRelayer implements MessageRelayer {
         }
         messageRelayManager.registerSession(relaySession.getId(), this);
 
-        String targetNodeId = (isExplicitNode ? nodeToSubscribe : nodeId);
+        String targetNodeId = (isExplicitNode ? nodeToSubscribe : appMonManager.getNodeId());
         messageRelayManager.subscribe(relaySession, targetNodeId, isExplicitNode);
 
         Map<String, Boolean> nodeAliveMap = new HashMap<>();
-        nodeAliveMap.put(nodeId, true);
+        nodeAliveMap.put(appMonManager.getNodeId(), true);
         if (messageRelayManager.isGatewayMode()) {
             if (isExplicitNode) {
                 if (!messageRelayManager.isSameNode(nodeToSubscribe)) {
@@ -145,11 +145,12 @@ public class PollingMessageRelayer implements MessageRelayer {
             }
         }
 
-        return Map.of(
-                "appsToSubscribe", StringUtils.join(appIds, ","),
-                "pollingInterval", relaySession.getPollingInterval(),
-                "nodeAliveMap", nodeAliveMap
-        );
+        Map<String, Object> data = new HashMap<>();
+        data.put("nodeId", appMonManager.getNodeId());
+        data.put("appsToSubscribe", StringUtils.join(appIds, ","));
+        data.put("pollingInterval", relaySession.getPollingInterval());
+        data.put("nodeAliveMap", nodeAliveMap);
+        return data;
     }
 
     /**
@@ -213,7 +214,7 @@ public class PollingMessageRelayer implements MessageRelayer {
 
     private void focus(@NonNull PollingRelaySession relaySession, @NonNull CommandOptions commandOptions) {
         String nodeId = commandOptions.getNodeId();
-        if (messageRelayManager.isSameNode(nodeId)) {
+        if (messageRelayManager.isGatewayMode() || messageRelayManager.isSameNode(nodeId)) {
             String focusedAppId = commandOptions.getAppId();
             relaySession.setFocusedAppId(focusedAppId);
         }
@@ -221,6 +222,7 @@ public class PollingMessageRelayer implements MessageRelayer {
 
     private void select(@NonNull PollingRelaySession relaySession, @NonNull CommandOptions commandOptions) {
         relaySession.setSelectedNodeId(commandOptions.getNodeToSelect());
+        relaySession.setSelectedGroupId(commandOptions.getGroupId());
     }
 
     private void refreshData(@NonNull PollingRelaySession relaySession, @NonNull CommandOptions commandOptions) {
@@ -246,10 +248,10 @@ public class PollingMessageRelayer implements MessageRelayer {
             return null;
         }
 
+        PollingConfig pollingConfig = appMonManager.getPollingConfig();
         if (speed == 1) {
-            relaySession.setPollingInterval(1000);
+            relaySession.setPollingInterval(Math.min(pollingConfig.getPollingInterval(), 1000));
         } else {
-            PollingConfig pollingConfig = appMonManager.getPollingConfig();
             relaySession.setPollingInterval(pollingConfig.getPollingInterval());
         }
 

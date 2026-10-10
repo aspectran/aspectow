@@ -38,6 +38,8 @@ public class WebsocketRelaySession extends WrappedSession implements RelaySessio
 
     private static final String SELECTED_NODE_ID_PROPERTY = "appmon:selectedNodeId";
 
+    private static final String SELECTED_GROUP_ID_PROPERTY = "appmon:selectedGroupId";
+
     private static final String LAST_INDICATION_TIMES_PROPERTY = "appmon:lastIndicationTimes";
 
     private static final String TIME_ZONE_PROPERTY = "appmon:timeZone";
@@ -103,6 +105,20 @@ public class WebsocketRelaySession extends WrappedSession implements RelaySessio
             getSession().getUserProperties().put(SELECTED_NODE_ID_PROPERTY, nodeId);
         } else {
             getSession().getUserProperties().remove(SELECTED_NODE_ID_PROPERTY);
+        }
+    }
+
+    @Override
+    public String getSelectedGroupId() {
+        return (String)getSession().getUserProperties().get(SELECTED_GROUP_ID_PROPERTY);
+    }
+
+    @Override
+    public void setSelectedGroupId(String groupId) {
+        if (StringUtils.hasText(groupId)) {
+            getSession().getUserProperties().put(SELECTED_GROUP_ID_PROPERTY, groupId);
+        } else {
+            getSession().getUserProperties().remove(SELECTED_GROUP_ID_PROPERTY);
         }
     }
 

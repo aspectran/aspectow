@@ -60,6 +60,18 @@ public interface RelaySession {
     void setSelectedNodeId(String nodeId);
 
     /**
+     * Gets the ID of the group currently selected dynamically by the client.
+     * @return the selected group ID, or {@code null} if not specified
+     */
+    String getSelectedGroupId();
+
+    /**
+     * Sets the ID of the group currently selected dynamically by the client.
+     * @param groupId the selected group ID, or {@code null} if not specified
+     */
+    void setSelectedGroupId(String groupId);
+
+    /**
      * Checks whether an indication event for the specified node should be throttled.
      * If not throttled, records the current time as the last indication time.
      * @param nodeId the node ID

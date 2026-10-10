@@ -64,6 +64,8 @@ public class PollingRelaySession implements RelaySession {
 
     private String selectedNodeId;
 
+    private String selectedGroupId;
+
     private String timeZone;
 
     private String focusedAppId;
@@ -154,6 +156,20 @@ public class PollingRelaySession implements RelaySession {
             this.selectedNodeId = nodeId;
         } else {
             this.selectedNodeId = null;
+        }
+    }
+
+    @Override
+    public String getSelectedGroupId() {
+        return selectedGroupId;
+    }
+
+    @Override
+    public void setSelectedGroupId(String groupId) {
+        if (StringUtils.hasText(groupId)) {
+            this.selectedGroupId = groupId;
+        } else {
+            this.selectedGroupId = null;
         }
     }
 

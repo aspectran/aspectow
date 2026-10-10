@@ -211,6 +211,7 @@ class DashboardBuilder {
     }
 
     rebuild() {
+        this.initialRefreshed = false;
         if (this.nodeJoinedTimer) {
             clearTimeout(this.nodeJoinedTimer);
             this.nodeJoinedTimer = null;
@@ -275,8 +276,11 @@ class DashboardBuilder {
             const activeApp = this.apps.find(a => a.active);
             if (activeApp) {
                 this.updateVisibility(activeApp.id);
-                const shouldRefresh = this.isGatewayMode && primary || (this.nodes.length === 1);
+                const shouldRefresh = (this.isGatewayMode && !this.initialRefreshed) || primary || (this.nodes.length === 1);
                 if (shouldRefresh) {
+                    if (this.isGatewayMode) {
+                        this.initialRefreshed = true;
+                    }
                     const client = this.clients[node.index];
                     if (client && client.focus) {
                         client.focus(activeApp.id, node.id);
@@ -310,7 +314,7 @@ class DashboardBuilder {
                 if (currentClient && currentClient.constructor.name === "PollingClient") {
                     return;
                 }
-                const client = this.clients[node.index] || this.sharedClient;
+                const client = this.clients[node.index];
                 if (client) client.destroy();
                 setTimeout(() => {
                     const currentClientAsync = this.clients[node.index];
@@ -322,8 +326,8 @@ class DashboardBuilder {
                     client.setMetricsViewer(this.metricsViewer);
                     this.configureViewerResolver(client);
                     if (this.isGatewayMode) {
-                        this.sharedClient = client;
                         this.nodes.forEach(n => {
+                            n.endpoint.mode = "polling";
                             const v = this.viewers[n.index];
                             client.addClusterViewer(n.id, v);
                             client.addClusterNode(n, (nodeObj, primaryFlag) => {
@@ -340,6 +344,7 @@ class DashboardBuilder {
                         viewer.setClient(client);
                         this.clients[node.index] = client;
                     }
+                    this.updateSpeedOptionsVisibility();
                     client.start(this.appsToSubscribe, this.nodeToSubscribe);
                 }, (node.index - 1) * 1000);
             }
@@ -403,7 +408,6 @@ class DashboardBuilder {
         client.setMetricsViewer(this.metricsViewer);
         this.configureViewerResolver(client);
         if (this.isGatewayMode) {
-            this.sharedClient = client;
             this.nodes.forEach(n => {
                 const v = this.viewers[n.index];
                 client.addClusterViewer(n.id, v);
@@ -443,14 +447,18 @@ class DashboardBuilder {
 
     sendSelectCommand(selectedNodeId) {
         const targetNodeToSelect = selectedNodeId || "";
-        if (this.isGatewayMode && this.sharedClient && this.sharedClient.select) {
-            this.sharedClient.select(targetNodeToSelect);
+        const currentGroupId = this.currentGroupId || "";
+        if (this.isGatewayMode) {
+            const client = this.clients.find(c => c);
+            if (client && client.select) {
+                client.select(targetNodeToSelect, null, currentGroupId);
+            }
         } else {
             this.nodes.forEach(n => {
-                if (n.group === this.currentGroupId) {
+                if (n.group === currentGroupId) {
                     const client = this.clients[n.index];
                     if (client && client.select) {
-                        client.select(targetNodeToSelect, n.id);
+                        client.select(targetNodeToSelect, n.id, currentGroupId);
                     }
                 }
             });
@@ -731,12 +739,19 @@ class DashboardBuilder {
         this.updateNodeTabs();
     }
 
+    updateSpeedOptionsVisibility() {
+        const isPolling = this.nodes.some(d => d.endpoint && d.endpoint.mode === "polling") ||
+            this.clients.some(c => c && c.constructor.name === "PollingClient");
+        if (isPolling) {
+            $(".speed-options").removeClass("d-none hide").show();
+        } else {
+            $(".speed-options").addClass("d-none").hide();
+        }
+    }
+
     initView() {
         if (this.groups.length) $(".group-bar").show();
-        $(".speed-options").addClass("hide");
-        if (this.nodes.some(d => d.endpoint.mode === "polling")) {
-            $(".speed-options").removeClass("hide");
-        }
+        this.updateSpeedOptionsVisibility();
         this.apps.forEach(app => {
             const $eventBox = $(`.event-box[data-app-id=${app.id}]`);
             const $chartsBox = $(`.charts-box[data-app-id=${app.id}]`);
@@ -797,9 +812,9 @@ class DashboardBuilder {
             const $btn = $(e.currentTarget);
             const faster = !$btn.hasClass("on");
             $btn.toggleClass("on", faster);
-            this.nodes.forEach(node => {
-                if (node.endpoint.mode === "polling") {
-                    this.clients[node.index].changePollingInterval(faster ? 1 : 0);
+            [...new Set(this.clients)].forEach(client => {
+                if (client && typeof client.changePollingInterval === "function") {
+                    client.changePollingInterval(faster ? 1 : 0);
                 }
             });
         });
@@ -1047,7 +1062,7 @@ class DashboardBuilder {
                 if (aliveNodesInGroup.length > 0) {
                     const repNode = aliveNodesInGroup.find(n => n.primary) || aliveNodesInGroup[0];
                     const chartOptions = [...options];
-                    const repClient = this.clients[repNode.index] || this.sharedClient;
+                    const repClient = this.clients[repNode.index];
                     if (repClient) {
                         repClient.refresh(chartOptions, repNode.id, "group");
                     }
@@ -1055,7 +1070,7 @@ class DashboardBuilder {
                     aliveNodesInGroup.forEach(node => {
                         const refreshOptions = ["appId:" + appId, "scope:none"];
                         if (withLogs) refreshOptions.push("withLogs:true");
-                        const client = this.clients[node.index] || this.sharedClient;
+                        const client = this.clients[node.index];
                         if (client) {
                             client.refresh(refreshOptions, node.id);
                         }
@@ -1068,7 +1083,7 @@ class DashboardBuilder {
                     if (withLogs) this.clearConsole(selectedNode.index);
                     const nodeOptions = [...options];
                     if (withLogs) nodeOptions.push("withLogs:true");
-                    const client = this.clients[selectedNode.index] || this.sharedClient;
+                    const client = this.clients[selectedNode.index];
                     if (client) {
                         client.refresh(nodeOptions, selectedNode.id);
                     }
@@ -1086,7 +1101,7 @@ class DashboardBuilder {
             clearTimeout(this.nodeJoinedTimer);
             this.nodeJoinedTimer = null;
         }
-        this.clients.forEach(client => {
+        [...new Set(this.clients)].forEach(client => {
             if (client) client.stop();
         });
         this.viewers.forEach(viewer => {
@@ -1095,7 +1110,6 @@ class DashboardBuilder {
         Object.values(this.groupViewers).forEach(viewer => {
             if (viewer) viewer.setEnable(false);
         });
-        this.sharedClient = null;
     }
 
     showLoadingMessage() {

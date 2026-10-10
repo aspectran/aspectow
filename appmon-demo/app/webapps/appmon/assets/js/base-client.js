@@ -215,11 +215,15 @@ class BaseClient {
         this.sendCommand(cmdOptions, nodeId);
     }
 
-    select(nodeToSelect, nodeId) {
-        this.sendCommand([
+    select(nodeToSelect, nodeId, groupId) {
+        const options = [
             "command:select",
             "nodeToSelect:" + (nodeToSelect || "")
-        ], nodeId);
+        ];
+        if (groupId) {
+            options.push("groupId:" + groupId);
+        }
+        this.sendCommand(options, nodeId);
     }
 
     focus(appId, nodeId) {

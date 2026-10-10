@@ -148,7 +148,7 @@ public class WebsocketMessageRelayer extends SimplifiedEndpoint implements Messa
     private void subscribe(Session session, @NonNull CommandOptions commandOptions) {
         String nodeId = commandOptions.getNodeId();
         Assert.hasText(nodeId, "Node ID cannot be empty");
-        if (!messageRelayManager.isSameNode(nodeId)) {
+        if (!messageRelayManager.isGatewayMode() && !messageRelayManager.isSameNode(nodeId)) {
             return;
         }
         if (addSession(session)) {
@@ -178,7 +178,7 @@ public class WebsocketMessageRelayer extends SimplifiedEndpoint implements Messa
             if (appIds.length > 0) {
                 relaySession.setSubscribedApps(appIds);
             }
-            relay(relaySession, nodeId + "::" + RESPONSE_SUBSCRIBED + "alive");
+            relay(relaySession, appMonManager.getNodeId() + "::" + RESPONSE_SUBSCRIBED + "alive");
             if (messageRelayManager.isGatewayMode()) {
                 if (isExplicitNode) {
                     if (!messageRelayManager.isSameNode(nodeToSubscribe)) {
@@ -209,7 +209,7 @@ public class WebsocketMessageRelayer extends SimplifiedEndpoint implements Messa
 
     private void focus(@NonNull Session session, @NonNull CommandOptions commandOptions) {
         String nodeId = commandOptions.getNodeId();
-        if (messageRelayManager.isSameNode(nodeId)) {
+        if (messageRelayManager.isGatewayMode() || messageRelayManager.isSameNode(nodeId)) {
             String focusedAppId = commandOptions.getAppId();
             RelaySession relaySession = new WebsocketRelaySession(session);
             relaySession.setFocusedAppId(focusedAppId);
@@ -219,6 +219,7 @@ public class WebsocketMessageRelayer extends SimplifiedEndpoint implements Messa
     private void select(@NonNull Session session, @NonNull CommandOptions commandOptions) {
         RelaySession relaySession = new WebsocketRelaySession(session);
         relaySession.setSelectedNodeId(commandOptions.getNodeToSelect());
+        relaySession.setSelectedGroupId(commandOptions.getGroupId());
     }
 
     private void refreshData(@NonNull Session session, @NonNull CommandOptions commandOptions) {
