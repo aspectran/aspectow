@@ -22,8 +22,8 @@
  * @last-modified 2026-10-09
  */
 class WebsocketClient extends BaseClient {
-    constructor(primaryNodeId, node, viewer, onSubscribed, onClosed, onFailed, isGatewayMode) {
-        super(primaryNodeId, node, viewer, onSubscribed, onClosed, onFailed, isGatewayMode);
+    constructor(node, viewer, onSubscribed, onClosed, onFailed, isGatewayMode) {
+        super(node, viewer, onSubscribed, onClosed, onFailed, isGatewayMode);
         this.heartbeatInterval = 50000;
         this.heartbeatTimer = null;
         this.socket = null;
@@ -53,7 +53,7 @@ class WebsocketClient extends BaseClient {
                 return;
             }
             this.lastResumeReconnect = Date.now();
-            console.log(this.primaryNodeId, "WebSocket disconnected while in background, reconnecting immediately");
+            console.log(this.getConnectedNodeId(), "WebSocket disconnected while in background, reconnecting immediately");
             this.closeSocket(true);
             this.reconnect(true);
         } else if (this.socket.readyState === WebSocket.OPEN) {
@@ -80,7 +80,7 @@ class WebsocketClient extends BaseClient {
                 clearTimeout(this.retryTimer);
                 this.retryTimer = null;
             }
-            console.log(this.primaryNodeId, "websocket connected");
+            console.log(this.getConnectedNodeId(), "websocket connected");
 
             // Connect to the current node
             this.subscribe();
@@ -109,7 +109,7 @@ class WebsocketClient extends BaseClient {
 
             if (message.startsWith(":subscribed:")) {
                 if (this.isGatewayMode && !this.established) {
-                    this.primaryNodeId = nodeId;
+                    this.setConnectedNodeId(nodeId);
                 }
                 const alive = message.endsWith(":alive");
                 this.establish(nodeId, alive);
@@ -193,7 +193,7 @@ class WebsocketClient extends BaseClient {
         };
 
         this.socket.onerror = (event) => {
-            console.error(this.primaryNodeId, "websocket error:", event);
+            console.error(this.getConnectedNodeId(), "websocket error:", event);
             if (!this.everConnected && this.node.endpoint.mode !== "polling") {
                 this.node.endpoint.mode = "polling";
                 if (this.isGatewayMode) {
@@ -204,7 +204,7 @@ class WebsocketClient extends BaseClient {
                         }
                     }
                 }
-                console.warn(this.primaryNodeId, "webSocket is not supported. Switching to polling mode.");
+                console.warn(this.getConnectedNodeId(), "webSocket is not supported. Switching to polling mode.");
                 this.notifyFailed();
             } else {
                 this.printErrorMessage("Could not connect to the WebSocket server.");
@@ -244,7 +244,7 @@ class WebsocketClient extends BaseClient {
     }
 
     establish(nodeId, alive) {
-        const primary = (nodeId === this.primaryNodeId);
+        const primary = (nodeId === this.getConnectedNodeId());
 
         const config = this.getNodeConfig(nodeId);
         if (config) {
@@ -271,7 +271,7 @@ class WebsocketClient extends BaseClient {
     sendCommand(options, nodeId) {
         if (options && this.socket && this.socket.readyState === WebSocket.OPEN) {
             const arr = options.slice();
-            arr.push("nodeId:" + (nodeId || this.primaryNodeId));
+            arr.push("nodeId:" + (nodeId || this.getConnectedNodeId()));
             const cmd = arr.join(";");
             console.log("send", cmd);
             this.socket.send(cmd);

@@ -21,8 +21,8 @@
  * @last-modified 2026-10-09
  */
 class PollingClient extends BaseClient {
-    constructor(primaryNodeId, node, viewer, onSubscribed, onClosed, onFailed, isGatewayMode = false) {
-        super(primaryNodeId, node, viewer, onSubscribed, onClosed, onFailed, isGatewayMode);
+    constructor(node, viewer, onSubscribed, onClosed, onFailed, isGatewayMode = false) {
+        super(node, viewer, onSubscribed, onClosed, onFailed, isGatewayMode);
         this.pendingCommands = [];
         this.pollingTimer = null;
         this.stopped = false;
@@ -45,9 +45,8 @@ class PollingClient extends BaseClient {
     stop() {
         super.stop();
         this.stopped = true;
-        this.primary = false;
-        this.primaryNodeId = null;
         this.established = false;
+        this.setConnectedNodeId(null);
         if (this.pollingTimer) {
             clearTimeout(this.pollingTimer);
             this.pollingTimer = null;
@@ -64,7 +63,7 @@ class PollingClient extends BaseClient {
                 return;
             }
             this.lastResumeReconnect = Date.now();
-            console.log(this.primaryNodeId, "PollingClient resumed while disconnected, reconnecting immediately");
+            console.log(this.getConnectedNodeId(), "PollingClient resumed while disconnected, reconnecting immediately");
             this.reconnect(true);
         }
     }
@@ -98,7 +97,7 @@ class PollingClient extends BaseClient {
                     this.node.endpoint['pollingInterval'] = data.pollingInterval;
 
                     if (data.nodeId) {
-                        this.primaryNodeId = data.nodeId;
+                        this.setConnectedNodeId(data.nodeId);
                     }
 
                     if (this.isGatewayMode) {
@@ -106,7 +105,7 @@ class PollingClient extends BaseClient {
                             this.establish(id, data.nodeAliveMap && data.nodeAliveMap[id]);
                         }
                     } else {
-                        this.establish(this.primaryNodeId, true);
+                        this.establish(this.getConnectedNodeId(), true);
                     }
 
                     if (!this.stopped) {
@@ -114,13 +113,13 @@ class PollingClient extends BaseClient {
                         this.immediatePoll();
                     }
                 } else {
-                    console.log(this.node.id, "connection failed");
+                    console.log(this.getConnectedNodeId(), "connection failed");
                     this.printErrorMessage("Connection failed.");
                     this.reconnect();
                 }
             },
             error: (xhr, status, error) => {
-                console.log(this.node.id, "connection failed", error);
+                console.log(this.getConnectedNodeId(), "connection failed", error);
                 this.printErrorMessage("Connection failed.");
                 this.reconnect();
             }
@@ -150,7 +149,7 @@ class PollingClient extends BaseClient {
                         this.poll();
                     }, interval);
                 } else {
-                    console.log(this.node.id, "connection lost");
+                    console.log(this.getConnectedNodeId(), "connection lost");
                     this.printErrorMessage("Connection lost.");
                     this.notifyClosed();
                     this.reconnect();
@@ -161,7 +160,7 @@ class PollingClient extends BaseClient {
                 if (commands && commands.length) {
                     this.pendingCommands.unshift(...commands);
                 }
-                console.log(this.node.id, "connection lost", error);
+                console.log(this.getConnectedNodeId(), "connection lost", error);
                 this.printErrorMessage("Connection lost.");
                 this.notifyClosed();
                 this.reconnect();
@@ -184,19 +183,16 @@ class PollingClient extends BaseClient {
                 if (data && data.pollingInterval) {
                     this.node.endpoint.pollingInterval = data.pollingInterval;
                     console.log(this.node.id, "pollingInterval", data.pollingInterval);
-                    this.viewer.printMessage("Polling every " + data.pollingInterval + " milliseconds.");
                     if (this.pollingTimer) {
                         clearTimeout(this.pollingTimer);
                         this.pollingTimer = setTimeout(() => this.poll(), data.pollingInterval);
                     }
                 } else {
                     console.log(this.node.id, "failed to change polling interval");
-                    this.viewer.printMessage("Failed to change polling interval.");
                 }
             },
             error: (xhr, status, error) => {
                 console.log(this.node.id, "failed to change polling interval", error);
-                this.viewer.printMessage("Failed to change polling interval.");
             }
         });
     }
@@ -257,7 +253,7 @@ class PollingClient extends BaseClient {
     }
 
     establish(nodeId, alive) {
-        const primary = (nodeId === this.primaryNodeId);
+        const primary = (nodeId === this.getConnectedNodeId());
 
         const config = this.getNodeConfig(nodeId);
         if (config) {
@@ -280,7 +276,7 @@ class PollingClient extends BaseClient {
     sendCommand(options, nodeId) {
         if (options) {
             let arr = options.slice();
-            arr.push("nodeId:" + (nodeId || this.primaryNodeId));
+            arr.push("nodeId:" + (nodeId || this.getConnectedNodeId()));
             const cmd = arr.join(";");
             console.log("send", cmd);
             if (!this.pendingCommands.includes(cmd)) {

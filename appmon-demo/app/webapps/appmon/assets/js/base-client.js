@@ -22,8 +22,7 @@
  * @last-modified 2026-10-09
  */
 class BaseClient {
-    constructor(primaryNodeId, node, viewer, onSubscribed, onClosed, onFailed, isGatewayMode) {
-        this.primaryNodeId = primaryNodeId;
+    constructor(node, viewer, onSubscribed, onClosed, onFailed, isGatewayMode) {
         this.node = node;
         this.viewer = viewer;
         this.clusterViewers = {};
@@ -36,6 +35,7 @@ class BaseClient {
         this.onNodeLeft = null;
         this.onRequireRebuild = null;
         this.isGatewayMode = isGatewayMode;
+        this.connectedNodeId = null;
         this.nodeToSubscribe = null;
         this.appsToSubscribe = null;
         this.retryCount = 0;
@@ -163,6 +163,14 @@ class BaseClient {
         return false;
     }
 
+    getConnectedNodeId() {
+        return this.connectedNodeId || (this.node ? this.node.id : null);
+    }
+
+    setConnectedNodeId(nodeId) {
+        this.connectedNodeId = nodeId;
+    }
+
     /**
      * Called when the page becomes visible or active again (e.g. after returning from mobile background).
      */
@@ -172,7 +180,7 @@ class BaseClient {
                 return;
             }
             this.lastResumeReconnect = Date.now();
-            console.log(this.primaryNodeId, "app/page resumed, attempting immediate reconnect");
+            console.log(this.getConnectedNodeId(), "app/page resumed, attempting immediate reconnect");
             this.reconnect(true);
         }
     }
@@ -263,7 +271,7 @@ class BaseClient {
         if (immediate) {
             this.retryCount = 0;
             this.reconnecting = true;
-            console.log(this.primaryNodeId, "trying to reconnect immediately");
+            console.log(this.getConnectedNodeId(), "trying to reconnect immediately");
             this.printMessage("Trying to reconnect immediately...");
             this.start(this.appsToSubscribe, this.nodeToSubscribe);
             return;
@@ -274,18 +282,18 @@ class BaseClient {
             const jitter = Math.floor(Math.random() * 1000);
             const retryInterval = (this.retryInterval * this.retryCount) + (nodeIndex * 200) + jitter;
             const status = "(" + this.retryCount + "/" + this.maxRetries + ", interval=" + retryInterval + "ms)";
-            console.log(this.primaryNodeId, "trying to reconnect", status);
+            console.log(this.getConnectedNodeId(), "trying to reconnect", status);
             this.printMessage("Trying to reconnect... " + status);
             this.retryTimer = setTimeout(() => {
                 this.retryTimer = null;
                 this.start(this.appsToSubscribe, this.nodeToSubscribe);
             }, retryInterval);
         } else {
-            console.log(this.primaryNodeId, "max connection attempts exceeded");
+            console.log(this.getConnectedNodeId(), "max connection attempts exceeded");
             this.printMessage("Max connection attempts exceeded.");
             this.notifyFailed();
             if (this.everConnected) {
-                console.log(this.primaryNodeId, "will keep retrying connection in background...");
+                console.log(this.getConnectedNodeId(), "will keep retrying connection in background...");
                 this.retryTimer = setTimeout(() => {
                     this.retryTimer = null;
                     this.retryCount = Math.max(0, this.maxRetries - 2);

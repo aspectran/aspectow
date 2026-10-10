@@ -190,10 +190,9 @@ class DashboardBuilder {
                                 initialNodeIndex = myIndex;
                             }
                         }
-                        const primaryNodeId = data.myNodeId || this.nodes[initialNodeIndex].id;
                         console.log("cluster mode:", this.clusterMode);
                         console.log("endpoint mode:", this.nodes[initialNodeIndex].endpoint.mode);
-                        this.connect(initialNodeIndex, primaryNodeId);
+                        this.connect(initialNodeIndex);
                     }
                 }
             },
@@ -211,7 +210,6 @@ class DashboardBuilder {
     }
 
     rebuild() {
-        this.initialRefreshed = false;
         if (this.nodeJoinedTimer) {
             clearTimeout(this.nodeJoinedTimer);
             this.nodeJoinedTimer = null;
@@ -250,7 +248,7 @@ class DashboardBuilder {
         });
     }
 
-    connect(nodeIndex, primaryNodeId) {
+    connect(nodeIndex) {
         const onSubscribed = (node, primary) => {
             if (node.subscribed && node.subscribeAttempts > 0) return;
             if (primary) {
@@ -276,23 +274,27 @@ class DashboardBuilder {
             const activeApp = this.apps.find(a => a.active);
             if (activeApp) {
                 this.updateVisibility(activeApp.id);
-                const shouldRefresh = (this.isGatewayMode && !this.initialRefreshed) || primary || (this.nodes.length === 1);
+                const client = this.clients[node.index];
+                if (client && client.focus) {
+                    client.focus(activeApp.id, node.id);
+                }
+                const groupId = this.currentGroupId;
+                const nodesInGroup = this.nodes.filter(n => n.group === groupId);
+                const isSingleNodeGroup = (nodesInGroup.length <= 1);
+                const selectedNodeId = isSingleNodeGroup ? (nodesInGroup[0] ? nodesInGroup[0].id : null) : this.selectedNodeIdByGroup[groupId];
+                const isGroupView = !isSingleNodeGroup && !selectedNodeId;
+
+                const shouldRefresh = (isGroupView && (!node.group || node.group === groupId)) ||
+                    (!isGroupView && node.id === selectedNodeId) ||
+                    (this.nodes.length === 1);
                 if (shouldRefresh) {
-                    if (this.isGatewayMode) {
-                        this.initialRefreshed = true;
-                    }
-                    const client = this.clients[node.index];
-                    if (client && client.focus) {
-                        client.focus(activeApp.id, node.id);
-                    }
                     this.refreshData(activeApp.id, true);
                 }
             }
             if (!this.isGatewayMode && node.subscribeAttempts === 1 && node.index + 1 < this.nodes.length) {
                 const nextNodeIndex = node.index + 1;
-                const primaryNodeId = this.nodes[nextNodeIndex].id;
-                console.log("connecting next node:", nextNodeIndex, primaryNodeId);
-                this.connect(nextNodeIndex, primaryNodeId);
+                console.log("connecting next node:", nextNodeIndex);
+                this.connect(nextNodeIndex);
             }
         };
 
@@ -322,7 +324,7 @@ class DashboardBuilder {
                         return;
                     }
                     const viewer = this.viewers[node.index];
-                    const client = new PollingClient(primaryNodeId, node, viewer, onSubscribed, onClosed, onFailed, this.isGatewayMode);
+                    const client = new PollingClient(node, viewer, onSubscribed, onClosed, onFailed, this.isGatewayMode);
                     client.setMetricsViewer(this.metricsViewer);
                     this.configureViewerResolver(client);
                     if (this.isGatewayMode) {
@@ -392,7 +394,7 @@ class DashboardBuilder {
             this.rebuild();
         };
 
-        console.log("connecting node:", nodeIndex, primaryNodeId);
+        console.log("connecting node:", nodeIndex);
 
         const node = this.nodes[nodeIndex];
         if (node.subscribed) return;
@@ -401,9 +403,9 @@ class DashboardBuilder {
 
         let client;
         if (node.endpoint.mode === "polling") {
-            client = new PollingClient(primaryNodeId, node, viewer, onSubscribed, onClosed, onFailed, this.isGatewayMode);
+            client = new PollingClient(node, viewer, onSubscribed, onClosed, onFailed, this.isGatewayMode);
         } else {
-            client = new WebsocketClient(primaryNodeId, node, viewer, onSubscribed, onClosed, onFailed, this.isGatewayMode);
+            client = new WebsocketClient(node, viewer, onSubscribed, onClosed, onFailed, this.isGatewayMode);
         }
         client.setMetricsViewer(this.metricsViewer);
         this.configureViewerResolver(client);
@@ -811,7 +813,7 @@ class DashboardBuilder {
         $(".speed-options .btn").off().on("click", (e) => {
             const $btn = $(e.currentTarget);
             const faster = !$btn.hasClass("on");
-            $btn.toggleClass("on", faster);
+            $(".speed-options .btn").toggleClass("on", faster);
             [...new Set(this.clients)].forEach(client => {
                 if (client && typeof client.changePollingInterval === "function") {
                     client.changePollingInterval(faster ? 1 : 0);
@@ -1015,6 +1017,10 @@ class DashboardBuilder {
             this.refreshTimer = null;
         }
 
+        if (withLogs) {
+            this.pendingRefreshWithLogs = true;
+        }
+
         const groupId = this.currentGroupId;
         const nodesInGroup = this.nodes.filter(n => n.group === groupId);
         const isSingleNodeGroup = (nodesInGroup.length <= 1);
@@ -1045,10 +1051,13 @@ class DashboardBuilder {
 
         this.refreshTimer = setTimeout(() => {
             this.refreshTimer = null;
+            const refreshWithLogs = this.pendingRefreshWithLogs;
+            this.pendingRefreshWithLogs = false;
+
             if (isGroupView) {
                 const groupViewer = this.groupViewers[groupId];
                 if (groupViewer) groupViewer.setLoading(appId, true);
-                if (withLogs && groupViewer) {
+                if (refreshWithLogs && groupViewer) {
                     if (groupViewer.clearAllConsoles) {
                         groupViewer.clearAllConsoles();
                     } else {
@@ -1069,7 +1078,7 @@ class DashboardBuilder {
 
                     aliveNodesInGroup.forEach(node => {
                         const refreshOptions = ["appId:" + appId, "scope:none"];
-                        if (withLogs) refreshOptions.push("withLogs:true");
+                        if (refreshWithLogs) refreshOptions.push("withLogs:true");
                         const client = this.clients[node.index];
                         if (client) {
                             client.refresh(refreshOptions, node.id);
@@ -1080,16 +1089,16 @@ class DashboardBuilder {
                 const selectedNode = this.nodes.find(n => n.id === selectedNodeId);
                 if (selectedNode) {
                     this.viewers[selectedNode.index].setLoading(appId, true);
-                    if (withLogs) this.clearConsole(selectedNode.index);
+                    if (refreshWithLogs) this.clearConsole(selectedNode.index);
                     const nodeOptions = [...options];
-                    if (withLogs) nodeOptions.push("withLogs:true");
+                    if (refreshWithLogs) nodeOptions.push("withLogs:true");
                     const client = this.clients[selectedNode.index];
                     if (client) {
                         client.refresh(nodeOptions, selectedNode.id);
                     }
                 }
             }
-        }, 50);
+        }, 100);
     }
 
     suspendMonitoring() {
