@@ -54,15 +54,11 @@ public class MessageRelayManager {
 
     private static final char DELIMITER = ':';
 
-    private static final long INDICATE_THROTTLE_INTERVAL_MILLIS = 400L;
-
     private final Map<String, MessageRelayer> sessionRelayerMap = new ConcurrentHashMap<>();
 
     private final List<ExporterManager> exporterManagers = new CopyOnWriteArrayList<>();
 
     private final SubscriptionRegistry subscriptionRegistry = new SubscriptionRegistry();
-
-    private final Map<String, String> nodeGroupMap = new ConcurrentHashMap<>();
 
     private final String nodeId;
 
@@ -174,9 +170,6 @@ public class MessageRelayManager {
      */
     public void nodeJoined(@NonNull NodeInfo info) {
         if (!isSameNode(info.getId())) {
-            if (info.getGroup() != null) {
-                nodeGroupMap.put(info.getId(), info.getGroup());
-            }
             JsonBuilder jsonBuilder = new JsonBuilder()
                     .nullWritable(false)
                     .prettyPrint(false)
@@ -220,9 +213,6 @@ public class MessageRelayManager {
      */
     public void nodeStatusChanged(@NonNull NodeInfo info) {
         if (!isSameNode(info.getId())) {
-            if (info.getGroup() != null) {
-                nodeGroupMap.put(info.getId(), info.getGroup());
-            }
             JsonBuilder jsonBuilder = new JsonBuilder()
                     .nullWritable(false)
                     .prettyPrint(false)
@@ -238,7 +228,6 @@ public class MessageRelayManager {
      */
     public void nodeLeft(String nodeId) {
         if (!isSameNode(nodeId)) {
-            nodeGroupMap.remove(nodeId);
             relayLocally(nodeId + "::node:left");
         }
     }
@@ -365,63 +354,9 @@ public class MessageRelayManager {
                 return;
             }
         }
-        String selectedGroupId = session.getSelectedGroupId();
-        String selectedNodeId = session.getSelectedNodeId();
-        boolean isBackground = false;
-        if (StringUtils.hasText(selectedNodeId)) {
-            if (messageNodeId != null && !selectedNodeId.equals(messageNodeId)) {
-                isBackground = true;
-            }
-        } else if (StringUtils.hasText(selectedGroupId)) {
-            String messageGroupId = resolveGroupId(messageNodeId);
-            if (messageGroupId != null && !selectedGroupId.equals(messageGroupId)) {
-                isBackground = true;
-            }
-        }
-        if (isBackground) {
-            // In Node View mode or background group mode, handle messages from background nodes:
-            ExporterType type = extractExporterType(message);
-            if (type == ExporterType.METRIC) {
-                // Metrics are always relayed to maintain continuous real-time charts
-                if (session.isValid()) {
-                    relayer.relay(session, message);
-                }
-            } else if (type == ExporterType.EVENT) {
-                // Throttle event notifications to lightweight ping for tab indicator blinking
-                if (!session.shouldThrottleIndication(messageNodeId, INDICATE_THROTTLE_INTERVAL_MILLIS)) {
-                    if (session.isValid()) {
-                        String indicateMessage = messageNodeId + DELIMITER +
-                                (messageAppId != null ? messageAppId : "") + DELIMITER +
-                                ExporterType.EVENT + DELIMITER + "_indicate" + DELIMITER;
-                        relayer.relay(session, indicateMessage);
-                    }
-                }
-            }
-            // Other types (log stream, full chart data) are skipped for background nodes
-            return;
-        }
         if (session.isValid()) {
             relayer.relay(session, message);
         }
-    }
-
-    @Nullable
-    private String resolveGroupId(@Nullable String targetNodeId) {
-        if (targetNodeId == null) {
-            return null;
-        }
-        if (nodeId.equals(targetNodeId)) {
-            return groupId;
-        }
-        return nodeGroupMap.computeIfAbsent(targetNodeId, id -> {
-            if (nodeRegistry != null) {
-                NodeInfo info = nodeRegistry.getNodeInfo(id);
-                if (info != null) {
-                    return info.getGroup();
-                }
-            }
-            return null;
-        });
     }
 
     @Nullable
@@ -462,15 +397,9 @@ public class MessageRelayManager {
         return null;
     }
 
-    @Nullable
-    private ExporterType extractExporterType(@NonNull String message) {
-        String type = extractType(message);
-        return (type != null ? ExporterType.resolve(type) : null);
-    }
-
     private boolean isFocusedOn(@NonNull String message) {
-        ExporterType type = extractExporterType(message);
-        return (type != ExporterType.EVENT && type != ExporterType.METRIC);
+        String type = extractType(message);
+        return (!"event".equals(type) && !"metric".equals(type));
     }
 
     /**

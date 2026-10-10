@@ -46,7 +46,6 @@ import java.util.Map;
 import static com.aspectran.aspectow.appmon.engine.relay.CommandOptions.COMMAND_FOCUS;
 import static com.aspectran.aspectow.appmon.engine.relay.CommandOptions.COMMAND_LOAD_PREVIOUS;
 import static com.aspectran.aspectow.appmon.engine.relay.CommandOptions.COMMAND_REFRESH;
-import static com.aspectran.aspectow.appmon.engine.relay.CommandOptions.COMMAND_SELECT;
 import static com.aspectran.aspectow.node.manager.NodeMessageProtocol.NODES_BASE_PATH;
 
 /**
@@ -197,9 +196,6 @@ public class PollingMessageRelayer implements MessageRelayer {
             case COMMAND_FOCUS:
                 focus(relaySession, commandOptions);
                 break;
-            case COMMAND_SELECT:
-                select(relaySession, commandOptions);
-                break;
         }
     }
 
@@ -218,11 +214,6 @@ public class PollingMessageRelayer implements MessageRelayer {
             String focusedAppId = commandOptions.getAppId();
             relaySession.setFocusedAppId(focusedAppId);
         }
-    }
-
-    private void select(@NonNull PollingRelaySession relaySession, @NonNull CommandOptions commandOptions) {
-        relaySession.setSelectedNodeId(commandOptions.getNodeToSelect());
-        relaySession.setSelectedGroupId(commandOptions.getGroupId());
     }
 
     private void refreshData(@NonNull PollingRelaySession relaySession, @NonNull CommandOptions commandOptions) {

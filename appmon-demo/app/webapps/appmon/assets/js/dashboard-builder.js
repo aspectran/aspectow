@@ -447,26 +447,6 @@ class DashboardBuilder {
         }
     }
 
-    sendSelectCommand(selectedNodeId) {
-        const targetNodeToSelect = selectedNodeId || "";
-        const currentGroupId = this.currentGroupId || "";
-        if (this.isGatewayMode) {
-            const client = this.clients.find(c => c);
-            if (client && client.select) {
-                client.select(targetNodeToSelect, null, currentGroupId);
-            }
-        } else {
-            this.nodes.forEach(n => {
-                if (n.group === currentGroupId) {
-                    const client = this.clients[n.index];
-                    if (client && client.select) {
-                        client.select(targetNodeToSelect, n.id, currentGroupId);
-                    }
-                }
-            });
-        }
-    }
-
     changeNode(nodeIndex) {
         const node = this.nodes[nodeIndex];
         if (!node) return;
@@ -476,7 +456,6 @@ class DashboardBuilder {
             // Single node in group: keep node active and trigger refresh
             node.active = true;
             this.selectedNodeIdByGroup[this.currentGroupId] = node.id;
-            this.sendSelectCommand(node.id);
             this.updateNodeTabs();
             const activeApp = this.apps.find(a => a.active);
             if (activeApp) {
@@ -502,9 +481,6 @@ class DashboardBuilder {
         } else {
             delete this.selectedNodeIdByGroup[this.currentGroupId];
         }
-
-        const selectedNodeId = this.selectedNodeIdByGroup[this.currentGroupId] || "";
-        this.sendSelectCommand(selectedNodeId);
 
         this.updateNodeTabs();
 
@@ -684,8 +660,6 @@ class DashboardBuilder {
                 node.active = false; // Start in Group View mode when multiple nodes
             }
         });
-
-        this.sendSelectCommand(selectedNodeId || "");
 
         // Filter App Tabs
         this.apps.forEach(app => {

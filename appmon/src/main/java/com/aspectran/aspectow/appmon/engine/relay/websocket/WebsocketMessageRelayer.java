@@ -43,7 +43,6 @@ import static com.aspectran.aspectow.appmon.engine.relay.CommandOptions.COMMAND_
 import static com.aspectran.aspectow.appmon.engine.relay.CommandOptions.COMMAND_LOAD_PREVIOUS;
 import static com.aspectran.aspectow.appmon.engine.relay.CommandOptions.COMMAND_PING;
 import static com.aspectran.aspectow.appmon.engine.relay.CommandOptions.COMMAND_REFRESH;
-import static com.aspectran.aspectow.appmon.engine.relay.CommandOptions.COMMAND_SELECT;
 import static com.aspectran.aspectow.appmon.engine.relay.CommandOptions.COMMAND_SUBSCRIBE;
 import static com.aspectran.aspectow.node.manager.NodeMessageProtocol.NODES_BASE_PATH;
 
@@ -126,9 +125,6 @@ public class WebsocketMessageRelayer extends SimplifiedEndpoint implements Messa
                 break;
             case COMMAND_FOCUS:
                 focus(session, commandOptions);
-                break;
-            case COMMAND_SELECT:
-                select(session, commandOptions);
                 break;
         }
     }
@@ -214,12 +210,6 @@ public class WebsocketMessageRelayer extends SimplifiedEndpoint implements Messa
             RelaySession relaySession = new WebsocketRelaySession(session);
             relaySession.setFocusedAppId(focusedAppId);
         }
-    }
-
-    private void select(@NonNull Session session, @NonNull CommandOptions commandOptions) {
-        RelaySession relaySession = new WebsocketRelaySession(session);
-        relaySession.setSelectedNodeId(commandOptions.getNodeToSelect());
-        relaySession.setSelectedGroupId(commandOptions.getGroupId());
     }
 
     private void refreshData(@NonNull Session session, @NonNull CommandOptions commandOptions) {

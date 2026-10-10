@@ -22,8 +22,6 @@ import com.aspectran.utils.timer.CyclicTimeout;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -48,8 +46,6 @@ public class PollingRelaySession implements RelaySession {
 
     private final List<String> messageQueue = new ArrayList<>();
 
-    private final Map<String, Long> lastIndicationTimes = new ConcurrentHashMap<>();
-
     private volatile int sessionTimeout;
 
     private volatile int pollingInterval;
@@ -61,10 +57,6 @@ public class PollingRelaySession implements RelaySession {
     private String[] subscribedApps;
 
     private String subscribedNodeId;
-
-    private String selectedNodeId;
-
-    private String selectedGroupId;
 
     private String timeZone;
 
@@ -143,48 +135,6 @@ public class PollingRelaySession implements RelaySession {
         } else {
             this.subscribedNodeId = null;
         }
-    }
-
-    @Override
-    public String getSelectedNodeId() {
-        return selectedNodeId;
-    }
-
-    @Override
-    public void setSelectedNodeId(String nodeId) {
-        if (StringUtils.hasText(nodeId)) {
-            this.selectedNodeId = nodeId;
-        } else {
-            this.selectedNodeId = null;
-        }
-    }
-
-    @Override
-    public String getSelectedGroupId() {
-        return selectedGroupId;
-    }
-
-    @Override
-    public void setSelectedGroupId(String groupId) {
-        if (StringUtils.hasText(groupId)) {
-            this.selectedGroupId = groupId;
-        } else {
-            this.selectedGroupId = null;
-        }
-    }
-
-    @Override
-    public boolean shouldThrottleIndication(String nodeId, long intervalMillis) {
-        if (!StringUtils.hasText(nodeId)) {
-            return false;
-        }
-        long now = System.currentTimeMillis();
-        Long last = lastIndicationTimes.get(nodeId);
-        if (last != null && now - last < intervalMillis) {
-            return true;
-        }
-        lastIndicationTimes.put(nodeId, now);
-        return false;
     }
 
     @Override

@@ -48,39 +48,6 @@ public interface RelaySession {
     void setSubscribedNodeId(String nodeId);
 
     /**
-     * Gets the ID of the node currently selected dynamically by the client.
-     * @return the selected node ID, or {@code null} if in group view mode
-     */
-    String getSelectedNodeId();
-
-    /**
-     * Sets the ID of the node currently selected dynamically by the client.
-     * @param nodeId the selected node ID, or {@code null} for group view mode
-     */
-    void setSelectedNodeId(String nodeId);
-
-    /**
-     * Gets the ID of the group currently selected dynamically by the client.
-     * @return the selected group ID, or {@code null} if not specified
-     */
-    String getSelectedGroupId();
-
-    /**
-     * Sets the ID of the group currently selected dynamically by the client.
-     * @param groupId the selected group ID, or {@code null} if not specified
-     */
-    void setSelectedGroupId(String groupId);
-
-    /**
-     * Checks whether an indication event for the specified node should be throttled.
-     * If not throttled, records the current time as the last indication time.
-     * @param nodeId the node ID
-     * @param intervalMillis the throttle interval in milliseconds
-     * @return {@code true} if throttled (should skip), {@code false} if allowed
-     */
-    boolean shouldThrottleIndication(String nodeId, long intervalMillis);
-
-    /**
      * Gets the names of the apps that this session has subscribed to.
      * @return an array of app names
      */
