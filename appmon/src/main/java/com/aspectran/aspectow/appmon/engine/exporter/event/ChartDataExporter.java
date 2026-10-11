@@ -79,7 +79,7 @@ public class ChartDataExporter extends AbstractExporter implements EventCountRol
 
     @Override
     public void read(@NonNull List<String> messages, CommandOptions commandOptions) {
-        if (commandOptions != null && "none".equalsIgnoreCase(commandOptions.getScope())) {
+        if (commandOptions != null && commandOptions.isNoneScope()) {
             return;
         }
         messages.add(prefix + readChartData(commandOptions));
@@ -89,7 +89,7 @@ public class ChartDataExporter extends AbstractExporter implements EventCountRol
     public void readIfChanged(@NonNull List<String> messages, CommandOptions commandOptions) {
         if (commandOptions != null) {
             if (commandOptions.hasCommand(CommandOptions.COMMAND_LOAD_PREVIOUS) ||
-                    "none".equalsIgnoreCase(commandOptions.getScope())) {
+                    commandOptions.isNoneScope()) {
                 return;
             }
         }
@@ -124,8 +124,7 @@ public class ChartDataExporter extends AbstractExporter implements EventCountRol
         String timeZone = (commandOptions != null ? commandOptions.getTimeZone() : null);
         String dateUnit = (commandOptions != null ? commandOptions.getDateUnit() : null);
         String dateOffsetStr = (commandOptions != null ? commandOptions.getDateOffset() : null);
-        String scope = (commandOptions != null ? commandOptions.getScope() : null);
-        boolean isGroupScope = "group".equalsIgnoreCase(scope);
+        boolean isGroupScope = (commandOptions != null && commandOptions.isGroupScope());
 
         int zoneOffsetInSeconds = 0;
         if (timeZone != null) {
