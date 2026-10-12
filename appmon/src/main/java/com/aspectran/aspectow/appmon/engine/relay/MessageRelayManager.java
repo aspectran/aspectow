@@ -367,7 +367,8 @@ public class MessageRelayManager {
         if (messageAppId != null) {
             String focusedAppId = session.getFocusedAppId();
             if (focusedAppId != null && !focusedAppId.equals(messageAppId)) {
-                if (isFocusedOn(message)) {
+                message = filterUnfocusedMessage(message, messageNodeId, messageAppId);
+                if (message == null) {
                     return;
                 }
             }
@@ -400,21 +401,23 @@ public class MessageRelayManager {
         return null;
     }
 
-
-    private boolean isFocusedOn(@NonNull String message) {
+    @Nullable
+    private String filterUnfocusedMessage(
+            @NonNull String message, @Nullable String messageNodeId, @NonNull String messageAppId) {
         int idx1 = message.indexOf(DELIMITER);
         if (idx1 != -1) {
             int idx2 = message.indexOf(DELIMITER, idx1 + 1);
             if (idx2 != -1) {
                 int start = idx2 + 1;
-                if (message.startsWith("event:", start) ||
-                        message.startsWith("metric:", start) ||
-                        message.startsWith("metric/", start)) {
-                    return false;
+                if (message.startsWith("metric:", start) || message.startsWith("metric/", start)) {
+                    return message;
+                }
+                if (message.startsWith("event:activity:", start)) {
+                    return (messageNodeId != null ? messageNodeId : "") + DELIMITER + messageAppId + ":event:_indicate:";
                 }
             }
         }
-        return true;
+        return null;
     }
 
     /**

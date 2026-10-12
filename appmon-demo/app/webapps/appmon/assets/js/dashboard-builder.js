@@ -19,7 +19,7 @@
  * Responsible for assembling the dashboard UI based on configuration data.
  *
  * @version 4.3
- * @last-modified 2026-10-09
+ * @last-modified 2026-10-12
  */
 class DashboardBuilder {
     constructor(options = {}) {
@@ -562,7 +562,7 @@ class DashboardBuilder {
             }
         });
 
-        this.updateMetricsVisibility();
+        this.updateMetricsVisibility(appId);
     }
 
     isMetricsExpanded(groupId) {
@@ -574,7 +574,11 @@ class DashboardBuilder {
         return (nodesInGroup.length <= 4);
     }
 
-    updateMetricsVisibility() {
+    updateMetricsVisibility(appId) {
+        if (!appId) {
+            const activeApp = this.apps.find(a => a.active);
+            appId = (activeApp ? activeApp.id : null);
+        }
         const groupId = this.currentGroupId;
         const nodesInGroup = this.nodes.filter(n => n.group === groupId);
         const isSingleNodeGroup = (nodesInGroup.length <= 1);
@@ -594,6 +598,7 @@ class DashboardBuilder {
                     const node = this.nodes[nodeIdx];
                     if (node && node.group === groupId) {
                         $(el).show();
+                        $(el).find(".app-metrics").hide();
                     }
                 });
             } else {
@@ -606,7 +611,19 @@ class DashboardBuilder {
             const targetNodeId = isSingleNodeGroup ? (nodesInGroup[0] ? nodesInGroup[0].id : null) : selectedNodeId;
             const selectedNode = this.nodes.find(n => n.id === targetNodeId && n.group === groupId);
             if (selectedNode) {
-                $(`.node.metrics-bar[data-node-index=${selectedNode.index}][data-has-metrics=true]`).show();
+                const $bar = $(`.node.metrics-bar[data-node-index=${selectedNode.index}][data-has-metrics=true]`).show();
+                if (appId) {
+                    const $currentAppMetrics = $bar.find(`.app-metrics .metric[data-app-id=${appId}]`);
+                    $bar.find(`.app-metrics .metric[data-app-id!=${appId}]`).hide();
+                    if ($currentAppMetrics.length > 0) {
+                        $currentAppMetrics.show();
+                        $bar.find(".app-metrics").show();
+                    } else {
+                        $bar.find(".app-metrics").hide();
+                    }
+                } else {
+                    $bar.find(".app-metrics").hide();
+                }
             }
         }
     }
