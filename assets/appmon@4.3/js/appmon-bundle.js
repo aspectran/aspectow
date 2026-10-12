@@ -3066,11 +3066,12 @@ class DashboardBuilder {
                         if (this.nodeToSubscribe && this.nodeToSubscribe !== nodeInfo.id) {
                             return;
                         }
+                        const isOffline = (nodeInfo.status && nodeInfo.status.toLowerCase() === "offline");
                         const node = {
                             ...nodeInfo,
                             index: index++,
                             active: false,
-                            alive: false,
+                            alive: !isOffline,
                             primary: false,
                             subscribed: false,
                             subscribeAttempts: 0
@@ -3605,9 +3606,10 @@ class DashboardBuilder {
         $indicator.removeClass($indicator.data("icon-connected") + " connected " +
                            $indicator.data("icon-disconnected") + " disconnected " +
                            $indicator.data("icon-error") + " error");
+        const isOffline = (node.status && node.status.toLowerCase() === "offline");
         if (errorOccurred) {
             $indicator.addClass($indicator.data("icon-error") + " error");
-        } else if (node.subscribed && node.alive) {
+        } else if (!isOffline && node.subscribed && node.alive) {
             $indicator.addClass($indicator.data("icon-connected") + " connected");
         } else {
             $indicator.addClass($indicator.data("icon-disconnected") + " disconnected");
@@ -4153,6 +4155,7 @@ class DashboardBuilder {
         this.nodes.forEach(node => {
             const $nodeTab = this.addNodeTab(node);
             const $nodeIndicator = $nodeTab.find(".indicator");
+            this.changeNodeState(node);
             this.viewers[node.index].putIndicator$("node", "event", "", $nodeIndicator);
             if (node.group && this.groupViewers[node.group]) {
                 this.groupViewers[node.group].putNodeIndicator$(node.id, $nodeIndicator);

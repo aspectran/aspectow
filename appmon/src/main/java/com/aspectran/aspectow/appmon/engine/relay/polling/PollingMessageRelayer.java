@@ -133,12 +133,12 @@ public class PollingMessageRelayer implements MessageRelayer {
         if (messageRelayManager.isGatewayMode()) {
             if (isExplicitNode) {
                 if (!messageRelayManager.isSameNode(nodeToSubscribe)) {
-                    nodeAliveMap.put(nodeToSubscribe, messageRelayManager.getNodeRegistry().isFound(nodeToSubscribe));
+                    nodeAliveMap.put(nodeToSubscribe, isRemoteNodeAlive(nodeToSubscribe));
                 }
             } else {
-                for (NodeInfo nodeInfo : messageRelayManager.getNodeRegistry().getNodes()) {
+                for (NodeInfo nodeInfo : appMonManager.getNodeInfoList()) {
                     if (!messageRelayManager.isSameNode(nodeInfo.getId())) {
-                        nodeAliveMap.put(nodeInfo.getId(), messageRelayManager.getNodeRegistry().isFound(nodeInfo.getId()));
+                        nodeAliveMap.put(nodeInfo.getId(), isRemoteNodeAlive(nodeInfo.getId()));
                     }
                 }
             }
@@ -264,6 +264,14 @@ public class PollingMessageRelayer implements MessageRelayer {
     @Override
     public void relay(RelaySession relaySession, String message) {
         pollingSessionManager.push(relaySession, message);
+    }
+
+    private boolean isRemoteNodeAlive(String nodeId) {
+        if (nodeId == null) {
+            return false;
+        }
+        NodeInfo nodeInfo = appMonManager.getNodeInfo(nodeId);
+        return (nodeInfo != null && !"offline".equalsIgnoreCase(nodeInfo.getStatus()));
     }
 
 }

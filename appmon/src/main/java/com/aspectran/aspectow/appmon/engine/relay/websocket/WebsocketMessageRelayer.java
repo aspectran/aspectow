@@ -178,19 +178,27 @@ public class WebsocketMessageRelayer extends SimplifiedEndpoint implements Messa
             if (messageRelayManager.isGatewayMode()) {
                 if (isExplicitNode) {
                     if (!messageRelayManager.isSameNode(nodeToSubscribe)) {
-                        String remoteAlive = messageRelayManager.getNodeRegistry().isFound(nodeToSubscribe) ? "alive" : "";
+                        String remoteAlive = isRemoteNodeAlive(nodeToSubscribe) ? "alive" : "";
                         relay(relaySession, nodeToSubscribe + "::" + RESPONSE_SUBSCRIBED + remoteAlive);
                     }
                 } else {
-                    for (NodeInfo nodeInfo : messageRelayManager.getNodeRegistry().getNodes()) {
+                    for (NodeInfo nodeInfo : appMonManager.getNodeInfoList()) {
                         if (!messageRelayManager.isSameNode(nodeInfo.getId())) {
-                            String remoteAlive = messageRelayManager.getNodeRegistry().isFound(nodeInfo.getId()) ? "alive" : "";
+                            String remoteAlive = isRemoteNodeAlive(nodeInfo.getId()) ? "alive" : "";
                             relay(relaySession, nodeInfo.getId() + "::" + RESPONSE_SUBSCRIBED + remoteAlive);
                         }
                     }
                 }
             }
         }
+    }
+
+    private boolean isRemoteNodeAlive(String nodeId) {
+        if (nodeId == null) {
+            return false;
+        }
+        NodeInfo nodeInfo = appMonManager.getNodeInfo(nodeId);
+        return (nodeInfo != null && !"offline".equalsIgnoreCase(nodeInfo.getStatus()));
     }
 
     private void established(@NonNull Session session, @NonNull CommandOptions commandOptions) {
