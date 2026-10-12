@@ -55,6 +55,14 @@ public interface NodeMessageListener {
     }
 
     /**
+     * Called when a cluster-wide application-specific relay message is received.
+     * @param message the relay message content
+     */
+    default void onClusterRelayMessage(String message) {
+        onRelayMessage(message);
+    }
+
+    /**
      * Called when an application-specific relay message is received for a specific node.
      * @param nodeId the node ID
      * @param message the relay message content

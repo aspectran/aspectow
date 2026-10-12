@@ -159,6 +159,29 @@ public abstract class NodeMessageProtocol {
     }
 
     /**
+     * Returns the Redis Pub/Sub channel for transparently relaying application-specific
+     * messages across the entire cluster.
+     * @param category the category of the relay message
+     * @param clusterId the cluster ID
+     * @return the channel name
+     */
+    @NonNull
+    public static String getClusterRelayChannel(String category, String clusterId) {
+        return KEY_PREFIX + TYPE_RELAY + ":" + category + ":" + clusterId;
+    }
+
+    /**
+     * Returns the Redis Pub/Sub pattern for subscribing to all transparent relay channels
+     * across the entire cluster.
+     * @param clusterId the cluster ID
+     * @return the subscription pattern
+     */
+    @NonNull
+    public static String getClusterRelaySubscriptionPattern(String clusterId) {
+        return KEY_PREFIX + TYPE_RELAY + ":*:" + clusterId;
+    }
+
+    /**
      * Returns the Redis Pub/Sub pattern for subscribing to all channels
      * within a specific cluster (both control and relay).
      * @param clusterId the cluster ID

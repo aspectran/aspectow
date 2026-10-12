@@ -116,6 +116,26 @@ public class SubscriptionRegistry {
     }
 
     /**
+     * Removes all remote subscriptions associated with the specified node.
+     * @param nodeId the ID of the remote node
+     * @return the set of application IDs that were affected
+     */
+    public Set<String> removeRemoteSubscriptions(String nodeId) {
+        Assert.hasLength(nodeId, "nodeId must not be null or empty");
+        Set<String> affectedApps = ConcurrentHashMap.newKeySet();
+        for (Map.Entry<String, Set<String>> entry : remoteSubscriptions.entrySet()) {
+            Set<String> nodes = entry.getValue();
+            if (nodes != null && nodes.remove(nodeId)) {
+                affectedApps.add(entry.getKey());
+                if (nodes.isEmpty()) {
+                    remoteSubscriptions.remove(entry.getKey(), nodes);
+                }
+            }
+        }
+        return affectedApps;
+    }
+
+    /**
      * Returns the set of remote node IDs that have subscribed to the given application.
      * @param appId the application ID
      * @return a set of remote node IDs, or {@code null} if none

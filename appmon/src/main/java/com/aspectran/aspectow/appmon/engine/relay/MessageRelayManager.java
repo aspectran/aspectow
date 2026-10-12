@@ -174,7 +174,7 @@ public class MessageRelayManager {
                     .nullWritable(false)
                     .prettyPrint(false)
                     .put(info);
-            relayLocally(info.getId() + "::node:joined:" + jsonBuilder.toString());
+            relayLocally(info.getId(), info.getId() + "::node:joined:" + jsonBuilder.toString());
             if (isGatewayMode()) {
                 resubscribeJoinedNode(info.getId());
             }
@@ -217,7 +217,7 @@ public class MessageRelayManager {
                     .nullWritable(false)
                     .prettyPrint(false)
                     .put(info);
-            relayLocally(info.getId() + "::node:statusChanged:" + jsonBuilder.toString());
+            relayLocally(info.getId(), info.getId() + "::node:statusChanged:" + jsonBuilder.toString());
         }
     }
 
@@ -228,37 +228,37 @@ public class MessageRelayManager {
      */
     public void nodeLeft(String nodeId) {
         if (!isSameNode(nodeId)) {
-            relayLocally(nodeId + "::node:left");
-        }
-    }
-
-    /**
-     * Publishes a local message to Redis and relays it to all registered relayers.
-     * @param message the message to publish
-     */
-    public void broadcast(String message) {
-        relayLocally(message);
-        if (isGatewayMode()) {
-            String appId = extractAppId(message);
-            if (appId != null) {
-                Set<String> remoteNodeIds = subscriptionRegistry.getNodeIdsRemotelySubscribedToApp(appId);
-                if (remoteNodeIds != null) {
-                    for (String remoteNodeId : remoteNodeIds) {
-                        publishRelay(remoteNodeId, message);
-                    }
-                }
-            } else {
-                for (NodeInfo nodeInfo : nodeRegistry.getNodes()) {
-                    if (!isSameNode(nodeInfo.getId())) {
-                        publishRelay(nodeInfo.getId(), message);
+            relayLocally(nodeId, nodeId + "::node:left");
+            if (isGatewayMode()) {
+                Set<String> affectedApps = subscriptionRegistry.removeRemoteSubscriptions(nodeId);
+                for (String appId : affectedApps) {
+                    if (!subscriptionRegistry.isAppInUse(appId)) {
+                        stopExporters(appId);
                     }
                 }
             }
         }
     }
 
-    private void publishRelay(String targetNodeId, String message) {
-        publishRelay(targetNodeId, null, message);
+    /**
+     * Relays a message locally and, in gateway mode, publishes it to the cluster broadcast channel.
+     * @param message the message to publish
+     */
+    public void broadcast(String message) {
+        relayLocally(getNodeId(), message);
+        if (isGatewayMode()) {
+            publishClusterRelay(message);
+        }
+    }
+
+    private void publishClusterRelay(String message) {
+        if (messagePublisher != null) {
+            try {
+                messagePublisher.publishClusterRelay(CATEGORY_APPMON, message);
+            } catch (Exception e) {
+                logger.error("Failed to publish cluster relay message", e);
+            }
+        }
     }
 
     private void publishRelay(String targetNodeId, String sessionId, String message) {
@@ -292,13 +292,28 @@ public class MessageRelayManager {
     }
 
     /**
-     * Relays a message to all registered relayers.
-     * This method does not publish the message to Redis.
-     * @param message the message to relay
+     * Relays a message received from the cluster broadcast channel.
+     * If the message originated from this node, it is skipped because it was
+     * already relayed locally when it was produced.
+     * @param message the cluster relay message
      */
-    public void relayLocally(String message) {
+    public void relayFromCluster(String message) {
         Assert.notNull(message, "message must not be null");
         String messageNodeId = extractNodeId(message);
+        if (isSameNode(messageNodeId)) {
+            return;
+        }
+        relayLocally(messageNodeId, message);
+    }
+
+    /**
+     * Relays a message to all registered relayers for the given node.
+     * This method does not publish the message to Redis.
+     * @param nodeId the ID of the node that generated the message
+     * @param message the message to relay
+     */
+    public void relayLocally(@Nullable String nodeId, @NonNull String message) {
+        Assert.notNull(message, "message must not be null");
         String messageAppId = extractAppId(message);
         boolean focusedOn = isFocusedOn(message);
         Set<String> sessionIds;
@@ -312,29 +327,29 @@ public class MessageRelayManager {
             if (relayer != null) {
                 RelaySession session = relayer.findRelaySession(sid);
                 if (session != null) {
-                    relayLocally(relayer, session, message, messageNodeId, messageAppId, focusedOn);
+                    relayLocally(relayer, session, message, nodeId, messageAppId, focusedOn);
                 }
             }
         }
     }
 
     /**
-     * Relays a message to all registered relayers.
+     * Relays a message to a specific session.
      * This method does not publish the message to Redis.
+     * @param nodeId the ID of the node that generated the message
      * @param sessionId the target session ID
      * @param message the message to relay
      */
-    public void relayLocally(String sessionId, String message) {
+    public void relayLocally(@Nullable String nodeId, @NonNull String sessionId, @NonNull String message) {
         Assert.notNull(sessionId, "sessionId must not be null");
         Assert.notNull(message, "message must not be null");
         MessageRelayer relayer = sessionRelayerMap.get(sessionId);
         if (relayer != null) {
             RelaySession session = relayer.findRelaySession(sessionId);
             if (session != null) {
-                String messageNodeId = extractNodeId(message);
                 String messageAppId = extractAppId(message);
                 boolean focusedOn = isFocusedOn(message);
-                relayLocally(relayer, session, message, messageNodeId, messageAppId, focusedOn);
+                relayLocally(relayer, session, message, nodeId, messageAppId, focusedOn);
             }
         }
     }

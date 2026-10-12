@@ -128,14 +128,39 @@ public class NodeMessageSubscriber extends RedisPubSubAdapter<String, String> im
         // Expected patterns:
         // aspectow:cluster:control:<category>:<clusterId>:<nodeId>
         // aspectow:cluster:relay:<category>:<clusterId>:<nodeId>:<sessionId>
+        // aspectow:cluster:relay:<category>:<clusterId>
 
         String[] parts = channel.split(":");
-        if (parts.length < 6) {
+        if (parts.length < 5) {
             return;
         }
 
         String type = parts[2]; // control or relay
         String category = parts[3]; // appmon, commands, etc.
+
+        if (parts.length == 5) {
+            String targetClusterId = parts[4];
+            if (!clusterId.equals(targetClusterId)) {
+                return;
+            }
+            if (TYPE_RELAY.equals(type)) {
+                for (NodeMessageListener listener : listeners) {
+                    String listenerCategory = listener.getCategory();
+                    if (listenerCategory == null || listenerCategory.equals(category)) {
+                        setLoggingGroup();
+                        try {
+                            listener.onClusterRelayMessage(message);
+                        } catch (Exception e) {
+                            logger.error("Error processing cluster relay message from channel '{}'", channel, e);
+                        } finally {
+                            clearLoggingGroup();
+                        }
+                    }
+                }
+            }
+            return;
+        }
+
         String targetNodeId = parts[5]; // node ID
         String sessionId = (parts.length > 6 ? parts[6] : null); // session ID
 
@@ -187,10 +212,12 @@ public class NodeMessageSubscriber extends RedisPubSubAdapter<String, String> im
         pubSubConnection.addListener((RedisConnectionStateListener)this);
 
         String subscribePattern = NodeMessageProtocol.getClusterSubscriptionPattern(clusterId, nodeId);
-        pubSubConnection.sync().psubscribe(subscribePattern);
+        String clusterRelayPattern = NodeMessageProtocol.getClusterRelaySubscriptionPattern(clusterId);
+        pubSubConnection.sync().psubscribe(subscribePattern, clusterRelayPattern);
         setLoggingGroup();
         try {
-            logger.info("NodeMessageSubscriber initialized and subscribed to pattern: {}", subscribePattern);
+            logger.info("NodeMessageSubscriber initialized and subscribed to patterns: {}, {}",
+                    subscribePattern, clusterRelayPattern);
         } finally {
             clearLoggingGroup();
         }
@@ -201,13 +228,15 @@ public class NodeMessageSubscriber extends RedisPubSubAdapter<String, String> im
         if (pubSubConnection != null && pubSubConnection.isOpen()) {
             try {
                 String subscribePattern = NodeMessageProtocol.getClusterSubscriptionPattern(clusterId, nodeId);
-                pubSubConnection.async().psubscribe(subscribePattern).whenComplete((res, ex) -> {
+                String clusterRelayPattern = NodeMessageProtocol.getClusterRelaySubscriptionPattern(clusterId);
+                pubSubConnection.async().psubscribe(subscribePattern, clusterRelayPattern).whenComplete((res, ex) -> {
                     setLoggingGroup();
                     try {
                         if (ex != null) {
-                            logger.error("Failed to re-subscribe pattern after reconnection for node '{}'", nodeId, ex);
+                            logger.error("Failed to re-subscribe patterns after reconnection for node '{}'", nodeId, ex);
                         } else {
-                            logger.info("NodeMessageSubscriber re-subscribed to pattern after reconnection: {}", subscribePattern);
+                            logger.info("NodeMessageSubscriber re-subscribed to patterns after reconnection: {}, {}",
+                                    subscribePattern, clusterRelayPattern);
                         }
                     } finally {
                         clearLoggingGroup();

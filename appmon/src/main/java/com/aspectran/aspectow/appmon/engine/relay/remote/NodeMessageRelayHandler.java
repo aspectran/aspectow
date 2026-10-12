@@ -52,13 +52,18 @@ public class NodeMessageRelayHandler implements NodeMessageListener {
     }
 
     @Override
+    public void onClusterRelayMessage(String message) {
+        messageRelayManager.relayFromCluster(message);
+    }
+
+    @Override
     public void onRelayMessage(String nodeId, String message) {
-        messageRelayManager.relayLocally(message);
+        messageRelayManager.relayLocally(nodeId, message);
     }
 
     @Override
     public void onRelayMessage(String nodeId, String sessionId, String message) {
-        messageRelayManager.relayLocally(sessionId, message);
+        messageRelayManager.relayLocally(nodeId, sessionId, message);
     }
 
     /**

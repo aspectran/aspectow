@@ -95,6 +95,30 @@ public class NodeMessagePublisher {
     }
 
     /**
+     * Publishes a transparent application message to be relayed to the entire cluster.
+     * This method sends the message asynchronously and does not wait for completion.
+     * @param category the category of the relay message
+     * @param message the message to publish
+     * @throws Exception if an error occurs while obtaining a connection
+     */
+    public void publishClusterRelay(String category, String message) throws Exception {
+        String channel = NodeMessageProtocol.getClusterRelayChannel(category, clusterId);
+        asyncPublish(channel, message);
+    }
+
+    /**
+     * Publishes multiple transparent application messages to be relayed to the entire cluster.
+     * Borrows a single connection from the pool to pipeline and publish all messages efficiently.
+     * @param category the category of the relay message
+     * @param messages the list of messages to publish
+     * @throws Exception if an error occurs during publication
+     */
+    public void publishClusterRelay(String category, List<String> messages) throws Exception {
+        String channel = NodeMessageProtocol.getClusterRelayChannel(category, clusterId);
+        asyncPublish(channel, messages);
+    }
+
+    /**
      * Publishes a transparent application message to be relayed from this node.
      * This method sends the message asynchronously and does not wait for completion.
      * @param category the category of the relay message
