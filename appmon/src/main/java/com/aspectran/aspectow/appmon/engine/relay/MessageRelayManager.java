@@ -315,7 +315,6 @@ public class MessageRelayManager {
     public void relayLocally(@Nullable String nodeId, @NonNull String message) {
         Assert.notNull(message, "message must not be null");
         String messageAppId = extractAppId(message);
-        boolean focusedOn = isFocusedOn(message);
         Set<String> sessionIds;
         if (messageAppId != null) {
             sessionIds = subscriptionRegistry.getSessionsSubscribedToApp(messageAppId);
@@ -327,7 +326,7 @@ public class MessageRelayManager {
             if (relayer != null) {
                 RelaySession session = relayer.findRelaySession(sid);
                 if (session != null) {
-                    relayLocally(relayer, session, message, nodeId, messageAppId, focusedOn);
+                    relayLocally(relayer, session, message, nodeId, messageAppId);
                 }
             }
         }
@@ -348,25 +347,26 @@ public class MessageRelayManager {
             RelaySession session = relayer.findRelaySession(sessionId);
             if (session != null) {
                 String messageAppId = extractAppId(message);
-                boolean focusedOn = isFocusedOn(message);
-                relayLocally(relayer, session, message, nodeId, messageAppId, focusedOn);
+                relayLocally(relayer, session, message, nodeId, messageAppId);
             }
         }
     }
 
     private void relayLocally(
             @NonNull MessageRelayer relayer, @NonNull RelaySession session, @NonNull String message,
-            @Nullable String messageNodeId, @Nullable String messageAppId, boolean focusedOn) {
+            @Nullable String messageNodeId, @Nullable String messageAppId) {
         String subscribedNodeId = session.getSubscribedNodeId();
         if (StringUtils.hasText(subscribedNodeId) && messageNodeId != null) {
             if (!subscribedNodeId.equals(messageNodeId)) {
                 return;
             }
         }
-        if (messageAppId != null && focusedOn) {
+        if (messageAppId != null) {
             String focusedAppId = session.getFocusedAppId();
             if (focusedAppId != null && !focusedAppId.equals(messageAppId)) {
-                return;
+                if (isFocusedOn(message)) {
+                    return;
+                }
             }
         }
         if (session.isValid()) {
@@ -397,24 +397,21 @@ public class MessageRelayManager {
         return null;
     }
 
-    @Nullable
-    private String extractType(@NonNull String message) {
+
+    private boolean isFocusedOn(@NonNull String message) {
         int idx1 = message.indexOf(DELIMITER);
         if (idx1 != -1) {
             int idx2 = message.indexOf(DELIMITER, idx1 + 1);
             if (idx2 != -1) {
-                int idx3 = message.indexOf(DELIMITER, idx2 + 1);
-                if (idx3 != -1) {
-                    return message.substring(idx2 + 1, idx3);
+                int start = idx2 + 1;
+                if (message.startsWith("event:", start) ||
+                        message.startsWith("metric:", start) ||
+                        message.startsWith("metric/", start)) {
+                    return false;
                 }
             }
         }
-        return null;
-    }
-
-    private boolean isFocusedOn(@NonNull String message) {
-        String type = extractType(message);
-        return (!"event".equals(type) && !"metric".equals(type));
+        return true;
     }
 
     /**
