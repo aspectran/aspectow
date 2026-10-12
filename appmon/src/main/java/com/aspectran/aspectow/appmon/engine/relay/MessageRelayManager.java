@@ -174,7 +174,7 @@ public class MessageRelayManager {
                     .nullWritable(false)
                     .prettyPrint(false)
                     .put(info);
-            relayLocally(info.getId(), info.getId() + "::node:joined:" + jsonBuilder.toString());
+            doRelayLocally(info.getId() + "::node:joined:" + jsonBuilder.toString(), info.getId());
             if (isGatewayMode()) {
                 resubscribeJoinedNode(info.getId());
             }
@@ -217,7 +217,7 @@ public class MessageRelayManager {
                     .nullWritable(false)
                     .prettyPrint(false)
                     .put(info);
-            relayLocally(info.getId(), info.getId() + "::node:statusChanged:" + jsonBuilder.toString());
+            doRelayLocally(info.getId() + "::node:statusChanged:" + jsonBuilder.toString(), info.getId());
         }
     }
 
@@ -228,7 +228,7 @@ public class MessageRelayManager {
      */
     public void nodeLeft(String nodeId) {
         if (!isSameNode(nodeId)) {
-            relayLocally(nodeId, nodeId + "::node:left");
+            doRelayLocally(nodeId + "::node:left", nodeId);
             if (isGatewayMode()) {
                 Set<String> affectedApps = subscriptionRegistry.removeRemoteSubscriptions(nodeId);
                 for (String appId : affectedApps) {
@@ -245,7 +245,7 @@ public class MessageRelayManager {
      * @param message the message to publish
      */
     public void broadcast(String message) {
-        relayLocally(getNodeId(), message);
+        doRelayLocally(message, getNodeId());
         if (isGatewayMode()) {
             publishClusterRelay(message);
         }
@@ -300,20 +300,12 @@ public class MessageRelayManager {
     public void relayFromCluster(String message) {
         Assert.notNull(message, "message must not be null");
         String messageNodeId = extractNodeId(message);
-        if (isSameNode(messageNodeId)) {
-            return;
+        if (!isSameNode(messageNodeId)) {
+            doRelayLocally(message, messageNodeId);
         }
-        relayLocally(messageNodeId, message);
     }
 
-    /**
-     * Relays a message to all registered relayers for the given node.
-     * This method does not publish the message to Redis.
-     * @param nodeId the ID of the node that generated the message
-     * @param message the message to relay
-     */
-    public void relayLocally(@Nullable String nodeId, @NonNull String message) {
-        Assert.notNull(message, "message must not be null");
+    private void doRelayLocally(@NonNull String message, @Nullable String messageNodeId) {
         String messageAppId = extractAppId(message);
         Set<String> sessionIds;
         if (messageAppId != null) {
@@ -326,28 +318,39 @@ public class MessageRelayManager {
             if (relayer != null) {
                 RelaySession session = relayer.findRelaySession(sid);
                 if (session != null) {
-                    relayLocally(relayer, session, message, nodeId, messageAppId);
+                    relayLocally(relayer, session, message, messageNodeId, messageAppId);
                 }
             }
         }
     }
 
     /**
+     * Relays a message to all registered relayers.
+     * This method does not publish the message to Redis.
+     * @param message the message to relay
+     */
+    public void relayLocally(@NonNull String message) {
+        Assert.notNull(message, "message must not be null");
+        String messageNodeId = extractNodeId(message);
+        doRelayLocally(message, messageNodeId);
+    }
+
+    /**
      * Relays a message to a specific session.
      * This method does not publish the message to Redis.
-     * @param nodeId the ID of the node that generated the message
      * @param sessionId the target session ID
      * @param message the message to relay
      */
-    public void relayLocally(@Nullable String nodeId, @NonNull String sessionId, @NonNull String message) {
+    public void relayLocally(@NonNull String sessionId, @NonNull String message) {
         Assert.notNull(sessionId, "sessionId must not be null");
         Assert.notNull(message, "message must not be null");
         MessageRelayer relayer = sessionRelayerMap.get(sessionId);
         if (relayer != null) {
             RelaySession session = relayer.findRelaySession(sessionId);
             if (session != null) {
+                String messageNodeId = extractNodeId(message);
                 String messageAppId = extractAppId(message);
-                relayLocally(relayer, session, message, nodeId, messageAppId);
+                relayLocally(relayer, session, message, messageNodeId, messageAppId);
             }
         }
     }
