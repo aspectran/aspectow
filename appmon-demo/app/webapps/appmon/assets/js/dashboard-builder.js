@@ -1066,15 +1066,6 @@ class DashboardBuilder {
                     if (repClient) {
                         repClient.refresh(chartOptions, repNode.id, "group");
                     }
-
-                    aliveNodesInGroup.forEach(node => {
-                        const refreshOptions = ["appId:" + appId, "scope:none"];
-                        if (refreshWithLogs) refreshOptions.push("withLogs:true");
-                        const client = this.clients[node.index];
-                        if (client) {
-                            client.refresh(refreshOptions, node.id);
-                        }
-                    });
                 }
             } else {
                 const selectedNode = this.nodes.find(n => n.id === selectedNodeId);
