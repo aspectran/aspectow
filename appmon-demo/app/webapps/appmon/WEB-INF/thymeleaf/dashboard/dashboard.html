@@ -70,8 +70,10 @@
         <div class="dashboard-content">
             <div class="control-bar mt-2">
                 <div class="options d-flex align-items-center gap-1">
-                    <div class="metrics-options btn-group me-auto" style="display: none;" title="Toggle metrics in Group View">
-                        <a class="btn metrics-toggle" title="Toggle metrics"><i class="bi bi-speedometer2"></i></a>
+                    <div class="me-auto">
+                        <div class="metrics-options btn-group" title="Toggle metrics in Group View">
+                            <a class="btn metrics-toggle" title="Toggle metrics"><i class="bi bi-speedometer2"></i></a>
+                        </div>
                     </div>
                     <i class="bi bi-bar-chart-line"></i>
                     <div class="date-unit-options btn-group" title="Date unit options">
@@ -87,10 +89,6 @@
             </div>
             <div class="dashboard-grid row g-0">
                 <div class="col-12 col-lg-6 event-box">
-                    <div class="title-bar">
-                        <i class="bi bi-server"></i><span class="number"></span>
-                        <h4 class="ellipses"></h4>
-                    </div>
                     <div class="track-box">
                         <canvas class="traffic-canvas"></canvas>
                         <div class="track-stack">

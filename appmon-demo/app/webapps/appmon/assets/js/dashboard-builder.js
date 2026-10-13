@@ -1433,10 +1433,6 @@ class DashboardBuilder {
     addGroupEventBox(groupInfo, appInfo) {
         const $box = $(".event-box").first().hide().clone().addClass("available group-view")
             .attr({ "data-group-id": groupInfo.id, "data-app-id": appInfo.id });
-        const $titleBar = $box.find(".title-bar");
-        $titleBar.find("i").removeClass("bi-server").addClass("bi-collection");
-        $titleBar.find(".number").empty();
-        $titleBar.find("h4").text(groupInfo.title || groupInfo.id);
         return $box.insertBefore($(".console-box").first());
     }
 
@@ -1505,15 +1501,6 @@ class DashboardBuilder {
     addEventBox(nodeInfo, appInfo) {
         const $box = $(".event-box").first().hide().clone().addClass("available")
             .attr({ "data-node-index": nodeInfo.index, "data-app-id": appInfo.id });
-        const $titleBar = $box.find(".title-bar");
-        $titleBar.find("h4").text(nodeInfo.title || nodeInfo.id);
-
-        const nodesInGroup = this.nodes.filter(n => n.group === nodeInfo.group);
-        if (nodesInGroup.length > 1) {
-            $titleBar.find(".number").text(" " + nodeInfo.nodeNoInGroup);
-        } else {
-            $titleBar.find(".number").empty();
-        }
         return $box.insertBefore($(".console-box").first());
     }
 

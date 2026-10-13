@@ -35,14 +35,15 @@
         background-color: rgba(255, 255, 255, .06);
     }
     .metrics-bar .metric dl dt .name {
-        background-color: #50585d;
+        background-color: #3d4b52;
+        color: #ccc;
     }
     .node.metrics-bar {
         border-bottom: 1px solid #353b3e;
         box-shadow: none;
     }
     .node.metrics-bar .node-badge {
-        background-color: #432120;
+        background-color: #3d4b52;
         color: #ccc;
     }
     .node.metrics-bar .node-metrics {
@@ -120,13 +121,6 @@
     .control-bar .options .btn-group .btn.on {
         background-color: #2e5469;
         color: #fff;
-    }
-    .event-box .title-bar {
-        background-color: #432120;
-        color: #ccc;
-    }
-    .event-box .title-bar.on {
-        background-color: #709185;
     }
     .track-box {
         background-color: #081129;
