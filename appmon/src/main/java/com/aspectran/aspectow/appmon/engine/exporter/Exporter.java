@@ -18,6 +18,8 @@ package com.aspectran.aspectow.appmon.engine.exporter;
 import com.aspectran.aspectow.appmon.engine.relay.CommandOptions;
 import com.aspectran.utils.lifecycle.LifeCycle;
 
+import org.jspecify.annotations.Nullable;
+
 import java.util.List;
 
 /**
@@ -35,6 +37,15 @@ public interface Exporter extends LifeCycle {
      * @return the exporter type
      */
     ExporterType getType();
+
+    /**
+     * Returns the sub-type of the exporter, if any.
+     * @return the exporter sub-type, or {@code null} if none
+     */
+    @Nullable
+    default String getSubType() {
+        return null;
+    }
 
     /**
      * Returns the name of the exporter.

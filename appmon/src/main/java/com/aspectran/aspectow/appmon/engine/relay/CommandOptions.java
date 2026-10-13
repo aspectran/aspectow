@@ -15,6 +15,7 @@
  */
 package com.aspectran.aspectow.appmon.engine.relay;
 
+import com.aspectran.aspectow.appmon.engine.exporter.ExporterType;
 import com.aspectran.utils.Assert;
 import com.aspectran.utils.StringUtils;
 import com.aspectran.utils.apon.AponFormat;
@@ -22,6 +23,7 @@ import com.aspectran.utils.apon.AponRenderStyle;
 import com.aspectran.utils.apon.DefaultParameters;
 import com.aspectran.utils.apon.ParameterKey;
 import com.aspectran.utils.apon.ValueType;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Parses and holds command options sent from clients.
@@ -60,6 +62,7 @@ public class CommandOptions extends DefaultParameters {
     private static final ParameterKey nodeToSubscribe;
     private static final ParameterKey appsToSubscribe;
     private static final ParameterKey scope;
+    private static final ParameterKey type;
     private static final ParameterKey logId;
     private static final ParameterKey loadedLines;
     private static final ParameterKey withLogs;
@@ -78,6 +81,7 @@ public class CommandOptions extends DefaultParameters {
         nodeToSubscribe = new ParameterKey("nodeToSubscribe", ValueType.STRING);
         appsToSubscribe = new ParameterKey("appsToSubscribe", ValueType.STRING);
         scope = new ParameterKey("scope", ValueType.STRING);
+        type = new ParameterKey("type", ValueType.STRING);
         logId = new ParameterKey("logId", ValueType.STRING);
         loadedLines = new ParameterKey("loadedLines", ValueType.INT);
         withLogs = new ParameterKey("withLogs", ValueType.BOOLEAN);
@@ -94,6 +98,7 @@ public class CommandOptions extends DefaultParameters {
                 nodeToSubscribe,
                 appsToSubscribe,
                 scope,
+                type,
                 logId,
                 loadedLines,
                 withLogs,
@@ -289,6 +294,63 @@ public class CommandOptions extends DefaultParameters {
      */
     public boolean isNoneScope() {
         return "none".equalsIgnoreCase(getScope());
+    }
+
+    /**
+     * Checks if a type is specified in the options.
+     * @return true if a type exists, false otherwise
+     */
+    public boolean hasType() {
+        return hasValue(type);
+    }
+
+    /**
+     * Returns the type of the exporter.
+     * @return the type string
+     */
+    public String getType() {
+        return getString(type);
+    }
+
+    /**
+     * Sets the type of the exporter.
+     * @param type the type string
+     */
+    public void setType(String type) {
+        putValue(CommandOptions.type, type);
+    }
+
+    /**
+     * Returns the resolved {@link ExporterType} based on the type option.
+     * @return the exporter type, or {@code null} if not specified or unknown
+     */
+    @Nullable
+    public ExporterType getExporterType() {
+        return ExporterType.resolve(getType());
+    }
+
+    /**
+     * Checks if a sub-type is specified in the type option.
+     * @return true if a sub-type exists, false otherwise
+     */
+    public boolean hasSubType() {
+        return (getSubType() != null);
+    }
+
+    /**
+     * Returns the sub-type of the exporter if specified (e.g., "chart" in "data/chart").
+     * @return the sub-type string, or {@code null} if not specified
+     */
+    @Nullable
+    public String getSubType() {
+        String typeStr = getType();
+        if (typeStr != null) {
+            int slashIdx = typeStr.indexOf('/');
+            if (slashIdx != -1 && slashIdx < typeStr.length() - 1) {
+                return typeStr.substring(slashIdx + 1);
+            }
+        }
+        return null;
     }
 
     /**

@@ -17,6 +17,7 @@ package com.aspectran.aspectow.appmon.engine.exporter;
 
 import com.aspectran.aspectow.appmon.engine.relay.CommandOptions;
 import com.aspectran.utils.lifecycle.AbstractLifeCycle;
+import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 
@@ -30,17 +31,35 @@ public abstract class AbstractExporter extends AbstractLifeCycle implements Expo
 
     private final ExporterType type;
 
+    private final String subType;
+
     /**
      * Instantiates a new AbstractExporter.
      * @param type the type of the exporter
      */
     public AbstractExporter(ExporterType type) {
+        this(type, null);
+    }
+
+    /**
+     * Instantiates a new AbstractExporter.
+     * @param type the type of the exporter
+     * @param subType the sub-type of the exporter
+     */
+    public AbstractExporter(ExporterType type, String subType) {
         this.type = type;
+        this.subType = subType;
     }
 
     @Override
     public ExporterType getType() {
         return type;
+    }
+
+    @Override
+    @Nullable
+    public String getSubType() {
+        return subType;
     }
 
     /**

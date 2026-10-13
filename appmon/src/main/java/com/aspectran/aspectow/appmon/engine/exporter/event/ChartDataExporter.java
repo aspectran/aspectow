@@ -52,6 +52,8 @@ public class ChartDataExporter extends AbstractExporter implements EventCountRol
 
     private static final ExporterType TYPE = ExporterType.DATA;
 
+    private static final String SUB_TYPE = "chart";
+
     private final ExporterManager exporterManager;
 
     private final EventInfo eventInfo;
@@ -66,10 +68,11 @@ public class ChartDataExporter extends AbstractExporter implements EventCountRol
     public ChartDataExporter(
             @NonNull ExporterManager exporterManager,
             @NonNull EventInfo eventInfo) {
-        super(TYPE);
+        super(TYPE, SUB_TYPE);
         this.exporterManager = exporterManager;
         this.eventInfo = eventInfo;
-        this.prefix = exporterManager.getNodeId() + ":" + eventInfo.getAppId() + ":" + TYPE + "/chart:" + eventInfo.getEventId() + ":";
+        this.prefix = exporterManager.getNodeId() + ":" + eventInfo.getAppId() + ":" +
+                TYPE + "/" + SUB_TYPE + ":" + eventInfo.getEventId() + ":";
     }
 
     @Override

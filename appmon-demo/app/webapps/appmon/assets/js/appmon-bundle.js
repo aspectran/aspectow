@@ -3024,6 +3024,8 @@ class DashboardBuilder {
         this.metricsExpandedByGroup = {};
         this.currentAjax = null;
         this.nodeJoinedTimer = null;
+        this.refreshTimer = null;
+        this.refreshChartTimer = null;
     }
 
     build(baseUrl, appsToSubscribe, nodeToSubscribe) {
@@ -3763,7 +3765,7 @@ class DashboardBuilder {
             $controlBar.find(".date-offset-options").data("offset", "").find(".btn.current").removeClass("on");
             this.viewers.forEach(v => v.updateCanvasWidth());
             Object.values(this.groupViewers).forEach(v => v.updateCanvasWidth());
-            this.refreshData(appId, false);
+            this.refreshChartData(appId);
         });
         $(".date-offset-options .btn").off().on("click", (e) => {
             const $btn = $(e.currentTarget);
@@ -3778,7 +3780,7 @@ class DashboardBuilder {
                 $parent.find(".btn.current").removeClass("on");
             }
             $parent.data("offset", offset);
-            this.refreshData(appId, false, offset);
+            this.refreshChartData(appId, offset);
         });
         $(".metrics-options .metrics-toggle").off("click").on("click", (e) => {
             const groupId = this.currentGroupId;
@@ -3981,6 +3983,76 @@ class DashboardBuilder {
             });
     }
 
+    refreshChartData(appId, dateOffset) {
+        if (!appId) {
+            const activeApp = this.apps.find(a => a.active);
+            if (!activeApp) return;
+            appId = activeApp.id;
+        }
+
+        if (this.refreshChartTimer) {
+            clearTimeout(this.refreshChartTimer);
+            this.refreshChartTimer = null;
+        }
+
+        const groupId = this.currentGroupId;
+        const nodesInGroup = this.nodes.filter(n => n.group === groupId);
+        const isSingleNodeGroup = (nodesInGroup.length <= 1);
+        const selectedNodeId = isSingleNodeGroup ? (nodesInGroup[0] ? nodesInGroup[0].id : null) : this.selectedNodeIdByGroup[groupId];
+        const isGroupView = !isSingleNodeGroup && !selectedNodeId;
+
+        const options = ["appId:" + appId, "type:data/chart"];
+        const dateUnit = $(".control-bar[data-app-id=" + appId + "] .date-unit-options").data("unit");
+        if (dateUnit) options.push("dateUnit:" + dateUnit);
+
+        if (dateOffset === "previous") {
+            let maxStartDate = "";
+            if (isGroupView && this.groupViewers[groupId]) {
+                maxStartDate = this.groupViewers[groupId].getMaxStartDatetime(appId);
+            } else if (!isGroupView) {
+                const node = this.nodes.find(n => n.id === selectedNodeId);
+                if (node && this.viewers[node.index]) {
+                    maxStartDate = this.viewers[node.index].getMaxStartDatetime(appId);
+                }
+            }
+            if (maxStartDate) {
+                options.push("dateOffset:" + maxStartDate);
+            } else {
+                $(".control-bar[data-app-id=" + appId + "] .date-offset-options .btn.previous").removeClass("on");
+                return;
+            }
+        }
+
+        this.refreshChartTimer = setTimeout(() => {
+            this.refreshChartTimer = null;
+
+            if (isGroupView) {
+                const groupViewer = this.groupViewers[groupId];
+                if (groupViewer) groupViewer.setLoading(appId, true);
+
+                const aliveNodesInGroup = this.nodes.filter(n => n.group === groupId && (n.alive || n.subscribed));
+                if (aliveNodesInGroup.length > 0) {
+                    const repNode = aliveNodesInGroup.find(n => n.primary) || aliveNodesInGroup[0];
+                    const chartOptions = [...options];
+                    const repClient = this.clients[repNode.index];
+                    if (repClient) {
+                        repClient.refresh(chartOptions, repNode.id, "group");
+                    }
+                }
+            } else {
+                const selectedNode = this.nodes.find(n => n.id === selectedNodeId);
+                if (selectedNode) {
+                    this.viewers[selectedNode.index].setLoading(appId, true);
+                    const nodeOptions = [...options];
+                    const client = this.clients[selectedNode.index];
+                    if (client) {
+                        client.refresh(nodeOptions, selectedNode.id);
+                    }
+                }
+            }
+        }, 100);
+    }
+
     refreshData(appId, withLogs, dateOffset) {
         if (!appId) {
             const activeApp = this.apps.find(a => a.active);
@@ -4034,13 +4106,7 @@ class DashboardBuilder {
                 const groupViewer = this.groupViewers[groupId];
                 if (groupViewer) groupViewer.setLoading(appId, true);
                 if (refreshWithLogs && groupViewer) {
-                    if (groupViewer.clearAllConsoles) {
-                        groupViewer.clearAllConsoles();
-                    } else {
-                        $(`.console-box.group-view[data-group-id=${groupId}] .console`).each((_, el) => {
-                            groupViewer.clearConsole($(el));
-                        });
-                    }
+                    groupViewer.clearAllConsoles();
                 }
 
                 const aliveNodesInGroup = this.nodes.filter(n => n.group === groupId && (n.alive || n.subscribed));
@@ -4081,6 +4147,10 @@ class DashboardBuilder {
         if (this.refreshTimer) {
             clearTimeout(this.refreshTimer);
             this.refreshTimer = null;
+        }
+        if (this.refreshChartTimer) {
+            clearTimeout(this.refreshChartTimer);
+            this.refreshChartTimer = null;
         }
         if (this.nodeJoinedTimer) {
             clearTimeout(this.nodeJoinedTimer);

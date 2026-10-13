@@ -623,7 +623,11 @@ public class MessageRelayManager {
 
     private void collectLastMessages(List<String> messages, @NonNull CommandOptions commandOptions) {
         String appId = commandOptions.getAppId();
+        ExporterType targetType = commandOptions.getExporterType();
         for (ExporterManager exporterManager : exporterManagers) {
+            if (targetType != null && exporterManager.getExporterType() != targetType) {
+                continue;
+            }
             if (appId == null || appId.equals(exporterManager.getAppId())) {
                 exporterManager.collectMessages(messages, commandOptions);
             }
@@ -656,9 +660,13 @@ public class MessageRelayManager {
     }
 
     private void collectNewMessages(String appId, List<String> messages, CommandOptions commandOptions) {
+        ExporterType targetType = (commandOptions != null ? commandOptions.getExporterType() : null);
         for (ExporterManager exporterManager : exporterManagers) {
+            if (targetType != null && exporterManager.getExporterType() != targetType) {
+                continue;
+            }
             if (appId == null || appId.equals(exporterManager.getAppId()) ||
-                    exporterManager.getExporterType() == ExporterType.METRIC) {
+                    (targetType == null && exporterManager.getExporterType() == ExporterType.METRIC)) {
                 exporterManager.collectNewMessages(messages, commandOptions);
             }
         }

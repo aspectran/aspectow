@@ -63,8 +63,11 @@ public enum ExporterType {
         }
         int slashIdx = alias.indexOf('/');
         String baseAlias = (slashIdx != -1 ? alias.substring(0, slashIdx) : alias);
+        if ("chart".equalsIgnoreCase(baseAlias)) {
+            return DATA;
+        }
         for (ExporterType type : VALUES) {
-            if (type.alias.equals(baseAlias)) {
+            if (type.alias.equalsIgnoreCase(baseAlias)) {
                 return type;
             }
         }

@@ -130,7 +130,11 @@ public class ExporterManager {
      * @param commandOptions options for the command
      */
     public void collectMessages(List<String> messages, CommandOptions commandOptions) {
+        String targetSubType = (commandOptions != null ? commandOptions.getSubType() : null);
         for (Exporter exporter : exporters.values()) {
+            if (targetSubType != null && !targetSubType.equalsIgnoreCase(exporter.getSubType())) {
+                continue;
+            }
             exporter.read(messages, commandOptions);
         }
     }
@@ -141,7 +145,11 @@ public class ExporterManager {
      * @param commandOptions options for the command
      */
     public void collectNewMessages(List<String> messages, CommandOptions commandOptions) {
+        String targetSubType = (commandOptions != null ? commandOptions.getSubType() : null);
         for (Exporter exporter : exporters.values()) {
+            if (targetSubType != null && !targetSubType.equalsIgnoreCase(exporter.getSubType())) {
+                continue;
+            }
             exporter.readIfChanged(messages, commandOptions);
         }
     }
