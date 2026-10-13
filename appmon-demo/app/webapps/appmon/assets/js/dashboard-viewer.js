@@ -61,17 +61,21 @@ class DashboardViewer {
         if (this.isGroupView && nodeId) {
             for (let exporterKey in this.activitiesByNode) {
                 delete this.activitiesByNode[exporterKey][nodeId];
+                this.printActivityStatus(exporterKey, this.aggregateActivities(exporterKey));
             }
             for (let exporterKey in this.sessionStatsByNode) {
                 delete this.sessionStatsByNode[exporterKey][nodeId];
+                this.printSessionEventData(null, exporterKey, this.aggregateSessionStats(exporterKey));
             }
             for (let key in this.displays) {
                 if (key.includes(":event:session")) {
-                    this.displays[key].find(`ul.sessions li[data-node-id='${nodeId}']`).each(function () {
+                    const $display = this.displays[key];
+                    $display.find(`ul.sessions li[data-node-id='${nodeId}']`).each(function () {
                         const timer = $(this).data("timer");
                         if (timer) clearTimeout(timer);
                         $(this).remove();
                     });
+                    this.updateSessionNodeFilterButtons($display);
                 }
             }
         }
@@ -551,17 +555,7 @@ class DashboardViewer {
                             this.activitiesByNode[exporterKey] = {};
                         }
                         this.activitiesByNode[exporterKey][nodeId] = eventData.activities;
-                        let interim = 0, errors = 0, total = 0;
-                        const actMap = this.activitiesByNode[exporterKey];
-                        for (let nid in actMap) {
-                            const act = actMap[nid];
-                            if (act) {
-                                interim += (act.interim || 0);
-                                errors += (act.errors || 0);
-                                total += (act.total || 0);
-                            }
-                        }
-                        this.printActivityStatus(exporterKey, { interim, errors, total });
+                        this.printActivityStatus(exporterKey, this.aggregateActivities(exporterKey));
                     } else {
                         this.printActivityStatus(exporterKey, eventData.activities);
                     }
@@ -599,42 +593,7 @@ class DashboardViewer {
                         this.sessionStatsByNode[exporterKey] = {};
                     }
                     this.sessionStatsByNode[exporterKey][nodeId] = eventData;
-                    let numberOfCreated = 0;
-                    let numberOfExpired = 0;
-                    let numberOfActives = 0;
-                    let highestNumberOfActives = 0;
-                    let numberOfUnmanaged = 0;
-                    let numberOfRejected = 0;
-                    let minStartTime = null;
-
-                    const statsMap = this.sessionStatsByNode[exporterKey];
-                    for (let nid in statsMap) {
-                        const s = statsMap[nid];
-                        if (s) {
-                            numberOfCreated += (s.numberOfCreated || 0);
-                            numberOfExpired += (s.numberOfExpired || 0);
-                            numberOfActives += (s.numberOfActives || 0);
-                            highestNumberOfActives += (s.highestNumberOfActives || 0);
-                            numberOfUnmanaged += (s.numberOfUnmanaged || 0);
-                            numberOfRejected += (s.numberOfRejected || 0);
-                            if (s.startTime) {
-                                if (!minStartTime || s.startTime < minStartTime) {
-                                    minStartTime = s.startTime;
-                                }
-                            }
-                        }
-                    }
-
-                    const aggregatedEventData = {
-                        ...eventData,
-                        numberOfCreated,
-                        numberOfExpired,
-                        numberOfActives,
-                        highestNumberOfActives,
-                        numberOfUnmanaged,
-                        numberOfRejected,
-                        startTime: minStartTime
-                    };
+                    const aggregatedEventData = this.aggregateSessionStats(exporterKey, eventData);
                     this.printSessionEventData(nodeId, exporterKey, aggregatedEventData);
                 } else {
                     this.printSessionEventData(nodeId, exporterKey, eventData);
@@ -701,6 +660,22 @@ class DashboardViewer {
                 $indicator.removeClass("blink on");
             }, 500);
         }
+    }
+
+    aggregateActivities(exporterKey) {
+        let interim = 0, errors = 0, total = 0;
+        const actMap = this.activitiesByNode[exporterKey];
+        if (actMap) {
+            for (let nid in actMap) {
+                const act = actMap[nid];
+                if (act) {
+                    interim += (act.interim || 0);
+                    errors += (act.errors || 0);
+                    total += (act.total || 0);
+                }
+            }
+        }
+        return { interim, errors, total };
     }
 
     printActivityStatus(exporterKey, activities) {
@@ -781,6 +756,47 @@ class DashboardViewer {
         if ($activityStatus) {
             $activityStatus.find(".current .total").text(count);
         }
+    }
+
+    aggregateSessionStats(exporterKey, baseEventData = {}) {
+        let numberOfCreated = 0;
+        let numberOfExpired = 0;
+        let numberOfActives = 0;
+        let highestNumberOfActives = 0;
+        let numberOfUnmanaged = 0;
+        let numberOfRejected = 0;
+        let minStartTime = null;
+
+        const statsMap = this.sessionStatsByNode[exporterKey];
+        if (statsMap) {
+            for (let nid in statsMap) {
+                const s = statsMap[nid];
+                if (s) {
+                    numberOfCreated += (s.numberOfCreated || 0);
+                    numberOfExpired += (s.numberOfExpired || 0);
+                    numberOfActives += (s.numberOfActives || 0);
+                    highestNumberOfActives += (s.highestNumberOfActives || 0);
+                    numberOfUnmanaged += (s.numberOfUnmanaged || 0);
+                    numberOfRejected += (s.numberOfRejected || 0);
+                    if (s.startTime) {
+                        if (!minStartTime || s.startTime < minStartTime) {
+                            minStartTime = s.startTime;
+                        }
+                    }
+                }
+            }
+        }
+
+        return {
+            ...baseEventData,
+            numberOfCreated,
+            numberOfExpired,
+            numberOfActives,
+            highestNumberOfActives,
+            numberOfUnmanaged,
+            numberOfRejected,
+            startTime: minStartTime
+        };
     }
 
     printSessionEventData(nodeId, exporterKey, eventData) {
@@ -978,16 +994,7 @@ class DashboardViewer {
                     if (actMap && actMap[nodeId]) {
                         actMap[nodeId].interim = 0;
                         actMap[nodeId].errors = 0;
-                        let interim = 0, errors = 0, total = 0;
-                        for (let nid in actMap) {
-                            const act = actMap[nid];
-                            if (act) {
-                                interim += (act.interim || 0);
-                                errors += (act.errors || 0);
-                                total += (act.total || 0);
-                            }
-                        }
-                        this.printActivityStatus(prefix, { interim, errors, total });
+                        this.printActivityStatus(prefix, this.aggregateActivities(prefix));
                     }
                 } else {
                     this.resetInterimTimer(prefix);
