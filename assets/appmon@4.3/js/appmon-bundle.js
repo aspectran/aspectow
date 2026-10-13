@@ -1321,7 +1321,7 @@ class DashboardChart {
  * Responsible for rendering monitoring data, including logs, metrics, and charts.
  *
  * @version 4.3
- * @last-modified 2026-10-09
+ * @last-modified 2026-10-13
  */
 class DashboardViewer {
     constructor(sampleInterval, options = {}) {
@@ -1419,7 +1419,9 @@ class DashboardViewer {
     }
 
     putConsole$(appId, logId, $console) {
-        this.consoles[appId + ":log:" + logId] = $console;
+        const key = appId + ":log:" + logId;
+        this.consoles[key] = $console;
+        this.printInitialGroupLogMessage(key);
     }
 
     putIndicator$(appId, exporterType, exporterName, $indicator) {
@@ -1581,12 +1583,26 @@ class DashboardViewer {
             $console.removeData("log-prev-buffer");
             $console.removeData("prev-anchor");
             $console.empty();
+            if (this.isGroupView) {
+                for (let key in this.consoles) {
+                    if (this.consoles[key][0] === $console[0]) {
+                        this.printInitialGroupLogMessage(key);
+                        break;
+                    }
+                }
+            }
         }
     }
 
     clearAllConsoles() {
         for (let key in this.consoles) {
             this.clearConsole(this.consoles[key]);
+        }
+    }
+
+    printInitialGroupLogMessage(key) {
+        if (this.isGroupView) {
+            this.printMessage("Listening for live log events from all cluster nodes...", key);
         }
     }
 
