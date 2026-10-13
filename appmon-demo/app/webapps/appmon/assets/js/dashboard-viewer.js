@@ -32,7 +32,6 @@ class DashboardViewer {
         this.visible = false;
         this.isGroupView = false;
         this.groupId = null;
-        this.nodeIndicators = {};
         this.expectedNodesInGroup = [];
         this.activitiesByNode = {};
         this.sessionStatsByNode = {};
@@ -52,10 +51,6 @@ class DashboardViewer {
     setIsGroupView(flag, groupId) {
         this.isGroupView = !!flag;
         this.groupId = groupId || null;
-    }
-
-    putNodeIndicator$(nodeId, $indicator) {
-        this.nodeIndicators[nodeId] = $indicator;
     }
 
     setExpectedNodesInGroup(nodes) {
@@ -87,6 +82,7 @@ class DashboardViewer {
     }
 
     setEnable(flag) {
+        if (this.enable === !!flag) return;
         this.enable = !!flag;
         if (this.enable) {
             this.resetAllInterimTimers();
@@ -689,11 +685,7 @@ class DashboardViewer {
 
     indicate(nodeId, appId, exporterType, exporterName) {
         this.blink(this.getIndicator$("group:event:"));
-        if (nodeId && this.nodeIndicators[nodeId]) {
-            this.blink(this.nodeIndicators[nodeId]);
-        } else {
-            this.blink(this.getIndicator$("node:event:"));
-        }
+        this.blink(this.getIndicator$("node:event:" + nodeId));
         if (this.visible) {
             this.blink(this.getIndicator$("app:event:" + appId));
             if (exporterType === "log") {
@@ -738,11 +730,19 @@ class DashboardViewer {
                 const $samplingTimerBar = $activityStatus.find(".sampling-timer-bar");
                 const $samplingTimerStatus = $activityStatus.find(".sampling-timer-status");
                 if ($samplingTimerBar.length) {
+                    const now = Date.now();
+                    const lastReset = $samplingTimerBar.data("last-reset") || 0;
+                    if (now - lastReset < 1000) {
+                        return;
+                    }
+                    $samplingTimerBar.data("last-reset", now);
+
                     let timer = $samplingTimerBar.data("timer");
                     if (timer) {
                         clearInterval(timer);
                         $samplingTimerBar.removeData("timer");
                     }
+                    $samplingTimerBar.stop(true, false);
                     let second = (dayjs().minute() * 60 + dayjs().second()) % this.sampleInterval;
                     $samplingTimerBar.animate({ height: 0 }, 600);
                     $samplingTimerBar.animate({ height: (second++ / this.sampleInterval * 100).toFixed(2) + "%" }, 400);
@@ -756,7 +756,7 @@ class DashboardViewer {
                         const percent = second++ / this.sampleInterval * 100;
                         $samplingTimerBar.css("height", percent.toFixed(2) + "%");
                         $samplingTimerStatus.text(second + "/" + this.sampleInterval);
-                        if (second > 300) second = 0;
+                        if (second > this.sampleInterval) second = 0;
                         else if (second % 10 === 0) {
                             second = (dayjs().minute() * 60 + dayjs().second()) % this.sampleInterval;
                         }
@@ -968,15 +968,19 @@ class DashboardViewer {
 
         if (eventId === "activity") {
             const prefix = appId + ":event:" + eventId;
-            if (!dashboardChart.isDrawn()) this.resetInterimTimer(prefix);
-            else if (chartData.rolledUp) {
+            if (!dashboardChart.isDrawn()) {
+                if (!this.isGroupView || chartData.scope === "group") {
+                    this.resetInterimTimer(prefix);
+                }
+            } else if (chartData.rolledUp) {
                 if (this.isGroupView && nodeId) {
-                    if (this.activitiesByNode[nodeId]) {
-                        this.activitiesByNode[nodeId].interim = 0;
-                        this.activitiesByNode[nodeId].errors = 0;
+                    const actMap = this.activitiesByNode[prefix];
+                    if (actMap && actMap[nodeId]) {
+                        actMap[nodeId].interim = 0;
+                        actMap[nodeId].errors = 0;
                         let interim = 0, errors = 0, total = 0;
-                        for (let nid in this.activitiesByNode) {
-                            const act = this.activitiesByNode[nid];
+                        for (let nid in actMap) {
+                            const act = actMap[nid];
                             if (act) {
                                 interim += (act.interim || 0);
                                 errors += (act.errors || 0);

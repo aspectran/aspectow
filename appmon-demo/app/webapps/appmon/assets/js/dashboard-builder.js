@@ -1184,9 +1184,9 @@ class DashboardBuilder {
             const $nodeTab = this.addNodeTab(node);
             const $nodeIndicator = $nodeTab.find(".indicator");
             this.changeNodeState(node);
-            this.viewers[node.index].putIndicator$("node", "event", "", $nodeIndicator);
+            this.viewers[node.index].putIndicator$("node", "event", node.id, $nodeIndicator);
             if (node.group && this.groupViewers[node.group]) {
-                this.groupViewers[node.group].putNodeIndicator$(node.id, $nodeIndicator);
+                this.groupViewers[node.group].putIndicator$("node", "event", node.id, $nodeIndicator);
             }
             this.addNodeMetricsBar(node);
         });

@@ -389,8 +389,8 @@
     color: #e6e6e6;
     transition: all 0.2s ease-in-out;
     @media screen and (max-width: 768px) {
-        padding-top: 5px;
-        padding-bottom: 5px;
+        padding-left: 6px;
+        padding-right: 6px;
     }
 }
 .control-bar .options .btn-group .btn:hover {
