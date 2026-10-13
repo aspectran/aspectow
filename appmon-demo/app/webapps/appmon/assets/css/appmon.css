@@ -64,7 +64,7 @@
 .node-bar,
 .node.metrics-bar,
 .app-bar,
-.dashboard-content {
+.dashboard-grid {
     padding-left: 0.5rem;
     padding-right: 0.5rem;
     @media screen and (min-width: 768px) {
@@ -366,12 +366,12 @@
 }
 
 .control-bar {
+    height: 29px;
     background-color: #677278;
     color: #eee;
     padding : 0 6px;
     box-shadow: 0 6px 10px -10px rgba(50, 50, 50, 0.45);
     text-align: right;
-    border-radius: 3px 3px 0 0;
 }
 .control-bar .options > .bi {
     color: #d6e5e4;
@@ -382,12 +382,13 @@
     margin: 0;
 }
 .control-bar .options .btn-group .btn {
+    height: 29px;
     border-radius: 0;
-    padding: 3px 8px;
     font-size: .9em;
     background-color: #314959;
     color: #e6e6e6;
-    transition: all 0.2s ease-in-out;
+    align-content: center;
+    padding: 0 8px;
     @media screen and (max-width: 768px) {
         padding-left: 6px;
         padding-right: 6px;
@@ -399,6 +400,22 @@
 }
 .control-bar .options .btn-group .btn.on {
     background-color: #336d95;
+}
+@media screen and (max-width: 993px) {
+    .event-box .control-bar {
+        border-radius: 3px 3px 0 0;
+    }
+    .event-box .control-bar .options, .charts-box .control-bar .options {
+        justify-content: flex-end;
+    }
+}
+@media screen and (min-width: 993px) {
+    .event-box .control-bar {
+        border-radius: 3px 0 0 0;
+    }
+    .charts-box .control-bar {
+        border-radius: 0 3px 0 0;
+    }
 }
 
 .track-box {

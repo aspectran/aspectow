@@ -3729,8 +3729,6 @@ class DashboardBuilder {
     }
 
     showNodeApp(appId) {
-        $(".control-bar[data-app-id!=" + appId + "]").hide();
-        $(".control-bar[data-app-id=" + appId + "]").show();
         this.updateVisibility(appId);
         this.updateNodeTabs();
     }
@@ -4215,9 +4213,9 @@ class DashboardBuilder {
         $("#appmon-loading-message").hide();
         $("#appmon-empty-message").hide();
         $("#appmon-popup-message").hide();
-        $(".group-bar, .node-bar, .node.metrics-bar, .app-bar, .app.tabs, .control-bar, .dashboard-grid").hide();
+        $(".group-bar, .node-bar, .node.metrics-bar, .app-bar, .app.tabs, .dashboard-grid").hide();
         $(".group.tabs .tabs-title.available, .node.tabs .tabs-title.available, .app.tabs .tabs-title.available, " +
-          ".node.metrics-bar.available, .node.metrics-bar .metric.available, .control-bar.available, " +
+          ".node.metrics-bar.available, .node.metrics-bar .metric.available, " +
           ".event-box.available, .charts-box.available, .chart-box.available, .console-box.available").remove();
         $(".group.tabs .tabs-title:not(.available), .node.tabs .tabs-title:not(.available), .app.tabs .tabs-title:not(.available), " +
           ".node.metrics-bar:not(.available), .console-box:not(.available)").hide();
@@ -4272,7 +4270,6 @@ class DashboardBuilder {
         this.apps.forEach(app => {
             const $appTab = this.addAppTab(app);
             const $appIndicator = $appTab.find(".indicator");
-            this.addControlBar(app);
 
             // Setup Group-level DOM and Viewers for multi-node groups
             this.groups.forEach(group => {
@@ -4293,6 +4290,8 @@ class DashboardBuilder {
                                 }
                             });
                             const $groupChartsBox = this.addGroupChartsBox(group, app);
+                            $groupChartsBox.find(".control-bar").attr("data-app-id", app.id)
+                                .find(".date-unit-options .btn.default").text(this.counterPersistInterval + "m");
                             app.events.forEach(event => {
                                 if (event.id === "activity" || event.id === "session") {
                                     groupViewer.putChart$(app.id, event.id, this.addGroupChartBox($groupChartsBox, group, app, event).find(".chart"));
@@ -4338,6 +4337,8 @@ class DashboardBuilder {
                             }
                         });
                         const $chartsBox = this.addChartsBox(node, app);
+                        $chartsBox.find(".control-bar").attr("data-app-id", app.id)
+                            .find(".date-unit-options .btn.default").text(this.counterPersistInterval + "m");
                         app.events.forEach(event => {
                             if (event.id === "activity" || event.id === "session") {
                                 viewer.putChart$(app.id, event.id, this.addChartBox($chartsBox, node, app, event).find(".chart"));
@@ -4420,13 +4421,6 @@ class DashboardBuilder {
             $metric.find(".unit").text(metricInfo.unit);
         }
         return $metric.appendTo($container).show();
-    }
-
-    addControlBar(appInfo) {
-        const $bar = $(".control-bar");
-        const $newBar = $bar.first().hide().clone().addClass("available").attr("data-app-id", appInfo.id);
-        $newBar.find(".btn.default").text(this.counterPersistInterval + "min.");
-        return $newBar.insertAfter($bar.last());
     }
 
     addGroupEventBox(groupInfo, appInfo) {
