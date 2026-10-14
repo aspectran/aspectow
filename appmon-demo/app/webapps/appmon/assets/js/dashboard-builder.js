@@ -44,6 +44,7 @@ class DashboardBuilder {
         this.refreshTimer = null;
         this.refreshChartTimer = null;
         this.dateUnit = null;
+        this.consoleWideMode = false;
     }
 
     build(baseUrl, appsToSubscribe, nodeToSubscribe) {
@@ -54,6 +55,7 @@ class DashboardBuilder {
         this.selectedNodeIdByGroup = {};
         this.metricsExpandedByGroup = {};
         this.dateUnit = null;
+        this.consoleWideMode = false;
 
         if (this.currentAjax) {
             this.currentAjax.abort();
@@ -897,6 +899,9 @@ class DashboardBuilder {
                 $icon.removeClass($icon.data("icon-resume")).addClass($icon.data("icon-pause"));
             }
         });
+        $(".console-box .wide-switch").off("click").on("click", () => {
+            this.setConsoleWideMode(!this.consoleWideMode);
+        });
         $(".console-box .expand-switch").off("click").on("click", function() {
             const $btn = $(this);
             const $icon = $btn.find(".icon");
@@ -1258,6 +1263,31 @@ class DashboardBuilder {
         $(`.session-box[data-node-index=${nodeIndex}] .sessions`).empty();
     }
 
+    setConsoleWideMode(isWide) {
+        this.consoleWideMode = isWide;
+        this.apps.forEach(app => {
+            if (app.logs && app.logs.length > 1) {
+                const $boxes = $(`.console-box.available[data-app-id=${app.id}]`);
+                $boxes.toggleClass("col-lg-6", !isWide).toggleClass("col-lg-12", isWide);
+                const $switches = $boxes.find(".wide-switch");
+                $switches.toggleClass("on", isWide);
+                if (isWide) {
+                    $switches.attr("title", function() { return $(this).data("title-normal") || "Half width"; })
+                        .find(".icon").each(function() {
+                        const $ic = $(this);
+                        $ic.removeClass($ic.data("icon-wide")).addClass($ic.data("icon-normal"));
+                    });
+                } else {
+                    $switches.attr("title", function() { return $(this).data("title-wide") || "Full width"; })
+                        .find(".icon").each(function() {
+                        const $ic = $(this);
+                        $ic.removeClass($ic.data("icon-normal")).addClass($ic.data("icon-wide"));
+                    });
+                }
+            }
+        });
+    }
+
     buildView() {
         $(".node-bar, .app-bar, .app.tabs, .dashboard-grid").show();
         if (this.groups.length > 0) {
@@ -1504,10 +1534,23 @@ class DashboardBuilder {
     }
 
     addGroupConsoleBox(groupInfo, appInfo, logInfo) {
+        const isSingle = (appInfo.logs && appInfo.logs.length === 1);
+        const isWide = isSingle || this.consoleWideMode;
+        const colClass = isWide ? "col-lg-12" : "col-lg-6";
         const $console = $(".console-box");
-        const $newBox = $console.first().hide().clone().addClass("available group-view col-lg-6")
+        const $newBox = $console.first().hide().clone().addClass("available group-view " + colClass)
             .attr({ "data-group-id": groupInfo.id, "data-app-id": appInfo.id, "data-log-id": logInfo.id });
         $newBox.find(".status-bar h4").text(logInfo.file);
+        if (isSingle) {
+            $newBox.find(".wide-switch").hide();
+        } else if (this.consoleWideMode) {
+            $newBox.find(".wide-switch").addClass("on")
+                .attr("title", function() { return $(this).data("title-normal") || "Half width"; })
+                .find(".icon").each(function() {
+                    const $ic = $(this);
+                    $ic.removeClass($ic.data("icon-wide")).addClass($ic.data("icon-normal"));
+                });
+        }
         return $newBox.insertAfter($console.last());
     }
 
@@ -1545,10 +1588,23 @@ class DashboardBuilder {
     }
 
     addConsoleBox(nodeInfo, appInfo, logInfo) {
+        const isSingle = (appInfo.logs && appInfo.logs.length === 1);
+        const isWide = isSingle || this.consoleWideMode;
+        const colClass = isWide ? "col-lg-12" : "col-lg-6";
         const $console = $(".console-box");
-        const $newBox = $console.first().hide().clone().addClass("available col-lg-6")
+        const $newBox = $console.first().hide().clone().addClass("available " + colClass)
             .attr({ "data-node-index": nodeInfo.index, "data-app-id": appInfo.id, "data-log-id": logInfo.id });
         $newBox.find(".status-bar h4").text(logInfo.file);
+        if (isSingle) {
+            $newBox.find(".wide-switch").hide();
+        } else if (this.consoleWideMode) {
+            $newBox.find(".wide-switch").addClass("on")
+                .attr("title", function() { return $(this).data("title-normal") || "Half width"; })
+                .find(".icon").each(function() {
+                    const $ic = $(this);
+                    $ic.removeClass($ic.data("icon-wide")).addClass($ic.data("icon-normal"));
+                });
+        }
         return $newBox.insertAfter($console.last());
     }
 }
