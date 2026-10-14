@@ -19,7 +19,7 @@
  * Responsible for assembling the dashboard UI based on configuration data.
  *
  * @version 4.3
- * @last-modified 2026-10-12
+ * @last-modified 2026-10-14
  */
 class DashboardBuilder {
     constructor(options = {}) {
@@ -43,6 +43,7 @@ class DashboardBuilder {
         this.nodeJoinedTimer = null;
         this.refreshTimer = null;
         this.refreshChartTimer = null;
+        this.dateUnit = null;
     }
 
     build(baseUrl, appsToSubscribe, nodeToSubscribe) {
@@ -52,6 +53,7 @@ class DashboardBuilder {
         this.currentGroupId = null;
         this.selectedNodeIdByGroup = {};
         this.metricsExpandedByGroup = {};
+        this.dateUnit = null;
 
         if (this.currentAjax) {
             this.currentAjax.abort();
@@ -705,6 +707,7 @@ class DashboardBuilder {
             if (app.id === appId) {
                 app.active = true;
                 this.showNodeApp(appId);
+                this.resetDateOffsetOptions(appId);
                 $tabTitle.addClass("active");
                 if ($tabTitle.length && $tabTitle[0].scrollIntoView) {
                     $tabTitle[0].scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
@@ -772,29 +775,32 @@ class DashboardBuilder {
         });
         $(".date-unit-options .btn").off().on("click", (e) => {
             const $btn = $(e.currentTarget);
-            const $controlBar = $btn.closest(".control-bar");
-            const appId = $controlBar.data("app-id");
+            const appId = $btn.closest(".charts-box").data("app-id");
             const unit = $btn.data("unit") || "";
-            $btn.parent().data("unit", unit).find(".btn").removeClass("on");
-            $btn.addClass("on");
-            $controlBar.find(".date-offset-options").data("offset", "").find(".btn.current").removeClass("on");
+            this.dateUnit = unit || null;
+            const $dateUnitOptions = $(".charts-box.available .date-unit-options");
+            $dateUnitOptions.find(".btn").removeClass("on")
+            if (unit) {
+                $dateUnitOptions.find(`.btn[data-unit="${unit}"]`).addClass("on");
+            } else {
+                $dateUnitOptions.find(".btn.default").addClass("on");
+            }
+            this.resetDateOffsetOptions();
             this.viewers.forEach(v => v.updateCanvasWidth());
             Object.values(this.groupViewers).forEach(v => v.updateCanvasWidth());
             this.refreshChartData(appId);
         });
         $(".date-offset-options .btn").off().on("click", (e) => {
             const $btn = $(e.currentTarget);
-            const $controlBar = $btn.closest(".control-bar");
-            const appId = $controlBar.data("app-id");
+            const appId = $btn.closest(".charts-box").data("app-id");
             const offset = $btn.data("offset") || "";
-            const $parent = $btn.parent();
+            const $dateOffsetOptions = $(`.charts-box[data-app-id=${appId}] .date-offset-options`);
             if (offset !== "current") {
-                $parent.find(".btn.current").addClass("on");
+                $dateOffsetOptions.find(".btn.current").addClass("on");
             } else {
-                $parent.find(".btn").addClass("on");
-                $parent.find(".btn.current").removeClass("on");
+                $dateOffsetOptions.find(".btn").addClass("on");
+                $dateOffsetOptions.find(".btn.current").removeClass("on");
             }
-            $parent.data("offset", offset);
             this.refreshChartData(appId, offset);
         });
         $(".metrics-options .metrics-toggle").off("click").on("click", (e) => {
@@ -998,6 +1004,22 @@ class DashboardBuilder {
             });
     }
 
+    getDateUnit() {
+        if (this.dateUnit) {
+            return this.dateUnit;
+        }
+        const unit = $(".charts-box.available .date-unit-options .btn.on").data("unit") || "";
+        return unit || null;
+    }
+
+    resetDateOffsetOptions(appId) {
+        const $options = appId
+            ? $(`.charts-box[data-app-id=${appId}] .date-offset-options`)
+            : $(".charts-box.available .date-offset-options");
+        $options.find(".btn").addClass("on");
+        $options.find(".btn.current").removeClass("on");
+    }
+
     refreshChartData(appId, dateOffset) {
         if (!appId) {
             const activeApp = this.apps.find(a => a.active);
@@ -1017,7 +1039,7 @@ class DashboardBuilder {
         const isGroupView = !isSingleNodeGroup && !selectedNodeId;
 
         const options = ["appId:" + appId, "type:data/chart"];
-        const dateUnit = $(".control-bar[data-app-id=" + appId + "] .date-unit-options").data("unit");
+        const dateUnit = this.getDateUnit();
         if (dateUnit) options.push("dateUnit:" + dateUnit);
 
         if (dateOffset === "previous") {
@@ -1033,7 +1055,7 @@ class DashboardBuilder {
             if (maxStartDate) {
                 options.push("dateOffset:" + maxStartDate);
             } else {
-                $(".control-bar[data-app-id=" + appId + "] .date-offset-options .btn.previous").removeClass("on");
+                $(`.charts-box[data-app-id=${appId}] .date-offset-options .btn.previous`).removeClass("on");
                 return;
             }
         }
@@ -1091,7 +1113,7 @@ class DashboardBuilder {
         const isGroupView = !isSingleNodeGroup && !selectedNodeId;
 
         const options = ["appId:" + appId];
-        const dateUnit = $(".control-bar[data-app-id=" + appId + "] .date-unit-options").data("unit");
+        const dateUnit = this.getDateUnit();
         if (dateUnit) options.push("dateUnit:" + dateUnit);
 
         if (dateOffset === "previous") {
@@ -1107,7 +1129,7 @@ class DashboardBuilder {
             if (maxStartDate) {
                 options.push("dateOffset:" + maxStartDate);
             } else {
-                $(".control-bar[data-app-id=" + appId + "] .date-offset-options .btn.previous").removeClass("on");
+                $(`.charts-box[data-app-id=${appId}] .date-offset-options .btn.previous`).removeClass("on");
                 return;
             }
         }
@@ -1291,8 +1313,7 @@ class DashboardBuilder {
                                 }
                             });
                             const $groupChartsBox = this.addGroupChartsBox(group, app);
-                            $groupChartsBox.find(".control-bar").attr("data-app-id", app.id)
-                                .find(".date-unit-options .btn.default").text(this.counterPersistInterval + "m");
+                            $groupChartsBox.find(".control-bar").find(".date-unit-options .btn.default").text(this.counterPersistInterval + "m");
                             app.events.forEach(event => {
                                 if (event.id === "activity" || event.id === "session") {
                                     groupViewer.putChart$(app.id, event.id, this.addGroupChartBox($groupChartsBox, group, app, event).find(".chart"));
@@ -1338,8 +1359,7 @@ class DashboardBuilder {
                             }
                         });
                         const $chartsBox = this.addChartsBox(node, app);
-                        $chartsBox.find(".control-bar").attr("data-app-id", app.id)
-                            .find(".date-unit-options .btn.default").text(this.counterPersistInterval + "m");
+                        $chartsBox.find(".control-bar").find(".date-unit-options .btn.default").text(this.counterPersistInterval + "m");
                         app.events.forEach(event => {
                             if (event.id === "activity" || event.id === "session") {
                                 viewer.putChart$(app.id, event.id, this.addChartBox($chartsBox, node, app, event).find(".chart"));
@@ -1487,7 +1507,6 @@ class DashboardBuilder {
         const $console = $(".console-box");
         const $newBox = $console.first().hide().clone().addClass("available group-view col-lg-6")
             .attr({ "data-group-id": groupInfo.id, "data-app-id": appInfo.id, "data-log-id": logInfo.id });
-        //$newBox.find(".status-bar i").removeClass("bi-server").addClass("bi-collection");
         $newBox.find(".status-bar h4").text(logInfo.file);
         return $newBox.insertAfter($console.last());
     }

@@ -16,7 +16,7 @@
 
 /*
  * @version 4.3
- * @last-modified 2026-10-09
+ * @last-modified 2026-10-14
  */
 
 /* For console-integrated & standalone page-content */
@@ -106,15 +106,6 @@
     border-top-right-radius: var(--bs-border-radius);
 }
 
-.metrics-bar {
-    @media screen and (max-width: 768px) {
-        display: block;
-        height: auto;
-    }
-    @media screen and (min-width: 768px) {
-        display: flex;
-    }
-}
 .metrics-bar .metric {
     cursor: pointer;
     transition: background-color .15s ease-in-out;
@@ -126,9 +117,6 @@
     display: flex;
     margin: 0;
     line-height: 1.8;
-    @media screen and (max-width: 768px) {
-        height: auto;
-    }
 }
 .metrics-bar .metric dl dt {
     margin: 0;
@@ -139,9 +127,6 @@
     font-weight: normal;
     white-space: nowrap;
     line-height: 1;
-    @media screen and (max-width: 768px) {
-        flex: 1;
-    }
 }
 .metrics-bar .metric dl dt .name {
     background-color: #848b8f;
@@ -179,7 +164,22 @@
     border-radius: 2px;
     display: block;
 }
+@media screen and (max-width: 768px) {
+    .metrics-bar {
+        display: block;
+        height: auto;
+    }
+    .metrics-bar .metric dl {
+        height: auto;
+    }
+    .metrics-bar .metric dl dt {
+        flex: 1;
+    }
+}
 @media screen and (min-width: 768px) {
+    .metrics-bar {
+        display: flex;
+    }
     .metrics-bar .metric[data-metric-id="cpu"] dl dd {
         min-width: 4.3rem;
     }
@@ -225,10 +225,6 @@
     display: flex;
     align-items: center;
     flex-wrap: wrap;
-    @media screen and (max-width: 768px) {
-        flex-direction: column;
-        align-items: stretch;
-    }
 }
 .node.metrics-bar .node-metrics {
     border-right: 1px solid #ccc;
@@ -239,6 +235,11 @@
     background-color: #eff5fa;
 }
 @media screen and (max-width: 768px) {
+    .node.metrics-bar .node-metrics,
+    .node.metrics-bar .app-metrics {
+        flex-direction: column;
+        align-items: stretch;
+    }
     .node.metrics-bar .metric dl {
         display: flex;
         width: 100%;
@@ -389,10 +390,6 @@
     color: #e6e6e6;
     align-content: center;
     padding: 0 8px;
-    @media screen and (max-width: 768px) {
-        padding-left: 6px;
-        padding-right: 6px;
-    }
 }
 .control-bar .options .btn-group .btn:hover {
     background-color: #335a73;
@@ -402,19 +399,15 @@
     background-color: #336d95;
 }
 @media screen and (max-width: 993px) {
-    .event-box .control-bar {
-        border-radius: 3px 3px 0 0;
+    .control-bar {
+        height: auto;
+    }
+    .control-bar .options .btn-group .btn {
+        padding-left: 6px;
+        padding-right: 6px;
     }
     .event-box .control-bar .options, .charts-box .control-bar .options {
         justify-content: flex-end;
-    }
-}
-@media screen and (min-width: 993px) {
-    .event-box .control-bar {
-        border-radius: 3px 0 0 0;
-    }
-    .charts-box .control-bar {
-        border-radius: 0 3px 0 0;
     }
 }
 
