@@ -16,7 +16,7 @@
 
 /*
  * @version 4.3
- * @last-modified 2026-10-14
+ * @last-modified 2026-10-15
  */
 
 /* For console-integrated & standalone page-content */
@@ -430,7 +430,7 @@
     right: 0;
     width: 180px;
     height: 120px;
-    background-color: #3e132d;
+    background-color: #30213e;
     z-index: 5;
 }
 .track-stack .activity-status-plate {
@@ -447,7 +447,7 @@
     left: 0;
     width: 115px;
     height: 24px;
-    background-color: #572b2a;
+    background-color: #46305a;
     color: #eee;
 }
 .track-stack .activity-status-plate .bottom-plate-right {
@@ -456,7 +456,7 @@
     right: 5px;
     width: 55px;
     height: 24px;
-    background-color: #572b2a;
+    background-color: #46305a;
     color: #eee;
 }
 .track-stack .activity-status {
@@ -481,14 +481,14 @@
 }
 .track-stack .activity-status p.interim {
     font-size: 2em;
-    color: #35e771;
+    color: #4493c8;
     line-height: 1.1;
 }
 .track-stack .activity-status p.interim .errors {
     color: #fc2184;
 }
 .track-stack .activity-status p.interim .separator {
-    color: #a48599;
+    color: #14a144;
     letter-spacing: -3px;
 }
 .track-stack .activity-status p.cumulative {
@@ -932,7 +932,7 @@
 
 /*
  * @version 4.3
- * @last-modified 2026-10-09
+ * @last-modified 2026-10-15
  */
 
 [data-bs-theme=dark] {
@@ -1042,27 +1042,27 @@
         background-color: #081129;
     }
     .track-box .track-stack {
-        background-color: #2b1223;
+        background-color: #271c31;
     }
     .track-stack .activity-status-plate .bottom-plate-left {
-        background-color: #3c201f;
+        background-color: #3d2a4f;
         color: #eee;
     }
     .track-stack .activity-status-plate .bottom-plate-right {
-        background-color: #3c201f;
+        background-color: #3d2a4f;
         color: #eee;
     }
     .track-stack .activity-status {
         color: #8892b6;
     }
     .track-stack .activity-status p.interim {
-        color: #1f8c45;
+        color: #3484b9;
     }
     .track-stack .activity-status p.interim .errors {
         color: #fc2184;
     }
     .track-stack .activity-status p.interim .separator {
-        color: #936e86;
+        color: #169842;
     }
     .track-stack .activity-status .sampling-timer-bar {
         background-color: #9b6485;
