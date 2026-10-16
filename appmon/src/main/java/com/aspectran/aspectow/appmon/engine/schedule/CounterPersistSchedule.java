@@ -169,7 +169,7 @@ public class CounterPersistSchedule {
 
     @NonNull
     private LocalDateTime getDatetime(boolean scheduled) {
-        Instant instant = Instant.now();
+        Instant instant = Instant.now().truncatedTo(ChronoUnit.MINUTES);
         int interval = appMonManager.getCounterPersistInterval();
         if (!scheduled && interval > 0) {
             int next = instant.atZone(ZoneOffset.UTC).getMinute() + interval;
