@@ -19,7 +19,7 @@
  * Responsible for assembling the dashboard UI based on configuration data.
  *
  * @version 4.3
- * @last-modified 2026-10-14
+ * @last-modified 2026-10-16
  */
 class DashboardBuilder {
     constructor(options = {}) {
@@ -146,8 +146,6 @@ class DashboardBuilder {
                     this.groups.forEach(group => {
                         const groupViewer = new DashboardViewer(this.counterPersistInterval * 60, this.options);
                         groupViewer.setIsGroupView(true, group.id);
-                        const nodeIdsInGroup = this.nodes.filter(n => n.group === group.id).map(n => n.id);
-                        groupViewer.setExpectedNodesInGroup(nodeIdsInGroup);
                         this.groupViewers[group.id] = groupViewer;
                     });
 

@@ -1160,7 +1160,7 @@ class TrafficPainter {
  * Responsible for rendering and updating individual charts using Chart.js.
  *
  * @version 4.3
- * @last-modified 2026-10-09
+ * @last-modified 2026-10-16
  */
 class DashboardChart {
     constructor($container, eventId) {
@@ -1169,6 +1169,8 @@ class DashboardChart {
         this.chart = null;
         this.dateUnit = null;
         this.dateOffset = null;
+        this.lastInitialLabel = null;
+        this.updateScheduled = false;
     }
 
     isDrawn() {
@@ -1193,6 +1195,7 @@ class DashboardChart {
 
     draw(dateUnit, labels, data1, data2) {
         this.destroy();
+        this.lastInitialLabel = (labels && labels.length > 0 ? labels[labels.length - 1] : null);
         const $canvas = this.ensureCanvas();
 
         let dataLabel1;
@@ -1356,82 +1359,6 @@ class DashboardChart {
         }
     }
 
-    setData(labels, data1, data2) {
-        if (this.chart) {
-            this.chart.data.labels = labels;
-            this.chart.data.datasets[0].data = data1;
-            this.chart.data.datasets[1].data = data2;
-            this.update();
-        }
-    }
-
-    rollup(labels, data1, data2, useMaxRule = false) {
-        if (this.chart) {
-            const chartLabels = this.chart.data.labels;
-            const chartData1 = this.chart.data.datasets[0].data;
-            const chartData2 = this.chart.data.datasets[1].data;
-            if (chartLabels.length > 0) {
-                const lastIndex = chartLabels.length - 1;
-                if (chartLabels[lastIndex] >= labels[0]) {
-                    if (useMaxRule && chartLabels[lastIndex] === labels[0]) {
-                        data1[0] = Math.max(chartData1[lastIndex] || 0, data1[0] || 0);
-                        if (data2 && data2[0] !== null) {
-                            data2[0] = Math.max(chartData2[lastIndex] || 0, data2[0] || 0);
-                        }
-                    }
-                    chartLabels.splice(lastIndex, 1);
-                    chartData1.splice(lastIndex, 1);
-                    chartData2.splice(lastIndex, 1);
-                }
-            }
-            chartLabels.push(...labels);
-            chartData1.push(...data1);
-            chartData2.push(...data2);
-        }
-    }
-
-    rollupDateUnit(dateUnit, datetimeStr, delta, error) {
-        if (!this.chart || !dateUnit) return;
-        const chartLabels = this.chart.data.labels;
-        const chartData1 = this.chart.data.datasets[0].data;
-        const chartData2 = this.chart.data.datasets[1].data;
-        if (!chartLabels.length) return;
-
-        const incoming = dayjs(datetimeStr);
-        let normalizedIncoming;
-        switch (dateUnit) {
-            case "hour": normalizedIncoming = incoming.startOf("hour"); break;
-            case "day": normalizedIncoming = incoming.startOf("day"); break;
-            case "month": normalizedIncoming = incoming.startOf("month"); break;
-            case "year": normalizedIncoming = incoming.startOf("year"); break;
-            default: normalizedIncoming = incoming.startOf("minute"); break;
-        }
-
-        const lastIndex = chartLabels.length - 1;
-        const lastLabelDate = dayjs(chartLabels[lastIndex]);
-        let normalizedLast;
-        switch (dateUnit) {
-            case "hour": normalizedLast = lastLabelDate.startOf("hour"); break;
-            case "day": normalizedLast = lastLabelDate.startOf("day"); break;
-            case "month": normalizedLast = lastLabelDate.startOf("month"); break;
-            case "year": normalizedLast = lastLabelDate.startOf("year"); break;
-            default: normalizedLast = lastLabelDate.startOf("minute"); break;
-        }
-
-        if (normalizedIncoming.isSame(normalizedLast)) {
-            chartData1[lastIndex] = (chartData1[lastIndex] || 0) + (delta || 0);
-            if (chartData2[lastIndex] !== null && error !== null) {
-                chartData2[lastIndex] = (chartData2[lastIndex] || 0) + (error || 0);
-            }
-            this.update();
-        } else if (normalizedIncoming.isAfter(normalizedLast)) {
-            chartLabels.push(normalizedIncoming.toISOString());
-            chartData1.push(delta || 0);
-            chartData2.push(error !== null ? (error || 0) : null);
-            this.update();
-        }
-    }
-
     isZoomedOrPanned() {
         return (this.chart && typeof this.chart.isZoomedOrPanned === "function" && this.chart.isZoomedOrPanned());
     }
@@ -1442,13 +1369,134 @@ class DashboardChart {
         }
     }
 
+    setData(labels, data1, data2) {
+        if (this.chart) {
+            this.chart.data.labels = labels;
+            this.chart.data.datasets[0].data = data1;
+            this.chart.data.datasets[1].data = data2;
+            this.update();
+        }
+    }
+
+    /**
+     * Applies real-time rollup data to the chart.
+     * Recognizes date-formatted labels and accumulates values in real time.
+     *
+     * @param {string} label - ISO 8601 date string
+     * @param {number} delta - Primary data delta (e.g. activities or sessions)
+     * @param {number|null} error - Secondary data delta (e.g. errors)
+     * @param {boolean} isGroupView - Whether this chart is in group view (accumulate)
+     * @param {string|null} dateUnit - Date unit ("hour", "day", "month", "year", or null for realtime)
+     */
+    applyRollup(label, delta, error, isGroupView = false, dateUnit = null) {
+        if (!this.chart || !label) return;
+
+        const chartLabels = this.chart.data.labels;
+        const chartData1 = this.chart.data.datasets[0].data;
+        const chartData2 = this.chart.data.datasets[1].data;
+        if (!chartLabels) return;
+
+        const incomingDate = dayjs(label);
+        if (!incomingDate.isValid()) return;
+
+        const activeDateUnit = dateUnit || this.dateUnit;
+        const normalizedIncoming = activeDateUnit
+            ? incomingDate.startOf(activeDateUnit)
+            : incomingDate.startOf("minute");
+
+        // Do not double-count if the label matches the initial batch loaded from DB
+        if (this.lastInitialLabel) {
+            const initialDate = dayjs(this.lastInitialLabel);
+            const normalizedInitial = activeDateUnit
+                ? initialDate.startOf(activeDateUnit)
+                : initialDate.startOf("minute");
+            if (normalizedIncoming.isSame(normalizedInitial) || normalizedIncoming.isBefore(normalizedInitial)) {
+                return;
+            }
+        }
+
+        // Search backward from the latest labels
+        let targetIndex = -1;
+        for (let i = chartLabels.length - 1; i >= 0; i--) {
+            const existingLabel = chartLabels[i];
+            if (existingLabel === label) {
+                targetIndex = i;
+                break;
+            }
+            const existingDate = dayjs(existingLabel);
+            const normalizedExisting = activeDateUnit
+                ? existingDate.startOf(activeDateUnit)
+                : existingDate.startOf("minute");
+            if (normalizedExisting.isSame(normalizedIncoming)) {
+                targetIndex = i;
+                break;
+            }
+            if (normalizedExisting.isBefore(normalizedIncoming)) {
+                break;
+            }
+        }
+
+        if (targetIndex !== -1) {
+            if (isGroupView) {
+                chartData1[targetIndex] = (chartData1[targetIndex] || 0) + (delta || 0);
+                if (chartData2[targetIndex] !== null && error !== null && error !== undefined) {
+                    chartData2[targetIndex] = (chartData2[targetIndex] || 0) + error;
+                }
+            } else {
+                chartData1[targetIndex] = (chartData1[targetIndex] || 0) + (delta || 0);
+                if (chartData2[targetIndex] !== null && error !== null && error !== undefined) {
+                    chartData2[targetIndex] = (chartData2[targetIndex] || 0) + error;
+                }
+            }
+        } else {
+            const newLabelStr = activeDateUnit ? normalizedIncoming.toISOString() : label;
+            const lastIndex = chartLabels.length - 1;
+            const lastDate = (lastIndex >= 0 ? dayjs(chartLabels[lastIndex]) : null);
+            const normalizedLast = (lastDate ? (activeDateUnit ? lastDate.startOf(activeDateUnit) : lastDate.startOf("minute")) : null);
+
+            if (!normalizedLast || normalizedIncoming.isAfter(normalizedLast)) {
+                chartLabels.push(newLabelStr);
+                chartData1.push(delta || 0);
+                chartData2.push(error !== null && error !== undefined ? error : null);
+            } else {
+                let insertIndex = chartLabels.length;
+                for (let i = chartLabels.length - 1; i >= 0; i--) {
+                    const d = dayjs(chartLabels[i]);
+                    const normD = activeDateUnit ? d.startOf(activeDateUnit) : d.startOf("minute");
+                    if (normD.isBefore(normalizedIncoming)) {
+                        insertIndex = i + 1;
+                        break;
+                    }
+                    if (i === 0) {
+                        insertIndex = 0;
+                    }
+                }
+                chartLabels.splice(insertIndex, 0, newLabelStr);
+                chartData1.splice(insertIndex, 0, delta || 0);
+                chartData2.splice(insertIndex, 0, error !== null && error !== undefined ? error : null);
+            }
+        }
+    }
+
     update() {
         if (this.chart) {
             this.chart.update();
         }
     }
 
+    requestUpdate() {
+        if (this.updateScheduled) return;
+        this.updateScheduled = true;
+        requestAnimationFrame(() => {
+            this.updateScheduled = false;
+            if (this.chart) {
+                this.chart.update("none");
+            }
+        });
+    }
+
     destroy() {
+        this.updateScheduled = false;
         if (this.chart) {
             this.chart.destroy();
             this.chart = null;
@@ -1468,16 +1516,14 @@ class DashboardViewer {
         this.flagsUrl = options.flagsUrl || "https://cdn.jsdelivr.net/gh/aspectran/aspectran-assets@main/assets/countries/flags/";
         this.tempResidentInactiveSecs = 30;
         this.sampleInterval = sampleInterval;
-
         this.client = null;
         this.enable = false;
         this.visible = false;
         this.isGroupView = false;
         this.groupId = null;
-        this.expectedNodesInGroup = [];
         this.activitiesByNode = {};
         this.sessionStatsByNode = {};
-        this.rollupBuffer = {};
+        this.rollupsByNode = {};
         this.displays = {};
         this.charts = {};
         this.consoles = {};
@@ -1495,10 +1541,6 @@ class DashboardViewer {
         this.groupId = groupId || null;
     }
 
-    setExpectedNodesInGroup(nodes) {
-        this.expectedNodesInGroup = nodes || [];
-    }
-
     onNodeLeft(nodeId) {
         if (this.isGroupView && nodeId) {
             for (let exporterKey in this.activitiesByNode) {
@@ -1508,6 +1550,14 @@ class DashboardViewer {
             for (let exporterKey in this.sessionStatsByNode) {
                 delete this.sessionStatsByNode[exporterKey][nodeId];
                 this.printSessionEventData(null, exporterKey, this.aggregateSessionStats(exporterKey));
+            }
+            for (let exporterKey in this.rollupsByNode) {
+                const labelMap = this.rollupsByNode[exporterKey];
+                if (labelMap) {
+                    for (let label in labelMap) {
+                        delete labelMap[label][nodeId];
+                    }
+                }
             }
             for (let key in this.displays) {
                 if (key.includes(":event:session")) {
@@ -2441,22 +2491,21 @@ class DashboardViewer {
         this.setLoading(appId, false);
 
         if (eventId === "activity") {
-            const prefix = appId + ":event:" + eventId;
+            const key = appId + ":event:" + eventId;
             if (!dashboardChart.isDrawn()) {
                 if (!this.isGroupView || chartData.scope === "group") {
-                    this.resetInterimTimer(prefix);
+                    this.resetInterimTimer(key);
                 }
             } else if (chartData.rolledUp) {
                 if (this.isGroupView && nodeId) {
-                    const actMap = this.activitiesByNode[prefix];
+                    const actMap = this.activitiesByNode[key];
                     if (actMap && actMap[nodeId]) {
                         actMap[nodeId].interim = 0;
                         actMap[nodeId].errors = 0;
-                        this.printActivityStatus(prefix, this.aggregateActivities(prefix));
+                        this.printActivityStatus(key, this.aggregateActivities(key));
                     }
                 } else {
-                    this.resetInterimTimer(prefix);
-                    this.resetInterimActivityStatus(prefix);
+                    this.resetInterimActivityStatus(key);
                 }
             }
         }
@@ -2467,103 +2516,67 @@ class DashboardViewer {
         const data1 = chartData.data1;
         const data2 = chartData.data2.map(n => (eventId === "activity" ? n : null));
 
-        if (!dashboardChart.isDrawn() || !chartData.rolledUp) {
-            if (this.isGroupView && this.expectedNodesInGroup && this.expectedNodesInGroup.length > 1 && chartData.scope !== "group") {
+        if (!chartData.rolledUp) {
+            if (this.isGroupView && chartData.scope !== "group" ||
+                !this.isGroupView && chartData.scope === "group") {
                 return;
             }
             dashboardChart.ensureCanvas();
             this.pruneDataPoints(labels, data1, data2, dashboardChart.$container);
             dashboardChart.draw(dateUnit, labels, data1, data2);
             dashboardChart.dateOffset = dateOffset;
-        } else if (!dateOffset) {
-            if (this.isGroupView) {
-                this.bufferGroupRollup(nodeId, appId, eventId, exporterKey, dateUnit, labels[0], data1[0], data2[0]);
-            } else {
-                if (!dateUnit) {
-                    dashboardChart.rollup(labels, data1, data2, true);
-                    this.pruneDataPoints(dashboardChart.getLabels(), dashboardChart.getDataset(0), dashboardChart.getDataset(1), dashboardChart.$container);
-                    dashboardChart.update();
-                } else if (this.client) {
-                    setTimeout(() => {
-                        const options = [
-                            "appId:" + appId,
-                            "dateUnit:" + dateUnit,
-                            "timeZone:" + Intl.DateTimeFormat().resolvedOptions().timeZone
-                        ];
-                        this.client.refresh(options);
-                    }, 900);
+        } else if (dashboardChart.isDrawn() && !dateOffset) {
+            const label = labels && labels.length ? labels[0] : null;
+            const delta = data1 && data1.length ? data1[0] : 0;
+            const error = data2 && data2.length ? data2[0] : null;
+            if (label) {
+                const diff = this.trackRollupDiff(nodeId, exporterKey, label, delta, error);
+                if (diff.deltaDiff !== 0 || (diff.errorDiff !== null && diff.errorDiff !== 0)) {
+                    dashboardChart.applyRollup(label, diff.deltaDiff, diff.errorDiff, this.isGroupView, dateUnit);
+                    this.pruneDataPoints(
+                        dashboardChart.getLabels(),
+                        dashboardChart.getDataset(0),
+                        dashboardChart.getDataset(1),
+                        dashboardChart.$container
+                    );
+                    dashboardChart.requestUpdate();
+                }
+                if (eventId === "activity" && diff.isFirstForLabel) {
+                    const key = appId + ":event:" + eventId;
+                    this.resetInterimTimer(key);
                 }
             }
         }
     }
 
-    bufferGroupRollup(nodeId, appId, eventId, exporterKey, dateUnit, label, delta, error) {
-        const dashboardChart = this.getChart$(exporterKey);
-        if (!dashboardChart || !label) return;
-
-        const bufferKey = exporterKey + ":" + label;
-        if (!this.rollupBuffer[bufferKey]) {
-            this.rollupBuffer[bufferKey] = {
-                appId,
-                eventId,
-                exporterKey,
-                dateUnit,
-                label,
-                nodes: {},
-                timer: null
-            };
+    trackRollupDiff(nodeId, exporterKey, label, delta, error) {
+        if (!this.rollupsByNode[exporterKey]) {
+            this.rollupsByNode[exporterKey] = {};
         }
-
-        const entry = this.rollupBuffer[bufferKey];
-        entry.nodes[nodeId || "unknown"] = { delta: delta || 0, error: (error !== null ? (error || 0) : null) };
-
-        const expectedCount = (this.expectedNodesInGroup && this.expectedNodesInGroup.length > 0)
-            ? this.expectedNodesInGroup.filter(n => n.alive).length
-            : 1;
-
-        if (Object.keys(entry.nodes).length >= expectedCount) {
-            if (entry.timer) {
-                clearTimeout(entry.timer);
-                entry.timer = null;
-            }
-            this.flushGroupRollup(bufferKey);
-        } else if (!entry.timer) {
-            entry.timer = setTimeout(() => {
-                this.flushGroupRollup(bufferKey);
-            }, 3000);
-        }
-    }
-
-    flushGroupRollup(bufferKey) {
-        const entry = this.rollupBuffer[bufferKey];
-        if (!entry) return;
-        delete this.rollupBuffer[bufferKey];
-
-        const dashboardChart = this.getChart$(entry.exporterKey);
-        if (!dashboardChart) return;
-
-        let totalDelta = 0;
-        let totalError = (entry.eventId === "activity" ? 0 : null);
-        for (let nid in entry.nodes) {
-            const item = entry.nodes[nid];
-            totalDelta += (item.delta || 0);
-            if (totalError !== null && item.error !== null) {
-                totalError += (item.error || 0);
+        const labelMap = this.rollupsByNode[exporterKey];
+        let isFirstForLabel = false;
+        if (!labelMap[label]) {
+            labelMap[label] = {};
+            isFirstForLabel = true;
+            const keys = Object.keys(labelMap);
+            if (keys.length > 50) {
+                delete labelMap[keys[0]];
             }
         }
+        const nodeEntries = labelMap[label];
+        const nid = nodeId || "unknown";
+        const prev = nodeEntries[nid] || { delta: 0, error: 0 };
+        const currentDelta = delta || 0;
+        const currentError = (error !== null && error !== undefined) ? error : null;
 
-        if (!entry.dateUnit) {
-            dashboardChart.rollup([entry.label], [totalDelta], [totalError], true);
-            this.pruneDataPoints(dashboardChart.getLabels(), dashboardChart.getDataset(0), dashboardChart.getDataset(1), dashboardChart.$container);
-            dashboardChart.update();
-        } else {
-            dashboardChart.rollupDateUnit(entry.dateUnit, entry.label, totalDelta, totalError);
+        const deltaDiff = currentDelta - prev.delta;
+        let errorDiff = null;
+        if (currentError !== null) {
+            errorDiff = currentError - (prev.error !== null ? prev.error : 0);
         }
 
-        if (entry.eventId === "activity") {
-            const prefix = entry.appId + ":event:" + entry.eventId;
-            this.resetInterimTimer(prefix);
-        }
+        nodeEntries[nid] = { delta: currentDelta, error: currentError };
+        return { deltaDiff, errorDiff, isFirstForLabel };
     }
 
     pruneDataPoints(labels, data1, data2, $container) {
@@ -2596,7 +2609,6 @@ class DashboardViewer {
                 data2.splice(0, cnt);
             }
         }
-        return maxLabels;
     }
 
     getMaxStartDatetime(appId) {
@@ -3158,7 +3170,7 @@ class MetricsViewer {
  * Responsible for assembling the dashboard UI based on configuration data.
  *
  * @version 4.3
- * @last-modified 2026-10-14
+ * @last-modified 2026-10-16
  */
 class DashboardBuilder {
     constructor(options = {}) {
@@ -3285,8 +3297,6 @@ class DashboardBuilder {
                     this.groups.forEach(group => {
                         const groupViewer = new DashboardViewer(this.counterPersistInterval * 60, this.options);
                         groupViewer.setIsGroupView(true, group.id);
-                        const nodeIdsInGroup = this.nodes.filter(n => n.group === group.id).map(n => n.id);
-                        groupViewer.setExpectedNodesInGroup(nodeIdsInGroup);
                         this.groupViewers[group.id] = groupViewer;
                     });
 
