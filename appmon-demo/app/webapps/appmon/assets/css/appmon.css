@@ -16,7 +16,7 @@
 
 /*
  * @version 4.3
- * @last-modified 2026-10-15
+ * @last-modified 2026-10-16
  */
 
 /* For console-integrated & standalone page-content */
@@ -430,7 +430,7 @@
     right: 0;
     width: 180px;
     height: 120px;
-    background-color: #30213e;
+    background-color: #1c2531;
     z-index: 5;
 }
 .track-stack .activity-status-plate {
@@ -447,7 +447,7 @@
     left: 0;
     width: 115px;
     height: 24px;
-    background-color: #46305a;
+    background-color: #2e4466;
     color: #eee;
 }
 .track-stack .activity-status-plate .bottom-plate-right {
@@ -456,7 +456,7 @@
     right: 5px;
     width: 55px;
     height: 24px;
-    background-color: #46305a;
+    background-color: #2e4466;
     color: #eee;
 }
 .track-stack .activity-status {
@@ -465,7 +465,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    color: #a5aecf;
+    color: #a6cfa7;
     text-align: center;
     z-index: 11;
 }
@@ -481,7 +481,7 @@
 }
 .track-stack .activity-status p.interim {
     font-size: 2em;
-    color: #4493c8;
+    color: #3a92cb;
     line-height: 1.1;
 }
 .track-stack .activity-status p.interim .errors {
@@ -507,7 +507,7 @@
     bottom: 0;
     width: 5px;
     height: 100%;
-    background-color: #b989a6;
+    background-color: #37a3e9;
 }
 .track-stack .activity-status .sampling-timer-status {
     position: absolute;

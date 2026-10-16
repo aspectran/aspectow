@@ -16,7 +16,7 @@
 
 /*
  * @version 4.3
- * @last-modified 2026-10-15
+ * @last-modified 2026-10-16
  */
 
 [data-bs-theme=dark] {
@@ -126,21 +126,21 @@
         background-color: #081129;
     }
     .track-box .track-stack {
-        background-color: #271c31;
+        background-color: #1c2b31;
     }
     .track-stack .activity-status-plate .bottom-plate-left {
-        background-color: #3d2a4f;
+        background-color: #27364e;
         color: #eee;
     }
     .track-stack .activity-status-plate .bottom-plate-right {
-        background-color: #3d2a4f;
+        background-color: #27364e;
         color: #eee;
     }
     .track-stack .activity-status {
-        color: #8892b6;
+        color: #a6cfa7;
     }
     .track-stack .activity-status p.interim {
-        color: #3484b9;
+        color: #3a91cb;
     }
     .track-stack .activity-status p.interim .errors {
         color: #fc2184;
@@ -149,7 +149,7 @@
         color: #169842;
     }
     .track-stack .activity-status .sampling-timer-bar {
-        background-color: #9b6485;
+        background-color: #327fb1;
     }
     .charts-box {
         background-color: #000;
