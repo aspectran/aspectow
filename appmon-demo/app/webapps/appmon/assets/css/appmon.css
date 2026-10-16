@@ -414,7 +414,7 @@
 .track-box {
     position: relative;
     height: 120px;
-    background-color: #0d1939;
+    background-color: #0f213d;
     overflow: hidden;
 }
 .track-box .traffic-canvas {
@@ -430,7 +430,7 @@
     right: 0;
     width: 180px;
     height: 120px;
-    background-color: #1c2531;
+    background-color: #1c2b31;
     z-index: 5;
 }
 .track-stack .activity-status-plate {
@@ -447,8 +447,7 @@
     left: 0;
     width: 115px;
     height: 24px;
-    background-color: #2e4466;
-    color: #eee;
+    background-color: #2c3f47;
 }
 .track-stack .activity-status-plate .bottom-plate-right {
     position: absolute;
@@ -456,8 +455,7 @@
     right: 5px;
     width: 55px;
     height: 24px;
-    background-color: #2e4466;
-    color: #eee;
+    background-color: #2c3f47;
 }
 .track-stack .activity-status {
     position: absolute;
@@ -465,33 +463,29 @@
     left: 0;
     right: 0;
     bottom: 0;
-    color: #a6cfa7;
+    color: #85e187;
     text-align: center;
     z-index: 11;
 }
-.track-stack .activity-status p {
-    margin: 0;
-    padding: 0;
-    line-height: 1;
-}
-.track-stack .activity-status p.current {
+.track-stack .activity-status .current {
     font-size: 3em;
     font-weight: bold;
     padding-top: 4px;
+    line-height: 1;
 }
-.track-stack .activity-status p.interim {
+.track-stack .activity-status .interim {
     font-size: 2em;
-    color: #3a92cb;
+    color: #47a6e5;
     line-height: 1.1;
 }
-.track-stack .activity-status p.interim .errors {
+.track-stack .activity-status .interim .errors {
     color: #fc2184;
 }
-.track-stack .activity-status p.interim .separator {
-    color: #14a144;
+.track-stack .activity-status .interim .separator {
+    color: #85e187;
     letter-spacing: -3px;
 }
-.track-stack .activity-status p.cumulative {
+.track-stack .activity-status .cumulative {
     position: absolute;
     bottom: 0;
     left: 0;
@@ -499,7 +493,8 @@
     height: 24px;
     line-height: 24px;
     text-align: center;
-    font-size: 1em;
+    font-size: 0.95em;
+    color: #8ec4f4;
 }
 .track-stack .activity-status .sampling-timer-bar {
     position: absolute;
@@ -507,7 +502,7 @@
     bottom: 0;
     width: 5px;
     height: 100%;
-    background-color: #37a3e9;
+    background-color: #47a6e5;
 }
 .track-stack .activity-status .sampling-timer-status {
     position: absolute;
@@ -517,7 +512,8 @@
     height: 24px;
     line-height: 24px;
     text-align: center;
-    font-size: .7em;
+    font-size: .75em;
+    color: #8ec4f4;
 }
 
 .charts-box {

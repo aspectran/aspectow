@@ -122,35 +122,6 @@
         background-color: #2e5469;
         color: #fff;
     }
-    .track-box {
-        background-color: #081129;
-    }
-    .track-box .track-stack {
-        background-color: #1c2b31;
-    }
-    .track-stack .activity-status-plate .bottom-plate-left {
-        background-color: #27364e;
-        color: #eee;
-    }
-    .track-stack .activity-status-plate .bottom-plate-right {
-        background-color: #27364e;
-        color: #eee;
-    }
-    .track-stack .activity-status {
-        color: #a6cfa7;
-    }
-    .track-stack .activity-status p.interim {
-        color: #3a91cb;
-    }
-    .track-stack .activity-status p.interim .errors {
-        color: #fc2184;
-    }
-    .track-stack .activity-status p.interim .separator {
-        color: #169842;
-    }
-    .track-stack .activity-status .sampling-timer-bar {
-        background-color: #327fb1;
-    }
     .charts-box {
         background-color: #000;
         box-shadow: 0 8px 10px -10px rgba(50, 50, 50, 0.33);
