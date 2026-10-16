@@ -28,7 +28,6 @@ class DashboardChart {
         this.chart = null;
         this.dateUnit = null;
         this.dateOffset = null;
-        this.lastInitialLabel = null;
         this.updateScheduled = false;
     }
 
@@ -54,7 +53,6 @@ class DashboardChart {
 
     draw(dateUnit, labels, data1, data2) {
         this.destroy();
-        this.lastInitialLabel = (labels && labels.length > 0 ? labels[labels.length - 1] : null);
         const $canvas = this.ensureCanvas();
 
         let dataLabel1;
@@ -262,17 +260,6 @@ class DashboardChart {
         const normalizedIncoming = activeDateUnit
             ? incomingDate.startOf(activeDateUnit)
             : incomingDate.startOf("minute");
-
-        // Do not double-count if the label matches the initial batch loaded from DB
-        if (this.lastInitialLabel) {
-            const initialDate = dayjs(this.lastInitialLabel);
-            const normalizedInitial = activeDateUnit
-                ? initialDate.startOf(activeDateUnit)
-                : initialDate.startOf("minute");
-            if (normalizedIncoming.isSame(normalizedInitial) || normalizedIncoming.isBefore(normalizedInitial)) {
-                return;
-            }
-        }
 
         // Search backward from the latest labels
         let targetIndex = -1;
