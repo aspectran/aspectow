@@ -29,7 +29,7 @@ import java.util.List;
  * The main configuration class for Aspectow AppMon.
  * It defines and holds all the necessary settings for the monitoring application,
  * such as polling configuration, domain information, and instance details.
- * This class is based on APON (Aspectran Object Notation).
+ * This class is based on APON (Aspectran Parameters Object Notation).
  *
  * <p>Created: 2024/12/17</p>
  */

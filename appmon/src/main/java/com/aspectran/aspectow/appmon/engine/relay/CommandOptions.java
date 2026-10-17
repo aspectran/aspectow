@@ -27,7 +27,7 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * Parses and holds command options sent from clients.
- * This class is based on APON (Aspectran Object Notation) to handle key-value pairs.
+ * This class is based on APON (Aspectran Parameters Object Notation) to handle key-value pairs.
  *
  * <p>Created: 2020. 12. 24.</p>
  */
