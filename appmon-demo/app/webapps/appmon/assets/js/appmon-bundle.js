@@ -1503,36 +1503,38 @@ class DashboardChart {
  * Responsible for rendering monitoring data, including logs, metrics, and charts.
  *
  * @version 4.3
- * @last-modified 2026-10-13
+ * @last-modified 2026-10-17
  */
 class DashboardViewer {
     constructor(sampleInterval, options = {}) {
         this.flagsUrl = options.flagsUrl || "https://cdn.jsdelivr.net/gh/aspectran/aspectran-assets@main/assets/countries/flags/";
-        this.tempResidentInactiveSecs = 30;
-        this.sampleInterval = sampleInterval;
+
+        this.isGroupView = false;
+        this.groupId = null;
+
         this.client = null;
         this.enable = false;
         this.visible = false;
-        this.isGroupView = false;
-        this.groupId = null;
-        this.activitiesByNode = {};
-        this.sessionStatsByNode = {};
-        this.rollupsByNode = {};
+
         this.displays = {};
+        this.painters = {};
         this.charts = {};
         this.consoles = {};
         this.indicators = {};
-        this.currentActivityCounts = {};
-        this.cachedCanvasWidth = 0;
-        this.activeBulletCount = 0;
-        this.maxBullets = 500;
-        this.painters = {};
-        this.sessionFilterByDisplay = {};
-    }
 
-    setIsGroupView(flag, groupId) {
-        this.isGroupView = !!flag;
-        this.groupId = groupId || null;
+        this.sampleInterval = sampleInterval;
+        this.maxBullets = 500;
+        this.activeBulletCount = 0;
+
+        this.activitiesByNode = {};
+        this.currentActivityCounts = {};
+
+        this.tempResidentInactiveSecs = 30;
+        this.sessionStatsByNode = {};
+        this.sessionFilterByDisplay = {};
+
+        this.cachedCanvasWidth = 0;
+        this.rollupsByNode = {};
     }
 
     onNodeLeft(nodeId) {
@@ -1567,6 +1569,11 @@ class DashboardViewer {
         }
     }
 
+    setIsGroupView(flag, groupId) {
+        this.isGroupView = !!flag;
+        this.groupId = groupId || null;
+    }
+
     setClient(client) {
         this.client = client;
     }
@@ -1589,7 +1596,7 @@ class DashboardViewer {
     putDisplay$(appId, eventId, $display) {
         const key = appId + ":event:" + eventId;
         this.displays[key] = $display;
-        if ($display.hasClass("track-box")) {
+        if (eventId === "activity" && $display.hasClass("track-box")) {
             const canvas = $display.find(".traffic-canvas")[0];
             if (canvas) {
                 this.painters[key] = new TrafficPainter(canvas);
@@ -1659,86 +1666,6 @@ class DashboardViewer {
         }
     }
 
-    setSessionFilter(appId, eventId, nodeId) {
-        const key = appId + ":event:" + eventId;
-        this.sessionFilterByDisplay[key] = nodeId || null;
-        const $display = this.getDisplay$(key);
-        if ($display) {
-            this.applySessionFilter($display, nodeId || null);
-        }
-    }
-
-    applySessionFilter($display, targetNodeId) {
-        const $sessions = $display.find("ul.sessions");
-        if (!targetNodeId) {
-            $sessions.find("li").removeClass("filtered-out");
-        } else {
-            $sessions.find("li").each(function () {
-                const nid = $(this).attr("data-node-id");
-                $(this).toggleClass("filtered-out", String(nid) !== String(targetNodeId));
-            });
-        }
-    }
-
-    updateSessionNodeFilterButtons($display) {
-        if (!this.isGroupView || !$display || !$display.length) return;
-        const $sessionBox = $display.hasClass("session-box") ? $display : $display.closest(".session-box");
-        if (!$sessionBox.length) return;
-
-        const $filter = $sessionBox.find(".session-node-filter");
-        if (!$filter.length) return;
-
-        const $sessions = $sessionBox.find("ul.sessions");
-        const nodeCounts = {};
-        $sessions.find("li").each(function () {
-            const nid = $(this).attr("data-node-id");
-            if (nid) {
-                nodeCounts[nid] = (nodeCounts[nid] || 0) + 1;
-            }
-        });
-
-        const appId = $sessionBox.data("app-id") || $sessionBox.attr("data-app-id");
-        const eventId = $sessionBox.data("event-id") || $sessionBox.attr("data-event-id");
-        const key = appId + ":event:" + eventId;
-        const currentFilterNodeId = this.sessionFilterByDisplay[key];
-
-        $filter.find(".btn-node").each(function () {
-            const nid = $(this).attr("data-node-id");
-            if (!nid) {
-                return; // "All" button remains visible
-            }
-            const count = nodeCounts[nid] || 0;
-            if (count > 0) {
-                $(this).show();
-            } else {
-                $(this).hide();
-            }
-        });
-
-        if (currentFilterNodeId && (!nodeCounts[currentFilterNodeId] || nodeCounts[currentFilterNodeId] <= 0)) {
-            $filter.find(".btn-node").removeClass("on");
-            $filter.find(".btn-node").filter(function () {
-                return !$(this).attr("data-node-id");
-            }).addClass("on");
-            this.setSessionFilter(appId, eventId, null);
-        }
-    }
-
-    setLoading(appId, isLoading) {
-        for (let key in this.charts) {
-            if (key.startsWith(appId + ":")) {
-                const dashboardChart = this.charts[key];
-                const $chartBox = dashboardChart.$container.closest(".chart-box");
-                const $overlay = $chartBox.find(".loading-overlay");
-                if (isLoading) {
-                    $overlay.css("display", "flex");
-                } else {
-                    $overlay.hide();
-                }
-            }
-        }
-    }
-
     refreshConsole($console) {
         if ($console) {
             this.appendToConsole($console);
@@ -1784,9 +1711,62 @@ class DashboardViewer {
         }
     }
 
+    setLoading(appId, isLoading) {
+        for (let key in this.charts) {
+            if (key.startsWith(appId + ":")) {
+                const dashboardChart = this.charts[key];
+                const $chartBox = dashboardChart.$container.closest(".chart-box");
+                const $overlay = $chartBox.find(".loading-overlay");
+                if (isLoading) {
+                    $overlay.css("display", "flex");
+                } else {
+                    $overlay.hide();
+                }
+            }
+        }
+    }
+
     printInitialGroupLogMessage(key) {
         if (this.isGroupView) {
             this.printMessage("Listening for live log events from all cluster nodes...", key);
+        }
+    }
+
+    printMessage(message, consoleName) {
+        if (consoleName) {
+            const $console = this.getConsole$(consoleName);
+            if ($console) {
+                let buffer = $console.data("log-buffer");
+                if (!buffer) {
+                    buffer = [];
+                    $console.data("log-buffer", buffer);
+                }
+                buffer.push({ html: message, className: "event ellipses" });
+                this.appendToConsole($console);
+            }
+        } else {
+            for (let key in this.consoles) {
+                this.printMessage(message, key);
+            }
+        }
+    }
+
+    printErrorMessage(message, consoleName) {
+        if (consoleName || !Object.keys(this.consoles).length) {
+            const $console = this.getConsole$(consoleName);
+            if ($console) {
+                let buffer = $console.data("log-buffer");
+                if (!buffer) {
+                    buffer = [];
+                    $console.data("log-buffer", buffer);
+                }
+                buffer.push({ html: message, className: "event error" });
+                this.appendToConsole($console);
+            }
+        } else {
+            for (let key in this.consoles) {
+                this.printErrorMessage(message, key);
+            }
         }
     }
 
@@ -1907,44 +1887,6 @@ class DashboardViewer {
         $console.data("prev-timer", timer);
     }
 
-    printMessage(message, consoleName) {
-        if (consoleName) {
-            const $console = this.getConsole$(consoleName);
-            if ($console) {
-                let buffer = $console.data("log-buffer");
-                if (!buffer) {
-                    buffer = [];
-                    $console.data("log-buffer", buffer);
-                }
-                buffer.push({ html: message, className: "event ellipses" });
-                this.appendToConsole($console);
-            }
-        } else {
-            for (let key in this.consoles) {
-                this.printMessage(message, key);
-            }
-        }
-    }
-
-    printErrorMessage(message, consoleName) {
-        if (consoleName || !Object.keys(this.consoles).length) {
-            const $console = this.getConsole$(consoleName);
-            if ($console) {
-                let buffer = $console.data("log-buffer");
-                if (!buffer) {
-                    buffer = [];
-                    $console.data("log-buffer", buffer);
-                }
-                buffer.push({ html: message, className: "event error" });
-                this.appendToConsole($console);
-            }
-        } else {
-            for (let key in this.consoles) {
-                this.printErrorMessage(message, key);
-            }
-        }
-    }
-
     processMessage(nodeId, message) {
         const idx1 = message.indexOf(":");
         const idx2 = (idx1 !== -1 ? message.indexOf(":", idx1 + 1) : -1);
@@ -1978,6 +1920,9 @@ class DashboardViewer {
                     this.processEventData(nodeId, appId, exporterType, exporterName, exporterKey, eventData);
                 }
                 break;
+            case "log":
+                this.processLogMessage(nodeId, appId, exporterType, exporterName, exporterKey, messageContent, subType);
+                break;
             case "data":
                 if (messageContent.length) {
                     if (subType === "chart") {
@@ -1986,13 +1931,10 @@ class DashboardViewer {
                     }
                 }
                 break;
-            case "log":
-                this.printLogMessage(nodeId, appId, exporterType, exporterName, exporterKey, messageContent, subType);
-                break;
         }
     }
 
-    printLogMessage(nodeId, appId, exporterType, logId, exporterKey, messageContent, subType) {
+    processLogMessage(nodeId, appId, exporterType, logId, exporterKey, messageContent, subType) {
         this.indicate(nodeId, appId, exporterType, logId);
         const $console = this.getConsole$(exporterKey);
         if ($console) {
@@ -2259,7 +2201,7 @@ class DashboardViewer {
             $activityStatus.find(".current .total").text(count);
         }
     }
-
+    
     aggregateSessionStats(exporterKey, baseEventData = {}) {
         let numberOfCreated = 0;
         let numberOfExpired = 0;
@@ -2476,6 +2418,71 @@ class DashboardViewer {
                 }, inactiveInterval * 1000);
                 $li.data("timer", timer);
             }
+        }
+    }
+
+    setSessionFilter(appId, eventId, nodeId) {
+        const key = appId + ":event:" + eventId;
+        this.sessionFilterByDisplay[key] = nodeId || null;
+        const $display = this.getDisplay$(key);
+        if ($display) {
+            this.applySessionFilter($display, nodeId || null);
+        }
+    }
+
+    applySessionFilter($display, targetNodeId) {
+        const $sessions = $display.find("ul.sessions");
+        if (!targetNodeId) {
+            $sessions.find("li").removeClass("filtered-out");
+        } else {
+            $sessions.find("li").each(function () {
+                const nid = $(this).attr("data-node-id");
+                $(this).toggleClass("filtered-out", String(nid) !== String(targetNodeId));
+            });
+        }
+    }
+
+    updateSessionNodeFilterButtons($display) {
+        if (!this.isGroupView || !$display || !$display.length) return;
+        const $sessionBox = $display.hasClass("session-box") ? $display : $display.closest(".session-box");
+        if (!$sessionBox.length) return;
+
+        const $filter = $sessionBox.find(".session-node-filter");
+        if (!$filter.length) return;
+
+        const $sessions = $sessionBox.find("ul.sessions");
+        const nodeCounts = {};
+        $sessions.find("li").each(function () {
+            const nid = $(this).attr("data-node-id");
+            if (nid) {
+                nodeCounts[nid] = (nodeCounts[nid] || 0) + 1;
+            }
+        });
+
+        const appId = $sessionBox.data("app-id") || $sessionBox.attr("data-app-id");
+        const eventId = $sessionBox.data("event-id") || $sessionBox.attr("data-event-id");
+        const key = appId + ":event:" + eventId;
+        const currentFilterNodeId = this.sessionFilterByDisplay[key];
+
+        $filter.find(".btn-node").each(function () {
+            const nid = $(this).attr("data-node-id");
+            if (!nid) {
+                return; // "All" button remains visible
+            }
+            const count = nodeCounts[nid] || 0;
+            if (count > 0) {
+                $(this).show();
+            } else {
+                $(this).hide();
+            }
+        });
+
+        if (currentFilterNodeId && (!nodeCounts[currentFilterNodeId] || nodeCounts[currentFilterNodeId] <= 0)) {
+            $filter.find(".btn-node").removeClass("on");
+            $filter.find(".btn-node").filter(function () {
+                return !$(this).attr("data-node-id");
+            }).addClass("on");
+            this.setSessionFilter(appId, eventId, null);
         }
     }
 
