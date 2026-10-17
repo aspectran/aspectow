@@ -1,5 +1,6 @@
 # Aspectow
 
+[![Web Frameworks Benchmark](https://web-frameworks-benchmark.vercel.app/frameworks/java/aspectran/badge-language.svg)](https://web-frameworks-benchmark.vercel.app/frameworks/java/aspectran/)
 [![Build Status](https://github.com/aspectran/aspectow/workflows/Java%20CI/badge.svg)](https://github.com/aspectran/aspectow/actions?query=workflow%3A%22Java+CI%22)
 [![Maven Central Version](https://img.shields.io/maven-central/v/com.aspectran/aspectow)](https://central.sonatype.com/artifact/com.aspectran/aspectow)
 [![javadoc](https://javadoc.io/badge2/com.aspectran/aspectow-node/javadoc.svg)](https://javadoc.io/doc/com.aspectran/aspectow-node)
