@@ -15,7 +15,10 @@
  */
 package com.aspectran.aspectow.console.build.manager;
 
+import com.aspectran.core.service.CoreService;
+import com.aspectran.core.service.CoreServiceHolder;
 import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,12 +51,42 @@ public class DetachedRestartRunner {
      * @param scriptName the script name (daemon.sh or service.sh)
      * @param action the action argument (restart, stop, start)
      * @param logConsumer consumer for logging output
-     * @return true if successfully spawned; false otherwise
+     * @return true if successfully spawned or skipped in non-daemon mode; false otherwise
      */
     public boolean executeDetached(@NonNull File baseDir,
                                    @NonNull String scriptName,
                                    String action,
                                    Consumer<String> logConsumer) {
+        return executeDetached(baseDir, scriptName, action, null, logConsumer);
+    }
+
+    /**
+     * Executes a detached daemon control command (e.g. restart, stop).
+     * @param baseDir the node base directory where daemon.sh / service.sh resides
+     * @param scriptName the script name (daemon.sh or service.sh)
+     * @param action the action argument (restart, stop, start)
+     * @param currentService the current core service to determine the root service
+     * @param logConsumer consumer for logging output
+     * @return true if successfully spawned or skipped in non-daemon mode; false otherwise
+     */
+    public boolean executeDetached(@NonNull File baseDir,
+                                   @NonNull String scriptName,
+                                   String action,
+                                   @Nullable CoreService currentService,
+                                   Consumer<String> logConsumer) {
+        CoreService rootService = resolveRootService(currentService);
+        if (rootService != null && !rootService.isDaemonService()) {
+            logger.warn("Server restart is only supported in daemon mode. Current root service is {}, " +
+                    "skipping detached OS process execution", rootService.getServiceName());
+            if (logConsumer != null) {
+                logConsumer.accept(String.format(
+                        "[WARN] Server restart is skipped: current root service is %s, not a DaemonService.",
+                        rootService.getServiceName()));
+                logConsumer.accept("[INFO] Detached OS process execution was skipped to avoid port collision or duplicate instances.");
+            }
+            return true;
+        }
+
         String targetAction = (action != null && !action.isEmpty()) ? action : "restart";
         File scriptFile = new File(baseDir, scriptName);
 
@@ -97,6 +130,22 @@ public class DetachedRestartRunner {
             return false;
         }
     }
+
+    @Nullable
+    private CoreService resolveRootService(@Nullable CoreService currentService) {
+        if (currentService != null) {
+            return currentService.getRootService();
+        }
+        CoreService acquired = CoreServiceHolder.acquire();
+        if (acquired != null) {
+            return acquired.getRootService();
+        }
+        for (CoreService service : CoreServiceHolder.getAllServices()) {
+            return service.getRootService();
+        }
+        return null;
+    }
+
 
     @NonNull
     private List<String> buildDetachedCommand(@NonNull File scriptFile, @NonNull String action) {

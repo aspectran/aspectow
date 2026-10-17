@@ -22,6 +22,7 @@ import com.aspectran.core.component.bean.annotation.Destroy;
 import com.aspectran.core.component.bean.aware.ActivityContextAware;
 import com.aspectran.core.context.ActivityContext;
 import com.aspectran.core.context.config.AspectranConfig;
+import com.aspectran.core.service.CoreService;
 import com.aspectran.utils.StringUtils;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
@@ -482,8 +483,9 @@ public class LocalScriptRunner implements ActivityContextAware {
             List<String> logBuffer = Collections.synchronizedList(new ArrayList<>());
             logRingBuffers.put(info.getExecutionId(), logBuffer);
 
+            CoreService currentService = (activityContext != null ? activityContext.getMasterService() : null);
             DetachedRestartRunner restartRunner = new DetachedRestartRunner();
-            boolean success = restartRunner.executeDetached(baseDir, scriptFile.getName(), action, line -> {
+            boolean success = restartRunner.executeDetached(baseDir, scriptFile.getName(), action, currentService, line -> {
                 appendLog(info.getExecutionId(), logBuffer, line, logConsumer);
             });
 
