@@ -92,7 +92,7 @@ public class ActivityEventCounter extends AbstractEventCounter {
             aspectRule.setJoinpointRule(joinpointRule);
 
             AdviceRule beforeAdviceRule = aspectRule.newBeforeAdviceRule();
-            beforeAdviceRule.setAdviceAction(activity -> {
+            beforeAdviceRule.setAdviceAction("ActivityEventCounter.count()", activity -> {
                 getEventCount().count();
                 if (activity.hasSessionAdapter()) {
                     SessionAdapter sessionAdapter = activity.getSessionAdapter();
