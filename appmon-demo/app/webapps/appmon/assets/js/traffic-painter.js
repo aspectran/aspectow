@@ -32,6 +32,9 @@ class TrafficPainter {
 
         this.enableBlackHole = options.enableBlackHole !== false;
         this.ejectRatio = 0;
+        this.prismProgress = 0.0;
+        this.currentLeftPrismX = 0;
+        this.currentRightPrismX = 0;
         this.blackHole = {
             radius: 14,
             gravityRadius: 140,
@@ -49,7 +52,24 @@ class TrafficPainter {
         const rect = this.canvas.parentElement.getBoundingClientRect();
         this.canvas.width = rect.width;
         this.canvas.height = rect.height;
+        this.updatePrismPositions();
         this.draw();
+    }
+
+    updatePrismPositions() {
+        const finishLine = this.canvas.width - this.finishLineOffset;
+        const bhX = finishLine * 0.48;
+        const spreadDistance = 60;
+        const prismOffset = this.blackHole.radius + 2 + spreadDistance;
+        const leftActiveX = bhX - prismOffset;
+        const rightActiveX = bhX + prismOffset;
+        const leftParkedX = 10;
+        const rightParkedX = Math.max(leftParkedX + 40, finishLine - 10);
+
+        const p = this.prismProgress || 0.0;
+        const ease = p * p * (3 - 2 * p);
+        this.currentLeftPrismX = leftParkedX + (leftActiveX - leftParkedX) * ease;
+        this.currentRightPrismX = rightParkedX + (rightActiveX - rightParkedX) * ease;
     }
 
     /**
@@ -121,11 +141,12 @@ class TrafficPainter {
             this.update(deltaTime);
             this.draw();
 
-            if (this.bullets.length > 0) {
+            const isPrismMoving = (this.bullets.length === 0 && this.prismProgress > 0);
+            if (this.bullets.length > 0 || isPrismMoving) {
                 this.animationId = requestAnimationFrame(loop);
             } else {
                 this.isRunning = false;
-                this.clear();
+                this.draw();
             }
         };
         this.animationId = requestAnimationFrame(loop);
@@ -137,6 +158,19 @@ class TrafficPainter {
         const bhX = finishLine * 0.48;
         const bhY = this.canvas.height * 0.5;
 
+        // 유리막 슬라이딩 진행도 업데이트 (총알이 있으면 1.0으로 고속 전개, 없으면 0.0으로 부드럽게 복귀)
+        const targetProgress = this.bullets.length > 0 ? 1.0 : 0.0;
+        const deploySpeed = 0.14;  // 전개 속도: 총알 발생 시 신속히 블랙홀 옆으로 이동
+        const retractSpeed = 0.05; // 복귀 속도: 총알 소멸 시 트랙 양 끝으로 우아하게 복귀
+        const speed = targetProgress > this.prismProgress ? deploySpeed : retractSpeed;
+
+        if (targetProgress > this.prismProgress) {
+            this.prismProgress = Math.min(1.0, this.prismProgress + speed * deltaTime);
+        } else if (targetProgress < this.prismProgress) {
+            this.prismProgress = Math.max(0.0, this.prismProgress - speed * deltaTime);
+        }
+        this.updatePrismPositions();
+
         let trappedCount = 0;
 
         for (let i = this.bullets.length - 1; i >= 0; i--) {
@@ -146,9 +180,7 @@ class TrafficPainter {
                 if (this.enableBlackHole && finishLine > 120) {
                     if (b.bhStage === 0) {
                         const distToBh = bhX - b.x;
-                        const spreadDistance = 60;
-                        const prismOffset = this.blackHole.radius + 2 + spreadDistance;
-                        const leftPrismX = bhX - prismOffset;
+                        const leftGateX = this.currentLeftPrismX;
 
                         if (distToBh <= Math.max(b.speed * deltaTime, 6)) {
                             b.x = bhX;
@@ -162,9 +194,10 @@ class TrafficPainter {
                             b.orbitRadius = (this.blackHole.radius * 0.75) * (0.25 + Math.random() * 0.75);
                             b.renderSize = Math.max(1.2, Math.min(2.5, b.baseSize * 0.4));
                             this.blackHole.pulse = Math.max(this.blackHole.pulse, 0.6);
-                        } else if (b.x >= leftPrismX) {
+                        } else if (b.x >= leftGateX) {
                             // 좌측 유리막을 통과하면서 블랙홀 인력 영역으로 유선형 진입
-                            const pullProgress = Math.min(1.0, Math.max(0.0, (b.x - leftPrismX) / (bhX - leftPrismX)));
+                            const pullDist = Math.max(10, bhX - leftGateX);
+                            const pullProgress = Math.min(1.0, Math.max(0.0, (b.x - leftGateX) / pullDist));
                             const easePull = Math.pow(pullProgress, 1.8);
                             b.y = (b.initY || bhY) + (bhY - (b.initY || bhY)) * easePull;
                             if (distToBh < 35) {
@@ -189,7 +222,6 @@ class TrafficPainter {
 
                             // 프리즘 레인 확산 (Prism Lane Dispersion):
                             // 황금비(Golden Ratio: 0.61803398875) 기반 저변위 수열(Low-Discrepancy Sequence)
-                            // 모듈로 공약수 축퇴 문제(2개 지점 반복 버그)를 원천 차단하고 화면 상·중·하단에 완벽히 분산
                             this.ejectRatio = ((this.ejectRatio || 0) + 0.61803398875) % 1.0;
                             const minY = 14;
                             const maxY = this.canvas.height - 14;
@@ -208,23 +240,24 @@ class TrafficPainter {
                             this.blackHole.pulse = Math.max(this.blackHole.pulse, 0.5);
                         }
                     } else if (b.bhStage === 2) {
-                        // 2. 분산 구간: 블랙홀 출구에서 유리막(prismX)까지 부채꼴로 퍼져나감
-                        const spreadDistance = 60;
-                        const progress = Math.min(1.0, (b.x - b.ejectStartX) / spreadDistance);
-                        // Smoothstep S-Curve: 유리막 지점(progress = 1.0)에 도달할 때 완벽한 수평 레인으로 정렬
+                        // 2. 분산 구간: 블랙홀 출구에서 우측 유리막(currentRightPrismX)까지 부채꼴로 퍼져나감
+                        const rightGateX = this.currentRightPrismX;
+                        const totalSpread = Math.max(15, rightGateX - b.ejectStartX);
+                        const progress = Math.min(1.0, Math.max(0.0, (b.x - b.ejectStartX) / totalSpread));
+                        // Smoothstep S-Curve: 우측 유리막 지점에 도달할 때 완벽한 수평 레인으로 정렬
                         const ease = progress * progress * (3 - 2 * progress);
                         b.y = b.ejectStartY + (b.targetY - b.ejectStartY) * ease;
                         b.renderSize = Math.min(b.size, 0.8 + (b.size - 0.8) * Math.min(1.0, progress * 2.0));
                         b.x += b.speed * deltaTime;
 
-                        if (progress >= 1.0) {
-                            // 유리막을 통과하는 순간 분산 완료 및 수평 레인 정렬 완료!
+                        if (progress >= 1.0 || b.x >= rightGateX) {
+                            // 우측 유리막을 통과하는 순간 분산 완료 및 수평 레인 정렬 완료!
                             b.y = b.targetY;
                             b.renderSize = b.size;
                             b.bhStage = 3; // 이후 도착선까지 완전한 평행 수평 비행!
                         }
                     } else {
-                        // 3. 유리막 통과 후: 독립 레인에서 완전한 수평 평행 비행 (개수 즉시 가늠!)
+                        // 3. 우측 유리막 통과 후: 독립 레인에서 완전한 수평 평행 비행 (개수 즉시 가늠!)
                         b.y = b.targetY;
                         b.x += b.speed * deltaTime;
                     }
@@ -272,13 +305,11 @@ class TrafficPainter {
         const finishLine = this.canvas.width - this.finishLineOffset;
         const hasBlackHole = this.enableBlackHole && finishLine > 120;
         if (hasBlackHole) {
-            const bhX = finishLine * 0.5;
+            const bhX = finishLine * 0.48;
             const bhY = this.canvas.height * 0.5;
-            const spreadDistance = 60;
-            const prismOffset = this.blackHole.radius + 2 + spreadDistance;
             this.drawBlackHole(bhX, bhY);
-            this.drawPrism(bhX - prismOffset);
-            this.drawPrism(bhX + prismOffset);
+            this.drawPrism(this.currentLeftPrismX);
+            this.drawPrism(this.currentRightPrismX);
         }
 
         for (let i = 0; i < this.bullets.length; i++) {
@@ -436,7 +467,11 @@ class TrafficPainter {
 
     clear() {
         this.bullets = [];
-        this.draw();
+        if (!this.isRunning && this.prismProgress > 0) {
+            this.start();
+        } else {
+            this.draw();
+        }
     }
 
     destroy() {
