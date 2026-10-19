@@ -870,6 +870,7 @@ class TrafficPainter {
         this.enableBlackHole = options.enableBlackHole !== false;
         this.ejectRatio = 0;
         this.prismProgress = 0.0;
+        this.prismAlpha = 1.0;
         this.currentLeftPrismX = 0;
         this.currentRightPrismX = 0;
         this.blackHole = {
@@ -895,7 +896,7 @@ class TrafficPainter {
 
     updatePrismPositions() {
         const finishLine = this.canvas.width - this.finishLineOffset;
-        const bhX = finishLine * 0.48;
+        const bhX = finishLine * 0.5;
         const spreadDistance = 60;
         const prismOffset = this.blackHole.radius + 2 + spreadDistance;
         const leftActiveX = bhX - prismOffset;
@@ -978,8 +979,8 @@ class TrafficPainter {
             this.update(deltaTime);
             this.draw();
 
-            const isPrismMoving = (this.bullets.length === 0 && this.prismProgress > 0);
-            if (this.bullets.length > 0 || isPrismMoving) {
+            const isPrismAnimating = (this.bullets.length === 0 && (this.prismProgress > 0 || this.prismAlpha < 1.0));
+            if (this.bullets.length > 0 || isPrismAnimating) {
                 this.animationId = requestAnimationFrame(loop);
             } else {
                 this.isRunning = false;
@@ -992,20 +993,43 @@ class TrafficPainter {
     update(deltaTime) {
         const finishLine = this.canvas.width - this.finishLineOffset;
         const now = Date.now();
-        const bhX = finishLine * 0.48;
+        const bhX = finishLine * 0.5;
         const bhY = this.canvas.height * 0.5;
 
-        // 유리막 슬라이딩 진행도 업데이트 (총알이 있으면 1.0으로 고속 전개, 없으면 0.0으로 부드럽게 복귀)
-        const targetProgress = this.bullets.length > 0 ? 1.0 : 0.0;
+        // 두 개의 유리막 사이 넓이 (전개 시 좌우 유리막 스팬)
+        const spreadDistance = 60;
+        const prismOffset = this.blackHole.radius + 2 + spreadDistance;
+        const prismSpan = prismOffset * 2 + 30;
+        const isNarrowTrack = finishLine < prismSpan;
+
+        // 트랙의 넓이가 두 개의 유리막 넓이보다 좁은 경우:
+        // 처음(대기 시)에는 양 끝에 보이고, 총알이 나타나면 유리막을 감춤 (페이드아웃)
+        // 충분히 넓은 경우:
+        // 총알이 나타나면 양 끝에서 중앙으로 슬라이딩 전개
+        const hasBullets = this.bullets.length > 0;
+        const targetProgress = (!isNarrowTrack && hasBullets) ? 1.0 : 0.0;
+        const targetAlpha = (isNarrowTrack && hasBullets) ? 0.0 : 1.0;
+
+        // 슬라이딩 진행도 업데이트
         const deploySpeed = 0.14;  // 전개 속도: 총알 발생 시 신속히 블랙홀 옆으로 이동
         const retractSpeed = 0.05; // 복귀 속도: 총알 소멸 시 트랙 양 끝으로 우아하게 복귀
-        const speed = targetProgress > this.prismProgress ? deploySpeed : retractSpeed;
-
+        const moveSpeed = targetProgress > this.prismProgress ? deploySpeed : retractSpeed;
         if (targetProgress > this.prismProgress) {
-            this.prismProgress = Math.min(1.0, this.prismProgress + speed * deltaTime);
+            this.prismProgress = Math.min(1.0, this.prismProgress + moveSpeed * deltaTime);
         } else if (targetProgress < this.prismProgress) {
-            this.prismProgress = Math.max(0.0, this.prismProgress - speed * deltaTime);
+            this.prismProgress = Math.max(0.0, this.prismProgress - moveSpeed * deltaTime);
         }
+
+        // 투명도(Alpha) 업데이트 (좁은 트랙 감춤/표시 처리)
+        const fadeOutSpeed = 0.15; // 총알 등장 시 신속히 페이드아웃
+        const fadeInSpeed = 0.06;  // 총알 소멸 시 부드럽게 페이드인
+        const alphaSpeed = targetAlpha < this.prismAlpha ? fadeOutSpeed : fadeInSpeed;
+        if (targetAlpha > this.prismAlpha) {
+            this.prismAlpha = Math.min(1.0, this.prismAlpha + alphaSpeed * deltaTime);
+        } else if (targetAlpha < this.prismAlpha) {
+            this.prismAlpha = Math.max(0.0, this.prismAlpha - alphaSpeed * deltaTime);
+        }
+
         this.updatePrismPositions();
 
         let trappedCount = 0;
@@ -1078,7 +1102,9 @@ class TrafficPainter {
                         }
                     } else if (b.bhStage === 2) {
                         // 2. 분산 구간: 블랙홀 출구에서 우측 유리막(currentRightPrismX)까지 부채꼴로 퍼져나감
-                        const rightGateX = this.currentRightPrismX;
+                        const rightGateX = isNarrowTrack 
+                            ? Math.min(this.currentRightPrismX, b.ejectStartX + Math.max(20, (finishLine - b.ejectStartX) * 0.6))
+                            : this.currentRightPrismX;
                         const totalSpread = Math.max(15, rightGateX - b.ejectStartX);
                         const progress = Math.min(1.0, Math.max(0.0, (b.x - b.ejectStartX) / totalSpread));
                         // Smoothstep S-Curve: 우측 유리막 지점에 도달할 때 완벽한 수평 레인으로 정렬
@@ -1142,7 +1168,7 @@ class TrafficPainter {
         const finishLine = this.canvas.width - this.finishLineOffset;
         const hasBlackHole = this.enableBlackHole && finishLine > 120;
         if (hasBlackHole) {
-            const bhX = finishLine * 0.48;
+            const bhX = finishLine * 0.5;
             const bhY = this.canvas.height * 0.5;
             this.drawBlackHole(bhX, bhY);
             this.drawPrism(this.currentLeftPrismX);
@@ -1259,8 +1285,12 @@ class TrafficPainter {
     }
 
     drawPrism(px) {
+        if (this.prismAlpha <= 0.001) return;
         const h = this.canvas.height;
         this.ctx.save();
+        if (this.prismAlpha < 1.0) {
+            this.ctx.globalAlpha = this.prismAlpha;
+        }
 
         // 1. 반투명 프리즘 유리막 본체 (Ambient Glass Sheet)
         const glassGrad = this.ctx.createLinearGradient(px - 3, 0, px + 3, 0);
@@ -1304,7 +1334,7 @@ class TrafficPainter {
 
     clear() {
         this.bullets = [];
-        if (!this.isRunning && this.prismProgress > 0) {
+        if (!this.isRunning && (this.prismProgress > 0 || this.prismAlpha < 1.0)) {
             this.start();
         } else {
             this.draw();
