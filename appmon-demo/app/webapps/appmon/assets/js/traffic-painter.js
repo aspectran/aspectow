@@ -19,7 +19,7 @@
  * Handles tab visibility to prevent "bullet bursts" when returning to the tab.
  *
  * @version 4.3
- * @last-modified 2026-10-14
+ * @last-modified 2026-10-19
  */
 class TrafficPainter {
     constructor(canvas, options = {}) {
@@ -31,11 +31,13 @@ class TrafficPainter {
         this.finishLineOffset = 180; // track-stack width
 
         this.enableBlackHole = options.enableBlackHole !== false;
+        this.ejectRatio = 0;
         this.blackHole = {
             radius: 14,
             gravityRadius: 140,
             angle: 0,
-            pulse: 0
+            pulse: 0,
+            trappedCount: 0
         };
 
         this.resize();
@@ -47,6 +49,7 @@ class TrafficPainter {
         const rect = this.canvas.parentElement.getBoundingClientRect();
         this.canvas.width = rect.width;
         this.canvas.height = rect.height;
+        this.draw();
     }
 
     /**
@@ -64,7 +67,9 @@ class TrafficPainter {
             ? Math.min(Math.log10(activityCount + 1) / Math.log10(targetMax + 1), 1)
             : 0;
         
-        const size = 3.0 + (timeIntensity * 4) + (activityIntensity * 4);
+        const baseSize = 3.0 + (timeIntensity * 4);
+        const fullSize = baseSize + (activityIntensity * 4);
+        const initialSize = this.enableBlackHole ? baseSize : fullSize;
         const baseSpeed = (this.canvas.width - this.finishLineOffset) / (900 / 16.6);
         const speed = baseSpeed * (1 - (timeIntensity * 0.6));
         const initY = Math.random() * (this.canvas.height - 20) + 10;
@@ -72,10 +77,13 @@ class TrafficPainter {
         const bullet = {
             x: -(Math.random() * 150),
             y: initY,
+            initY: initY,
             targetY: initY,
             speed: speed,
-            size: size,
-            renderSize: size,
+            baseSize: baseSize,
+            fullSize: fullSize,
+            size: initialSize,
+            renderSize: initialSize,
             timeIntensity: timeIntensity,
             activityIntensity: activityIntensity,
             color: hasError ? '#ff0000' : (timeIntensity > 0.5 ? '#f1c40f' : '#11d539'),
@@ -86,6 +94,9 @@ class TrafficPainter {
             alpha: 1.0,
             bhStage: 0,
             transitFrames: 0,
+            orbitAngle: 0,
+            orbitRadius: 0,
+            orbitSpeed: 0,
             onArriving: onArriving
         };
         this.bullets.push(bullet);
@@ -126,13 +137,7 @@ class TrafficPainter {
         const bhX = finishLine * 0.48;
         const bhY = this.canvas.height * 0.5;
 
-        if (this.enableBlackHole && finishLine > 120) {
-            this.blackHole.angle += 0.04 * deltaTime;
-            if (this.blackHole.pulse > 0) {
-                this.blackHole.pulse -= 0.08 * deltaTime;
-                if (this.blackHole.pulse < 0) this.blackHole.pulse = 0;
-            }
-        }
+        let trappedCount = 0;
 
         for (let i = this.bullets.length - 1; i >= 0; i--) {
             const b = this.bullets[i];
@@ -141,49 +146,85 @@ class TrafficPainter {
                 if (this.enableBlackHole && finishLine > 120) {
                     if (b.bhStage === 0) {
                         const distToBh = bhX - b.x;
+                        const spreadDistance = 60;
+                        const prismOffset = this.blackHole.radius + 2 + spreadDistance;
+                        const leftPrismX = bhX - prismOffset;
+
                         if (distToBh <= Math.max(b.speed * deltaTime, 6)) {
                             b.x = bhX;
                             b.y = bhY;
-                            b.renderSize = 0.5;
                             b.bhStage = 1;
-                            b.transitFrames = 4;
-                            this.blackHole.pulse = 1.0;
-                        } else if (distToBh < this.blackHole.gravityRadius) {
-                            const pullFactor = 1 - (distToBh / this.blackHole.gravityRadius);
-                            b.y += (bhY - b.y) * (0.08 + pullFactor * 0.22) * deltaTime;
-
+                            const minFrames = 4;
+                            const maxFrames = 50;
+                            b.transitFrames = Math.round(minFrames + b.timeIntensity * (maxFrames - minFrames));
+                            b.orbitAngle = Math.random() * Math.PI * 2;
+                            b.orbitSpeed = (0.12 + Math.random() * 0.08) * (Math.random() < 0.5 ? 1 : -1);
+                            b.orbitRadius = (this.blackHole.radius * 0.75) * (0.25 + Math.random() * 0.75);
+                            b.renderSize = Math.max(1.2, Math.min(2.5, b.baseSize * 0.4));
+                            this.blackHole.pulse = Math.max(this.blackHole.pulse, 0.6);
+                        } else if (b.x >= leftPrismX) {
+                            // 좌측 유리막을 통과하면서 블랙홀 인력 영역으로 유선형 진입
+                            const pullProgress = Math.min(1.0, Math.max(0.0, (b.x - leftPrismX) / (bhX - leftPrismX)));
+                            const easePull = Math.pow(pullProgress, 1.8);
+                            b.y = (b.initY || bhY) + (bhY - (b.initY || bhY)) * easePull;
                             if (distToBh < 35) {
-                                b.renderSize = Math.max(0.6, b.size * (distToBh / 35));
+                                b.renderSize = Math.max(0.6, b.baseSize * (distToBh / 35));
                             }
                             b.x += b.speed * deltaTime;
                         } else {
+                            // 좌측 유리막에 도달하기 전까지는 완전한 수평 평행 비행
+                            b.y = b.initY || bhY;
                             b.x += b.speed * deltaTime;
                         }
                     } else if (b.bhStage === 1) {
+                        trappedCount++;
                         b.transitFrames -= deltaTime;
+                        b.orbitAngle += b.orbitSpeed * deltaTime;
+                        b.x = bhX + Math.cos(b.orbitAngle) * b.orbitRadius;
+                        b.y = bhY + Math.sin(b.orbitAngle) * b.orbitRadius;
+
                         if (b.transitFrames <= 0) {
                             b.bhStage = 2;
+                            b.size = b.fullSize;
+
+                            // 프리즘 레인 확산 (Prism Lane Dispersion):
+                            // 황금비(Golden Ratio: 0.61803398875) 기반 저변위 수열(Low-Discrepancy Sequence)
+                            // 모듈로 공약수 축퇴 문제(2개 지점 반복 버그)를 원천 차단하고 화면 상·중·하단에 완벽히 분산
+                            this.ejectRatio = ((this.ejectRatio || 0) + 0.61803398875) % 1.0;
+                            const minY = 14;
+                            const maxY = this.canvas.height - 14;
+                            b.targetY = minY + this.ejectRatio * (maxY - minY);
+
+                            // 1. 사출 시작 위치: 블랙홀 출구 테두리
+                            const halfH = (this.canvas.height - 24) * 0.5;
+                            const ejectAngle = (b.targetY - bhY) / (halfH || 1);
                             b.ejectStartX = bhX + this.blackHole.radius + 2;
+                            b.ejectStartY = bhY + Math.sin(ejectAngle * 0.45) * (this.blackHole.radius * 0.6);
+
                             b.x = b.ejectStartX;
-                            b.y = bhY;
-                            b.renderSize = 0.6;
+                            b.y = b.ejectStartY;
+                            b.renderSize = 0.8;
                             b.speed *= 1.25;
                             this.blackHole.pulse = Math.max(this.blackHole.pulse, 0.5);
                         }
                     } else if (b.bhStage === 2) {
-                        const spreadDistance = 90;
+                        // 2. 분산 구간: 블랙홀 출구에서 유리막(prismX)까지 부채꼴로 퍼져나감
+                        const spreadDistance = 60;
                         const progress = Math.min(1.0, (b.x - b.ejectStartX) / spreadDistance);
-                        const ease = 1 - Math.pow(1 - progress, 2.5);
-                        b.y = bhY + (b.targetY - bhY) * ease;
-                        b.renderSize = Math.min(b.size, 0.6 + (b.size - 0.6) * Math.min(1.0, progress * 2));
+                        // Smoothstep S-Curve: 유리막 지점(progress = 1.0)에 도달할 때 완벽한 수평 레인으로 정렬
+                        const ease = progress * progress * (3 - 2 * progress);
+                        b.y = b.ejectStartY + (b.targetY - b.ejectStartY) * ease;
+                        b.renderSize = Math.min(b.size, 0.8 + (b.size - 0.8) * Math.min(1.0, progress * 2.0));
                         b.x += b.speed * deltaTime;
 
                         if (progress >= 1.0) {
+                            // 유리막을 통과하는 순간 분산 완료 및 수평 레인 정렬 완료!
                             b.y = b.targetY;
                             b.renderSize = b.size;
-                            b.bhStage = 3;
+                            b.bhStage = 3; // 이후 도착선까지 완전한 평행 수평 비행!
                         }
                     } else {
+                        // 3. 유리막 통과 후: 독립 레인에서 완전한 수평 평행 비행 (개수 즉시 가늠!)
                         b.y = b.targetY;
                         b.x += b.speed * deltaTime;
                     }
@@ -213,19 +254,48 @@ class TrafficPainter {
                 }
             }
         }
+
+        if (this.enableBlackHole && finishLine > 120) {
+            this.blackHole.trappedCount = trappedCount;
+            const speedBoost = Math.min(trappedCount * 0.006, 0.10);
+            this.blackHole.angle += (0.04 + speedBoost) * deltaTime;
+            if (this.blackHole.pulse > 0) {
+                this.blackHole.pulse -= 0.08 * deltaTime;
+                if (this.blackHole.pulse < 0) this.blackHole.pulse = 0;
+            }
+        }
     }
 
     draw() {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
         const finishLine = this.canvas.width - this.finishLineOffset;
-        if (this.enableBlackHole && finishLine > 120) {
-            this.drawBlackHole(finishLine * 0.48, this.canvas.height * 0.5);
+        const hasBlackHole = this.enableBlackHole && finishLine > 120;
+        if (hasBlackHole) {
+            const bhX = finishLine * 0.5;
+            const bhY = this.canvas.height * 0.5;
+            const spreadDistance = 60;
+            const prismOffset = this.blackHole.radius + 2 + spreadDistance;
+            this.drawBlackHole(bhX, bhY);
+            this.drawPrism(bhX - prismOffset);
+            this.drawPrism(bhX + prismOffset);
         }
 
         for (let i = 0; i < this.bullets.length; i++) {
             const b = this.bullets[i];
+
+            // 0. Bullets trapped inside the black hole (swirling mini photons)
             if (b.bhStage === 1) {
+                this.ctx.globalAlpha = b.alpha * 0.85;
+                this.ctx.fillStyle = b.color;
+                this.ctx.beginPath();
+                this.ctx.arc(b.x, b.y, b.renderSize, 0, Math.PI * 2);
+                this.ctx.fill();
+
+                this.ctx.fillStyle = '#fff';
+                this.ctx.beginPath();
+                this.ctx.arc(b.x, b.y, Math.max(0.6, b.renderSize * 0.45), 0, Math.PI * 2);
+                this.ctx.fill();
                 continue;
             }
 
@@ -247,8 +317,9 @@ class TrafficPainter {
             this.ctx.arc(b.x, b.y, drawSize, 0, Math.PI * 2);
             this.ctx.fill();
 
-            // 3. Activity Glow (Hot Core) - high performance alternative to radial gradient
-            if (b.activityIntensity > 0.3) {
+            // 3. Activity Glow (Hot Core) - apply only after exiting the black hole
+            const canShowActivity = !hasBlackHole || b.bhStage >= 2;
+            if (canShowActivity && b.activityIntensity > 0.3) {
                 const coreSize = drawSize * (0.3 + b.activityIntensity * 0.4);
                 this.ctx.fillStyle = '#fff';
                 this.ctx.beginPath();
@@ -261,17 +332,22 @@ class TrafficPainter {
 
     drawBlackHole(cx, cy) {
         const pulse = this.blackHole.pulse;
-        const r = this.blackHole.radius * (1 + pulse * 0.25);
+        const trappedCount = this.blackHole.trappedCount || 0;
+        const trappedBoost = Math.min(trappedCount * 0.04, 0.45);
+        const r = this.blackHole.radius * (1 + pulse * 0.25 + trappedBoost * 0.15);
 
         this.ctx.save();
 
-        // 1. External Accretion Aura (Soft violet glow)
+        // 1. External Accretion Aura (Soft violet / energetic magenta glow when holding bullets)
         this.ctx.beginPath();
-        this.ctx.arc(cx, cy, r * 2.4, 0, Math.PI * 2);
-        this.ctx.fillStyle = 'rgba(120, 70, 255, 0.12)';
+        this.ctx.arc(cx, cy, r * (2.4 + trappedBoost * 0.6), 0, Math.PI * 2);
+        const auraAlpha = Math.min(0.12 + trappedCount * 0.015, 0.30);
+        this.ctx.fillStyle = trappedCount > 5 
+            ? `rgba(220, 80, 255, ${auraAlpha})` 
+            : `rgba(120, 70, 255, ${auraAlpha})`;
         this.ctx.fill();
 
-        // 2. Pulse Shockwave Ring when bullet is absorbed/ejected
+        // 2. Pulse Shockwave Ring when bullet is absorbed/ejected or highly populated
         if (pulse > 0.05) {
             this.ctx.beginPath();
             this.ctx.arc(cx, cy, r * (1.8 + (1 - pulse) * 1.2), 0, Math.PI * 2);
@@ -284,11 +360,11 @@ class TrafficPainter {
         this.ctx.translate(cx, cy);
         this.ctx.rotate(this.blackHole.angle);
 
-        // Cyan Arc
+        // Cyan / Gold Arc (Heats up as trapped bullets increase)
         this.ctx.beginPath();
         this.ctx.arc(0, 0, r * 1.5, 0, Math.PI * 1.15);
-        this.ctx.strokeStyle = 'rgba(0, 229, 255, 0.75)';
-        this.ctx.lineWidth = 2;
+        this.ctx.strokeStyle = trappedCount > 8 ? 'rgba(255, 190, 40, 0.9)' : 'rgba(0, 229, 255, 0.75)';
+        this.ctx.lineWidth = 2 + Math.min(trappedCount * 0.08, 1.2);
         this.ctx.stroke();
 
         // Magenta / Violet Arc
@@ -309,14 +385,58 @@ class TrafficPainter {
         // 5. Photon Ring (Crisp boundary highlight)
         this.ctx.beginPath();
         this.ctx.arc(cx, cy, r, 0, Math.PI * 2);
-        this.ctx.strokeStyle = 'rgba(100, 210, 255, 0.9)';
+        this.ctx.strokeStyle = trappedCount > 5 ? 'rgba(255, 210, 120, 0.95)' : 'rgba(100, 210, 255, 0.9)';
         this.ctx.lineWidth = 1.5;
         this.ctx.stroke();
     }
 
+    drawPrism(px) {
+        const h = this.canvas.height;
+        this.ctx.save();
+
+        // 1. 반투명 프리즘 유리막 본체 (Ambient Glass Sheet)
+        const glassGrad = this.ctx.createLinearGradient(px - 3, 0, px + 3, 0);
+        glassGrad.addColorStop(0, 'rgba(0, 229, 255, 0.04)');
+        glassGrad.addColorStop(0.5, 'rgba(217, 70, 239, 0.14)');
+        glassGrad.addColorStop(1, 'rgba(0, 229, 255, 0.04)');
+
+        this.ctx.fillStyle = glassGrad;
+        this.ctx.fillRect(px - 3, 6, 6, h - 12);
+
+        // 2. 프리즘 크리스탈 엣지 (세로 광선 굴절선)
+        const lineGrad = this.ctx.createLinearGradient(0, 6, 0, h - 6);
+        lineGrad.addColorStop(0, 'rgba(0, 240, 255, 0.0)');
+        lineGrad.addColorStop(0.15, 'rgba(0, 240, 255, 0.45)');
+        lineGrad.addColorStop(0.5, 'rgba(235, 130, 255, 0.85)');
+        lineGrad.addColorStop(0.85, 'rgba(0, 240, 255, 0.45)');
+        lineGrad.addColorStop(1, 'rgba(0, 240, 255, 0.0)');
+
+        this.ctx.strokeStyle = lineGrad;
+        this.ctx.lineWidth = 1.5;
+        this.ctx.beginPath();
+        this.ctx.moveTo(px, 6);
+        this.ctx.lineTo(px, h - 6);
+        this.ctx.stroke();
+
+        // 3. 내부 광학 굴절 하이라이트 (미세 투과 반사선)
+        this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
+        this.ctx.lineWidth = 0.8;
+        this.ctx.beginPath();
+        this.ctx.moveTo(px + 1, 14);
+        this.ctx.lineTo(px + 1, h - 14);
+        this.ctx.stroke();
+
+        // 4. 상·하단 사이버네틱 마운트 핀
+        this.ctx.fillStyle = 'rgba(0, 240, 255, 0.7)';
+        this.ctx.fillRect(px - 4, 6, 8, 2);
+        this.ctx.fillRect(px - 4, h - 8, 8, 2);
+
+        this.ctx.restore();
+    }
+
     clear() {
         this.bullets = [];
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        this.draw();
     }
 
     destroy() {
