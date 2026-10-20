@@ -19,7 +19,7 @@
  * Handles tab visibility to prevent "bullet bursts" when returning to the tab.
  *
  * @version 4.3
- * @last-modified 2026-10-19
+ * @last-modified 2026-10-20
  */
 class TrafficPainter {
     constructor(canvas, options = {}) {
@@ -28,7 +28,7 @@ class TrafficPainter {
         this.bullets = [];
         this.animationId = null;
         this.isRunning = false;
-        this.finishLineOffset = 180; // track-stack width
+        this.finishLineOffset = 0;
 
         this.enableBlackHole = options.enableBlackHole !== false;
         this.ejectRatio = 0;
@@ -46,11 +46,11 @@ class TrafficPainter {
 
         this.resize();
         this.resizeObserver = new ResizeObserver(() => this.resize());
-        this.resizeObserver.observe(this.canvas.parentElement);
+        this.resizeObserver.observe(this.canvas);
     }
 
     resize() {
-        const rect = this.canvas.parentElement.getBoundingClientRect();
+        const rect = this.canvas.getBoundingClientRect();
         this.canvas.width = rect.width;
         this.canvas.height = rect.height;
         this.updatePrismPositions();

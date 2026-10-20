@@ -16,7 +16,7 @@
 
 /*
  * @version 4.3
- * @last-modified 2026-10-16
+ * @last-modified 2026-10-20
  */
 
 /* For console-integrated & standalone page-content */
@@ -412,22 +412,20 @@
 }
 
 .track-box {
+    display: flex;
     position: relative;
     height: 120px;
     background-color: #0f213d;
     overflow: hidden;
 }
 .track-box .traffic-canvas {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
+    flex: 1 1 auto;
+    width: calc(100% - 180px);
     height: 100%;
 }
 .track-box .track-stack {
-    position: absolute;
-    top: 0;
-    right: 0;
+    position: relative;
+    flex: 0 0 180px;
     width: 180px;
     height: 120px;
     background-color: #1c2b31;
