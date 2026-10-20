@@ -697,7 +697,7 @@
     height: 25px;
     line-height: 25px;
     border-radius: 0 3px 3px 0;
-    background-color: #d3d3d3;
+    background-color: #c7c4c4;
 }
 .session-box ul.sessions li.filtered-out {
     display: none !important;
@@ -715,12 +715,12 @@
     line-height: 25px;
     vertical-align: top;
     color: transparent;
-    background-color: #5886a2;
+    background-color: #7ea7a7;
     border-left: 3px solid #009800;
     font-size: .85em;
 }
 .session-box ul.sessions li .count.active {
-    background-color: #02b502;
+    background-color: #0eae0e;
 }
 .session-box ul.sessions li .count.counting {
     width: auto;
@@ -1080,11 +1080,11 @@
         background-color: #3b4548;
     }
     .session-box ul.sessions li .count {
-        background-color: #436173;
+        background-color: #485d54;
         border-left: 3px solid #008100;
     }
     .session-box ul.sessions li .count.active {
-        background-color: #02b502;
+        background-color: #006900;
     }
     .session-box ul.sessions li .count.counting {
         color: #fff;

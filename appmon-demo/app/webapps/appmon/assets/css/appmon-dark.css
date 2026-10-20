@@ -170,11 +170,11 @@
         background-color: #3b4548;
     }
     .session-box ul.sessions li .count {
-        background-color: #436173;
+        background-color: #485d54;
         border-left: 3px solid #008100;
     }
     .session-box ul.sessions li .count.active {
-        background-color: #02b502;
+        background-color: #006900;
     }
     .session-box ul.sessions li .count.counting {
         color: #fff;
