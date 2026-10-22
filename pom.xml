@@ -355,14 +355,6 @@
                             <goal>jar-no-fork</goal>
                         </goals>
                     </execution>
-                    <execution>
-                        <id>aggregate-sources</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>aggregate</goal>
-                        </goals>
-                        <inherited>false</inherited>
-                    </execution>
                 </executions>
             </plugin>
             <plugin>
@@ -390,20 +382,11 @@
                             <goal>jar</goal>
                         </goals>
                     </execution>
-                    <execution>
-                        <id>aggregate-javadocs</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>aggregate-jar</goal>
-                        </goals>
-                        <inherited>false</inherited>
-                    </execution>
                 </executions>
             </plugin>
             <plugin>
                 <artifactId>maven-release-plugin</artifactId>
                 <configuration>
-                    <preparationGoals>clean install</preparationGoals>
                     <releaseProfiles>release,skip-test</releaseProfiles>
                     <autoVersionSubmodules>true</autoVersionSubmodules>
                     <tagNameFormat>v@{project.version}</tagNameFormat>
