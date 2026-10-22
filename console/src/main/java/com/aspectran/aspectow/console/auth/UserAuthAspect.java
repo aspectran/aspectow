@@ -23,6 +23,8 @@ import com.aspectran.core.component.bean.annotation.Before;
 import com.aspectran.core.component.bean.annotation.Component;
 import com.aspectran.core.component.bean.annotation.Joinpoint;
 import com.aspectran.core.component.bean.annotation.Profile;
+import com.aspectran.utils.StringUtils;
+import com.aspectran.web.adapter.WebRequestAdapter;
 import com.aspectran.web.support.http.MediaType;
 import com.aspectran.web.support.rest.response.FailureResponse;
 import com.aspectran.web.support.util.WebUtils;
@@ -67,7 +69,14 @@ public class UserAuthAspect {
             return;
         }
         if (WebUtils.isAcceptContentTypes(translet, MediaType.TEXT_HTML)) {
-            translet.redirect("/auth/login", Map.of("referrer", translet.getRequestName()));
+            String target = translet.getRequestName();
+            if (translet.getRequestAdapter() instanceof WebRequestAdapter webRequestAdapter) {
+                String queryString = webRequestAdapter.getQueryString();
+                if (StringUtils.hasText(queryString)) {
+                    target += "?" + queryString;
+                }
+            }
+            translet.redirect("/auth/login", Map.of("referrer", target));
         } else {
             translet.transform(new FailureResponse().forbidden());
         }

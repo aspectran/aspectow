@@ -35,6 +35,7 @@
                 <img src="https://cdn.jsdelivr.net/gh/aspectran/aspectran-assets@main/assets/img/aspectran-logo.svg" class="mb-4" style="height: 64px;" alt="Aspectow Console"/>
 
                 <form id="login-form">
+                    <input type="hidden" id="referrer" name="referrer" th:value="${param.referrer != null ? param.referrer[0] : ''}">
                     <div class="form-floating mb-3 text-start">
                         <input type="text" class="form-control" id="username" name="username" placeholder="Username" required>
                         <label for="username">Username</label>
@@ -113,6 +114,12 @@
                     $username.focus();
                 }
 
+                const urlParams = new URLSearchParams(window.location.search);
+                const referrerParam = urlParams.get('referrer');
+                if (referrerParam && !$('#referrer').val()) {
+                    $('#referrer').val(referrerParam);
+                }
+
                 $('#login-form').on('submit', function(e) {
                     e.preventDefault();
                     const $error = $('#error-message');
@@ -131,7 +138,10 @@
                                 } else {
                                     localStorage.removeItem(STORAGE_KEY);
                                 }
-                                location.href = [[@{/}]];
+                                const redirectUrl = (response.data && response.data.redirectUrl)
+                                    ? response.data.redirectUrl
+                                    : [[@{/}]];
+                                location.href = redirectUrl;
                             } else {
                                 if (response.error && response.error.code === 'setup_required') {
                                     $('#setup-username').val($('#username').val());

@@ -71,7 +71,7 @@ public class LoginActivity {
     }
 
     @RequestToPost("/login")
-    public RestResponse login(Translet translet, String username, String password) {
+    public RestResponse login(Translet translet, String username, String password, String referrer) {
         if (StringUtils.isEmpty(username) || StringUtils.isEmpty(password)) {
             return new FailureResponse().setError("required", "Username and password are required.");
         }
@@ -109,7 +109,8 @@ public class LoginActivity {
             doLogin(translet, user);
 
             userService.recordLogin(username, remoteAddr, countryCode, userAgent, true);
-            return new SuccessResponse("OK").ok();
+            String redirectUrl = resolveRedirectUrl(translet, referrer);
+            return new SuccessResponse("OK").setData(Map.of("redirectUrl", redirectUrl)).ok();
         } else {
             userService.recordLogin(username, remoteAddr, countryCode, userAgent, false);
             if (user != null) {
@@ -173,6 +174,58 @@ public class LoginActivity {
         SessionAdapter sessionAdapter = translet.getSessionAdapter();
         sessionAdapter.removeAttribute(UserInfo.USERINFO_KEY);
         sessionAdapter.invalidate();
+    }
+
+    /**
+     * Resolves a safe redirect URL based on the referrer and application context path.
+     * @param translet the current translet
+     * @param referrer the requested redirect target URL
+     * @return the resolved safe redirect URL
+     */
+    public static @NonNull String resolveRedirectUrl(@NonNull Translet translet, String referrer) {
+        String contextPath = translet.getContextPath();
+        String defaultUrl = StringUtils.hasText(contextPath) ? contextPath + "/" : "/";
+
+        if (StringUtils.hasText(referrer)) {
+            String cleanUrl = referrer.trim();
+            if (isSafeLocalUrl(cleanUrl)) {
+                String pathWithoutContext = cleanUrl;
+                if (StringUtils.hasText(contextPath) && pathWithoutContext.startsWith(contextPath)) {
+                    pathWithoutContext = pathWithoutContext.substring(contextPath.length());
+                }
+                if (!pathWithoutContext.startsWith("/auth/") && !pathWithoutContext.equals("/auth")) {
+                    if (StringUtils.hasText(contextPath) && !cleanUrl.startsWith(contextPath + "/") && !cleanUrl.equals(contextPath)) {
+                        return contextPath + cleanUrl;
+                    }
+                    return cleanUrl;
+                }
+            }
+        }
+        return defaultUrl;
+    }
+
+    /**
+     * Determines whether the given URL is a safe local relative URL to prevent open redirect vulnerabilities.
+     * @param url the URL to validate
+     * @return true if the URL is safe to redirect to; false otherwise
+     */
+    public static boolean isSafeLocalUrl(String url) {
+        if (url == null || !url.startsWith("/") || url.startsWith("//") || url.startsWith("/\\") || url.startsWith("\\")) {
+            return false;
+        }
+        int colonIdx = url.indexOf(':');
+        int queryIdx = url.indexOf('?');
+        if (colonIdx != -1 && (queryIdx == -1 || colonIdx < queryIdx)) {
+            return false;
+        }
+        for (int i = 0; i < url.length(); i++) {
+            char c = url.charAt(i);
+            if (c < 32 || c == 127) {
+                return false;
+            }
+        }
+        return !url.contains("%00") && !url.contains("%0d") && !url.contains("%0D")
+                && !url.contains("%0a") && !url.contains("%0A");
     }
 
 }
