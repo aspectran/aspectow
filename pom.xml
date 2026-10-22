@@ -118,7 +118,7 @@
         <javadoc.locale>en_US</javadoc.locale>
         <javadoc.stylesheetfile />
 
-        <aspectran.version>9.8.1-SNAPSHOT</aspectran.version>
+        <aspectran.version>9.8.1</aspectran.version>
         <netty.version>4.2.19.Final</netty.version>
         <lettuce.version>7.9.0.RELEASE</lettuce.version>
     </properties>
