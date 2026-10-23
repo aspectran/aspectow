@@ -35,6 +35,7 @@ public class BuildResponseParameters extends DefaultParameters {
     public static final ParameterKey status;
     public static final ParameterKey exitCode;
     public static final ParameterKey durationMs;
+    public static final ParameterKey seq;
     public static final ParameterKey line;
     public static final ParameterKey lines;
     public static final ParameterKey gitBranch;
@@ -54,6 +55,7 @@ public class BuildResponseParameters extends DefaultParameters {
         status = new ParameterKey("status", ValueType.STRING);
         exitCode = new ParameterKey("exitCode", ValueType.INT);
         durationMs = new ParameterKey("durationMs", ValueType.LONG);
+        seq = new ParameterKey("seq", ValueType.INT);
         line = new ParameterKey("line", ValueType.STRING);
         lines = new ParameterKey("lines", ValueType.STRING, true);
         gitBranch = new ParameterKey("gitBranch", ValueType.STRING);
@@ -71,6 +73,7 @@ public class BuildResponseParameters extends DefaultParameters {
                 status,
                 exitCode,
                 durationMs,
+                seq,
                 line,
                 lines,
                 gitBranch,
@@ -195,6 +198,24 @@ public class BuildResponseParameters extends DefaultParameters {
      */
     public BuildResponseParameters setDurationMs(Long value) {
         putValue(durationMs, value);
+        return this;
+    }
+
+    /**
+     * Returns the sequence number of the log line.
+     * @return the sequence number, or null if not applicable
+     */
+    public Integer getSeq() {
+        return getInt(seq);
+    }
+
+    /**
+     * Sets the sequence number of the log line.
+     * @param value the sequence number
+     * @return this parameters instance
+     */
+    public BuildResponseParameters setSeq(Integer value) {
+        putValue(seq, value);
         return this;
     }
 

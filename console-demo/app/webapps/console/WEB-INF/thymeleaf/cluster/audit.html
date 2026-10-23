@@ -37,8 +37,32 @@
             overflow-y: auto;
         }
         .terminal-line {
-            white-space: pre;
+            display: flex;
+            align-items: baseline;
+            white-space: pre-wrap;
+            word-break: break-all;
             margin-bottom: 1px;
+        }
+        .terminal-line .line-number {
+            display: inline-block;
+            width: 36px;
+            min-width: 36px;
+            text-align: right;
+            padding-right: 10px;
+            color: #555555;
+            user-select: none;
+            -webkit-user-select: none;
+            font-size: 0.72rem;
+            flex-shrink: 0;
+        }
+        .terminal-line .line-content {
+            flex: 1 1 0;
+            min-width: 0;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        .hide-line-numbers .terminal-line .line-number {
+            display: none !important;
         }
         .table-detail-container {
             border-radius: 8px;
@@ -278,11 +302,17 @@
                         <div class="modal-body p-0">
                             <div id="modal-log-content" class="terminal-modal-body m-3">Loading logs...</div>
                         </div>
-                        <div class="modal-footer">
-                            <a id="btn-download-modal-log" class="btn btn-sm btn-outline-primary" href="javascript:void(0)" download>
-                                <i class="bi bi-download"></i> Download Full Log
-                            </a>
-                            <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+                        <div class="modal-footer d-flex justify-content-between align-items-center">
+                            <div class="form-check form-switch m-0 small d-flex align-items-center gap-1 ps-2">
+                                <input class="form-check-input ms-0 me-1" type="checkbox" id="show-modal-line-numbers" checked title="Toggle Line Numbers" onchange="toggleModalLineNumbers()">
+                                <label class="form-check-label text-body-secondary small" for="show-modal-line-numbers">Line Nos</label>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <a id="btn-download-modal-log" class="btn btn-sm btn-outline-primary" href="javascript:void(0)" download>
+                                    <i class="bi bi-download"></i> Download Full Log
+                                </a>
+                                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -508,14 +538,14 @@
                         if (res.success) {
                             currentLoadedLogs = res.data || "No console log output recorded.";
                             const lines = currentLoadedLogs.split('\n');
-                            const htmlLines = lines.map(line => {
+                            const htmlLines = lines.map((line, idx) => {
                                 const clean = line.replace(new RegExp('\\u001b\\[[0-9;?]*[a-zA-Z]', 'g'), '');
                                 let lineClass = 'terminal-line';
                                 if (clean.includes('[BUILD STARTED]') || clean.includes('[BUILD CANCELLED]') || clean.includes('[DAEMON LOG]')) lineClass += ' text-info';
                                 else if (clean.includes('[SUCCESS]') || clean.includes('BUILD SUCCESS') || clean.includes('[BUILD SUCCESS]')) lineClass += ' text-success fw-bold';
                                 else if (clean.includes('[ERROR]') || clean.includes('BUILD FAILURE') || clean.includes('[BUILD FAILED]') || clean.includes('[FAILED]') || clean.includes('[BUILD ERROR]')) lineClass += ' text-danger fw-bold';
                                 else if (clean.includes('[WARN]') || clean.includes('[WARNING]') || clean.includes('[BUILD LOCK]') || clean.includes('[BUILD TIMEOUT]')) lineClass += ' text-warning';
-                                return `<div class="${lineClass}">${ansiToHtml(line)}</div>`;
+                                return `<div class="${lineClass}"><span class="line-number">${idx + 1}</span><span class="line-content">${ansiToHtml(line)}</span></div>`;
                             }).join('');
                             $('#modal-log-content').html(htmlLines || '<div class="text-secondary">No console log output recorded.</div>');
                         } else {
@@ -526,6 +556,25 @@
                         $('#modal-log-content').html('<div class="text-danger">Network error loading logs: ' + (err.message || err) + '</div>');
                     });
             }
+
+            function toggleModalLineNumbers() {
+                const show = $('#show-modal-line-numbers').is(':checked');
+                $('#modal-log-content').toggleClass('hide-line-numbers', !show);
+                try {
+                    localStorage.setItem('buildConsole_showLineNumbers', show ? 'true' : 'false');
+                } catch (e) {}
+            }
+
+            $(function() {
+                try {
+                    const savedShowLineNumbers = localStorage.getItem('buildConsole_showLineNumbers');
+                    if (savedShowLineNumbers !== null) {
+                        const show = (savedShowLineNumbers === 'true');
+                        $('#show-modal-line-numbers').prop('checked', show);
+                        $('#modal-log-content').toggleClass('hide-line-numbers', !show);
+                    }
+                } catch (e) {}
+            });
         </script>
     </th:block>
 </body>

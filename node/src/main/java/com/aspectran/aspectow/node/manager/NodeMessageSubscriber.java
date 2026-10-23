@@ -28,10 +28,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.SocketAddress;
+import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.aspectran.aspectow.node.manager.NodeMessageProtocol.TYPE_CONTROL;
 import static com.aspectran.aspectow.node.manager.NodeMessageProtocol.TYPE_RELAY;
@@ -55,6 +61,8 @@ public class NodeMessageSubscriber extends RedisPubSubAdapter<String, String> im
     private final ExecutorService executorService = Executors.newCachedThreadPool(
             new CustomizableThreadFactory("node-msg-sub-")
     );
+
+    private final ConcurrentMap<String, ChannelTaskQueue> channelQueues = new ConcurrentHashMap<>();
 
     private StatefulRedisPubSubConnection<String, String> pubSubConnection;
 
@@ -119,8 +127,41 @@ public class NodeMessageSubscriber extends RedisPubSubAdapter<String, String> im
 
     @Override
     public void message(@NonNull String channel, String message) {
-        if (!executorService.isShutdown()) {
-            executorService.submit(() -> dispatchMessage(channel, message));
+        if (executorService.isShutdown()) {
+            return;
+        }
+        ChannelTaskQueue taskQueue = channelQueues.computeIfAbsent(channel, k -> new ChannelTaskQueue());
+        taskQueue.queue.offer(message);
+        scheduleDrain(channel, taskQueue);
+    }
+
+    private void scheduleDrain(String channel, ChannelTaskQueue taskQueue) {
+        if (taskQueue.running.compareAndSet(false, true)) {
+            try {
+                executorService.submit(() -> drainChannelQueue(channel, taskQueue));
+            } catch (RejectedExecutionException e) {
+                taskQueue.running.set(false);
+                logger.warn("Executor rejected task for channel '{}'", channel, e);
+            }
+        }
+    }
+
+    private void drainChannelQueue(String channel, ChannelTaskQueue taskQueue) {
+        while (true) {
+            String msg = taskQueue.queue.poll();
+            if (msg != null) {
+                try {
+                    dispatchMessage(channel, msg);
+                } catch (Throwable t) {
+                    logger.error("Error dispatching message for channel '{}'", channel, t);
+                }
+            } else {
+                taskQueue.running.set(false);
+                if (!taskQueue.queue.isEmpty() && taskQueue.running.compareAndSet(false, true)) {
+                    continue;
+                }
+                break;
+            }
         }
     }
 
@@ -278,6 +319,7 @@ public class NodeMessageSubscriber extends RedisPubSubAdapter<String, String> im
      */
     public void stop() {
         executorService.shutdown();
+        channelQueues.clear();
         if (pubSubConnection != null) {
             try {
                 pubSubConnection.removeListener((RedisPubSubListener<String, String>)this);
@@ -306,6 +348,14 @@ public class NodeMessageSubscriber extends RedisPubSubAdapter<String, String> im
         if (defaultLoggingGroup != null) {
             LoggingGroupHelper.clear();
         }
+    }
+
+    private static class ChannelTaskQueue {
+
+        private final Queue<String> queue = new ConcurrentLinkedQueue<>();
+
+        private final AtomicBoolean running = new AtomicBoolean(false);
+
     }
 
 }

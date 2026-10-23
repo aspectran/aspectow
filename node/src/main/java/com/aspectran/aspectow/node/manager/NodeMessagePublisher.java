@@ -177,7 +177,7 @@ public class NodeMessagePublisher {
      */
     public void syncPublish(String channel, String message) throws Exception {
         if (connectionPool.isAvailable()) {
-            try (StatefulRedisConnection<String, String> connection = connectionPool.getConnection()) {
+            try (StatefulRedisConnection<String, String> connection = connectionPool.getConnection(channel)) {
                 connection.sync().publish(channel, message);
             }
         }
@@ -191,7 +191,7 @@ public class NodeMessagePublisher {
      */
     public void syncPublish(String channel, List<String> messages) throws Exception {
         if (messages != null && !messages.isEmpty() && connectionPool.isAvailable()) {
-            try (StatefulRedisConnection<String, String> connection = connectionPool.getConnection()) {
+            try (StatefulRedisConnection<String, String> connection = connectionPool.getConnection(channel)) {
                 var syncCommands = connection.sync();
                 for (String message : messages) {
                     syncCommands.publish(channel, message);
@@ -208,7 +208,7 @@ public class NodeMessagePublisher {
      */
     public void asyncPublish(String channel, String message) throws Exception {
         if (connectionPool.isAvailable()) {
-            try (StatefulRedisConnection<String, String> connection = connectionPool.getConnection()) {
+            try (StatefulRedisConnection<String, String> connection = connectionPool.getConnection(channel)) {
                 connection.async().publish(channel, message);
             }
         }
@@ -222,7 +222,7 @@ public class NodeMessagePublisher {
      */
     public void asyncPublish(String channel, List<String> messages) throws Exception {
         if (messages != null && !messages.isEmpty() && connectionPool.isAvailable()) {
-            try (StatefulRedisConnection<String, String> connection = connectionPool.getConnection()) {
+            try (StatefulRedisConnection<String, String> connection = connectionPool.getConnection(channel)) {
                 var asyncCommands = connection.async();
                 for (String message : messages) {
                     asyncCommands.publish(channel, message);

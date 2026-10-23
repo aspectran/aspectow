@@ -83,6 +83,26 @@ public class RedisConnectionPool implements InitializableBean, DisposableBean {
     }
 
     /**
+     * Obtains a shared stateful Redis connection bound to the specified affinity key.
+     * <p>Using the same key guarantees that callers receive the same multiplexed
+     * connection instance, ensuring strict FIFO ordering for sequential commands
+     * sent to the same target or channel.</p>
+     * @param key the affinity key (e.g. channel name or target node ID)
+     * @return a thread-safe, shared stateful Redis connection
+     * @throws Exception if the connection pool is not initialized
+     */
+    public StatefulRedisConnection<String, String> getConnection(Object key) throws Exception {
+        Assert.state(proxyConnections != null && proxyConnections.length > 0,
+                "RedisConnectionPool is not initialized");
+        if (key == null) {
+            return getConnection();
+        }
+        int hash = key.hashCode() & 0x7FFFFFFF;
+        int idx = hash % proxyConnections.length;
+        return proxyConnections[idx];
+    }
+
+    /**
      * Establishes and returns a new dedicated, unpooled Redis connection.
      * <p>The caller is responsible for closing this connection (e.g. via {@code try-with-resources}).
      * Useful for transactions (MULTI/EXEC) or blocking commands where isolation is required.</p>

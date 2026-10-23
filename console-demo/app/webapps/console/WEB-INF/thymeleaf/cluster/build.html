@@ -53,8 +53,32 @@
             color: #8c8c8c !important;
         }
         .terminal-line {
-            white-space: pre;
+            display: flex;
+            align-items: baseline;
+            white-space: pre-wrap;
+            word-break: break-all;
             margin-bottom: 2px;
+        }
+        .terminal-line .line-number {
+            display: inline-block;
+            width: 36px;
+            min-width: 36px;
+            text-align: right;
+            padding-right: 10px;
+            color: #555555;
+            user-select: none;
+            -webkit-user-select: none;
+            font-size: 0.72rem;
+            flex-shrink: 0;
+        }
+        .terminal-line .line-content {
+            flex: 1 1 0;
+            min-width: 0;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        .hide-line-numbers .terminal-line .line-number {
+            display: none !important;
         }
         .terminal-line.info { color: #58a6ff; }
         .terminal-line.success { color: #3fb950; font-weight: bold; }
@@ -397,6 +421,10 @@
                             <div class="form-check form-switch form-check-inline m-0 text-white small d-flex align-items-center gap-1 ps-4 pe-1">
                                 <input class="form-check-input ms-0 me-1" type="checkbox" id="auto-scroll" checked title="Toggle Auto-scroll">
                                 <label class="form-check-label d-none d-md-inline" for="auto-scroll">Auto-scroll</label>
+                            </div>
+                            <div class="form-check form-switch form-check-inline m-0 text-white small d-flex align-items-center gap-1 ps-2 pe-1">
+                                <input class="form-check-input ms-0 me-1" type="checkbox" id="show-line-numbers" checked title="Toggle Line Numbers" onchange="toggleLineNumbers()">
+                                <label class="form-check-label d-none d-md-inline" for="show-line-numbers">Line Nos</label>
                             </div>
                             <button class="btn btn-xs btn-outline-secondary text-white-50" onclick="clearTerminal()" title="Clear Current Tab Terminal">
                                 <i class="bi bi-trash"></i>
@@ -861,7 +889,7 @@
                     if (allLogs.length === 0) {
                         $body.html('<div class="text-muted fst-italic">Waiting for output stream...</div>');
                     } else {
-                        allLogs.forEach(item => appendLineToDOM($body, item.text, item.type, item.nodeId));
+                        allLogs.forEach((item, idx) => appendLineToDOM($body, item.text, item.type, item.nodeId, idx + 1));
                     }
                 } else {
                     const exec = nodeExecutions[activeTab];
@@ -869,7 +897,7 @@
                     if (logs.length === 0) {
                         $body.html('<div class="text-muted fst-italic">Waiting for output stream...</div>');
                     } else {
-                        logs.forEach(item => appendLineToDOM($body, item.text, item.type, null));
+                        logs.forEach((item, idx) => appendLineToDOM($body, item.text, item.type, null, idx + 1));
                     }
                 }
 
@@ -1318,7 +1346,7 @@
                 return str;
             }
 
-            function appendLineToDOM($container, text, type = '', nodeId = null) {
+            function appendLineToDOM($container, text, type = '', nodeId = null, lineNum = null) {
                 if (text === null || text === undefined) return;
                 text = String(text).replace(/\r/g, '');
 
@@ -1337,28 +1365,33 @@
                     tagPrefix = `<span class="node-tag">${nodeId}</span> `;
                 }
 
-                $container.append(`<div class="${lineClass}">${tagPrefix}${renderedHtml}</div>`);
+                let lineNumHtml = '';
+                if (lineNum !== null && lineNum !== undefined) {
+                    lineNumHtml = `<span class="line-number">${lineNum}</span>`;
+                }
+
+                $container.append(`<div class="${lineClass}">${lineNumHtml}<span class="line-content">${tagPrefix}${renderedHtml}</span></div>`);
             }
 
-            function appendLogLine(nodeId, line, type = '') {
+            function appendLogLine(nodeId, line, type = '', seq = null) {
                 if (line === null || line === undefined) return;
                 const exec = ensureNode(nodeId);
-                const logItem = { text: line, type: type };
+                const logItem = { text: line, type: type, seq: seq };
                 exec.logs.push(logItem);
 
-                const allItem = { nodeId: nodeId, text: line, type: type };
+                const allItem = { nodeId: nodeId, text: line, type: type, seq: seq };
                 allLogs.push(allItem);
 
                 const $body = $('#terminal-body');
                 if (activeTab === '__all__') {
                     if (allLogs.length === 1) $body.empty();
-                    appendLineToDOM($body, line, type, nodeId);
+                    appendLineToDOM($body, line, type, nodeId, allLogs.length);
                     if ($('#auto-scroll').is(':checked')) {
                         $body.scrollTop($body[0].scrollHeight);
                     }
                 } else if (activeTab === nodeId) {
                     if (exec.logs.length === 1) $body.empty();
-                    appendLineToDOM($body, line, type, null);
+                    appendLineToDOM($body, line, type, null, exec.logs.length);
                     if ($('#auto-scroll').is(':checked')) {
                         $body.scrollTop($body[0].scrollHeight);
                     }
@@ -1371,7 +1404,8 @@
                     nodeExecutions[nid].logs.push({ text: line, type: type });
                 });
                 const $body = $('#terminal-body');
-                appendLineToDOM($body, line, type, activeTab === '__all__' ? 'cluster' : null);
+                const lineNum = activeTab === '__all__' ? allLogs.length : (nodeExecutions[activeTab] ? nodeExecutions[activeTab].logs.length : allLogs.length);
+                appendLineToDOM($body, line, type, activeTab === '__all__' ? 'cluster' : null, lineNum);
                 if ($('#auto-scroll').is(':checked')) {
                     $body.scrollTop($body[0].scrollHeight);
                 }
@@ -1384,6 +1418,14 @@
                     nodeExecutions[activeTab].logs = [];
                 }
                 $('#terminal-body').empty();
+            }
+
+            function toggleLineNumbers() {
+                const show = $('#show-line-numbers').is(':checked');
+                $('#terminal-body').toggleClass('hide-line-numbers', !show);
+                try {
+                    localStorage.setItem('buildConsole_showLineNumbers', show ? 'true' : 'false');
+                } catch (e) {}
             }
 
             function downloadLogs() {
@@ -1520,7 +1562,7 @@
                                 renderMetaView();
                             }
                             if (message.line) {
-                                appendLogLine(nodeId, message.line);
+                                appendLogLine(nodeId, message.line, '', message.seq);
                             }
                         } else if (header === 'logBackfill') {
                             if (currentExecutionId && message.executionId && message.executionId !== currentExecutionId) {
@@ -1617,6 +1659,15 @@
             }
 
             $(function() {
+                try {
+                    const savedShowLineNumbers = localStorage.getItem('buildConsole_showLineNumbers');
+                    if (savedShowLineNumbers !== null) {
+                        const show = (savedShowLineNumbers === 'true');
+                        $('#show-line-numbers').prop('checked', show);
+                        $('#terminal-body').toggleClass('hide-line-numbers', !show);
+                    }
+                } catch (e) {}
+
                 onTargetTypeChange();
                 onScriptChange();
 

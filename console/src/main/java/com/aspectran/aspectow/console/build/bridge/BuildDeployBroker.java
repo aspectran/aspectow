@@ -24,8 +24,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * BuildDeployBroker coordinates the broadcasting of real-time logs and
@@ -46,6 +49,8 @@ public class BuildDeployBroker {
     private final NodeRegistry nodeRegistry;
 
     private final Set<BuildDeployBridge> bridges = new CopyOnWriteArraySet<>();
+
+    private final Map<String, AtomicInteger> logSequences = new ConcurrentHashMap<>();
 
     /**
      * Constructs a new BuildDeployBroker with the given node ID and message publisher.
@@ -146,10 +151,16 @@ public class BuildDeployBroker {
      * @param line the log output line
      */
     public void broadcastLogLine(String executionId, String targetNodeId, String line) {
+        Integer seq = null;
+        if (executionId != null) {
+            String seqKey = executionId + ":" + (targetNodeId != null ? targetNodeId : nodeId);
+            seq = logSequences.computeIfAbsent(seqKey, k -> new AtomicInteger(0)).getAndIncrement();
+        }
         BuildResponseParameters res = new BuildResponseParameters()
                 .setHeader("log")
                 .setExecutionId(executionId)
                 .setNodeId(targetNodeId != null ? targetNodeId : nodeId)
+                .setSeq(seq)
                 .setLine(line);
         String data = res.toString();
         bridge(data);
@@ -197,6 +208,15 @@ public class BuildDeployBroker {
         String data = res.toString();
         bridge(data);
         publishRelay(data);
+
+        if (info.getStatus() != null &&
+                info.getStatus() != BuildExecutionInfo.Status.PENDING &&
+                info.getStatus() != BuildExecutionInfo.Status.RUNNING) {
+            if (info.getExecutionId() != null) {
+                String seqKey = info.getExecutionId() + ":" + (info.getTargetNodeId() != null ? info.getTargetNodeId() : nodeId);
+                logSequences.remove(seqKey);
+            }
+        }
     }
 
     private void publishRelay(String data) {
