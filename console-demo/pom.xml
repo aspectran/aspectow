@@ -40,27 +40,22 @@
         <dependency>
             <groupId>com.aspectran</groupId>
             <artifactId>aspectran-logging</artifactId>
-            <version>${aspectran.version}</version>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>aspectran-shell-jline</artifactId>
-            <version>${aspectran.version}</version>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>aspectran-daemon</artifactId>
-            <version>${aspectran.version}</version>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>aspectran-with-netty</artifactId>
-            <version>${aspectran.version}</version>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>aspectran-with-undertow</artifactId>
-            <version>${aspectran.version}</version>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
@@ -70,7 +65,6 @@
         <dependency>
             <groupId>com.aspectran</groupId>
             <artifactId>aspectran-with-thymeleaf</artifactId>
-            <version>${aspectran.version}</version>
         </dependency>
         <dependency>
             <groupId>nz.net.ultraq.thymeleaf</groupId>
