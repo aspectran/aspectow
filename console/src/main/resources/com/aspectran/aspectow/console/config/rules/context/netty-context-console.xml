@@ -58,7 +58,7 @@
                     <argument>
                         routeId: %{system:aspectow.node.route}
                         maxActiveSessions: 999
-                        maxIdleSeconds: 60
+                        maxIdleSeconds: 1800
                         evictionIdleSeconds: 600
                         maxIdleSecondsForNew: 120
                         evictionIdleSecondsForNew: 60
