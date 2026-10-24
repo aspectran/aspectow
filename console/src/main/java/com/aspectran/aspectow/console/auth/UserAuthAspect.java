@@ -15,6 +15,7 @@
  */
 package com.aspectran.aspectow.console.auth;
 
+import com.aspectran.aspectow.appmon.common.support.IPCountryResolver;
 import com.aspectran.aspectow.console.common.db.model.User;
 import com.aspectran.aspectow.console.common.service.UserService;
 import com.aspectran.core.activity.HintParameters;
@@ -58,17 +59,20 @@ import java.util.Optional;
 )
 public class UserAuthAspect {
 
-    private final RememberMeService rememberMeService;
     private final UserService userService;
     private final LoginActivity loginActivity;
+    private final RememberMeService rememberMeService;
+    private final IPCountryResolver ipCountryResolver;
 
     @Autowired
-    public UserAuthAspect(Optional<RememberMeService> rememberMeService,
-                          UserService userService,
-                          LoginActivity loginActivity) {
-        this.rememberMeService = rememberMeService.orElse(null);
+    public UserAuthAspect(UserService userService,
+                          LoginActivity loginActivity,
+                          Optional<RememberMeService> rememberMeService,
+                          Optional<IPCountryResolver> ipCountryResolver) {
         this.userService = userService;
         this.loginActivity = loginActivity;
+        this.rememberMeService = rememberMeService.orElse(null);
+        this.ipCountryResolver = ipCountryResolver.orElse(null);
     }
 
     @Before
@@ -91,8 +95,12 @@ public class UserAuthAspect {
                 if (user != null && "NORMAL".equals(user.getStatus())) {
                     loginActivity.doLogin(translet, user);
                     String remoteAddr = WebUtils.getRemoteAddr(translet);
+                    String countryCode = null;
+                    if (ipCountryResolver != null && remoteAddr != null) {
+                        countryCode = ipCountryResolver.resolveCountryCode(remoteAddr, translet.getRequestAdapter().getLocale());
+                    }
                     String userAgent = translet.getRequestAdapter().getHeader(HttpHeaders.USER_AGENT);
-                    userService.recordLogin(username, remoteAddr, userAgent, true);
+                    userService.recordLogin(username, remoteAddr, countryCode, userAgent, true);
                     return true;
                 }
             }

@@ -44,7 +44,9 @@ public class DemoActivity {
     private final IPCountryResolver ipCountryResolver;
 
     @Autowired
-    public DemoActivity(UserService userService, LoginActivity loginActivity, Optional<IPCountryResolver> ipCountryResolver) {
+    public DemoActivity(UserService userService,
+                        LoginActivity loginActivity,
+                        Optional<IPCountryResolver> ipCountryResolver) {
         this.userService = userService;
         this.loginActivity = loginActivity;
         this.ipCountryResolver = ipCountryResolver.orElse(null);
