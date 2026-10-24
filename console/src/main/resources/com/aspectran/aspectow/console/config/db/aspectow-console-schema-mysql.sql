@@ -126,6 +126,17 @@ create table if not exists asc_login_history (
     primary key (history_id)
 ) comment = 'Login History';
 
+-- Persistent Login Tokens (Remember-Me)
+create table if not exists asc_persistent_login (
+    series varchar(64) not null,
+    username varchar(50) not null,
+    token varchar(64) not null,
+    ip_address varchar(45),
+    user_agent varchar(500),
+    last_used timestamp default current_timestamp on update current_timestamp not null,
+    primary key (series)
+) comment = 'Persistent Login Tokens (Remember-Me)';
+
 -- Vault (Encrypted Tokens)
 create table if not exists asc_vault (
     vault_id bigint not null auto_increment,

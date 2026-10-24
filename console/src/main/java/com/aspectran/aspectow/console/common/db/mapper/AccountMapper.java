@@ -18,6 +18,7 @@ package com.aspectran.aspectow.console.common.db.mapper;
 import com.aspectran.aspectow.console.common.db.model.AuditLog;
 import com.aspectran.aspectow.console.common.db.model.LoginHistory;
 import com.aspectran.aspectow.console.common.db.model.Permission;
+import com.aspectran.aspectow.console.common.db.model.PersistentLogin;
 import com.aspectran.aspectow.console.common.db.model.Role;
 import com.aspectran.aspectow.console.common.db.model.User;
 import com.aspectran.aspectow.console.common.db.tx.ConsoleSqlMapperProvider;
@@ -199,6 +200,41 @@ public interface AccountMapper {
     long getAuditLogCount(@Param("username") String username, @Param("searchKeyword") String searchKeyword);
 
     /**
+     * Retrieves a persistent login record by its series ID.
+     * @param series the series ID
+     * @return the persistent login record, or null if not found
+     */
+    PersistentLogin getPersistentLoginBySeries(String series);
+
+    /**
+     * Inserts a new persistent login record into the database.
+     * @param persistentLogin the record to insert
+     * @return the number of affected rows
+     */
+    int insertPersistentLogin(PersistentLogin persistentLogin);
+
+    /**
+     * Updates an existing persistent login record (token, last_used, etc.).
+     * @param persistentLogin the record to update
+     * @return the number of affected rows
+     */
+    int updatePersistentLogin(PersistentLogin persistentLogin);
+
+    /**
+     * Deletes a persistent login record by its series ID.
+     * @param series the series ID
+     * @return the number of affected rows
+     */
+    int deletePersistentLoginBySeries(String series);
+
+    /**
+     * Deletes all persistent login records for a specific username.
+     * @param username the username
+     * @return the number of affected rows
+     */
+    int deletePersistentLoginByUsername(String username);
+
+    /**
      * Data Access Object (DAO) for {@link AccountMapper}.
      * Provides a convenient way to access the mapper methods using Aspectran's bean container.
      */
@@ -323,6 +359,31 @@ public interface AccountMapper {
         @Override
         public long getAuditLogCount(String username, String searchKeyword) {
             return mapper().getAuditLogCount(username, searchKeyword);
+        }
+
+        @Override
+        public PersistentLogin getPersistentLoginBySeries(String series) {
+            return mapper().getPersistentLoginBySeries(series);
+        }
+
+        @Override
+        public int insertPersistentLogin(PersistentLogin persistentLogin) {
+            return mapper().insertPersistentLogin(persistentLogin);
+        }
+
+        @Override
+        public int updatePersistentLogin(PersistentLogin persistentLogin) {
+            return mapper().updatePersistentLogin(persistentLogin);
+        }
+
+        @Override
+        public int deletePersistentLoginBySeries(String series) {
+            return mapper().deletePersistentLoginBySeries(series);
+        }
+
+        @Override
+        public int deletePersistentLoginByUsername(String username) {
+            return mapper().deletePersistentLoginByUsername(username);
         }
     }
 

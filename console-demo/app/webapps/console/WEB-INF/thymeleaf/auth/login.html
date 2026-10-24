@@ -45,7 +45,11 @@
                         <label for="password">Password</label>
                     </div>
 
-                    <div class="form-check text-start mb-3">
+                    <div class="form-check text-start mb-3" th:if="${page.rememberMeEnabled}">
+                        <input class="form-check-input" type="checkbox" id="remember-me" name="rememberMe" value="true">
+                        <label class="form-check-label text-muted small" for="remember-me">Stay signed in (Remember me)</label>
+                    </div>
+                    <div class="form-check text-start mb-3" th:unless="${page.rememberMeEnabled}">
                         <input class="form-check-input" type="checkbox" id="remember-me">
                         <label class="form-check-label text-muted small" for="remember-me">Remember Username</label>
                     </div>

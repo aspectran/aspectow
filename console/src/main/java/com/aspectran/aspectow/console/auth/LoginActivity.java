@@ -52,26 +52,32 @@ import java.util.Set;
 public class LoginActivity {
 
     private final UserService userService;
+    private final RememberMeService rememberMeService;
     private final IPCountryResolver ipCountryResolver;
 
     @Autowired
-    public LoginActivity(UserService userService, Optional<IPCountryResolver> ipCountryResolver) {
+    public LoginActivity(UserService userService,
+                         Optional<RememberMeService> rememberMeService,
+                         Optional<IPCountryResolver> ipCountryResolver) {
         this.userService = userService;
+        this.rememberMeService = rememberMeService.orElse(null);
         this.ipCountryResolver = ipCountryResolver.orElse(null);
     }
 
     @Request("/login")
     @Dispatch("auth/login")
     @Action("page")
-    public Map<String, String> loginPage() {
+    public Map<String, Object> loginPage() {
+        boolean rememberMeEnabled = (rememberMeService != null && rememberMeService.isRememberMeEnabled());
         return Map.of(
                 "title", "Login",
-                "layout", "popup"
+                "layout", "popup",
+                "rememberMeEnabled", rememberMeEnabled
         );
     }
 
     @RequestToPost("/login")
-    public RestResponse login(Translet translet, String username, String password, String referrer) {
+    public RestResponse login(Translet translet, String username, String password, String referrer, Boolean rememberMe) {
         if (StringUtils.isEmpty(username) || StringUtils.isEmpty(password)) {
             return new FailureResponse().setError("required", "Username and password are required.");
         }
@@ -107,6 +113,10 @@ public class LoginActivity {
             }
 
             doLogin(translet, user);
+
+            if (Boolean.TRUE.equals(rememberMe) && rememberMeService != null && rememberMeService.isRememberMeEnabled()) {
+                rememberMeService.createRememberMeToken(translet, username);
+            }
 
             userService.recordLogin(username, remoteAddr, countryCode, userAgent, true);
             String redirectUrl = resolveRedirectUrl(translet, referrer);
@@ -171,6 +181,9 @@ public class LoginActivity {
     @Request("/logout")
     @Redirect("/")
     public void logout(@NonNull Translet translet) {
+        if (rememberMeService != null) {
+            rememberMeService.removeRememberMeToken(translet);
+        }
         SessionAdapter sessionAdapter = translet.getSessionAdapter();
         sessionAdapter.removeAttribute(UserInfo.USERINFO_KEY);
         sessionAdapter.invalidate();

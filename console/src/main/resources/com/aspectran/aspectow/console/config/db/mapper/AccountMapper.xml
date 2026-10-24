@@ -38,6 +38,15 @@
         <result property="createdAt" column="created_at" />
     </resultMap>
 
+    <resultMap id="PersistentLoginResultMap" type="com.aspectran.aspectow.console.common.db.model.PersistentLogin">
+        <id property="series" column="series" />
+        <result property="username" column="username" />
+        <result property="token" column="token" />
+        <result property="ipAddress" column="ip_address" />
+        <result property="userAgent" column="user_agent" />
+        <result property="lastUsed" column="last_used" />
+    </resultMap>
+
     <select id="getUserById" parameterType="long" resultMap="UserResultMap">
         select * from asc_user where user_id = #{userId}
     </select>
@@ -230,5 +239,31 @@
             </if>
         </where>
     </select>
+
+    <select id="getPersistentLoginBySeries" parameterType="string" resultMap="PersistentLoginResultMap">
+        select * from asc_persistent_login where series = #{series}
+    </select>
+
+    <insert id="insertPersistentLogin" parameterType="com.aspectran.aspectow.console.common.db.model.PersistentLogin">
+        insert into asc_persistent_login (series, username, token, ip_address, user_agent, last_used)
+        values (#{series}, #{username}, #{token}, #{ipAddress}, #{userAgent}, #{lastUsed})
+    </insert>
+
+    <update id="updatePersistentLogin" parameterType="com.aspectran.aspectow.console.common.db.model.PersistentLogin">
+        update asc_persistent_login
+           set token = #{token},
+               ip_address = #{ipAddress},
+               user_agent = #{userAgent},
+               last_used = #{lastUsed}
+         where series = #{series}
+    </update>
+
+    <delete id="deletePersistentLoginBySeries" parameterType="string">
+        delete from asc_persistent_login where series = #{series}
+    </delete>
+
+    <delete id="deletePersistentLoginByUsername" parameterType="string">
+        delete from asc_persistent_login where username = #{username}
+    </delete>
 
 </mapper>
