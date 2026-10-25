@@ -34,6 +34,7 @@ public class LoginHistory implements Serializable {
     private String countryCode;
     private String userAgent;
     private String successYn;
+    private String autoLoginYn;
 
     /**
      * Gets the login history ID.
@@ -145,6 +146,22 @@ public class LoginHistory implements Serializable {
      */
     public void setSuccessYn(String successYn) {
         this.successYn = successYn;
+    }
+
+    /**
+     * Gets the auto login indicator flag ("Y" or "N").
+     * @return the auto login indicator flag
+     */
+    public String getAutoLoginYn() {
+        return autoLoginYn;
+    }
+
+    /**
+     * Sets the auto login indicator flag ("Y" or "N").
+     * @param autoLoginYn the auto login indicator flag
+     */
+    public void setAutoLoginYn(String autoLoginYn) {
+        this.autoLoginYn = autoLoginYn;
     }
 
 }

@@ -153,8 +153,8 @@
     </delete>
 
     <insert id="insertLoginHistory" parameterType="com.aspectran.aspectow.console.common.db.model.LoginHistory">
-        insert into asc_login_history (username, ip_address, country_code, user_agent, success_yn)
-        values (#{username}, #{ipAddress}, #{countryCode}, #{userAgent}, #{successYn})
+        insert into asc_login_history (username, ip_address, country_code, user_agent, success_yn, auto_login_yn)
+        values (#{username}, #{ipAddress}, #{countryCode}, #{userAgent}, #{successYn}, #{autoLoginYn})
     </insert>
 
     <select id="getLoginHistoryList" resultType="com.aspectran.aspectow.console.common.db.model.LoginHistory">

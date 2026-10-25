@@ -123,6 +123,7 @@ create table if not exists asc_login_history (
     country_code varchar(2),
     user_agent varchar(500),
     success_yn char(1) default 'Y' not null,
+    auto_login_yn char(1) default 'N' not null,
     primary key (history_id)
 ) comment = 'Login History';
 

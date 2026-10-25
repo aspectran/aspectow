@@ -123,14 +123,27 @@ public interface UserService {
     void deleteUser(Long userId);
 
     /**
-     * Records a user login attempt.
+     * Records a user login attempt with the auto-login flag set to false.
      * @param username the username of the user attempting to log in
      * @param ipAddress the IP address from which the login attempt originated
      * @param countryCode the 2-letter country code
      * @param userAgent the User-Agent header of the browser or client
      * @param success true if the login attempt was successful, false otherwise
      */
-    void recordLogin(String username, String ipAddress, String countryCode, String userAgent, boolean success);
+    default void recordLogin(String username, String ipAddress, String countryCode, String userAgent, boolean success) {
+        recordLogin(username, ipAddress, countryCode, userAgent, success, false);
+    }
+
+    /**
+     * Records a user login attempt.
+     * @param username the username of the user attempting to log in
+     * @param ipAddress the IP address from which the login attempt originated
+     * @param countryCode the 2-letter country code
+     * @param userAgent the User-Agent header of the browser or client
+     * @param success true if the login attempt was successful, false otherwise
+     * @param autoLogin true if the login attempt was an automatic login, false otherwise
+     */
+    void recordLogin(String username, String ipAddress, String countryCode, String userAgent, boolean success, boolean autoLogin);
 
     /**
      * Retrieves the login history for a specific user with search keyword.

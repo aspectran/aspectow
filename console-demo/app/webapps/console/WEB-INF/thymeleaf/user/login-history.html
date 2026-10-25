@@ -49,6 +49,7 @@
                         <th class="text-muted small text-uppercase" style="width: 200px;">IP Address</th>
                         <th class="text-muted small text-uppercase" style="width: 90px;">Country</th>
                         <th class="text-muted small text-uppercase" style="width: 90px;">Status</th>
+                        <th class="text-muted small text-uppercase" style="width: 110px;">Auto Login</th>
                         <th class="text-muted small text-uppercase" style="width: 180px;">Time</th>
                         <th class="pe-3 text-muted small text-uppercase" style="min-width: 1000px;">User Agent</th>
                     </tr>
@@ -76,12 +77,17 @@
                             <span th:class="${#strings.equals(history.successYn, 'Y') ? 'badge bg-success' : 'badge bg-danger'}"
                                   th:text="${#strings.equals(history.successYn, 'Y') ? 'SUCCESS' : 'FAILED'}">SUCCESS</span>
                         </td>
+                        <td>
+                            <span th:if="${#strings.equals(history.autoLoginYn, 'Y')}"
+                                  class="badge bg-info-subtle text-info-emphasis border border-info-subtle">AUTO</span>
+                            <span th:unless="${#strings.equals(history.autoLoginYn, 'Y')}" class="text-muted">-</span>
+                        </td>
                         <td class="format-local-time" th:data-utc="${history.loginAt}" th:text="${#temporals.format(history.loginAt, 'yyyy-MM-dd HH:mm:ss')}">2023-10-01 12:00:00</td>
                         <td class="pe-3 small text-muted text-truncate" style="max-width: 300px;" 
                             th:text="${history.userAgent}" th:title="${history.userAgent}">Mozilla/5.0...</td>
                     </tr>
                     <tr th:if="${#lists.isEmpty(page.historyList)}">
-                        <td colspan="7" class="text-center py-4 text-muted">No login history found.</td>
+                        <td colspan="8" class="text-center py-4 text-muted">No login history found.</td>
                     </tr>
                     </tbody>
                 </table>

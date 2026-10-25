@@ -89,20 +89,17 @@ public class UserAuthAspect {
 
     private boolean tryAutoLogin(@NonNull Translet translet) {
         if (rememberMeService != null && rememberMeService.isRememberMeEnabled()) {
-            String username = rememberMeService.autoLogin(translet);
-            if (username != null) {
-                User user = userService.getUserByUsername(username);
-                if (user != null && "NORMAL".equals(user.getStatus())) {
-                    loginActivity.doLogin(translet, user);
-                    String remoteAddr = WebUtils.getRemoteAddr(translet);
-                    String countryCode = null;
-                    if (ipCountryResolver != null && remoteAddr != null) {
-                        countryCode = ipCountryResolver.resolveCountryCode(remoteAddr, translet.getRequestAdapter().getLocale());
-                    }
-                    String userAgent = translet.getRequestAdapter().getHeader(HttpHeaders.USER_AGENT);
-                    userService.recordLogin(username, remoteAddr, countryCode, userAgent, true);
-                    return true;
+            User user = rememberMeService.autoLogin(translet);
+            if (user != null) {
+                loginActivity.doLogin(translet, user);
+                String remoteAddr = WebUtils.getRemoteAddr(translet);
+                String countryCode = null;
+                if (ipCountryResolver != null && remoteAddr != null) {
+                    countryCode = ipCountryResolver.resolveCountryCode(remoteAddr, translet.getRequestAdapter().getLocale());
                 }
+                String userAgent = translet.getRequestAdapter().getHeader(HttpHeaders.USER_AGENT);
+                userService.recordLogin(user.getUsername(), remoteAddr, countryCode, userAgent, true, true);
+                return true;
             }
         }
         return false;

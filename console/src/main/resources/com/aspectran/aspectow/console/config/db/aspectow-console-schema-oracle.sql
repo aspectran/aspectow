@@ -151,6 +151,7 @@ CREATE TABLE asc_login_history (
     country_code VARCHAR2(2),
     user_agent VARCHAR2(500),
     success_yn CHAR(1) DEFAULT 'Y' NOT NULL,
+    auto_login_yn CHAR(1) DEFAULT 'N' NOT NULL,
     PRIMARY KEY (history_id)
 );
 

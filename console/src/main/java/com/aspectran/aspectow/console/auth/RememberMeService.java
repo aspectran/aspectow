@@ -15,6 +15,7 @@
  */
 package com.aspectran.aspectow.console.auth;
 
+import com.aspectran.aspectow.appmon.common.support.IPCountryResolver;
 import com.aspectran.aspectow.console.common.db.mapper.AccountMapper;
 import com.aspectran.aspectow.console.common.db.model.PersistentLogin;
 import com.aspectran.aspectow.console.common.db.model.User;
@@ -41,6 +42,7 @@ import org.slf4j.LoggerFactory;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -61,14 +63,18 @@ public class RememberMeService implements EnvironmentAware {
 
     private final AccountMapper accountMapper;
     private final UserService userService;
+    private final IPCountryResolver ipCountryResolver;
     private final CookieGenerator cookieGenerator;
 
     private Environment environment;
 
     @Autowired
-    public RememberMeService(AccountMapper accountMapper, UserService userService) {
+    public RememberMeService(AccountMapper accountMapper,
+                             UserService userService,
+                             Optional<IPCountryResolver> ipCountryResolver) {
         this.accountMapper = accountMapper;
         this.userService = userService;
+        this.ipCountryResolver = ipCountryResolver.orElse(null);
         this.cookieGenerator = new CookieGenerator(REMEMBER_ME_COOKIE_NAME);
         this.cookieGenerator.setCookiePath("/");
         this.cookieGenerator.setCookieHttpOnly(true);
@@ -169,10 +175,10 @@ public class RememberMeService implements EnvironmentAware {
      * Attempts automatic authentication using the persistent login cookie.
      * Performs theft detection, IP/User-Agent validation, and token rotation.
      * @param translet the current translet
-     * @return the authenticated username, or null if Remember-Me authentication failed
+     * @return the authenticated user, or null if Remember-Me authentication failed
      */
     @Nullable
-    public String autoLogin(@NonNull Translet translet) {
+    public User autoLogin(@NonNull Translet translet) {
         if (!isRememberMeEnabled()) {
             return null;
         }
@@ -210,6 +216,7 @@ public class RememberMeService implements EnvironmentAware {
                 persistentLogin.getLastUsed().plusSeconds(getTokenValiditySeconds()).isBefore(now)) {
             accountMapper.deletePersistentLoginBySeries(series);
             removeRememberMeToken(translet);
+            recordAutoLoginFailure(translet, persistentLogin.getUsername());
             return null;
         }
 
@@ -223,6 +230,7 @@ public class RememberMeService implements EnvironmentAware {
             userService.recordAuditLog(username, "REMEMBER_ME_THEFT_DETECTED", "Series: " + series,
                     "Remember-Me token theft detected! Invalidated all tokens for user: " + username, currentIp);
             removeRememberMeToken(translet);
+            recordAutoLoginFailure(translet, username);
             logger.warn("Remember-Me token theft detected for user '{}'. All persistent logins invalidated.", username);
             return null;
         }
@@ -231,12 +239,14 @@ public class RememberMeService implements EnvironmentAware {
         User user = userService.getUserByUsername(username);
         if (user == null || !"NORMAL".equals(user.getStatus())) {
             removeRememberMeToken(translet);
+            recordAutoLoginFailure(translet, username);
             return null;
         }
         if (!IpAddressUtils.isAllowedIp(currentIp, user.getAllowedIps())) {
             userService.recordAuditLog(username, "LOGIN_FAILED_UNALLOWED_IP", "User: " + username,
                     "Remember-Me attempt from unallowed IP address: " + currentIp, currentIp);
             removeRememberMeToken(translet);
+            recordAutoLoginFailure(translet, username);
             return null;
         }
 
@@ -246,12 +256,14 @@ public class RememberMeService implements EnvironmentAware {
                     "Remember-Me blocked due to IP mismatch. Registered: " + persistentLogin.getIpAddress() +
                             ", Attempted: " + currentIp, currentIp);
             removeRememberMeToken(translet);
+            recordAutoLoginFailure(translet, username);
             return null;
         }
         if (persistentLogin.getUserAgent() != null && !persistentLogin.getUserAgent().equals(currentUserAgent)) {
             userService.recordAuditLog(username, "REMEMBER_ME_DEVICE_MISMATCH", "User: " + username,
                     "Remember-Me blocked due to User-Agent mismatch for series: " + series, currentIp);
             removeRememberMeToken(translet);
+            recordAutoLoginFailure(translet, username);
             return null;
         }
 
@@ -267,7 +279,7 @@ public class RememberMeService implements EnvironmentAware {
         cookieGenerator.setCookieMaxAge(getTokenValiditySeconds());
         cookieGenerator.addCookie(translet.getResponseAdapter(), newCookieValue);
 
-        return username;
+        return user;
     }
 
     /**
@@ -288,6 +300,18 @@ public class RememberMeService implements EnvironmentAware {
             }
         }
         cookieGenerator.removeCookie(translet.getResponseAdapter());
+    }
+
+    private void recordAutoLoginFailure(@NonNull Translet translet, String username) {
+        if (StringUtils.hasText(username)) {
+            String remoteAddr = WebUtils.getRemoteAddr(translet);
+            String countryCode = null;
+            if (ipCountryResolver != null && remoteAddr != null) {
+                countryCode = ipCountryResolver.resolveCountryCode(remoteAddr, translet.getRequestAdapter().getLocale());
+            }
+            String userAgent = translet.getRequestAdapter().getHeader(HttpHeaders.USER_AGENT);
+            userService.recordLogin(username, remoteAddr, countryCode, userAgent, false, true);
+        }
     }
 
 }

@@ -204,17 +204,18 @@ public class UserServiceImpl implements UserService, EnvironmentAware {
     }
 
     @Override
-    public void recordLogin(String username, String ipAddress, String countryCode, String userAgent, boolean success) {
+    public void recordLogin(String username, String ipAddress, String countryCode, String userAgent, boolean success, boolean autoLogin) {
         LoginHistory history = new LoginHistory();
         history.setUsername(username);
         history.setIpAddress(ipAddress);
         history.setCountryCode(countryCode);
         history.setUserAgent(userAgent);
         history.setSuccessYn(success ? "Y" : "N");
+        history.setAutoLoginYn(autoLogin ? "Y" : "N");
         accountMapper.insertLoginHistory(history);
         if (success) {
             accountMapper.updateLastLogin(username);
-        } else {
+        } else if (!autoLogin) {
             if (StringUtils.hasText(username)) {
                 User user = accountMapper.getUserByUsername(username);
                 if (user != null && "NORMAL".equals(user.getStatus())) {
