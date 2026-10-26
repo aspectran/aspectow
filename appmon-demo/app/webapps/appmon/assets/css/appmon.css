@@ -889,6 +889,8 @@
     color: #cccbc6;
     vertical-align: middle;
     letter-spacing: 0;
+    user-select: none;
+    -webkit-user-select: none;
 }
 .console-box .console div:hover .node-badge {
     color: #fbf1a2;
