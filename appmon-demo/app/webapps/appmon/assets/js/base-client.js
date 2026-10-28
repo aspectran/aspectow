@@ -19,7 +19,7 @@
  * Provides common functionality for connection management and retries.
  *
  * @version 4.3
- * @last-modified 2026-10-09
+ * @last-modified 2026-10-28
  */
 class BaseClient {
     constructor(node, viewer, onSubscribed, onClosed, onFailed, isGatewayMode) {
@@ -35,6 +35,8 @@ class BaseClient {
         this.onNodeLeft = null;
         this.onRequireRebuild = null;
         this.isGatewayMode = isGatewayMode;
+        this.viewerResolver = null;
+        this.metricsViewer = null;
         this.connectedNodeId = null;
         this.nodeToSubscribe = null;
         this.appsToSubscribe = null;
@@ -43,16 +45,23 @@ class BaseClient {
         this.maxRetries = 10;
         this.retryInterval = 5000;
         this.everConnected = false;
-        this.metricsViewer = null;
         this.retryTimer = null;
         this.lastResumeReconnect = 0;
+        this.stopped = false;
+        this.destroyed = false;
 
         this.handleResume = () => {
+            if (this.destroyed || this.stopped) {
+                return;
+            }
             if (typeof document !== "undefined" && document.visibilityState === "visible") {
                 this.onResume();
             }
         };
         this.handleOnline = () => {
+            if (this.destroyed || this.stopped) {
+                return;
+            }
             this.onResume();
         };
 
@@ -175,6 +184,9 @@ class BaseClient {
      * Called when the page becomes visible or active again (e.g. after returning from mobile background).
      */
     onResume() {
+        if (this.destroyed || this.stopped) {
+            return;
+        }
         if (!this.isConnected()) {
             if (this.lastResumeReconnect && (Date.now() - this.lastResumeReconnect < 500)) {
                 return;
@@ -189,6 +201,7 @@ class BaseClient {
      * Stops the client connection.
      */
     stop() {
+        this.stopped = true;
         if (this.retryTimer) {
             clearTimeout(this.retryTimer);
             this.retryTimer = null;
@@ -199,6 +212,7 @@ class BaseClient {
      * Destroys the client and removes event listeners.
      */
     destroy() {
+        this.destroyed = true;
         this.stop();
         if (typeof document !== "undefined") {
             document.removeEventListener("visibilitychange", this.handleResume);
@@ -253,6 +267,9 @@ class BaseClient {
      * @param {boolean} [immediate=false] - If true, reconnects immediately without backoff delay.
      */
     reconnect(immediate = false) {
+        if (this.destroyed || this.stopped) {
+            return;
+        }
         if (this.retryTimer) {
             clearTimeout(this.retryTimer);
             this.retryTimer = null;

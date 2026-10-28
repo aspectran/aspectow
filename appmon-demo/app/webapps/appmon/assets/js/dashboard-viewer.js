@@ -19,7 +19,7 @@
  * Responsible for rendering monitoring data, including logs, metrics, and charts.
  *
  * @version 4.3
- * @last-modified 2026-10-17
+ * @last-modified 2026-10-28
  */
 class DashboardViewer {
     constructor(sampleInterval, options = {}) {
@@ -79,6 +79,7 @@ class DashboardViewer {
                         if (timer) clearTimeout(timer);
                         $(this).remove();
                     });
+                    this.updateActiveUserCount($display);
                     this.updateSessionNodeFilterButtons($display);
                 }
             }
@@ -175,6 +176,7 @@ class DashboardViewer {
                     if (timer) clearTimeout(timer);
                 });
                 $sessions.empty();
+                this.updateActiveUserCount($display);
                 if (this.isGroupView) {
                     this.updateSessionNodeFilterButtons($display);
                 }
@@ -762,6 +764,7 @@ class DashboardViewer {
     printSessionEventData(nodeId, exporterKey, eventData) {
         const $display = this.getDisplay$(exporterKey);
         if ($display) {
+            $display.find(".numberOfUsers").text(eventData.numberOfUsers || 0);
             $display.find(".numberOfCreated").text(eventData.numberOfCreated);
             $display.find(".numberOfExpired").text(eventData.numberOfExpired);
             $display.find(".numberOfActives").text(eventData.numberOfActives);
@@ -814,6 +817,7 @@ class DashboardViewer {
                     inactiveInterval = (inactiveInterval <= 0 ? this.tempResidentInactiveSecs : Math.min(inactiveInterval, this.tempResidentInactiveSecs)) * 1000;
                     timer = setTimeout(() => {
                         $li.remove();
+                        this.updateActiveUserCount($display);
                         if (this.isGroupView) {
                             this.updateSessionNodeFilterButtons($display);
                         }
@@ -830,6 +834,7 @@ class DashboardViewer {
                     this.changeSessionId($sessions, oldSessionId, typeof session === "string" ? JSON.parse(session) : session, nodeId);
                 }
             }
+            this.updateActiveUserCount($display);
             if (this.isGroupView) {
                 this.updateSessionNodeFilterButtons($display);
             }
@@ -862,6 +867,10 @@ class DashboardViewer {
             .attr("data-inactive-interval", session.inactiveInterval)
             .append($count);
 
+        const userKey = session.username ? ("u:" + session.username) :
+            (session.ipAddress ? ("i:" + session.ipAddress) : ("s:" + session.sessionId));
+        $li.attr("data-user-key", userKey);
+
         if (this.isGroupView && nodeId) {
             $li.attr("data-node-id", nodeId);
             const $sessionBox = $sessions.closest(".session-box");
@@ -879,6 +888,7 @@ class DashboardViewer {
             $li.attr("data-inactive-interval", inactiveInterval);
             const timer = setTimeout(() => {
                 $li.remove();
+                this.updateActiveUserCount($sessions.closest(".session-box"));
                 if (this.isGroupView) {
                     this.updateSessionNodeFilterButtons($sessions.closest(".session-box"));
                 }
@@ -928,6 +938,7 @@ class DashboardViewer {
                 if (timer) clearTimeout(timer);
                 timer = setTimeout(() => {
                     $li.remove();
+                    this.updateActiveUserCount($display);
                     if (this.isGroupView) {
                         this.updateSessionNodeFilterButtons($display);
                     }
@@ -1000,6 +1011,20 @@ class DashboardViewer {
             }).addClass("on");
             this.setSessionFilter(appId, eventId, null);
         }
+    }
+
+    updateActiveUserCount($display) {
+        if (!$display || !$display.length) return;
+        const $sessionBox = $display.hasClass("session-box") ? $display : $display.closest(".session-box");
+        const $sessions = $sessionBox.find("ul.sessions");
+        const userKeys = new Set();
+        $sessions.find("li:not(.inactive)").each(function () {
+            const ukey = $(this).attr("data-user-key");
+            if (ukey) {
+                userKeys.add(ukey);
+            }
+        });
+        $sessionBox.find(".numberOfUsers").text(userKeys.size);
     }
 
     processChartData(nodeId, appId, exporterType, eventId, exporterKey, chartData) {

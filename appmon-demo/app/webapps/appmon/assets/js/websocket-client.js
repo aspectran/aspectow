@@ -19,7 +19,7 @@
  * In Gateway Mode, it manages a single physical connection for the entire cluster.
  *
  * @version 4.3
- * @last-modified 2026-10-16
+ * @last-modified 2026-10-28
  */
 class WebsocketClient extends BaseClient {
     constructor(node, viewer, onSubscribed, onClosed, onFailed, isGatewayMode) {
@@ -33,6 +33,8 @@ class WebsocketClient extends BaseClient {
     }
 
     start(appsToSubscribe, nodeToSubscribe) {
+        if (this.destroyed) return;
+        this.stopped = false;
         this.nodeToSubscribe = nodeToSubscribe;
         this.appsToSubscribe = appsToSubscribe;
         this.openSocket();
@@ -44,12 +46,18 @@ class WebsocketClient extends BaseClient {
         this.handshakeSuccessful = false;
     }
 
+    destroy() {
+        super.destroy();
+        this.closeSocket(false);
+        this.handshakeSuccessful = false;
+    }
+
     isConnected() {
-        return !!(this.socket && this.socket.readyState === WebSocket.OPEN && this.handshakeSuccessful);
+        return !this.stopped && !this.destroyed && !!(this.socket && this.socket.readyState === WebSocket.OPEN && this.handshakeSuccessful);
     }
 
     onResume() {
-        if (!this.everConnected) {
+        if (this.destroyed || this.stopped || !this.everConnected) {
             return;
         }
         if (this.socket && this.socket.readyState === WebSocket.CONNECTING) {
@@ -69,6 +77,7 @@ class WebsocketClient extends BaseClient {
     }
 
     openSocket() {
+        if (this.destroyed || this.stopped) return;
         this.closeSocket(false);
         const url = new URL(this.node.endpoint.path + "/appmon/websocket/" + this.node.endpoint.token, location.href);
         if (!this.isGatewayMode && this.node.port && (location.hostname === "localhost" || location.hostname === "127.0.0.1")) {
@@ -80,6 +89,10 @@ class WebsocketClient extends BaseClient {
         this.socket = new WebSocket(url.href);
 
         this.socket.onopen = () => {
+            if (this.destroyed || this.stopped) {
+                this.closeSocket(false);
+                return;
+            }
             this.handshakeSuccessful = true;
             this.everConnected = true;
             this.reconnecting = false;
@@ -96,6 +109,7 @@ class WebsocketClient extends BaseClient {
         };
 
         this.socket.onmessage = (event) => {
+            if (this.destroyed || this.stopped) return;
             if (typeof event.data !== "string") return;
             const msg = event.data;
             const idx = msg.indexOf(':');
@@ -171,6 +185,10 @@ class WebsocketClient extends BaseClient {
             const wasHandshakeSuccessful = this.handshakeSuccessful;
             this.closeSocket(true);
 
+            if (this.destroyed || this.stopped) {
+                return;
+            }
+
             if (!wasHandshakeSuccessful && !this.everConnected) {
                 console.warn("WebSocket handshake failed. Code:", event.code);
                 return;
@@ -200,6 +218,9 @@ class WebsocketClient extends BaseClient {
         };
 
         this.socket.onerror = (event) => {
+            if (this.destroyed || this.stopped) {
+                return;
+            }
             console.error(this.getConnectedNodeId(), "websocket error:", event);
             if (!this.everConnected && this.node.endpoint.mode !== "polling") {
                 this.node.endpoint.mode = "polling";
@@ -229,7 +250,11 @@ class WebsocketClient extends BaseClient {
             socket.onerror = null;
             socket.onclose = null;
             if (!afterClosing) {
-                socket.close(1000, "Normal closure");
+                try {
+                    socket.close(1000, "Normal closure");
+                } catch (e) {
+                    // ignore
+                }
             }
         }
         if (this.heartbeatTimer) {

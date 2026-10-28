@@ -19,7 +19,7 @@
  * Provides common functionality for connection management and retries.
  *
  * @version 4.3
- * @last-modified 2026-10-09
+ * @last-modified 2026-10-28
  */
 class BaseClient {
     constructor(node, viewer, onSubscribed, onClosed, onFailed, isGatewayMode) {
@@ -35,6 +35,8 @@ class BaseClient {
         this.onNodeLeft = null;
         this.onRequireRebuild = null;
         this.isGatewayMode = isGatewayMode;
+        this.viewerResolver = null;
+        this.metricsViewer = null;
         this.connectedNodeId = null;
         this.nodeToSubscribe = null;
         this.appsToSubscribe = null;
@@ -43,16 +45,23 @@ class BaseClient {
         this.maxRetries = 10;
         this.retryInterval = 5000;
         this.everConnected = false;
-        this.metricsViewer = null;
         this.retryTimer = null;
         this.lastResumeReconnect = 0;
+        this.stopped = false;
+        this.destroyed = false;
 
         this.handleResume = () => {
+            if (this.destroyed || this.stopped) {
+                return;
+            }
             if (typeof document !== "undefined" && document.visibilityState === "visible") {
                 this.onResume();
             }
         };
         this.handleOnline = () => {
+            if (this.destroyed || this.stopped) {
+                return;
+            }
             this.onResume();
         };
 
@@ -175,6 +184,9 @@ class BaseClient {
      * Called when the page becomes visible or active again (e.g. after returning from mobile background).
      */
     onResume() {
+        if (this.destroyed || this.stopped) {
+            return;
+        }
         if (!this.isConnected()) {
             if (this.lastResumeReconnect && (Date.now() - this.lastResumeReconnect < 500)) {
                 return;
@@ -189,6 +201,7 @@ class BaseClient {
      * Stops the client connection.
      */
     stop() {
+        this.stopped = true;
         if (this.retryTimer) {
             clearTimeout(this.retryTimer);
             this.retryTimer = null;
@@ -199,6 +212,7 @@ class BaseClient {
      * Destroys the client and removes event listeners.
      */
     destroy() {
+        this.destroyed = true;
         this.stop();
         if (typeof document !== "undefined") {
             document.removeEventListener("visibilitychange", this.handleResume);
@@ -253,6 +267,9 @@ class BaseClient {
      * @param {boolean} [immediate=false] - If true, reconnects immediately without backoff delay.
      */
     reconnect(immediate = false) {
+        if (this.destroyed || this.stopped) {
+            return;
+        }
         if (this.retryTimer) {
             clearTimeout(this.retryTimer);
             this.retryTimer = null;
@@ -298,7 +315,7 @@ class BaseClient {
  * In Gateway Mode, it manages a single physical connection for the entire cluster.
  *
  * @version 4.3
- * @last-modified 2026-10-16
+ * @last-modified 2026-10-28
  */
 class WebsocketClient extends BaseClient {
     constructor(node, viewer, onSubscribed, onClosed, onFailed, isGatewayMode) {
@@ -312,6 +329,8 @@ class WebsocketClient extends BaseClient {
     }
 
     start(appsToSubscribe, nodeToSubscribe) {
+        if (this.destroyed) return;
+        this.stopped = false;
         this.nodeToSubscribe = nodeToSubscribe;
         this.appsToSubscribe = appsToSubscribe;
         this.openSocket();
@@ -323,12 +342,18 @@ class WebsocketClient extends BaseClient {
         this.handshakeSuccessful = false;
     }
 
+    destroy() {
+        super.destroy();
+        this.closeSocket(false);
+        this.handshakeSuccessful = false;
+    }
+
     isConnected() {
-        return !!(this.socket && this.socket.readyState === WebSocket.OPEN && this.handshakeSuccessful);
+        return !this.stopped && !this.destroyed && !!(this.socket && this.socket.readyState === WebSocket.OPEN && this.handshakeSuccessful);
     }
 
     onResume() {
-        if (!this.everConnected) {
+        if (this.destroyed || this.stopped || !this.everConnected) {
             return;
         }
         if (this.socket && this.socket.readyState === WebSocket.CONNECTING) {
@@ -348,6 +373,7 @@ class WebsocketClient extends BaseClient {
     }
 
     openSocket() {
+        if (this.destroyed || this.stopped) return;
         this.closeSocket(false);
         const url = new URL(this.node.endpoint.path + "/appmon/websocket/" + this.node.endpoint.token, location.href);
         if (!this.isGatewayMode && this.node.port && (location.hostname === "localhost" || location.hostname === "127.0.0.1")) {
@@ -359,6 +385,10 @@ class WebsocketClient extends BaseClient {
         this.socket = new WebSocket(url.href);
 
         this.socket.onopen = () => {
+            if (this.destroyed || this.stopped) {
+                this.closeSocket(false);
+                return;
+            }
             this.handshakeSuccessful = true;
             this.everConnected = true;
             this.reconnecting = false;
@@ -375,6 +405,7 @@ class WebsocketClient extends BaseClient {
         };
 
         this.socket.onmessage = (event) => {
+            if (this.destroyed || this.stopped) return;
             if (typeof event.data !== "string") return;
             const msg = event.data;
             const idx = msg.indexOf(':');
@@ -450,6 +481,10 @@ class WebsocketClient extends BaseClient {
             const wasHandshakeSuccessful = this.handshakeSuccessful;
             this.closeSocket(true);
 
+            if (this.destroyed || this.stopped) {
+                return;
+            }
+
             if (!wasHandshakeSuccessful && !this.everConnected) {
                 console.warn("WebSocket handshake failed. Code:", event.code);
                 return;
@@ -479,6 +514,9 @@ class WebsocketClient extends BaseClient {
         };
 
         this.socket.onerror = (event) => {
+            if (this.destroyed || this.stopped) {
+                return;
+            }
             console.error(this.getConnectedNodeId(), "websocket error:", event);
             if (!this.everConnected && this.node.endpoint.mode !== "polling") {
                 this.node.endpoint.mode = "polling";
@@ -508,7 +546,11 @@ class WebsocketClient extends BaseClient {
             socket.onerror = null;
             socket.onclose = null;
             if (!afterClosing) {
-                socket.close(1000, "Normal closure");
+                try {
+                    socket.close(1000, "Normal closure");
+                } catch (e) {
+                    // ignore
+                }
             }
         }
         if (this.heartbeatTimer) {
@@ -580,7 +622,7 @@ class WebsocketClient extends BaseClient {
  * HTTP Polling implementation of the AppMon client.
  *
  * @version 4.3
- * @last-modified 2026-10-09
+ * @last-modified 2026-10-28
  */
 class PollingClient extends BaseClient {
     constructor(node, viewer, onSubscribed, onClosed, onFailed, isGatewayMode = false) {
@@ -598,6 +640,7 @@ class PollingClient extends BaseClient {
     }
 
     start(appsToSubscribe, nodeToSubscribe) {
+        if (this.destroyed) return;
         this.stopped = false;
         this.nodeToSubscribe = nodeToSubscribe;
         this.appsToSubscribe = appsToSubscribe;
@@ -613,6 +656,12 @@ class PollingClient extends BaseClient {
             clearTimeout(this.pollingTimer);
             this.pollingTimer = null;
         }
+    }
+
+    destroy() {
+        this.destroyed = true;
+        this.stop();
+        super.destroy();
     }
 
     isConnected() {
@@ -1688,7 +1737,7 @@ class DashboardChart {
  * Responsible for rendering monitoring data, including logs, metrics, and charts.
  *
  * @version 4.3
- * @last-modified 2026-10-17
+ * @last-modified 2026-10-28
  */
 class DashboardViewer {
     constructor(sampleInterval, options = {}) {
@@ -1748,6 +1797,7 @@ class DashboardViewer {
                         if (timer) clearTimeout(timer);
                         $(this).remove();
                     });
+                    this.updateActiveUserCount($display);
                     this.updateSessionNodeFilterButtons($display);
                 }
             }
@@ -1844,6 +1894,7 @@ class DashboardViewer {
                     if (timer) clearTimeout(timer);
                 });
                 $sessions.empty();
+                this.updateActiveUserCount($display);
                 if (this.isGroupView) {
                     this.updateSessionNodeFilterButtons($display);
                 }
@@ -2431,6 +2482,7 @@ class DashboardViewer {
     printSessionEventData(nodeId, exporterKey, eventData) {
         const $display = this.getDisplay$(exporterKey);
         if ($display) {
+            $display.find(".numberOfUsers").text(eventData.numberOfUsers || 0);
             $display.find(".numberOfCreated").text(eventData.numberOfCreated);
             $display.find(".numberOfExpired").text(eventData.numberOfExpired);
             $display.find(".numberOfActives").text(eventData.numberOfActives);
@@ -2483,6 +2535,7 @@ class DashboardViewer {
                     inactiveInterval = (inactiveInterval <= 0 ? this.tempResidentInactiveSecs : Math.min(inactiveInterval, this.tempResidentInactiveSecs)) * 1000;
                     timer = setTimeout(() => {
                         $li.remove();
+                        this.updateActiveUserCount($display);
                         if (this.isGroupView) {
                             this.updateSessionNodeFilterButtons($display);
                         }
@@ -2499,6 +2552,7 @@ class DashboardViewer {
                     this.changeSessionId($sessions, oldSessionId, typeof session === "string" ? JSON.parse(session) : session, nodeId);
                 }
             }
+            this.updateActiveUserCount($display);
             if (this.isGroupView) {
                 this.updateSessionNodeFilterButtons($display);
             }
@@ -2531,6 +2585,10 @@ class DashboardViewer {
             .attr("data-inactive-interval", session.inactiveInterval)
             .append($count);
 
+        const userKey = session.username ? ("u:" + session.username) :
+            (session.ipAddress ? ("i:" + session.ipAddress) : ("s:" + session.sessionId));
+        $li.attr("data-user-key", userKey);
+
         if (this.isGroupView && nodeId) {
             $li.attr("data-node-id", nodeId);
             const $sessionBox = $sessions.closest(".session-box");
@@ -2548,6 +2606,7 @@ class DashboardViewer {
             $li.attr("data-inactive-interval", inactiveInterval);
             const timer = setTimeout(() => {
                 $li.remove();
+                this.updateActiveUserCount($sessions.closest(".session-box"));
                 if (this.isGroupView) {
                     this.updateSessionNodeFilterButtons($sessions.closest(".session-box"));
                 }
@@ -2597,6 +2656,7 @@ class DashboardViewer {
                 if (timer) clearTimeout(timer);
                 timer = setTimeout(() => {
                     $li.remove();
+                    this.updateActiveUserCount($display);
                     if (this.isGroupView) {
                         this.updateSessionNodeFilterButtons($display);
                     }
@@ -2669,6 +2729,20 @@ class DashboardViewer {
             }).addClass("on");
             this.setSessionFilter(appId, eventId, null);
         }
+    }
+
+    updateActiveUserCount($display) {
+        if (!$display || !$display.length) return;
+        const $sessionBox = $display.hasClass("session-box") ? $display : $display.closest(".session-box");
+        const $sessions = $sessionBox.find("ul.sessions");
+        const userKeys = new Set();
+        $sessions.find("li:not(.inactive)").each(function () {
+            const ukey = $(this).attr("data-user-key");
+            if (ukey) {
+                userKeys.add(ukey);
+            }
+        });
+        $sessionBox.find(".numberOfUsers").text(userKeys.size);
     }
 
     processChartData(nodeId, appId, exporterType, eventId, exporterKey, chartData) {
@@ -3356,7 +3430,7 @@ class MetricsViewer {
  * Responsible for assembling the dashboard UI based on configuration data.
  *
  * @version 4.3
- * @last-modified 2026-10-16
+ * @last-modified 2026-10-28
  */
 class DashboardBuilder {
     constructor(options = {}) {
@@ -4534,8 +4608,9 @@ class DashboardBuilder {
             this.nodeJoinedTimer = null;
         }
         [...new Set(this.clients)].forEach(client => {
-            if (client) client.stop();
+            if (client) client.destroy();
         });
+        this.clients = [];
         this.viewers.forEach(viewer => {
             if (viewer) viewer.setEnable(false);
         });

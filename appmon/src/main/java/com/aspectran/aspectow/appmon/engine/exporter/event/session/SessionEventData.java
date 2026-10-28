@@ -40,6 +40,8 @@ public class SessionEventData {
 
     private long numberOfRejected;
 
+    private long numberOfUsers;
+
     private String startTime;
 
     private boolean fullSync;
@@ -100,6 +102,14 @@ public class SessionEventData {
 
     public void setNumberOfRejected(long numberOfRejected) {
         this.numberOfRejected = numberOfRejected;
+    }
+
+    public long getNumberOfUsers() {
+        return numberOfUsers;
+    }
+
+    public void setNumberOfUsers(long numberOfUsers) {
+        this.numberOfUsers = numberOfUsers;
     }
 
     public String getStartTime() {
@@ -171,7 +181,8 @@ public class SessionEventData {
                 that.numberOfUnmanaged == numberOfUnmanaged &&
                 that.numberOfActives == numberOfActives &&
                 that.highestNumberOfActives == highestNumberOfActives &&
-                that.numberOfRejected == numberOfRejected);
+                that.numberOfRejected == numberOfRejected &&
+                that.numberOfUsers == numberOfUsers);
     }
 
     /**

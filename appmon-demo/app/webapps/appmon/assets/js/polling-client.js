@@ -18,7 +18,7 @@
  * HTTP Polling implementation of the AppMon client.
  *
  * @version 4.3
- * @last-modified 2026-10-09
+ * @last-modified 2026-10-28
  */
 class PollingClient extends BaseClient {
     constructor(node, viewer, onSubscribed, onClosed, onFailed, isGatewayMode = false) {
@@ -36,6 +36,7 @@ class PollingClient extends BaseClient {
     }
 
     start(appsToSubscribe, nodeToSubscribe) {
+        if (this.destroyed) return;
         this.stopped = false;
         this.nodeToSubscribe = nodeToSubscribe;
         this.appsToSubscribe = appsToSubscribe;
@@ -51,6 +52,12 @@ class PollingClient extends BaseClient {
             clearTimeout(this.pollingTimer);
             this.pollingTimer = null;
         }
+    }
+
+    destroy() {
+        this.destroyed = true;
+        this.stop();
+        super.destroy();
     }
 
     isConnected() {

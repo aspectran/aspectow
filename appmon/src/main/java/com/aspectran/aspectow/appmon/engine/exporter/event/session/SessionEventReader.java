@@ -43,6 +43,7 @@ import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -415,6 +416,7 @@ public class SessionEventReader extends AbstractEventReader {
     private SessionEventData load() {
         SessionStatistics statistics = sessionManager.getStatistics();
         SessionEventData data = new SessionEventData();
+        data.setNumberOfUsers(countActiveUsers());
         data.setNumberOfCreated(statistics.getNumberOfCreated());
         data.setNumberOfExpired(statistics.getNumberOfExpired());
         data.setNumberOfActives(statistics.getNumberOfActives());
@@ -423,6 +425,28 @@ public class SessionEventReader extends AbstractEventReader {
         data.setNumberOfRejected(statistics.getNumberOfRejected());
         data.setStartTime(formatTime(statistics.getStartTime()));
         return data;
+    }
+
+    private long countActiveUsers() {
+        if (sessionManager == null) {
+            return 0;
+        }
+        Set<String> sessionIds = sessionManager.getActiveSessions();
+        if (sessionIds.isEmpty()) {
+            return 0;
+        }
+        Set<String> userKeys = new HashSet<>();
+        for (String sessionId : sessionIds) {
+            ManagedSession session = sessionManager.getSession(sessionId);
+            if (session != null && !session.isTempResident()) {
+                String username = resolveUsername(session);
+                String ipAddress = session.getAttribute(USER_IP_ADDRESS);
+                String userKey = (username != null ? "u:" + username :
+                        (ipAddress != null ? "i:" + ipAddress : "s:" + sessionId));
+                userKeys.add(userKey);
+            }
+        }
+        return userKeys.size();
     }
 
     private JsonString @NonNull [] getAllActiveSessions() {

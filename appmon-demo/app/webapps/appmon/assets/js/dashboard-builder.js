@@ -19,7 +19,7 @@
  * Responsible for assembling the dashboard UI based on configuration data.
  *
  * @version 4.3
- * @last-modified 2026-10-16
+ * @last-modified 2026-10-28
  */
 class DashboardBuilder {
     constructor(options = {}) {
@@ -1197,8 +1197,9 @@ class DashboardBuilder {
             this.nodeJoinedTimer = null;
         }
         [...new Set(this.clients)].forEach(client => {
-            if (client) client.stop();
+            if (client) client.destroy();
         });
+        this.clients = [];
         this.viewers.forEach(viewer => {
             if (viewer) viewer.setEnable(false);
         });
