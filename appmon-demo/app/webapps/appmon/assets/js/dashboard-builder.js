@@ -1491,9 +1491,6 @@ class DashboardBuilder {
         const $newSession = $session.first().hide().clone().addClass("available")
             .attr({ "data-group-id": groupInfo.id, "data-app-id": appInfo.id, "data-event-id": eventInfo.id });
 
-        // Unmanaged sessions are not relevant in group view aggregation
-        $newSession.find(".session-stats dt:has(+ dd .numberOfUnmanaged), .session-stats dd:has(.numberOfUnmanaged)").remove();
-
         const nodesInGroup = this.nodes.filter(n => n.group === groupInfo.id);
         if (nodesInGroup.length > 1) {
             const $filter = $newSession.find(".session-node-filter").show();

@@ -36,8 +36,6 @@ public class SessionEventData {
 
     private long highestNumberOfActives;
 
-    private long numberOfUnmanaged;
-
     private long numberOfRejected;
 
     private long numberOfUsers;
@@ -72,20 +70,12 @@ public class SessionEventData {
         this.numberOfExpired = numberOfExpired;
     }
 
-    public long getNumberOfUnmanaged() {
-        return numberOfUnmanaged;
-    }
-
     public long getNumberOfActives() {
         return numberOfActives;
     }
 
     public void setNumberOfActives(long numberOfActives) {
         this.numberOfActives = numberOfActives;
-    }
-
-    public void setNumberOfUnmanaged(long numberOfUnmanaged) {
-        this.numberOfUnmanaged = numberOfUnmanaged;
     }
 
     public long getHighestNumberOfActives() {
@@ -178,7 +168,6 @@ public class SessionEventData {
         }
         return (that.numberOfCreated == numberOfCreated &&
                 that.numberOfExpired == numberOfExpired &&
-                that.numberOfUnmanaged == numberOfUnmanaged &&
                 that.numberOfActives == numberOfActives &&
                 that.highestNumberOfActives == highestNumberOfActives &&
                 that.numberOfRejected == numberOfRejected &&

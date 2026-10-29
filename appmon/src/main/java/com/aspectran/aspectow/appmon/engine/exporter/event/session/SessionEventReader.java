@@ -421,7 +421,6 @@ public class SessionEventReader extends AbstractEventReader {
         data.setNumberOfExpired(statistics.getNumberOfExpired());
         data.setNumberOfActives(statistics.getNumberOfActives());
         data.setHighestNumberOfActives(statistics.getHighestNumberOfActives());
-        data.setNumberOfUnmanaged(Math.abs(statistics.getNumberOfUnmanaged()));
         data.setNumberOfRejected(statistics.getNumberOfRejected());
         data.setStartTime(formatTime(statistics.getStartTime()));
         return data;

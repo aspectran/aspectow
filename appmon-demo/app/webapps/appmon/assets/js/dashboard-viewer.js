@@ -725,7 +725,6 @@ class DashboardViewer {
         let numberOfExpired = 0;
         let numberOfActives = 0;
         let highestNumberOfActives = 0;
-        let numberOfUnmanaged = 0;
         let numberOfRejected = 0;
         let minStartTime = null;
 
@@ -738,7 +737,6 @@ class DashboardViewer {
                     numberOfExpired += (s.numberOfExpired || 0);
                     numberOfActives += (s.numberOfActives || 0);
                     highestNumberOfActives += (s.highestNumberOfActives || 0);
-                    numberOfUnmanaged += (s.numberOfUnmanaged || 0);
                     numberOfRejected += (s.numberOfRejected || 0);
                     if (s.startTime) {
                         if (!minStartTime || s.startTime < minStartTime) {
@@ -755,7 +753,6 @@ class DashboardViewer {
             numberOfExpired,
             numberOfActives,
             highestNumberOfActives,
-            numberOfUnmanaged,
             numberOfRejected,
             startTime: minStartTime
         };
@@ -769,7 +766,6 @@ class DashboardViewer {
             $display.find(".numberOfExpired").text(eventData.numberOfExpired);
             $display.find(".numberOfActives").text(eventData.numberOfActives);
             $display.find(".highestNumberOfActives").text(eventData.highestNumberOfActives);
-            $display.find(".numberOfUnmanaged").text(eventData.numberOfUnmanaged);
             $display.find(".numberOfRejected").text(eventData.numberOfRejected);
             if (eventData.startTime) {
                 $display.find(".startTime").text(dayjs.utc(eventData.startTime).local().format("LLL"));
