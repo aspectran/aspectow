@@ -19,7 +19,7 @@
  * Responsible for assembling the dashboard UI based on configuration data.
  *
  * @version 4.3
- * @last-modified 2026-10-28
+ * @last-modified 2026-10-29
  */
 class DashboardBuilder {
     constructor(options = {}) {
@@ -44,6 +44,8 @@ class DashboardBuilder {
         this.refreshTimer = null;
         this.refreshChartTimer = null;
         this.dateUnit = null;
+        this.currentPeriod = "live";
+        this.currentBaseDate = dayjs();
         this.consoleWideMode = false;
     }
 
@@ -55,6 +57,8 @@ class DashboardBuilder {
         this.selectedNodeIdByGroup = {};
         this.metricsExpandedByGroup = {};
         this.dateUnit = null;
+        this.currentPeriod = "live";
+        this.currentBaseDate = dayjs();
         this.consoleWideMode = false;
 
         if (this.currentAjax) {
@@ -750,6 +754,7 @@ class DashboardBuilder {
     initView() {
         if (this.groups.length) $(".group-bar").show();
         this.updateSpeedOptionsVisibility();
+        this.updateDateNavigator();
         this.apps.forEach(app => {
             const $eventBox = $(`.event-box[data-app-id=${app.id}]`);
             const $chartsBox = $(`.charts-box[data-app-id=${app.id}]`);
@@ -776,32 +781,97 @@ class DashboardBuilder {
         $(".date-unit-options .btn").off().on("click", (e) => {
             const $btn = $(e.currentTarget);
             const appId = $btn.closest(".charts-box").data("app-id");
-            const unit = $btn.data("unit") || "";
-            this.dateUnit = unit || null;
-            const $dateUnitOptions = $(".charts-box.available .date-unit-options");
-            $dateUnitOptions.find(".btn").removeClass("on")
-            if (unit) {
-                $dateUnitOptions.find(`.btn[data-unit="${unit}"]`).addClass("on");
+            const period = $btn.data("period") || "live";
+            this.currentPeriod = period;
+            this.dateUnit = (period === "live" ? null : period);
+
+            const $chartsBoxes = $(".charts-box.available");
+            $chartsBoxes.find(".date-unit-options .btn").removeClass("on");
+            $chartsBoxes.find(`.date-unit-options .btn[data-period="${period}"]`).addClass("on");
+
+            if (period === "live") {
+                $chartsBoxes.find(".date-offset-options").show();
+                $chartsBoxes.find(".date-navigator").hide();
+                this.resetDateOffsetOptions(appId);
             } else {
-                $dateUnitOptions.find(".btn.default").addClass("on");
+                $chartsBoxes.find(".date-offset-options").hide();
+                $chartsBoxes.find(".date-navigator").show();
+                this.updateDateNavigator();
             }
-            this.resetDateOffsetOptions();
             this.viewers.forEach(v => v.updateCanvasWidth());
             Object.values(this.groupViewers).forEach(v => v.updateCanvasWidth());
             this.refreshChartData(appId);
         });
         $(".date-offset-options .btn").off().on("click", (e) => {
             const $btn = $(e.currentTarget);
+            if ($btn.hasClass("disabled")) return;
             const appId = $btn.closest(".charts-box").data("app-id");
             const offset = $btn.data("offset") || "";
             const $dateOffsetOptions = $(`.charts-box[data-app-id=${appId}] .date-offset-options`);
-            if (offset !== "current") {
-                $dateOffsetOptions.find(".btn.current").addClass("on");
-            } else {
-                $dateOffsetOptions.find(".btn").addClass("on");
-                $dateOffsetOptions.find(".btn.current").removeClass("on");
+            if (offset === "previous") {
+                $dateOffsetOptions.find(".btn.current").removeClass("disabled");
+            } else if (offset === "current") {
+                $dateOffsetOptions.find(".btn.current").addClass("disabled");
+                $dateOffsetOptions.find(".btn.previous").removeClass("disabled");
             }
             this.refreshChartData(appId, offset);
+        });
+        $(".date-navigator .btn-prev").off().on("click", (e) => {
+            const $btn = $(e.currentTarget);
+            const appId = $btn.closest(".charts-box").data("app-id");
+            if (this.currentPeriod === "day") {
+                this.currentBaseDate = this.currentBaseDate.subtract(1, "day");
+            } else if (this.currentPeriod === "week") {
+                this.currentBaseDate = this.currentBaseDate.subtract(1, "week");
+            } else if (this.currentPeriod === "month") {
+                this.currentBaseDate = this.currentBaseDate.subtract(1, "month");
+            } else if (this.currentPeriod === "year") {
+                this.currentBaseDate = this.currentBaseDate.subtract(1, "year");
+            }
+            this.updateDateNavigator();
+            this.refreshChartData(appId);
+        });
+        $(".date-navigator .btn-next").off().on("click", (e) => {
+            const $btn = $(e.currentTarget);
+            if ($btn.hasClass("disabled")) return;
+            const appId = $btn.closest(".charts-box").data("app-id");
+            if (this.currentPeriod === "day") {
+                this.currentBaseDate = this.currentBaseDate.add(1, "day");
+            } else if (this.currentPeriod === "week") {
+                this.currentBaseDate = this.currentBaseDate.add(1, "week");
+            } else if (this.currentPeriod === "month") {
+                this.currentBaseDate = this.currentBaseDate.add(1, "month");
+            } else if (this.currentPeriod === "year") {
+                this.currentBaseDate = this.currentBaseDate.add(1, "year");
+            }
+            this.updateDateNavigator();
+            this.refreshChartData(appId);
+        });
+        $(".date-navigator .btn-today").off().on("click", (e) => {
+            const $btn = $(e.currentTarget);
+            const appId = $btn.closest(".charts-box").data("app-id");
+            this.currentBaseDate = dayjs();
+            this.updateDateNavigator();
+            this.refreshChartData(appId);
+        });
+        $(".date-navigator .btn-date").off().on("click", (e) => {
+            const $picker = $(e.currentTarget).find(".date-picker-input");
+            if ($picker.length) {
+                if (typeof $picker[0].showPicker === "function") {
+                    $picker[0].showPicker();
+                } else {
+                    $picker.trigger("focus").trigger("click");
+                }
+            }
+        });
+        $(".date-navigator .date-picker-input").off().on("change", (e) => {
+            const val = $(e.currentTarget).val();
+            const appId = $(e.currentTarget).closest(".charts-box").data("app-id");
+            if (val) {
+                this.currentBaseDate = dayjs(val);
+                this.updateDateNavigator();
+                this.refreshChartData(appId);
+            }
         });
         $(".metrics-options .metrics-toggle").off("click").on("click", (e) => {
             const groupId = this.currentGroupId;
@@ -1007,20 +1077,49 @@ class DashboardBuilder {
             });
     }
 
-    getDateUnit() {
-        if (this.dateUnit) {
-            return this.dateUnit;
+    updateDateNavigator() {
+        let label = "";
+        let isTodayOrFuture = false;
+        const now = dayjs();
+
+        if (this.currentPeriod === "day") {
+            label = this.currentBaseDate.format("YYYY-MM-DD");
+            isTodayOrFuture = !this.currentBaseDate.isBefore(now, "day");
+        } else if (this.currentPeriod === "week") {
+            const dayOfWeek = this.currentBaseDate.day();
+            const diff = (dayOfWeek === 0 ? -6 : 1 - dayOfWeek);
+            const monday = this.currentBaseDate.add(diff, "day");
+            const sunday = monday.add(6, "day");
+            label = monday.format("M/D") + " ~ " + sunday.format("M/D");
+            isTodayOrFuture = !sunday.isBefore(now, "day");
+        } else if (this.currentPeriod === "month") {
+            label = this.currentBaseDate.format("YYYY-MM");
+            isTodayOrFuture = !this.currentBaseDate.isBefore(now, "month");
+        } else if (this.currentPeriod === "year") {
+            label = this.currentBaseDate.format("YYYY");
+            isTodayOrFuture = !this.currentBaseDate.isBefore(now, "year");
         }
-        const unit = $(".charts-box.available .date-unit-options .btn.on").data("unit") || "";
-        return unit || null;
+
+        const $boxes = $(".charts-box.available");
+        $boxes.find(".date-navigator .date-label").text(label);
+        $boxes.find(".date-navigator .date-picker-input").val(this.currentBaseDate.format("YYYY-MM-DD"));
+        $boxes.find(".date-navigator .btn-next").toggleClass("disabled", isTodayOrFuture);
+    }
+
+    getDateUnit() {
+        if (this.currentPeriod && this.currentPeriod !== "live") {
+            return this.currentPeriod;
+        }
+        return this.dateUnit || null;
     }
 
     resetDateOffsetOptions(appId) {
         const $options = appId
             ? $(`.charts-box[data-app-id=${appId}] .date-offset-options`)
             : $(".charts-box.available .date-offset-options");
-        $options.find(".btn").addClass("on");
-        $options.find(".btn.current").removeClass("on");
+        $options.find(".btn.current").addClass("disabled");
+        $options.find(".btn.previous").removeClass("disabled");
+        this.updateDateNavigator();
     }
 
     refreshChartData(appId, dateOffset) {
@@ -1042,10 +1141,10 @@ class DashboardBuilder {
         const isGroupView = !isSingleNodeGroup && !selectedNodeId;
 
         const options = ["appId:" + appId, "type:data/chart"];
-        const dateUnit = this.getDateUnit();
-        if (dateUnit) options.push("dateUnit:" + dateUnit);
-
-        if (dateOffset === "previous") {
+        if (this.currentPeriod && this.currentPeriod !== "live") {
+            options.push("period:" + this.currentPeriod);
+            options.push("baseDate:" + this.currentBaseDate.format("YYYY-MM-DD"));
+        } else if (dateOffset === "previous") {
             let maxStartDate = "";
             if (isGroupView && this.groupViewers[groupId]) {
                 maxStartDate = this.groupViewers[groupId].getMaxStartDatetime(appId);
@@ -1058,7 +1157,7 @@ class DashboardBuilder {
             if (maxStartDate) {
                 options.push("dateOffset:" + maxStartDate);
             } else {
-                $(`.charts-box[data-app-id=${appId}] .date-offset-options .btn.previous`).removeClass("on");
+                $(`.charts-box[data-app-id=${appId}] .date-offset-options .btn.previous`).addClass("disabled");
                 return;
             }
         }
@@ -1116,10 +1215,10 @@ class DashboardBuilder {
         const isGroupView = !isSingleNodeGroup && !selectedNodeId;
 
         const options = ["appId:" + appId];
-        const dateUnit = this.getDateUnit();
-        if (dateUnit) options.push("dateUnit:" + dateUnit);
-
-        if (dateOffset === "previous") {
+        if (this.currentPeriod && this.currentPeriod !== "live") {
+            options.push("period:" + this.currentPeriod);
+            options.push("baseDate:" + this.currentBaseDate.format("YYYY-MM-DD"));
+        } else if (dateOffset === "previous") {
             let maxStartDate = "";
             if (isGroupView && this.groupViewers[groupId]) {
                 maxStartDate = this.groupViewers[groupId].getMaxStartDatetime(appId);
@@ -1132,7 +1231,7 @@ class DashboardBuilder {
             if (maxStartDate) {
                 options.push("dateOffset:" + maxStartDate);
             } else {
-                $(`.charts-box[data-app-id=${appId}] .date-offset-options .btn.previous`).removeClass("on");
+                $(`.charts-box[data-app-id=${appId}] .date-offset-options .btn.previous`).addClass("disabled");
                 return;
             }
         }

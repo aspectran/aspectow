@@ -1401,7 +1401,7 @@ class TrafficPainter {
  * Responsible for rendering and updating individual charts using Chart.js.
  *
  * @version 4.3
- * @last-modified 2026-10-16
+ * @last-modified 2026-10-29
  */
 class DashboardChart {
     constructor($container, eventId) {
@@ -1440,6 +1440,7 @@ class DashboardChart {
         let dataLabel1;
         let borderColor1;
         let backgroundColor1;
+        let gradientStart1;
         let dataLabel2;
         let borderColor2;
         let backgroundColor2;
@@ -1448,6 +1449,7 @@ class DashboardChart {
                 dataLabel1 = "Activities";
                 borderColor1 = "#4493c8";
                 backgroundColor1 = "#cce0fa";
+                gradientStart1 = "rgba(68, 147, 200, 0.35)";
                 dataLabel2 = "Errors";
                 borderColor2 = "#ff6384";
                 backgroundColor2 = "#ff6384";
@@ -1456,6 +1458,7 @@ class DashboardChart {
                 dataLabel1 = "Sessions";
                 borderColor1 = "#44c577";
                 backgroundColor1 = "#bcefd0";
+                gradientStart1 = "rgba(68, 197, 119, 0.35)";
                 dataLabel2 = (dateUnit ? "Peak Users" : "Active Users");
                 borderColor2 = "#9b59b6";
                 backgroundColor2 = "#ebdcf2";
@@ -1463,6 +1466,9 @@ class DashboardChart {
             default:
                 dataLabel1 = "";
                 dataLabel2 = "";
+                borderColor1 = "#4493c8";
+                backgroundColor1 = "#cce0fa";
+                gradientStart1 = "rgba(68, 147, 200, 0.35)";
                 borderColor2 = "#ff6384";
                 backgroundColor2 = "#ff6384";
         }
@@ -1470,6 +1476,31 @@ class DashboardChart {
         const chartType = (!dateUnit ? "line" : "bar");
         this.chart = new Chart($canvas[0], {
             type: chartType,
+            plugins: [
+                {
+                    id: 'crosshairGuideline',
+                    afterDraw: (chart) => {
+                        if (chart.tooltip && typeof chart.tooltip.getActiveElements === "function") {
+                            const activeElements = chart.tooltip.getActiveElements();
+                            if (activeElements && activeElements.length > 0) {
+                                const ctx = chart.ctx;
+                                const x = activeElements[0].element.x;
+                                const topY = chart.scales.y.top;
+                                const bottomY = chart.scales.y.bottom;
+                                ctx.save();
+                                ctx.beginPath();
+                                ctx.setLineDash([3, 3]);
+                                ctx.moveTo(x, topY);
+                                ctx.lineTo(x, bottomY);
+                                ctx.lineWidth = 1;
+                                ctx.strokeStyle = 'rgba(120, 130, 145, 0.45)';
+                                ctx.stroke();
+                                ctx.restore();
+                            }
+                        }
+                    }
+                }
+            ],
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
@@ -1486,16 +1517,38 @@ class DashboardChart {
                         mode: 'index',
                         intersect: false,
                         filter: (tooltipItem) => (tooltipItem.raw !== null && tooltipItem.raw !== undefined),
+                        padding: 10,
+                        boxPadding: 4,
+                        cornerRadius: 6,
+                        backgroundColor: 'rgba(23, 32, 42, 0.90)',
+                        titleColor: '#ffffff',
+                        titleFont: { size: 12, weight: 'bold' },
+                        bodyColor: '#e0e6ed',
+                        bodyFont: { size: 12 },
+                        borderColor: 'rgba(255, 255, 255, 0.12)',
+                        borderWidth: 1,
                         callbacks: {
                             title: (tooltip) => {
                                 const datetime = dayjs(labels[tooltip[0].dataIndex]);
                                 switch (dateUnit) {
-                                    case "hour": return datetime.format("LL HH:00");
-                                    case "day": return datetime.format("LL");
-                                    case "month": return datetime.date(1).format("LL");
-                                    case "year": return datetime.format("YYYY");
-                                    default: return datetime.format("LLL");
+                                    case "day":
+                                        return datetime.format("YYYY-MM-DD HH:00");
+                                    case "week":
+                                        return datetime.format("YYYY-MM-DD (ddd)");
+                                    case "month":
+                                        return datetime.format("YYYY-MM-DD");
+                                    case "hour":
+                                        return datetime.format("LL HH:00");
+                                    case "year":
+                                        return datetime.format("YYYY-MM");
+                                    default:
+                                        return datetime.format("LLL");
                                 }
+                            },
+                            label: (tooltipItem) => {
+                                const val = tooltipItem.parsed.y;
+                                const label = tooltipItem.dataset.label || '';
+                                return label + ": " + (val != null ? Number(val).toLocaleString() : 0);
                             }
                         }
                     },
@@ -1527,24 +1580,24 @@ class DashboardChart {
                     x: {
                         display: true,
                         ticks: {
-                            autoSkip: false,
+                            autoSkip: (dateUnit === "month"),
                             includeBounds: false,
                             callback: (value, index) => {
                                 const datetime = dayjs(labels[value]);
                                 const datetime2 = (value > 0 ? dayjs(labels[value - 1]) : null);
                                 switch (dateUnit) {
+                                    case "day":
+                                        return datetime.format("HH:00");
+                                    case "week":
+                                        return datetime.format("ddd (M/D)");
+                                    case "month":
+                                        return datetime.format("D");
                                     case "hour":
                                         return (index === 0 || (datetime2 && !datetime.isSame(datetime2, "day")))
                                             ? datetime.format("M/D HH:00")
                                             : datetime.format("HH:00");
-                                    case "day":
-                                        return (index === 0 || (datetime2 && !datetime.isSame(datetime2, "year")))
-                                            ? datetime.format("YYYY M/D")
-                                            : datetime.format("M/D");
-                                    case "month":
-                                        return datetime.format("YYYY/M");
                                     case "year":
-                                        return datetime.format("YYYY");
+                                        return datetime.format("MMM");
                                     default: // 5m.
                                         return (index === 0 || (datetime2 && !datetime.isSame(datetime2, "day")))
                                             ? datetime.format("M/D HH:mm")
@@ -1578,10 +1631,19 @@ class DashboardChart {
                         data: data1,
                         fill: true,
                         borderColor: borderColor1,
-                        backgroundColor: backgroundColor1,
-                        borderWidth: 1.4,
-                        tension: 0.1,
+                        backgroundColor: (context) => {
+                            const chart = context.chart;
+                            const { ctx, chartArea } = chart;
+                            if (!chartArea) return backgroundColor1;
+                            const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+                            gradient.addColorStop(0, gradientStart1);
+                            gradient.addColorStop(1, "rgba(255, 255, 255, 0.0)");
+                            return gradient;
+                        },
+                        borderWidth: 1.8,
+                        tension: 0.35,
                         pointStyle: false,
+                        pointHoverRadius: 4,
                         order: 2
                     } : {
                         label: dataLabel1,
@@ -1591,6 +1653,7 @@ class DashboardChart {
                         borderWidth: 1,
                         borderColor: borderColor1,
                         backgroundColor: borderColor1,
+                        borderSkipped: false,
                         order: 2
                     },
                     this.eventId === "session" ? {
@@ -1598,11 +1661,16 @@ class DashboardChart {
                         data: data2,
                         type: "line",
                         fill: false,
-                        borderWidth: 1.8,
+                        borderWidth: 2,
+                        tension: 0.35,
                         borderColor: borderColor2,
                         backgroundColor: borderColor2,
                         pointStyle: (chartType === "bar" ? "circle" : false),
                         pointRadius: (chartType === "bar" ? 2.5 : 0),
+                        pointHoverRadius: 5,
+                        pointBackgroundColor: borderColor2,
+                        pointBorderColor: "#ffffff",
+                        pointBorderWidth: 1.5,
                         order: 1
                     } : {
                         label: dataLabel2,
@@ -1612,6 +1680,7 @@ class DashboardChart {
                         borderWidth: 1,
                         borderColor: borderColor2,
                         backgroundColor: backgroundColor2,
+                        borderSkipped: false,
                         showLine: false,
                         pointStyle: false,
                         order: 1
@@ -1761,7 +1830,7 @@ class DashboardChart {
  * Responsible for rendering monitoring data, including logs, metrics, and charts.
  *
  * @version 4.3
- * @last-modified 2026-10-28
+ * @last-modified 2026-10-29
  */
 class DashboardViewer {
     constructor(sampleInterval, options = {}) {
@@ -2790,7 +2859,7 @@ class DashboardViewer {
             }
         }
 
-        const dateUnit = (chartData.rolledUp ? dashboardChart.dateUnit : chartData.dateUnit);
+        const dateUnit = (chartData.rolledUp ? dashboardChart.dateUnit : (chartData.period || chartData.dateUnit));
         const dateOffset = (chartData.rolledUp ? dashboardChart.dateOffset : chartData.dateOffset);
         const labels = chartData.labels;
         const data1 = chartData.data1;
@@ -2802,10 +2871,13 @@ class DashboardViewer {
                 return;
             }
             dashboardChart.ensureCanvas();
-            this.pruneDataPoints(labels, data1, data2, dashboardChart.$container);
+            if (!chartData.period) {
+                this.pruneDataPoints(labels, data1, data2, dashboardChart.$container);
+            }
             dashboardChart.draw(dateUnit, labels, data1, data2);
             dashboardChart.dateOffset = dateOffset;
-        } else if (dashboardChart.isDrawn() && !dateOffset) {
+            dashboardChart.period = chartData.period || null;
+        } else if (dashboardChart.isDrawn() && !dateOffset && !dashboardChart.period) {
             const label = labels && labels.length ? labels[0] : null;
             const delta = data1 && data1.length ? data1[0] : 0;
             const aux = data2 && data2.length ? data2[0] : null;
@@ -3450,7 +3522,7 @@ class MetricsViewer {
  * Responsible for assembling the dashboard UI based on configuration data.
  *
  * @version 4.3
- * @last-modified 2026-10-28
+ * @last-modified 2026-10-29
  */
 class DashboardBuilder {
     constructor(options = {}) {
@@ -3475,6 +3547,8 @@ class DashboardBuilder {
         this.refreshTimer = null;
         this.refreshChartTimer = null;
         this.dateUnit = null;
+        this.currentPeriod = "live";
+        this.currentBaseDate = dayjs();
         this.consoleWideMode = false;
     }
 
@@ -3486,6 +3560,8 @@ class DashboardBuilder {
         this.selectedNodeIdByGroup = {};
         this.metricsExpandedByGroup = {};
         this.dateUnit = null;
+        this.currentPeriod = "live";
+        this.currentBaseDate = dayjs();
         this.consoleWideMode = false;
 
         if (this.currentAjax) {
@@ -4181,6 +4257,7 @@ class DashboardBuilder {
     initView() {
         if (this.groups.length) $(".group-bar").show();
         this.updateSpeedOptionsVisibility();
+        this.updateDateNavigator();
         this.apps.forEach(app => {
             const $eventBox = $(`.event-box[data-app-id=${app.id}]`);
             const $chartsBox = $(`.charts-box[data-app-id=${app.id}]`);
@@ -4207,32 +4284,97 @@ class DashboardBuilder {
         $(".date-unit-options .btn").off().on("click", (e) => {
             const $btn = $(e.currentTarget);
             const appId = $btn.closest(".charts-box").data("app-id");
-            const unit = $btn.data("unit") || "";
-            this.dateUnit = unit || null;
-            const $dateUnitOptions = $(".charts-box.available .date-unit-options");
-            $dateUnitOptions.find(".btn").removeClass("on")
-            if (unit) {
-                $dateUnitOptions.find(`.btn[data-unit="${unit}"]`).addClass("on");
+            const period = $btn.data("period") || "live";
+            this.currentPeriod = period;
+            this.dateUnit = (period === "live" ? null : period);
+
+            const $chartsBoxes = $(".charts-box.available");
+            $chartsBoxes.find(".date-unit-options .btn").removeClass("on");
+            $chartsBoxes.find(`.date-unit-options .btn[data-period="${period}"]`).addClass("on");
+
+            if (period === "live") {
+                $chartsBoxes.find(".date-offset-options").show();
+                $chartsBoxes.find(".date-navigator").hide();
+                this.resetDateOffsetOptions(appId);
             } else {
-                $dateUnitOptions.find(".btn.default").addClass("on");
+                $chartsBoxes.find(".date-offset-options").hide();
+                $chartsBoxes.find(".date-navigator").show();
+                this.updateDateNavigator();
             }
-            this.resetDateOffsetOptions();
             this.viewers.forEach(v => v.updateCanvasWidth());
             Object.values(this.groupViewers).forEach(v => v.updateCanvasWidth());
             this.refreshChartData(appId);
         });
         $(".date-offset-options .btn").off().on("click", (e) => {
             const $btn = $(e.currentTarget);
+            if ($btn.hasClass("disabled")) return;
             const appId = $btn.closest(".charts-box").data("app-id");
             const offset = $btn.data("offset") || "";
             const $dateOffsetOptions = $(`.charts-box[data-app-id=${appId}] .date-offset-options`);
-            if (offset !== "current") {
-                $dateOffsetOptions.find(".btn.current").addClass("on");
-            } else {
-                $dateOffsetOptions.find(".btn").addClass("on");
-                $dateOffsetOptions.find(".btn.current").removeClass("on");
+            if (offset === "previous") {
+                $dateOffsetOptions.find(".btn.current").removeClass("disabled");
+            } else if (offset === "current") {
+                $dateOffsetOptions.find(".btn.current").addClass("disabled");
+                $dateOffsetOptions.find(".btn.previous").removeClass("disabled");
             }
             this.refreshChartData(appId, offset);
+        });
+        $(".date-navigator .btn-prev").off().on("click", (e) => {
+            const $btn = $(e.currentTarget);
+            const appId = $btn.closest(".charts-box").data("app-id");
+            if (this.currentPeriod === "day") {
+                this.currentBaseDate = this.currentBaseDate.subtract(1, "day");
+            } else if (this.currentPeriod === "week") {
+                this.currentBaseDate = this.currentBaseDate.subtract(1, "week");
+            } else if (this.currentPeriod === "month") {
+                this.currentBaseDate = this.currentBaseDate.subtract(1, "month");
+            } else if (this.currentPeriod === "year") {
+                this.currentBaseDate = this.currentBaseDate.subtract(1, "year");
+            }
+            this.updateDateNavigator();
+            this.refreshChartData(appId);
+        });
+        $(".date-navigator .btn-next").off().on("click", (e) => {
+            const $btn = $(e.currentTarget);
+            if ($btn.hasClass("disabled")) return;
+            const appId = $btn.closest(".charts-box").data("app-id");
+            if (this.currentPeriod === "day") {
+                this.currentBaseDate = this.currentBaseDate.add(1, "day");
+            } else if (this.currentPeriod === "week") {
+                this.currentBaseDate = this.currentBaseDate.add(1, "week");
+            } else if (this.currentPeriod === "month") {
+                this.currentBaseDate = this.currentBaseDate.add(1, "month");
+            } else if (this.currentPeriod === "year") {
+                this.currentBaseDate = this.currentBaseDate.add(1, "year");
+            }
+            this.updateDateNavigator();
+            this.refreshChartData(appId);
+        });
+        $(".date-navigator .btn-today").off().on("click", (e) => {
+            const $btn = $(e.currentTarget);
+            const appId = $btn.closest(".charts-box").data("app-id");
+            this.currentBaseDate = dayjs();
+            this.updateDateNavigator();
+            this.refreshChartData(appId);
+        });
+        $(".date-navigator .btn-date").off().on("click", (e) => {
+            const $picker = $(e.currentTarget).find(".date-picker-input");
+            if ($picker.length) {
+                if (typeof $picker[0].showPicker === "function") {
+                    $picker[0].showPicker();
+                } else {
+                    $picker.trigger("focus").trigger("click");
+                }
+            }
+        });
+        $(".date-navigator .date-picker-input").off().on("change", (e) => {
+            const val = $(e.currentTarget).val();
+            const appId = $(e.currentTarget).closest(".charts-box").data("app-id");
+            if (val) {
+                this.currentBaseDate = dayjs(val);
+                this.updateDateNavigator();
+                this.refreshChartData(appId);
+            }
         });
         $(".metrics-options .metrics-toggle").off("click").on("click", (e) => {
             const groupId = this.currentGroupId;
@@ -4438,20 +4580,49 @@ class DashboardBuilder {
             });
     }
 
-    getDateUnit() {
-        if (this.dateUnit) {
-            return this.dateUnit;
+    updateDateNavigator() {
+        let label = "";
+        let isTodayOrFuture = false;
+        const now = dayjs();
+
+        if (this.currentPeriod === "day") {
+            label = this.currentBaseDate.format("YYYY-MM-DD");
+            isTodayOrFuture = !this.currentBaseDate.isBefore(now, "day");
+        } else if (this.currentPeriod === "week") {
+            const dayOfWeek = this.currentBaseDate.day();
+            const diff = (dayOfWeek === 0 ? -6 : 1 - dayOfWeek);
+            const monday = this.currentBaseDate.add(diff, "day");
+            const sunday = monday.add(6, "day");
+            label = monday.format("M/D") + " ~ " + sunday.format("M/D");
+            isTodayOrFuture = !sunday.isBefore(now, "day");
+        } else if (this.currentPeriod === "month") {
+            label = this.currentBaseDate.format("YYYY-MM");
+            isTodayOrFuture = !this.currentBaseDate.isBefore(now, "month");
+        } else if (this.currentPeriod === "year") {
+            label = this.currentBaseDate.format("YYYY");
+            isTodayOrFuture = !this.currentBaseDate.isBefore(now, "year");
         }
-        const unit = $(".charts-box.available .date-unit-options .btn.on").data("unit") || "";
-        return unit || null;
+
+        const $boxes = $(".charts-box.available");
+        $boxes.find(".date-navigator .date-label").text(label);
+        $boxes.find(".date-navigator .date-picker-input").val(this.currentBaseDate.format("YYYY-MM-DD"));
+        $boxes.find(".date-navigator .btn-next").toggleClass("disabled", isTodayOrFuture);
+    }
+
+    getDateUnit() {
+        if (this.currentPeriod && this.currentPeriod !== "live") {
+            return this.currentPeriod;
+        }
+        return this.dateUnit || null;
     }
 
     resetDateOffsetOptions(appId) {
         const $options = appId
             ? $(`.charts-box[data-app-id=${appId}] .date-offset-options`)
             : $(".charts-box.available .date-offset-options");
-        $options.find(".btn").addClass("on");
-        $options.find(".btn.current").removeClass("on");
+        $options.find(".btn.current").addClass("disabled");
+        $options.find(".btn.previous").removeClass("disabled");
+        this.updateDateNavigator();
     }
 
     refreshChartData(appId, dateOffset) {
@@ -4473,10 +4644,10 @@ class DashboardBuilder {
         const isGroupView = !isSingleNodeGroup && !selectedNodeId;
 
         const options = ["appId:" + appId, "type:data/chart"];
-        const dateUnit = this.getDateUnit();
-        if (dateUnit) options.push("dateUnit:" + dateUnit);
-
-        if (dateOffset === "previous") {
+        if (this.currentPeriod && this.currentPeriod !== "live") {
+            options.push("period:" + this.currentPeriod);
+            options.push("baseDate:" + this.currentBaseDate.format("YYYY-MM-DD"));
+        } else if (dateOffset === "previous") {
             let maxStartDate = "";
             if (isGroupView && this.groupViewers[groupId]) {
                 maxStartDate = this.groupViewers[groupId].getMaxStartDatetime(appId);
@@ -4489,7 +4660,7 @@ class DashboardBuilder {
             if (maxStartDate) {
                 options.push("dateOffset:" + maxStartDate);
             } else {
-                $(`.charts-box[data-app-id=${appId}] .date-offset-options .btn.previous`).removeClass("on");
+                $(`.charts-box[data-app-id=${appId}] .date-offset-options .btn.previous`).addClass("disabled");
                 return;
             }
         }
@@ -4547,10 +4718,10 @@ class DashboardBuilder {
         const isGroupView = !isSingleNodeGroup && !selectedNodeId;
 
         const options = ["appId:" + appId];
-        const dateUnit = this.getDateUnit();
-        if (dateUnit) options.push("dateUnit:" + dateUnit);
-
-        if (dateOffset === "previous") {
+        if (this.currentPeriod && this.currentPeriod !== "live") {
+            options.push("period:" + this.currentPeriod);
+            options.push("baseDate:" + this.currentBaseDate.format("YYYY-MM-DD"));
+        } else if (dateOffset === "previous") {
             let maxStartDate = "";
             if (isGroupView && this.groupViewers[groupId]) {
                 maxStartDate = this.groupViewers[groupId].getMaxStartDatetime(appId);
@@ -4563,7 +4734,7 @@ class DashboardBuilder {
             if (maxStartDate) {
                 options.push("dateOffset:" + maxStartDate);
             } else {
-                $(`.charts-box[data-app-id=${appId}] .date-offset-options .btn.previous`).removeClass("on");
+                $(`.charts-box[data-app-id=${appId}] .date-offset-options .btn.previous`).addClass("disabled");
                 return;
             }
         }

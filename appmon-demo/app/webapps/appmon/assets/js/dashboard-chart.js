@@ -19,7 +19,7 @@
  * Responsible for rendering and updating individual charts using Chart.js.
  *
  * @version 4.3
- * @last-modified 2026-10-16
+ * @last-modified 2026-10-29
  */
 class DashboardChart {
     constructor($container, eventId) {
@@ -58,6 +58,7 @@ class DashboardChart {
         let dataLabel1;
         let borderColor1;
         let backgroundColor1;
+        let gradientStart1;
         let dataLabel2;
         let borderColor2;
         let backgroundColor2;
@@ -66,6 +67,7 @@ class DashboardChart {
                 dataLabel1 = "Activities";
                 borderColor1 = "#4493c8";
                 backgroundColor1 = "#cce0fa";
+                gradientStart1 = "rgba(68, 147, 200, 0.35)";
                 dataLabel2 = "Errors";
                 borderColor2 = "#ff6384";
                 backgroundColor2 = "#ff6384";
@@ -74,6 +76,7 @@ class DashboardChart {
                 dataLabel1 = "Sessions";
                 borderColor1 = "#44c577";
                 backgroundColor1 = "#bcefd0";
+                gradientStart1 = "rgba(68, 197, 119, 0.35)";
                 dataLabel2 = (dateUnit ? "Peak Users" : "Active Users");
                 borderColor2 = "#9b59b6";
                 backgroundColor2 = "#ebdcf2";
@@ -81,6 +84,9 @@ class DashboardChart {
             default:
                 dataLabel1 = "";
                 dataLabel2 = "";
+                borderColor1 = "#4493c8";
+                backgroundColor1 = "#cce0fa";
+                gradientStart1 = "rgba(68, 147, 200, 0.35)";
                 borderColor2 = "#ff6384";
                 backgroundColor2 = "#ff6384";
         }
@@ -88,6 +94,31 @@ class DashboardChart {
         const chartType = (!dateUnit ? "line" : "bar");
         this.chart = new Chart($canvas[0], {
             type: chartType,
+            plugins: [
+                {
+                    id: 'crosshairGuideline',
+                    afterDraw: (chart) => {
+                        if (chart.tooltip && typeof chart.tooltip.getActiveElements === "function") {
+                            const activeElements = chart.tooltip.getActiveElements();
+                            if (activeElements && activeElements.length > 0) {
+                                const ctx = chart.ctx;
+                                const x = activeElements[0].element.x;
+                                const topY = chart.scales.y.top;
+                                const bottomY = chart.scales.y.bottom;
+                                ctx.save();
+                                ctx.beginPath();
+                                ctx.setLineDash([3, 3]);
+                                ctx.moveTo(x, topY);
+                                ctx.lineTo(x, bottomY);
+                                ctx.lineWidth = 1;
+                                ctx.strokeStyle = 'rgba(120, 130, 145, 0.45)';
+                                ctx.stroke();
+                                ctx.restore();
+                            }
+                        }
+                    }
+                }
+            ],
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
@@ -104,16 +135,38 @@ class DashboardChart {
                         mode: 'index',
                         intersect: false,
                         filter: (tooltipItem) => (tooltipItem.raw !== null && tooltipItem.raw !== undefined),
+                        padding: 10,
+                        boxPadding: 4,
+                        cornerRadius: 6,
+                        backgroundColor: 'rgba(23, 32, 42, 0.90)',
+                        titleColor: '#ffffff',
+                        titleFont: { size: 12, weight: 'bold' },
+                        bodyColor: '#e0e6ed',
+                        bodyFont: { size: 12 },
+                        borderColor: 'rgba(255, 255, 255, 0.12)',
+                        borderWidth: 1,
                         callbacks: {
                             title: (tooltip) => {
                                 const datetime = dayjs(labels[tooltip[0].dataIndex]);
                                 switch (dateUnit) {
-                                    case "hour": return datetime.format("LL HH:00");
-                                    case "day": return datetime.format("LL");
-                                    case "month": return datetime.date(1).format("LL");
-                                    case "year": return datetime.format("YYYY");
-                                    default: return datetime.format("LLL");
+                                    case "day":
+                                        return datetime.format("YYYY-MM-DD HH:00");
+                                    case "week":
+                                        return datetime.format("YYYY-MM-DD (ddd)");
+                                    case "month":
+                                        return datetime.format("YYYY-MM-DD");
+                                    case "hour":
+                                        return datetime.format("LL HH:00");
+                                    case "year":
+                                        return datetime.format("YYYY-MM");
+                                    default:
+                                        return datetime.format("LLL");
                                 }
+                            },
+                            label: (tooltipItem) => {
+                                const val = tooltipItem.parsed.y;
+                                const label = tooltipItem.dataset.label || '';
+                                return label + ": " + (val != null ? Number(val).toLocaleString() : 0);
                             }
                         }
                     },
@@ -145,24 +198,24 @@ class DashboardChart {
                     x: {
                         display: true,
                         ticks: {
-                            autoSkip: false,
+                            autoSkip: (dateUnit === "month"),
                             includeBounds: false,
                             callback: (value, index) => {
                                 const datetime = dayjs(labels[value]);
                                 const datetime2 = (value > 0 ? dayjs(labels[value - 1]) : null);
                                 switch (dateUnit) {
+                                    case "day":
+                                        return datetime.format("HH:00");
+                                    case "week":
+                                        return datetime.format("ddd (M/D)");
+                                    case "month":
+                                        return datetime.format("D");
                                     case "hour":
                                         return (index === 0 || (datetime2 && !datetime.isSame(datetime2, "day")))
                                             ? datetime.format("M/D HH:00")
                                             : datetime.format("HH:00");
-                                    case "day":
-                                        return (index === 0 || (datetime2 && !datetime.isSame(datetime2, "year")))
-                                            ? datetime.format("YYYY M/D")
-                                            : datetime.format("M/D");
-                                    case "month":
-                                        return datetime.format("YYYY/M");
                                     case "year":
-                                        return datetime.format("YYYY");
+                                        return datetime.format("MMM");
                                     default: // 5m.
                                         return (index === 0 || (datetime2 && !datetime.isSame(datetime2, "day")))
                                             ? datetime.format("M/D HH:mm")
@@ -196,10 +249,19 @@ class DashboardChart {
                         data: data1,
                         fill: true,
                         borderColor: borderColor1,
-                        backgroundColor: backgroundColor1,
-                        borderWidth: 1.4,
-                        tension: 0.1,
+                        backgroundColor: (context) => {
+                            const chart = context.chart;
+                            const { ctx, chartArea } = chart;
+                            if (!chartArea) return backgroundColor1;
+                            const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+                            gradient.addColorStop(0, gradientStart1);
+                            gradient.addColorStop(1, "rgba(255, 255, 255, 0.0)");
+                            return gradient;
+                        },
+                        borderWidth: 1.8,
+                        tension: 0.35,
                         pointStyle: false,
+                        pointHoverRadius: 4,
                         order: 2
                     } : {
                         label: dataLabel1,
@@ -209,6 +271,7 @@ class DashboardChart {
                         borderWidth: 1,
                         borderColor: borderColor1,
                         backgroundColor: borderColor1,
+                        borderSkipped: false,
                         order: 2
                     },
                     this.eventId === "session" ? {
@@ -216,11 +279,16 @@ class DashboardChart {
                         data: data2,
                         type: "line",
                         fill: false,
-                        borderWidth: 1.8,
+                        borderWidth: 2,
+                        tension: 0.35,
                         borderColor: borderColor2,
                         backgroundColor: borderColor2,
                         pointStyle: (chartType === "bar" ? "circle" : false),
                         pointRadius: (chartType === "bar" ? 2.5 : 0),
+                        pointHoverRadius: 5,
+                        pointBackgroundColor: borderColor2,
+                        pointBorderColor: "#ffffff",
+                        pointBorderWidth: 1.5,
                         order: 1
                     } : {
                         label: dataLabel2,
@@ -230,6 +298,7 @@ class DashboardChart {
                         borderWidth: 1,
                         borderColor: borderColor2,
                         backgroundColor: backgroundColor2,
+                        borderSkipped: false,
                         showLine: false,
                         pointStyle: false,
                         order: 1

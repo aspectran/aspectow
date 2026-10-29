@@ -19,7 +19,7 @@
  * Responsible for rendering monitoring data, including logs, metrics, and charts.
  *
  * @version 4.3
- * @last-modified 2026-10-28
+ * @last-modified 2026-10-29
  */
 class DashboardViewer {
     constructor(sampleInterval, options = {}) {
@@ -1048,7 +1048,7 @@ class DashboardViewer {
             }
         }
 
-        const dateUnit = (chartData.rolledUp ? dashboardChart.dateUnit : chartData.dateUnit);
+        const dateUnit = (chartData.rolledUp ? dashboardChart.dateUnit : (chartData.period || chartData.dateUnit));
         const dateOffset = (chartData.rolledUp ? dashboardChart.dateOffset : chartData.dateOffset);
         const labels = chartData.labels;
         const data1 = chartData.data1;
@@ -1060,10 +1060,13 @@ class DashboardViewer {
                 return;
             }
             dashboardChart.ensureCanvas();
-            this.pruneDataPoints(labels, data1, data2, dashboardChart.$container);
+            if (!chartData.period) {
+                this.pruneDataPoints(labels, data1, data2, dashboardChart.$container);
+            }
             dashboardChart.draw(dateUnit, labels, data1, data2);
             dashboardChart.dateOffset = dateOffset;
-        } else if (dashboardChart.isDrawn() && !dateOffset) {
+            dashboardChart.period = chartData.period || null;
+        } else if (dashboardChart.isDrawn() && !dateOffset && !dashboardChart.period) {
             const label = labels && labels.length ? labels[0] : null;
             const delta = data1 && data1.length ? data1[0] : 0;
             const aux = data2 && data2.length ? data2[0] : null;

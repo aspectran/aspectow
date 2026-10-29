@@ -31,12 +31,15 @@ import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalAdjusters;
 import java.util.List;
 
 /**
@@ -124,6 +127,11 @@ public class ChartDataExporter extends AbstractExporter implements EventCountRol
     }
 
     private String readChartData(@Nullable CommandOptions commandOptions) {
+        String period = (commandOptions != null ? commandOptions.getPeriod() : null);
+        if (period != null && !period.isEmpty() && !"live".equalsIgnoreCase(period)) {
+            return readPeriodicChartData(commandOptions, period);
+        }
+
         String timeZone = (commandOptions != null ? commandOptions.getTimeZone() : null);
         String dateUnit = (commandOptions != null ? commandOptions.getDateUnit() : null);
         String dateOffsetStr = (commandOptions != null ? commandOptions.getDateOffset() : null);
@@ -242,6 +250,172 @@ public class ChartDataExporter extends AbstractExporter implements EventCountRol
                     .put("rolledUp", rolledUp)
                 .endObject()
                 .toString();
+    }
+
+    private String readPeriodicChartData(@NonNull CommandOptions commandOptions, @NonNull String rawPeriod) {
+        String period = switch (rawPeriod.toLowerCase()) {
+            case "1d", "day" -> "day";
+            case "1w", "week" -> "week";
+            case "1m", "month" -> "month";
+            case "1y", "year" -> "year";
+            default -> "day";
+        };
+
+        String timeZone = commandOptions.getTimeZone();
+        ZoneId zoneId;
+        if (timeZone != null) {
+            try {
+                zoneId = ZoneId.of(timeZone);
+            } catch (Exception e) {
+                zoneId = ZoneId.systemDefault();
+            }
+        } else {
+            zoneId = ZoneId.systemDefault();
+        }
+
+        String baseDateStr = commandOptions.getBaseDate();
+        LocalDate baseDate;
+        if (baseDateStr != null && !baseDateStr.isEmpty()) {
+            try {
+                baseDate = LocalDate.parse(baseDateStr);
+            } catch (Exception e) {
+                baseDate = LocalDate.now(zoneId);
+            }
+        } else {
+            baseDate = LocalDate.now(zoneId);
+        }
+
+        boolean isGroupScope = commandOptions.isGroupScope();
+        boolean isSession = "session".equals(eventInfo.getEventId());
+
+        ZonedDateTime startZdt;
+        ZonedDateTime endZdt;
+        int slotCount;
+        String[] labels;
+
+        switch (period) {
+            case "week" -> {
+                LocalDate monday = baseDate.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+                startZdt = monday.atStartOfDay(zoneId);
+                endZdt = startZdt.plusWeeks(1);
+                slotCount = 7;
+                labels = new String[slotCount];
+                for (int i = 0; i < slotCount; i++) {
+                    labels[i] = startZdt.plusDays(i).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+                }
+            }
+            case "month" -> {
+                LocalDate firstDay = baseDate.withDayOfMonth(1);
+                startZdt = firstDay.atStartOfDay(zoneId);
+                endZdt = startZdt.plusMonths(1);
+                slotCount = baseDate.lengthOfMonth();
+                labels = new String[slotCount];
+                for (int i = 0; i < slotCount; i++) {
+                    labels[i] = startZdt.plusDays(i).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+                }
+            }
+            case "year" -> {
+                LocalDate firstDayOfYear = baseDate.withDayOfYear(1);
+                startZdt = firstDayOfYear.atStartOfDay(zoneId);
+                endZdt = startZdt.plusYears(1);
+                slotCount = 12;
+                labels = new String[slotCount];
+                for (int i = 0; i < slotCount; i++) {
+                    labels[i] = startZdt.plusMonths(i).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+                }
+            }
+            default -> { // "day"
+                startZdt = baseDate.atStartOfDay(zoneId);
+                endZdt = startZdt.plusDays(1);
+                slotCount = 24;
+                labels = new String[slotCount];
+                for (int i = 0; i < slotCount; i++) {
+                    labels[i] = startZdt.plusHours(i).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+                }
+            }
+        }
+
+        long[] data1 = new long[slotCount];
+        long[] data2 = new long[slotCount];
+
+        LocalDateTime startUtc = startZdt.withZoneSameInstant(ZoneOffset.UTC).toLocalDateTime();
+        LocalDateTime endUtc = endZdt.withZoneSameInstant(ZoneOffset.UTC).toLocalDateTime();
+
+        EventCountMapper dao = exporterManager.getBean(EventCountMapper.class);
+        String nodeId = eventInfo.getNodeId();
+        String groupId = exporterManager.getAppMonManager().getGroupId();
+        String appId = eventInfo.getAppId();
+        String eventId = eventInfo.getEventId();
+
+        List<EventCountVO> currentList = exporterManager.instantActivity(() -> {
+            if (isGroupScope && groupId != null) {
+                return dao.getGroupChartDataByRange(groupId, appId, eventId, startUtc, endUtc);
+            } else {
+                return dao.getChartDataByRange(nodeId, appId, eventId, startUtc, endUtc);
+            }
+        });
+
+        populateSlots(currentList, period, startZdt, zoneId, isSession, slotCount, data1, data2);
+
+        return new JsonBuilder()
+                .prettyPrint(false)
+                .nullWritable(false)
+                .object()
+                    .put("scope", isGroupScope ? "group" : null)
+                    .put("period", period)
+                    .put("baseDate", baseDate.toString())
+                    .put("labels", labels)
+                    .put("data1", data1)
+                    .put("data2", data2)
+                .endObject()
+                .toString();
+    }
+
+    private void populateSlots(
+            List<EventCountVO> voList, String period, ZonedDateTime startZdt,
+            ZoneId zoneId, boolean isSession, int slotCount, long[] outData1, long[] outData2) {
+        if (voList == null || voList.isEmpty()) {
+            return;
+        }
+        for (EventCountVO vo : voList) {
+            if (vo.getDatetime() == null) continue;
+            ZonedDateTime localDt = vo.getDatetime().atZone(ZoneOffset.UTC).withZoneSameInstant(zoneId);
+            int slotIdx = -1;
+            switch (period) {
+                case "week" -> {
+                    long days = ChronoUnit.DAYS.between(startZdt.toLocalDate(), localDt.toLocalDate());
+                    if (days >= 0 && days < slotCount) {
+                        slotIdx = (int) days;
+                    }
+                }
+                case "month" -> {
+                    int day = localDt.getDayOfMonth() - 1;
+                    if (day >= 0 && day < slotCount) {
+                        slotIdx = day;
+                    }
+                }
+                case "year" -> {
+                    int month = localDt.getMonthValue() - 1;
+                    if (month >= 0 && month < slotCount) {
+                        slotIdx = month;
+                    }
+                }
+                default -> { // "day"
+                    long hours = ChronoUnit.HOURS.between(startZdt, localDt);
+                    if (hours >= 0 && hours < slotCount) {
+                        slotIdx = (int) hours;
+                    }
+                }
+            }
+            if (slotIdx >= 0) {
+                outData1[slotIdx] += vo.getDelta();
+                if (isSession) {
+                    outData2[slotIdx] = Math.max(outData2[slotIdx], vo.getAux());
+                } else {
+                    outData2[slotIdx] += vo.getAux();
+                }
+            }
+        }
     }
 
     @Override

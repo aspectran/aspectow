@@ -115,4 +115,14 @@ public class EventCountDao extends SqlMapperAccess<EventCountMapper> implements 
         return mapper().getGroupChartDataByYear(groupId, appId, eventId, zoneOffset, dateOffset);
     }
 
+    @Override
+    public List<EventCountVO> getChartDataByRange(String nodeId, String appId, String eventId, LocalDateTime startDate, LocalDateTime endDate) {
+        return mapper().getChartDataByRange(nodeId, appId, eventId, startDate, endDate);
+    }
+
+    @Override
+    public List<EventCountVO> getGroupChartDataByRange(String groupId, String appId, String eventId, LocalDateTime startDate, LocalDateTime endDate) {
+        return mapper().getGroupChartDataByRange(groupId, appId, eventId, startDate, endDate);
+    }
+
 }

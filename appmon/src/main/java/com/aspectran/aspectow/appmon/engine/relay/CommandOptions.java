@@ -69,6 +69,8 @@ public class CommandOptions extends DefaultParameters {
     private static final ParameterKey dateUnit;
     private static final ParameterKey dateOffset;
     private static final ParameterKey timeZone;
+    private static final ParameterKey period;
+    private static final ParameterKey baseDate;
 
     private static final ParameterKey[] parameterKeys;
 
@@ -88,6 +90,8 @@ public class CommandOptions extends DefaultParameters {
         dateUnit = new ParameterKey("dateUnit", ValueType.STRING);
         dateOffset = new ParameterKey("dateOffset", ValueType.STRING);
         timeZone = new ParameterKey("timeZone", ValueType.STRING);
+        period = new ParameterKey("period", ValueType.STRING);
+        baseDate = new ParameterKey("baseDate", ValueType.STRING);
 
         parameterKeys = new ParameterKey[] {
                 command,
@@ -104,7 +108,9 @@ public class CommandOptions extends DefaultParameters {
                 withLogs,
                 dateUnit,
                 dateOffset,
-                timeZone
+                timeZone,
+                period,
+                baseDate
         };
     }
 
@@ -479,6 +485,38 @@ public class CommandOptions extends DefaultParameters {
      */
     public String getTimeZone() {
         return getString(timeZone);
+    }
+
+    /**
+     * Returns the period for chart data ("live", "day", "week", "month").
+     * @return the period string
+     */
+    public String getPeriod() {
+        return getString(period);
+    }
+
+    /**
+     * Sets the period for chart data.
+     * @param period the period string
+     */
+    public void setPeriod(String period) {
+        putValue(CommandOptions.period, period);
+    }
+
+    /**
+     * Returns the base date string (ISO 8601 date, e.g. "2026-10-29").
+     * @return the base date string
+     */
+    public String getBaseDate() {
+        return getString(baseDate);
+    }
+
+    /**
+     * Sets the base date string.
+     * @param baseDate the base date string
+     */
+    public void setBaseDate(String baseDate) {
+        putValue(CommandOptions.baseDate, baseDate);
     }
 
 }

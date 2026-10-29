@@ -163,4 +163,26 @@ public interface EventCountMapper {
      */
     List<EventCountVO> getGroupChartDataByYear(String groupId, String appId, String eventId, int zoneOffset, LocalDateTime dateOffset);
 
+    /**
+     * Retrieves hourly chart data within a specified date/time range.
+     * @param nodeId the node identifier
+     * @param appId the app identifier
+     * @param eventId the event identifier
+     * @param startDate the range start datetime (inclusive, UTC)
+     * @param endDate the range end datetime (exclusive, UTC)
+     * @return a list of event count records
+     */
+    List<EventCountVO> getChartDataByRange(String nodeId, String appId, String eventId, LocalDateTime startDate, LocalDateTime endDate);
+
+    /**
+     * Retrieves hourly chart data within a specified date/time range for a node group.
+     * @param groupId the node group identifier
+     * @param appId the app identifier
+     * @param eventId the event identifier
+     * @param startDate the range start datetime (inclusive, UTC)
+     * @param endDate the range end datetime (exclusive, UTC)
+     * @return a list of event count records aggregated by group
+     */
+    List<EventCountVO> getGroupChartDataByRange(String groupId, String appId, String eventId, LocalDateTime startDate, LocalDateTime endDate);
+
 }

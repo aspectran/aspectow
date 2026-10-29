@@ -129,11 +129,20 @@
                 <div class="control-bar">
                     <div class="options d-flex align-items-center gap-1">
                         <i class="bi bi-bar-chart-line"></i>
-                        <div class="date-unit-options btn-group" title="Date unit options">
-                            <a class="btn default on">5m</a><a class="btn hour" data-unit="hour">Hour</a><a class="btn day" data-unit="day">Day</a><a class="btn month" data-unit="month">Month</a><a class="btn year" data-unit="year">Year</a>
+                        <div class="date-unit-options btn-group" title="Select period">
+                            <a class="btn default on" data-period="live">5m</a><a class="btn" data-period="day">1D</a><a class="btn" data-period="week">1W</a><a class="btn" data-period="month">1M</a><a class="btn" data-period="year">1Y</a>
                         </div>
                         <div class="date-offset-options btn-group" title="Date offset options">
-                            <a class="btn previous on" data-offset="previous" title="Previous"><i class="bi bi-rewind-fill"></i></a><a class="btn current" data-offset="current" title="Latest"><i class="bi bi-skip-forward-fill"></i></a>
+                            <a class="btn previous" data-offset="previous" title="Previous"><i class="bi bi-rewind-fill"></i></a><a class="btn current disabled" data-offset="current" title="Latest"><i class="bi bi-skip-forward-fill"></i></a>
+                        </div>
+                        <div class="date-navigator btn-group" style="display: none;" title="Navigate date">
+                            <a class="btn btn-prev" title="Previous"><i class="bi bi-chevron-left"></i></a>
+                            <a class="btn btn-date" title="Select date">
+                                <span class="date-label"></span><i class="bi bi-calendar3 ms-1"></i>
+                                <input type="date" class="date-picker-input" tabindex="-1" aria-hidden="true">
+                            </a>
+                            <a class="btn btn-next" title="Next"><i class="bi bi-chevron-right"></i></a>
+                            <a class="btn btn-today" title="Jump to today">Today</a>
                         </div>
                         <div class="speed-options btn-group d-none" title="Speed options">
                             <a class="btn faster" title="Faster polling interval"><i class="bi bi-fast-forward"></i></a>

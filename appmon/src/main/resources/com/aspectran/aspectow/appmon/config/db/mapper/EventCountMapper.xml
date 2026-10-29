@@ -785,4 +785,23 @@
             </otherwise>
         </choose>
     </select>
+
+    <select id="getChartDataByRange" resultType="com.aspectran.aspectow.appmon.engine.persist.counter.EventCountVO">
+        select datetime, delta, aux
+        from appmon_event_count_hourly
+        where node_id = #{nodeId} and app_id = #{appId} and event_id = #{eventId}
+          and datetime &gt;= #{startDate} and datetime &lt; #{endDate}
+        order by datetime asc
+    </select>
+
+    <select id="getGroupChartDataByRange" resultType="com.aspectran.aspectow.appmon.engine.persist.counter.EventCountVO">
+        select datetime, sum(delta) as delta,
+               case when #{eventId} = 'session' then max(aux) else sum(aux) end as aux
+        from appmon_event_count_hourly
+        where group_id = #{groupId} and app_id = #{appId} and event_id = #{eventId}
+          and datetime &gt;= #{startDate} and datetime &lt; #{endDate}
+        group by datetime
+        order by datetime asc
+    </select>
+
 </mapper>
