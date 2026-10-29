@@ -375,7 +375,7 @@
     text-align: right;
 }
 .control-bar .options > .bi {
-    color: #d6e5e4;
+    color: #a5b4b3;
     margin-left: 2px;
 }
 .control-bar .options .btn-group {
@@ -386,6 +386,8 @@
 }
 .control-bar .options .btn-group .btn {
     height: 29px;
+    padding: 0 8px;
+    margin: 0;
     border: 0;
     border-radius: 0;
     font-size: .9em;
@@ -394,8 +396,10 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 0 8px;
     white-space: nowrap;
+}
+.control-bar .options .btn-group .btn + .btn {
+    border-left: 1px solid #2e3f47;
 }
 .control-bar .options .btn-group .btn:hover {
     background-color: #335a73;
@@ -405,9 +409,7 @@
     background-color: #336d95;
 }
 .control-bar .options .btn-group .btn.disabled {
-    opacity: 0.35;
-    pointer-events: none;
-    cursor: default;
+    opacity: 0.5;
 }
 .control-bar .options .date-navigator .btn-date {
     position: relative;
@@ -760,6 +762,7 @@
     background-color: #7ea7a7;
     border-left: 3px solid #009800;
     font-size: .85em;
+    cursor: default;
 }
 .session-box ul.sessions li .count.active {
     background-color: #0eae0e;
@@ -970,7 +973,7 @@
 
 /*
  * @version 4.3
- * @last-modified 2026-10-16
+ * @last-modified 2026-10-29
  */
 
 [data-bs-theme=dark] {
@@ -1062,11 +1065,14 @@
         box-shadow: 0 6px 10px -10px rgba(50, 50, 50, 0.45);
     }
     .control-bar .options > .bi {
-        color: #d6e5e4;
+        color: #566872;
     }
     .control-bar .options .btn-group .btn {
         background-color: #243640;
         color: #cfcfcf;
+    }
+    .control-bar .options .btn-group .btn + .btn {
+        border-left: 1px solid #212f38;
     }
     .control-bar .options .btn-group .btn:hover {
         background-color: #294556;
@@ -1075,6 +1081,11 @@
     .control-bar .options .btn-group .btn.on {
         background-color: #2e5469;
         color: #fff;
+    }
+    .control-bar .options .btn-group .btn.disabled {
+        background-color: #2e5469;
+    }
+    .control-bar .options .date-navigator .btn-date {
     }
     .charts-box {
         background-color: #000;
