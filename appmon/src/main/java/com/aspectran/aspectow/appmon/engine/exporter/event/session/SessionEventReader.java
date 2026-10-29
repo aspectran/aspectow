@@ -27,6 +27,7 @@ import com.aspectran.core.component.session.Session;
 import com.aspectran.core.component.session.SessionListener;
 import com.aspectran.core.component.session.SessionManager;
 import com.aspectran.core.component.session.SessionManagerProvider;
+import com.aspectran.core.component.session.SessionSnapshot;
 import com.aspectran.core.component.session.SessionStatistics;
 import com.aspectran.core.context.ActivityContext;
 import com.aspectran.utils.BeanUtils;
@@ -450,44 +451,59 @@ public class SessionEventReader extends AbstractEventReader {
         if (sessionManager == null) {
             return 0;
         }
-        Set<String> sessionIds = sessionManager.getActiveSessions();
-        if (sessionIds.isEmpty()) {
-            cachedActiveUsers = 0;
-            lastCalculatedTime = now;
-            return 0;
-        }
         Set<String> userKeys = new HashSet<>();
-        for (String sessionId : sessionIds) {
-            ManagedSession session = sessionManager.findSession(sessionId);
-            if (session != null && !session.isTempResident()) {
-                String username = resolveUsername(session);
-                String ipAddress = session.getAttribute(USER_IP_ADDRESS);
-                String userKey = (username != null ? "u:" + username :
-                        (ipAddress != null ? "i:" + ipAddress : "s:" + sessionId));
+        sessionManager.forEachActiveSession(session -> {
+            String userKey = session.read(s -> {
+                if (s.isTempResident()) {
+                    return null;
+                }
+                String username = resolveUsername(s);
+                String ipAddress = s.getAttribute(USER_IP_ADDRESS);
+                return (username != null ? "u:" + username :
+                        (ipAddress != null ? "i:" + ipAddress : "s:" + s.getId()));
+            });
+            if (userKey != null) {
                 userKeys.add(userKey);
             }
-        }
+        });
         cachedActiveUsers = userKeys.size();
         lastCalculatedTime = now;
         return cachedActiveUsers;
     }
 
     private JsonString @NonNull [] getAllActiveSessions() {
-        Set<String> sessionIds = sessionManager.getActiveSessions();
-        List<JsonString> list = new ArrayList<>(sessionIds.size());
-        for (String sessionId : sessionIds) {
-            ManagedSession session = sessionManager.findSession(sessionId);
-            if (session != null) {
-                list.add(serialize(session));
-            }
+        if (sessionManager == null) {
+            return new JsonString[0];
         }
+        List<JsonString> list = new ArrayList<>();
+        sessionManager.forEachActiveSession(session -> {
+            SessionSnapshot snapshot = session.getSnapshot();
+            if (snapshot != null) {
+                list.add(serialize(snapshot));
+            }
+        });
         return list.toArray(new JsonString[0]);
     }
 
+    @NonNull
     private JsonString serialize(@NonNull Session session) {
-        AtomicInteger count = session.getAttribute(USER_ACTIVITY_COUNT);
+        SessionSnapshot snapshot = session.getSnapshot();
+        if (snapshot != null) {
+            return serialize(snapshot);
+        }
+        return new JsonBuilder()
+                .nullWritable(false)
+                .prettyPrint(false)
+                .object()
+                    .put("sessionId", session.getId())
+                .endObject()
+                .toJsonString();
+    }
+
+    private JsonString serialize(@NonNull SessionSnapshot snapshot) {
+        AtomicInteger count = snapshot.getAttribute(USER_ACTIVITY_COUNT);
         int activityCount = (count != null ? count.get() : 0);
-        boolean tempResident = session.isTempResident();
+        boolean tempResident = snapshot.isTempResident();
         if (activityCount == 0 && !tempResident) {
             activityCount++;
         }
@@ -495,13 +511,13 @@ public class SessionEventReader extends AbstractEventReader {
                 .nullWritable(false)
                 .prettyPrint(false)
                 .object()
-                    .put("sessionId", session.getId())
-                    .put("username", resolveUsername(session))
-                    .put("ipAddress", session.getAttribute(USER_IP_ADDRESS))
-                    .put("countryCode", session.getAttribute(USER_COUNTRY_CODE))
+                    .put("sessionId", snapshot.getId())
+                    .put("username", resolveUsername(snapshot))
+                    .put("ipAddress", snapshot.getAttribute(USER_IP_ADDRESS))
+                    .put("countryCode", snapshot.getAttribute(USER_COUNTRY_CODE))
                     .put("activityCount", activityCount)
-                    .put("createAt", formatTime(session.getCreationTime()))
-                    .put("inactiveInterval", session.getMaxInactiveInterval())
+                    .put("createAt", formatTime(snapshot.getCreationTime()))
+                    .put("inactiveInterval", snapshot.getMaxInactiveInterval())
                     .put("tempResident", tempResident)
                 .endObject()
                 .toJsonString();
