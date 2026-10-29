@@ -68,6 +68,8 @@ public class SessionEventReader extends AbstractEventReader {
     public static final String USER_COUNTRY_CODE = "user.countryCode";
     public static final String USER_ACTIVITY_COUNT = "user.activityCount";
 
+    private static final long ACTIVE_USERS_CACHE_TTL = 3000L; // 3 seconds
+
     private static final Map<String, UserTrackingListener> registeredTrackingListeners = new ConcurrentHashMap<>();
 
     private String serverId;
@@ -93,6 +95,10 @@ public class SessionEventReader extends AbstractEventReader {
     private UserTrackingListener userTrackingListener;
 
     private volatile boolean changed;
+
+    private volatile long cachedActiveUsers;
+
+    private volatile long lastCalculatedTime;
 
     /**
      * Instantiates a new SessionEventReader.
@@ -257,6 +263,8 @@ public class SessionEventReader extends AbstractEventReader {
     @Override
     public synchronized void stop() {
         changed = false;
+        cachedActiveUsers = 0;
+        lastCalculatedTime = 0;
         if (sessionManager != null && sessionListener != null) {
             try {
                 sessionManager.removeSessionListener(sessionListener);
@@ -416,7 +424,7 @@ public class SessionEventReader extends AbstractEventReader {
     private SessionEventData load() {
         SessionStatistics statistics = sessionManager.getStatistics();
         SessionEventData data = new SessionEventData();
-        data.setNumberOfUsers(countActiveUsers());
+        data.setNumberOfUsers(getActiveUsers());
         data.setNumberOfCreated(statistics.getNumberOfCreated());
         data.setNumberOfExpired(statistics.getNumberOfExpired());
         data.setNumberOfActives(statistics.getNumberOfActives());
@@ -426,17 +434,31 @@ public class SessionEventReader extends AbstractEventReader {
         return data;
     }
 
-    public long countActiveUsers() {
+    private long getActiveUsers() {
+        long now = System.currentTimeMillis();
+        if (now - lastCalculatedTime < ACTIVE_USERS_CACHE_TTL) {
+            return cachedActiveUsers;
+        }
+        return countActiveUsers();
+    }
+
+    public synchronized long countActiveUsers() {
+        long now = System.currentTimeMillis();
+        if (now - lastCalculatedTime < ACTIVE_USERS_CACHE_TTL) {
+            return cachedActiveUsers;
+        }
         if (sessionManager == null) {
             return 0;
         }
         Set<String> sessionIds = sessionManager.getActiveSessions();
         if (sessionIds.isEmpty()) {
+            cachedActiveUsers = 0;
+            lastCalculatedTime = now;
             return 0;
         }
         Set<String> userKeys = new HashSet<>();
         for (String sessionId : sessionIds) {
-            ManagedSession session = sessionManager.getSession(sessionId);
+            ManagedSession session = sessionManager.findSession(sessionId);
             if (session != null && !session.isTempResident()) {
                 String username = resolveUsername(session);
                 String ipAddress = session.getAttribute(USER_IP_ADDRESS);
@@ -445,14 +467,16 @@ public class SessionEventReader extends AbstractEventReader {
                 userKeys.add(userKey);
             }
         }
-        return userKeys.size();
+        cachedActiveUsers = userKeys.size();
+        lastCalculatedTime = now;
+        return cachedActiveUsers;
     }
 
     private JsonString @NonNull [] getAllActiveSessions() {
         Set<String> sessionIds = sessionManager.getActiveSessions();
         List<JsonString> list = new ArrayList<>(sessionIds.size());
         for (String sessionId : sessionIds) {
-            ManagedSession session = sessionManager.getSession(sessionId);
+            ManagedSession session = sessionManager.findSession(sessionId);
             if (session != null) {
                 list.add(serialize(session));
             }
