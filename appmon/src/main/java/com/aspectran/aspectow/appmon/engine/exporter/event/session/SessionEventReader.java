@@ -22,7 +22,6 @@ import com.aspectran.aspectow.appmon.engine.config.EventInfo;
 import com.aspectran.aspectow.appmon.engine.exporter.ExporterManager;
 import com.aspectran.aspectow.appmon.engine.exporter.event.AbstractEventReader;
 import com.aspectran.aspectow.appmon.engine.persist.counter.EventCount;
-import com.aspectran.core.component.session.ManagedSession;
 import com.aspectran.core.component.session.Session;
 import com.aspectran.core.component.session.SessionListener;
 import com.aspectran.core.component.session.SessionManager;
