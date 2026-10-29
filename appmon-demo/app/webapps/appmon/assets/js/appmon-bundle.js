@@ -1440,19 +1440,31 @@ class DashboardChart {
         let dataLabel1;
         let borderColor1;
         let backgroundColor1;
+        let dataLabel2;
+        let borderColor2;
+        let backgroundColor2;
         switch (this.eventId) {
             case "activity":
                 dataLabel1 = "Activities";
                 borderColor1 = "#4493c8";
                 backgroundColor1 = "#cce0fa";
+                dataLabel2 = "Errors";
+                borderColor2 = "#ff6384";
+                backgroundColor2 = "#ff6384";
                 break;
             case "session":
                 dataLabel1 = "Sessions";
                 borderColor1 = "#44c577";
                 backgroundColor1 = "#bcefd0";
+                dataLabel2 = (dateUnit ? "Peak Users" : "Active Users");
+                borderColor2 = "#9b59b6";
+                backgroundColor2 = "#ebdcf2";
                 break;
             default:
                 dataLabel1 = "";
+                dataLabel2 = "";
+                borderColor2 = "#ff6384";
+                backgroundColor2 = "#ff6384";
         }
 
         const chartType = (!dateUnit ? "line" : "bar");
@@ -1462,13 +1474,18 @@ class DashboardChart {
                 responsive: true,
                 maintainAspectRatio: false,
                 animation: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false
+                },
                 plugins: {
                     legend: { display: false },
                     tooltip: {
                         enabled: true,
-                        reverse: true,
-                        mode: 'x',
+                        reverse: (this.eventId === "activity"),
+                        mode: 'index',
                         intersect: false,
+                        filter: (tooltipItem) => (tooltipItem.raw !== null && tooltipItem.raw !== undefined),
                         callbacks: {
                             title: (tooltip) => {
                                 const datetime = dayjs(labels[tooltip[0].dataIndex]);
@@ -1535,17 +1552,20 @@ class DashboardChart {
                                 }
                             }
                         },
-                        stacked: true,
+                        stacked: (this.eventId === "activity"),
                         grid: chartType === "line" ? {
-                            color: (ctx) => (data2[ctx.tick.value] > 0 ? "#ff6384" : "#e4e4e4")
+                            color: (ctx) => (this.eventId === "activity" && data2[ctx.tick.value] > 0 ? "#ff6384" : "#e4e4e4")
                         } : {}
                     },
                     y: {
                         display: true,
-                        title: { display: true, text: dataLabel1 },
+                        title: {
+                            display: true,
+                            text: (this.eventId === "session" ? `${dataLabel1} / ${dataLabel2}` : dataLabel1)
+                        },
                         suggestedMin: 0,
                         suggestedMax: 5,
-                        stacked: true,
+                        stacked: (this.eventId === "activity"),
                         grid: { color: "#e4e4e4" }
                     }
                 }
@@ -1573,14 +1593,25 @@ class DashboardChart {
                         backgroundColor: borderColor1,
                         order: 2
                     },
-                    {
-                        label: "Errors",
+                    this.eventId === "session" ? {
+                        label: dataLabel2,
+                        data: data2,
+                        type: "line",
+                        fill: false,
+                        borderWidth: 1.8,
+                        borderColor: borderColor2,
+                        backgroundColor: borderColor2,
+                        pointStyle: (chartType === "bar" ? "circle" : false),
+                        pointRadius: (chartType === "bar" ? 2.5 : 0),
+                        order: 1
+                    } : {
+                        label: dataLabel2,
                         data: data2,
                         type: chartType,
                         fill: true,
                         borderWidth: 1,
-                        borderColor: "#ff6384",
-                        backgroundColor: "#ff6384",
+                        borderColor: borderColor2,
+                        backgroundColor: backgroundColor2,
                         showLine: false,
                         pointStyle: false,
                         order: 1
@@ -1623,11 +1654,11 @@ class DashboardChart {
      *
      * @param {string} label - ISO 8601 date string
      * @param {number} delta - Primary data delta (e.g. activities or sessions)
-     * @param {number|null} error - Secondary data delta (e.g. errors)
+     * @param {number|null} aux - Secondary/auxiliary data delta (e.g. errors or active users)
      * @param {boolean} isGroupView - Whether this chart is in group view (accumulate)
      * @param {string|null} dateUnit - Date unit ("hour", "day", "month", "year", or null for realtime)
      */
-    applyRollup(label, delta, error, isGroupView = false, dateUnit = null) {
+    applyRollup(label, delta, aux, isGroupView = false, dateUnit = null) {
         if (!this.chart || !label) return;
 
         const chartLabels = this.chart.data.labels;
@@ -1665,16 +1696,9 @@ class DashboardChart {
         }
 
         if (targetIndex !== -1) {
-            if (isGroupView) {
-                chartData1[targetIndex] = (chartData1[targetIndex] || 0) + (delta || 0);
-                if (chartData2[targetIndex] !== null && error !== null && error !== undefined) {
-                    chartData2[targetIndex] = (chartData2[targetIndex] || 0) + error;
-                }
-            } else {
-                chartData1[targetIndex] = (chartData1[targetIndex] || 0) + (delta || 0);
-                if (chartData2[targetIndex] !== null && error !== null && error !== undefined) {
-                    chartData2[targetIndex] = (chartData2[targetIndex] || 0) + error;
-                }
+            chartData1[targetIndex] = (chartData1[targetIndex] || 0) + (delta || 0);
+            if (chartData2[targetIndex] !== null && aux !== null && aux !== undefined) {
+                chartData2[targetIndex] = (chartData2[targetIndex] || 0) + aux;
             }
         } else {
             const newLabelStr = activeDateUnit ? normalizedIncoming.toISOString() : label;
@@ -1685,7 +1709,7 @@ class DashboardChart {
             if (!normalizedLast || normalizedIncoming.isAfter(normalizedLast)) {
                 chartLabels.push(newLabelStr);
                 chartData1.push(delta || 0);
-                chartData2.push(error !== null && error !== undefined ? error : null);
+                chartData2.push(aux !== null && aux !== undefined ? aux : null);
             } else {
                 let insertIndex = chartLabels.length;
                 for (let i = chartLabels.length - 1; i >= 0; i--) {
@@ -1701,7 +1725,7 @@ class DashboardChart {
                 }
                 chartLabels.splice(insertIndex, 0, newLabelStr);
                 chartData1.splice(insertIndex, 0, delta || 0);
-                chartData2.splice(insertIndex, 0, error !== null && error !== undefined ? error : null);
+                chartData2.splice(insertIndex, 0, aux !== null && aux !== undefined ? aux : null);
             }
         }
     }
@@ -2770,7 +2794,7 @@ class DashboardViewer {
         const dateOffset = (chartData.rolledUp ? dashboardChart.dateOffset : chartData.dateOffset);
         const labels = chartData.labels;
         const data1 = chartData.data1;
-        const data2 = chartData.data2.map(n => (eventId === "activity" ? n : null));
+        const data2 = chartData.data2;
 
         if (!chartData.rolledUp) {
             if (this.isGroupView && chartData.scope !== "group" ||
@@ -2784,11 +2808,11 @@ class DashboardViewer {
         } else if (dashboardChart.isDrawn() && !dateOffset) {
             const label = labels && labels.length ? labels[0] : null;
             const delta = data1 && data1.length ? data1[0] : 0;
-            const error = data2 && data2.length ? data2[0] : null;
+            const aux = data2 && data2.length ? data2[0] : null;
             if (label) {
-                const diff = this.trackRollupDiff(nodeId, exporterKey, label, delta, error);
-                if (diff.deltaDiff !== 0 || (diff.errorDiff !== null && diff.errorDiff !== 0)) {
-                    dashboardChart.applyRollup(label, diff.deltaDiff, diff.errorDiff, this.isGroupView, dateUnit);
+                const diff = this.trackRollupDiff(nodeId, exporterKey, label, delta, aux);
+                if (diff.deltaDiff !== 0 || (diff.auxDiff !== null && diff.auxDiff !== 0)) {
+                    dashboardChart.applyRollup(label, diff.deltaDiff, diff.auxDiff, this.isGroupView, dateUnit);
                     this.pruneDataPoints(
                         dashboardChart.getLabels(),
                         dashboardChart.getDataset(0),
@@ -2805,7 +2829,7 @@ class DashboardViewer {
         }
     }
 
-    trackRollupDiff(nodeId, exporterKey, label, delta, error) {
+    trackRollupDiff(nodeId, exporterKey, label, delta, aux) {
         if (!this.rollupsByNode[exporterKey]) {
             this.rollupsByNode[exporterKey] = {};
         }
@@ -2821,18 +2845,18 @@ class DashboardViewer {
         }
         const nodeEntries = labelMap[label];
         const nid = nodeId || "unknown";
-        const prev = nodeEntries[nid] || { delta: 0, error: 0 };
+        const prev = nodeEntries[nid] || { delta: 0, aux: 0 };
         const currentDelta = delta || 0;
-        const currentError = (error !== null && error !== undefined) ? error : null;
+        const currentAux = (aux !== null && aux !== undefined) ? aux : null;
 
         const deltaDiff = currentDelta - prev.delta;
-        let errorDiff = null;
-        if (currentError !== null) {
-            errorDiff = currentError - (prev.error !== null ? prev.error : 0);
+        let auxDiff = null;
+        if (currentAux !== null) {
+            auxDiff = currentAux - (prev.aux !== null ? prev.aux : 0);
         }
 
-        nodeEntries[nid] = { delta: currentDelta, error: currentError };
-        return { deltaDiff, errorDiff, isFirstForLabel };
+        nodeEntries[nid] = { delta: currentDelta, aux: currentAux };
+        return { deltaDiff, auxDiff, isFirstForLabel };
     }
 
     pruneDataPoints(labels, data1, data2, $container) {

@@ -121,7 +121,7 @@ public class ActivityEventReader extends AbstractEventReader {
     public String read() {
         long interim = getEventCount().getTallying().getTotal();
         long total = interim + getEventCount().getTallied().getTotal();
-        long errors = getEventCount().getTallying().getError();
+        long errors = getEventCount().getTallying().getAux();
 
         return new JsonBuilder()
             .prettyPrint(false)

@@ -50,8 +50,8 @@ public class EventCountVO implements Serializable {
     /** The incremental change in the event count since the last record */
     private long delta;
 
-    /** The number of errors associated with the event */
-    private long error;
+    /** The incremental error count or auxiliary metric value */
+    private long aux;
 
     /**
      * Returns the node identifier.
@@ -166,19 +166,19 @@ public class EventCountVO implements Serializable {
     }
 
     /**
-     * Returns the number of errors.
-     * @return the error count
+     * Returns the incremental error count or auxiliary metric value.
+     * @return the aux count
      */
-    public long getError() {
-        return error;
+    public long getAux() {
+        return aux;
     }
 
     /**
-     * Sets the number of errors.
-     * @param error the error count
+     * Sets the incremental error count or auxiliary metric value.
+     * @param aux the aux count
      */
-    public void setError(long error) {
-        this.error = error;
+    public void setAux(long aux) {
+        this.aux = aux;
     }
 
 }

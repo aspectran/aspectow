@@ -426,7 +426,7 @@ public class SessionEventReader extends AbstractEventReader {
         return data;
     }
 
-    private long countActiveUsers() {
+    public long countActiveUsers() {
         if (sessionManager == null) {
             return 0;
         }

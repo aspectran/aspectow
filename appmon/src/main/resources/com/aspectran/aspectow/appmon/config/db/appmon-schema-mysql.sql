@@ -7,7 +7,7 @@ create table if not exists appmon_event_count (
     datetime datetime not null comment 'Data point timestamp',
     total int not null comment 'Cumulative total count (Gauge)',
     delta int not null comment 'Incremental count for the interval (Counter)',
-    error int not null comment 'Incremental error count for the interval',
+    aux int not null comment 'Incremental error count or auxiliary metric',
     constraint appmon_event_count_pk primary key (node_id, app_id, event_id, datetime)
 )
     engine = MyISAM
@@ -26,7 +26,7 @@ create table if not exists appmon_event_count_hourly (
     datetime datetime not null comment 'Hourly truncated timestamp',
     total int not null comment 'Cumulative total count at the end of the hour',
     delta int not null comment 'Total incremental count for the hour',
-    error int not null comment 'Total incremental error count for the hour',
+    aux int not null comment 'Hourly error count or auxiliary metric',
     constraint appmon_event_count_hourly_pk primary key (node_id, app_id, event_id, datetime)
 )
     engine = MyISAM
@@ -45,7 +45,7 @@ create table if not exists appmon_event_count_last (
     datetime datetime not null comment 'Last data point timestamp',
     total int not null comment 'Last cumulative total count',
     delta int not null comment 'Last incremental count',
-    error int not null comment 'Last incremental error count',
+    aux int not null comment 'Last incremental error count or auxiliary metric',
     reg_dt timestamp default now() not null comment 'Database registration timestamp',
     constraint appmon_event_count_last_pk primary key (node_id, app_id, event_id)
 )

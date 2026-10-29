@@ -118,7 +118,7 @@ public class ChartDataExporter extends AbstractExporter implements EventCountRol
                 .atZone(ZoneOffset.UTC).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
         String[] labels = new String[] { datetime };
         long[] data1 = new long[] { eventCount.getTallied().getDelta() };
-        long[] data2 = new long[] { eventCount.getTallied().getError() };
+        long[] data2 = new long[] { eventCount.getTallied().getAux() };
         String message = toJson(null, null, null, labels, data1, data2, true);
         broadcast(message);
     }
@@ -186,7 +186,7 @@ public class ChartDataExporter extends AbstractExporter implements EventCountRol
             EventCountVO vo = list.get(i);
             labels[i] = normalizeDatetime(vo.getDatetime(), dateUnit, zoneOffsetInSeconds);
             data1[i] = vo.getDelta();
-            data2[i] = vo.getError();
+            data2[i] = vo.getAux();
         }
 
         String effectiveDateOffset = (dateOffset != null ?

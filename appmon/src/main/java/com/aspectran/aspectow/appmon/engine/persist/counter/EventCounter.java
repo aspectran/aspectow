@@ -66,8 +66,8 @@ public interface EventCounter {
      * @param datetime the datetime for the reset
      * @param total the total count
      * @param delta the delta count since the last reset
-     * @param error the error count
+     * @param aux the auxiliary or error count
      */
-    void reset(LocalDateTime datetime, long total, long delta, long error);
+    void reset(LocalDateTime datetime, long total, long delta, long aux);
 
 }

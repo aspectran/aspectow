@@ -1052,7 +1052,7 @@ class DashboardViewer {
         const dateOffset = (chartData.rolledUp ? dashboardChart.dateOffset : chartData.dateOffset);
         const labels = chartData.labels;
         const data1 = chartData.data1;
-        const data2 = chartData.data2.map(n => (eventId === "activity" ? n : null));
+        const data2 = chartData.data2;
 
         if (!chartData.rolledUp) {
             if (this.isGroupView && chartData.scope !== "group" ||
@@ -1066,11 +1066,11 @@ class DashboardViewer {
         } else if (dashboardChart.isDrawn() && !dateOffset) {
             const label = labels && labels.length ? labels[0] : null;
             const delta = data1 && data1.length ? data1[0] : 0;
-            const error = data2 && data2.length ? data2[0] : null;
+            const aux = data2 && data2.length ? data2[0] : null;
             if (label) {
-                const diff = this.trackRollupDiff(nodeId, exporterKey, label, delta, error);
-                if (diff.deltaDiff !== 0 || (diff.errorDiff !== null && diff.errorDiff !== 0)) {
-                    dashboardChart.applyRollup(label, diff.deltaDiff, diff.errorDiff, this.isGroupView, dateUnit);
+                const diff = this.trackRollupDiff(nodeId, exporterKey, label, delta, aux);
+                if (diff.deltaDiff !== 0 || (diff.auxDiff !== null && diff.auxDiff !== 0)) {
+                    dashboardChart.applyRollup(label, diff.deltaDiff, diff.auxDiff, this.isGroupView, dateUnit);
                     this.pruneDataPoints(
                         dashboardChart.getLabels(),
                         dashboardChart.getDataset(0),
@@ -1087,7 +1087,7 @@ class DashboardViewer {
         }
     }
 
-    trackRollupDiff(nodeId, exporterKey, label, delta, error) {
+    trackRollupDiff(nodeId, exporterKey, label, delta, aux) {
         if (!this.rollupsByNode[exporterKey]) {
             this.rollupsByNode[exporterKey] = {};
         }
@@ -1103,18 +1103,18 @@ class DashboardViewer {
         }
         const nodeEntries = labelMap[label];
         const nid = nodeId || "unknown";
-        const prev = nodeEntries[nid] || { delta: 0, error: 0 };
+        const prev = nodeEntries[nid] || { delta: 0, aux: 0 };
         const currentDelta = delta || 0;
-        const currentError = (error !== null && error !== undefined) ? error : null;
+        const currentAux = (aux !== null && aux !== undefined) ? aux : null;
 
         const deltaDiff = currentDelta - prev.delta;
-        let errorDiff = null;
-        if (currentError !== null) {
-            errorDiff = currentError - (prev.error !== null ? prev.error : 0);
+        let auxDiff = null;
+        if (currentAux !== null) {
+            auxDiff = currentAux - (prev.aux !== null ? prev.aux : 0);
         }
 
-        nodeEntries[nid] = { delta: currentDelta, error: currentError };
-        return { deltaDiff, errorDiff, isFirstForLabel };
+        nodeEntries[nid] = { delta: currentDelta, aux: currentAux };
+        return { deltaDiff, auxDiff, isFirstForLabel };
     }
 
     pruneDataPoints(labels, data1, data2, $container) {

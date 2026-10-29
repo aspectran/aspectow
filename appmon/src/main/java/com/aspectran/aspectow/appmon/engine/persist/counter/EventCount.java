@@ -51,6 +51,21 @@ public class EventCount {
     }
 
     /**
+     * Increments the auxiliary count.
+     */
+    public void aux() {
+        tallying.aux();
+    }
+
+    /**
+     * Sets the auxiliary count for the current period.
+     * @param value the auxiliary value
+     */
+    public void setAux(long value) {
+        tallying.setAux(value);
+    }
+
+    /**
      * Gets the current tallying data.
      * @return the tallying data
      */
@@ -89,13 +104,13 @@ public class EventCount {
      * @param datetime the datetime for the reset
      * @param total the total count
      * @param delta the delta count
-     * @param error the error count
+     * @param aux the auxiliary or error count
      */
-    synchronized void reset(LocalDateTime datetime, long total, long delta, long error) {
+    synchronized void reset(LocalDateTime datetime, long total, long delta, long aux) {
         Assert.isTrue(total >= 0, "total must be positive");
         Assert.isTrue(delta >= 0, "delta must be positive");
-        Assert.isTrue(error >= 0, "error must be positive");
-        tallied.update(datetime, total, delta, error);
+        Assert.isTrue(aux >= 0, "aux must be positive");
+        tallied.update(datetime, total, delta, aux);
         tallying.reset();
         updated = false;
     }
@@ -107,7 +122,7 @@ public class EventCount {
 
         private final LongAdder total = new LongAdder();
 
-        private final LongAdder error = new LongAdder();
+        private final LongAdder aux = new LongAdder();
 
         /**
          * Increments the total count.
@@ -117,10 +132,26 @@ public class EventCount {
         }
 
         /**
+         * Increments the auxiliary count.
+         */
+        public void aux() {
+            aux.increment();
+        }
+
+        /**
          * Increments the error count.
          */
         public void error() {
-            error.increment();
+            aux.increment();
+        }
+
+        /**
+         * Sets the auxiliary value directly for the current period.
+         * @param value the value to set
+         */
+        public void setAux(long value) {
+            aux.reset();
+            aux.add(value);
         }
 
         /**
@@ -132,11 +163,21 @@ public class EventCount {
         }
 
         /**
+         * Gets the auxiliary count for the current period.
+         * @return the auxiliary count
+         */
+        public long getAux() {
+            return aux.sum();
+        }
+
+        /**
          * Gets the error count for the current period.
          * @return the error count
+         * @deprecated Use {@link #getAux()} instead
          */
+        @Deprecated
         public long getError() {
-            return error.sum();
+            return getAux();
         }
 
         /**
@@ -144,7 +185,7 @@ public class EventCount {
          */
         public void reset() {
             total.reset();
-            error.reset();
+            aux.reset();
         }
 
     }
@@ -160,7 +201,7 @@ public class EventCount {
 
         private long delta;
 
-        private long error;
+        private long aux;
 
         /**
          * Gets the datetime of the last rollup.
@@ -187,34 +228,44 @@ public class EventCount {
         }
 
         /**
+         * Gets the overall auxiliary count.
+         * @return the auxiliary count
+         */
+        public long getAux() {
+            return aux;
+        }
+
+        /**
          * Gets the overall error count.
          * @return the error count
+         * @deprecated Use {@link #getAux()} instead
          */
+        @Deprecated
         public long getError() {
-            return error;
+            return getAux();
         }
 
         private boolean update(@NonNull LocalDateTime datetime, @NonNull Tallying tallying) {
             long total = tallying.getTotal();
-            long error = tallying.getError();
+            long aux = tallying.getAux();
             if (datetime.equals(this.datetime)) {
                 this.total += total;
                 this.delta += total;
-                this.error += error;
+                this.aux += aux;
             } else {
                 this.datetime = datetime;
                 this.total += total;
                 this.delta = total;
-                this.error = error;
+                this.aux = aux;
             }
-            return (total > 0);
+            return (total > 0 || aux > 0);
         }
 
-        private void update(LocalDateTime datetime, long total, long delta, long error) {
+        private void update(LocalDateTime datetime, long total, long delta, long aux) {
             this.datetime = datetime;
             this.total = total;
             this.delta = delta;
-            this.error = error;
+            this.aux = aux;
         }
 
     }

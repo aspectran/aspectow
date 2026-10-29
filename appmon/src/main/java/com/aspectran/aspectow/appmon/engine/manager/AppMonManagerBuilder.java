@@ -28,12 +28,14 @@ import com.aspectran.aspectow.appmon.engine.exporter.event.ChartDataExporter;
 import com.aspectran.aspectow.appmon.engine.exporter.event.ChartDataExporterBuilder;
 import com.aspectran.aspectow.appmon.engine.exporter.event.EventExporter;
 import com.aspectran.aspectow.appmon.engine.exporter.event.EventExporterBuilder;
+import com.aspectran.aspectow.appmon.engine.exporter.event.session.SessionEventReader;
 import com.aspectran.aspectow.appmon.engine.exporter.log.LogExporter;
 import com.aspectran.aspectow.appmon.engine.exporter.log.LogExporterBuilder;
 import com.aspectran.aspectow.appmon.engine.exporter.metric.MetricExporter;
 import com.aspectran.aspectow.appmon.engine.exporter.metric.MetricExporterBuilder;
 import com.aspectran.aspectow.appmon.engine.persist.counter.EventCounter;
 import com.aspectran.aspectow.appmon.engine.persist.counter.EventCounterBuilder;
+import com.aspectran.aspectow.appmon.engine.persist.counter.session.SessionEventCounter;
 import com.aspectran.aspectow.appmon.engine.relay.remote.NodeMessageRelayHandler;
 import com.aspectran.aspectow.node.config.NodeInfo;
 import com.aspectran.aspectow.node.manager.ClusterEventListener;
@@ -176,6 +178,10 @@ public abstract class AppMonManagerBuilder {
 
                 EventExporter eventExporter = EventExporterBuilder.build(eventExporterManager, eventInfo, eventCounter.getEventCount());
                 eventExporterManager.addExporter(eventExporter);
+
+                if (eventCounter instanceof SessionEventCounter sec && eventExporter.getEventReader() instanceof SessionEventReader ser) {
+                    sec.setActiveUsersSupplier(ser::countActiveUsers);
+                }
 
                 ChartDataExporter chartDataExporter = ChartDataExporterBuilder.build(dataExporterManager, eventInfo);
                 eventCounter.addEventRollupListener(chartDataExporter);

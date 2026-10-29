@@ -77,7 +77,7 @@ public class ActivityEventAdvice {
 
         long interim = activityEventReader.getEventCount().getTallying().getTotal();
         long total = interim + activityEventReader.getEventCount().getTallied().getTotal();
-        long errors = activityEventReader.getEventCount().getTallying().getError();
+        long errors = activityEventReader.getEventCount().getTallying().getAux();
 
         long elapsedTime = System.currentTimeMillis() - startTime;
 

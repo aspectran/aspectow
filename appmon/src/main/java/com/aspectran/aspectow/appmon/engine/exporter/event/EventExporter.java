@@ -64,6 +64,10 @@ public class EventExporter extends AbstractExporter {
         this.sampleInterval = eventInfo.getSampleInterval();
     }
 
+    public EventReader getEventReader() {
+        return eventReader;
+    }
+
     @Override
     public String getName() {
         return eventInfo.getEventId();

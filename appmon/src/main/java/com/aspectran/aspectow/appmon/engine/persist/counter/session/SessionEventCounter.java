@@ -28,6 +28,9 @@ import com.aspectran.core.service.ServiceHoldingListener;
 import com.aspectran.utils.StringUtils;
 import org.jspecify.annotations.NonNull;
 
+import java.time.LocalDateTime;
+import java.util.function.Supplier;
+
 /**
  * An {@link EventCounter} for counting session creation events.
  * It registers a {@link SessionListener} to receive notifications when sessions are created.
@@ -39,6 +42,16 @@ public class SessionEventCounter extends AbstractEventCounter {
     private final String serverId;
 
     private final String contextName;
+
+    private Supplier<Long> activeUsersSupplier;
+
+    /**
+     * Sets the supplier used to obtain the current active users count on rollup.
+     * @param activeUsersSupplier the active users count supplier
+     */
+    public void setActiveUsersSupplier(Supplier<Long> activeUsersSupplier) {
+        this.activeUsersSupplier = activeUsersSupplier;
+    }
 
     /**
      * Instantiates a new SessionEventCounter.
@@ -85,6 +98,15 @@ public class SessionEventCounter extends AbstractEventCounter {
         if (sessionManager != null) {
             sessionManager.addSessionListener(sessionListener);
         }
+    }
+
+    @Override
+    public void rollup(LocalDateTime datetime) {
+        if (activeUsersSupplier != null) {
+            long activeUsers = activeUsersSupplier.get();
+            getEventCount().setAux(activeUsers);
+        }
+        super.rollup(datetime);
     }
 
     /**
