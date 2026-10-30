@@ -19,6 +19,7 @@ import com.aspectran.aspectow.appmon.common.listener.UserTrackingListener;
 import com.aspectran.aspectow.appmon.engine.config.EventInfo;
 import com.aspectran.aspectow.appmon.engine.exporter.ExporterManager;
 import com.aspectran.aspectow.appmon.engine.exporter.ExporterType;
+import com.aspectran.aspectow.appmon.engine.exporter.event.EventExporter;
 import com.aspectran.aspectow.appmon.engine.manager.AppMonManager;
 import com.aspectran.aspectow.appmon.engine.persist.counter.EventCount;
 import com.aspectran.aspectow.node.config.ClusterConfig;
@@ -26,23 +27,35 @@ import com.aspectran.aspectow.node.config.GroupInfoHolder;
 import com.aspectran.aspectow.node.config.NodeInfoHolder;
 import com.aspectran.aspectow.node.manager.NodeManager;
 import com.aspectran.core.component.session.DefaultSessionManager;
+import com.aspectran.core.component.session.ManagedSession;
 import com.aspectran.core.component.session.SessionListener;
 import com.aspectran.core.component.session.SessionManager;
 import com.aspectran.core.component.session.SessionManagerProvider;
 import com.aspectran.core.context.ActivityContext;
+import com.aspectran.core.context.config.SessionManagerConfig;
+import com.aspectran.utils.apon.AponLines;
 import com.aspectran.utils.lifecycle.AbstractLifeCycle;
 import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadMXBean;
 import java.lang.reflect.Proxy;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -443,13 +456,170 @@ class SessionEventReaderTest {
         assertFalse(rootSessionManager.containsListener(UserTrackingListener.class));
     }
 
+    @Test
+    @Timeout(value = 15, unit = TimeUnit.SECONDS)
+    void testMassiveConcurrentSessionInvalidationAndCountActiveUsers_noDeadlock() throws Exception {
+        SessionManagerConfig config = new SessionManagerConfig(new AponLines()
+                .line("maxIdleSeconds", 2)
+                .line("maxIdleSecondsForNew", 1)
+                .toString());
+
+        DefaultSessionManager sessionManager = new DefaultSessionManager("load-test");
+        sessionManager.setSessionManagerConfig(config);
+        sessionManager.initialize();
+
+        SessionManagerProvider server = new SessionManagerProvider() {
+            @Override
+            public SessionManager getSessionManager() {
+                return sessionManager;
+            }
+
+            @Override
+            public SessionManager getSessionManager(String name) {
+                return sessionManager;
+            }
+
+            @Override
+            public SessionManager getSessionManagerByPath(String path) {
+                return sessionManager;
+            }
+        };
+
+        ExporterManager exporterManager = createExporterManager(server, "netty.server");
+        EventInfo eventInfo = new EventInfo();
+        eventInfo.putValue("id", "session");
+        eventInfo.putValue("target", "netty.server/load-test");
+
+        AtomicInteger broadcastCount = new AtomicInteger();
+        SessionEventReader reader = new SessionEventReader(exporterManager, eventInfo, new EventCount()) {
+            @Override
+            protected EventExporter getEventExporter() {
+                return new EventExporter(exporterManager, eventInfo, this) {
+                    @Override
+                    public void broadcast(String message) {
+                        broadcastCount.incrementAndGet();
+                    }
+                };
+            }
+        };
+
+        reader.init();
+        reader.start();
+
+        int totalSessions = 1800;
+        List<String> sessionIds = new CopyOnWriteArrayList<>();
+        ExecutorService executor = Executors.newFixedThreadPool(16);
+        AtomicBoolean running = new AtomicBoolean(true);
+        AtomicReference<Throwable> errorRef = new AtomicReference<>();
+
+        try {
+            // Start background pollers simulating CounterPersistSchedule & dashboard full sync
+            List<Future<?>> pollerFutures = new ArrayList<>();
+            for (int p = 0; p < 4; p++) {
+                pollerFutures.add(executor.submit(() -> {
+                    while (running.get()) {
+                        try {
+                            reader.countActiveUsers();
+                            reader.read();
+                            Thread.sleep(2);
+                        } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                            break;
+                        } catch (Throwable t) {
+                            errorRef.compareAndSet(null, t);
+                        }
+                    }
+                }));
+            }
+
+            // Concurrently create 1,800 sessions (half promoted to normal, half left as tempResident)
+            CountDownLatch createLatch = new CountDownLatch(totalSessions);
+            for (int i = 0; i < totalSessions; i++) {
+                final int idx = i;
+                executor.submit(() -> {
+                    try {
+                        String id = sessionManager.createSessionId();
+                        ManagedSession session = sessionManager.createSession(id);
+                        session.setAttribute(SessionEventReader.USER_IP_ADDRESS, "10.0.0." + (idx % 250));
+                        if (idx % 2 == 0) {
+                            // Promote to normal resident session and set username
+                            session.access();
+                            session.setAttribute(SessionEventReader.USER_NAME, "user-" + (idx % 300));
+                        }
+                        session.complete();
+                        sessionIds.add(id);
+                    } catch (Throwable t) {
+                        errorRef.compareAndSet(null, t);
+                    } finally {
+                        createLatch.countDown();
+                    }
+                });
+            }
+            assertTrue(createLatch.await(5, TimeUnit.SECONDS), "All 1,800 sessions should be created in time");
+            assertNull(errorRef.get(), () -> "Unexpected error during creation: " + errorRef.get());
+
+            // Concurrently invalidate half of the sessions from worker threads while the inactivity timer
+            // expires the remaining sessions on the SessionScheduler thread
+            CountDownLatch invalidateLatch = new CountDownLatch(sessionIds.size());
+            for (int i = 0; i < sessionIds.size(); i++) {
+                final int idx = i;
+                final String id = sessionIds.get(i);
+                executor.submit(() -> {
+                    try {
+                        if (idx % 3 == 0) {
+                            ManagedSession s = sessionManager.getSession(id);
+                            if (s != null) {
+                                s.invalidate();
+                            }
+                        } else if (idx % 3 == 1) {
+                            sessionManager.invalidate(id);
+                        }
+                    } catch (IllegalStateException ignored) {
+                        // Session may have already been invalidated by inactivity timer concurrently
+                    } catch (Throwable t) {
+                        errorRef.compareAndSet(null, t);
+                    } finally {
+                        invalidateLatch.countDown();
+                    }
+                });
+            }
+            assertTrue(invalidateLatch.await(5, TimeUnit.SECONDS), "Concurrent invalidations should finish in time");
+
+            // Wait briefly for remaining timer-driven expirations (1~2s TTL) while pollers keep hammering
+            long deadline = System.currentTimeMillis() + 3000L;
+            while (System.currentTimeMillis() < deadline && !sessionManager.getActiveSessions().isEmpty()) {
+                reader.countActiveUsers();
+                Thread.sleep(20);
+            }
+
+            // Check JVM ThreadMXBean for any deadlocked threads
+            ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
+            long[] deadlockedThreads = threadMXBean.findDeadlockedThreads();
+            assertNull(deadlockedThreads, "No threads should be deadlocked");
+            assertNull(errorRef.get(), () -> "Unexpected error during load test: " + errorRef.get());
+            assertTrue(broadcastCount.get() >= totalSessions, "Broadcasts should have occurred for session events");
+        } finally {
+            running.set(false);
+            executor.shutdownNow();
+            executor.awaitTermination(3, TimeUnit.SECONDS);
+            reader.stop();
+            reader.destroy();
+            sessionManager.destroy();
+        }
+    }
+
     private ExporterManager createExporterManager(
             SessionManagerProvider server,
             String serverId) {
         ActivityContext mockActivityContext = (ActivityContext) Proxy.newProxyInstance(
                 ActivityContext.class.getClassLoader(),
                 new Class<?>[] { ActivityContext.class },
-                (proxy, method, args) -> null
+                (proxy, method, args) -> {
+                    if (method.getReturnType() == boolean.class) {
+                        return false;
+                    }
+                    return null;
+                }
         );
         NodeManager nodeManager = new NodeManager(
                 "node1", "group1", new ClusterConfig(), new NodeInfoHolder(), new GroupInfoHolder());

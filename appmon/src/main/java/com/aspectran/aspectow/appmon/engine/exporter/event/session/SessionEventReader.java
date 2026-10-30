@@ -48,6 +48,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -99,6 +100,8 @@ public class SessionEventReader extends AbstractEventReader {
     private volatile long cachedActiveUsers;
 
     private volatile long lastCalculatedTime;
+
+    private final AtomicBoolean calculatingActiveUsers = new AtomicBoolean();
 
     /**
      * Instantiates a new SessionEventReader.
@@ -348,13 +351,13 @@ public class SessionEventReader extends AbstractEventReader {
 
     void sessionDestroyed(@NonNull Session session) {
         changed = true;
-        String json = readWithDestroyedSession(session.getId());
+        String json = readWithDestroyedSession(session);
         getEventExporter().broadcast(json);
     }
 
     void sessionEvicted(@NonNull Session session) {
         changed = true;
-        String json = readWithEvictedSession(session.getId());
+        String json = readWithEvictedSession(session);
         getEventExporter().broadcast(json);
     }
 
@@ -382,49 +385,49 @@ public class SessionEventReader extends AbstractEventReader {
         }
     }
 
-    private String readWithCreatedSession(Session session) {
-        SessionEventData data = load();
+    private String readWithCreatedSession(@NonNull Session session) {
+        SessionEventData data = load(!session.isTempResident());
         data.setCreatedSessions(new JsonString[] { serialize(session) });
         return data.toJson();
     }
 
-    private String readWithChangedSession(Session session, String oldSessionId) {
-        SessionEventData data = load();
+    private String readWithChangedSession(@NonNull Session session, @NonNull String oldSessionId) {
+        SessionEventData data = load(false);
         data.setChangedSessions(Map.of(oldSessionId, serialize(session)));
         return data.toJson();
     }
 
-    private String readWithDestroyedSession(String sessionId) {
-        SessionEventData data = load();
-        data.setDestroyedSessions(new String[] { sessionId });
+    private String readWithDestroyedSession(@NonNull Session session) {
+        SessionEventData data = load(!session.isTempResident());
+        data.setDestroyedSessions(new String[] { session.getId() });
         return data.toJson();
     }
 
-    private String readWithEvictedSession(String sessionId) {
-        SessionEventData data = load();
-        data.setEvictedSessions(new String[] { sessionId });
+    private String readWithEvictedSession(@NonNull Session session) {
+        SessionEventData data = load(!session.isTempResident());
+        data.setEvictedSessions(new String[] { session.getId() });
         return data.toJson();
     }
 
-    private String readWithResidedSession(Session session) {
-        SessionEventData data = load();
+    private String readWithResidedSession(@NonNull Session session) {
+        SessionEventData data = load(true);
         data.setResidedSessions(new JsonString[] { serialize(session) });
         return data.toJson();
     }
 
     @NonNull
     private SessionEventData loadWithActiveSessions() {
-        SessionEventData data = load();
+        SessionEventData data = load(true);
         data.setFullSync(true);
         data.setCreatedSessions(getAllActiveSessions());
         return data;
     }
 
     @NonNull
-    private SessionEventData load() {
+    private SessionEventData load(boolean countUsers) {
         SessionStatistics statistics = sessionManager.getStatistics();
         SessionEventData data = new SessionEventData();
-        data.setNumberOfUsers(getActiveUsers());
+        data.setNumberOfUsers(countUsers ? getActiveUsers() : cachedActiveUsers);
         data.setNumberOfCreated(statistics.getNumberOfCreated());
         data.setNumberOfExpired(statistics.getNumberOfExpired());
         data.setNumberOfActives(statistics.getNumberOfActives());
@@ -442,42 +445,84 @@ public class SessionEventReader extends AbstractEventReader {
         return countActiveUsers();
     }
 
-    public synchronized long countActiveUsers() {
+    /**
+     * Counts the number of distinct active users across all active sessions.
+     * <p>This method never blocks. It is frequently invoked from session listener
+     * callbacks, which run while the session lock of the notifying session is held
+     * (e.g. during invalidation by the session scheduler). Blocking here, such as
+     * with a {@code synchronized} monitor, would create a lock-order inversion with
+     * other threads iterating over sessions and could deadlock the entire session
+     * manager. Therefore, if another thread is already calculating, the most recently
+     * cached value is returned immediately.</p>
+     * @return the number of distinct active users
+     */
+    public long countActiveUsers() {
         long now = System.currentTimeMillis();
         if (now - lastCalculatedTime < ACTIVE_USERS_CACHE_TTL) {
             return cachedActiveUsers;
         }
+        SessionManager sessionManager = this.sessionManager;
         if (sessionManager == null) {
             return 0;
         }
-        Set<String> userKeys = new HashSet<>();
-        sessionManager.forEachActiveSession(session -> {
-            SessionSnapshot snapshot = session.getSnapshot();
-            if (snapshot != null && !snapshot.isTempResident()) {
-                String username = resolveUsername(snapshot);
-                String ipAddress = snapshot.getAttribute(USER_IP_ADDRESS);
-                String userKey = (username != null ? "u:" + username :
-                        (ipAddress != null ? "i:" + ipAddress : "s:" + snapshot.getId()));
-                userKeys.add(userKey);
+        if (!calculatingActiveUsers.compareAndSet(false, true)) {
+            // Another thread is already calculating; do not wait for it
+            return cachedActiveUsers;
+        }
+        try {
+            // Re-check after acquiring the guard, as another thread may have just finished
+            if (now - lastCalculatedTime < ACTIVE_USERS_CACHE_TTL) {
+                return cachedActiveUsers;
             }
-        });
-        cachedActiveUsers = userKeys.size();
-        lastCalculatedTime = now;
-        return cachedActiveUsers;
+            Set<String> userKeys = new HashSet<>();
+            for (SessionSnapshot snapshot : collectActiveSnapshots(sessionManager)) {
+                if (!snapshot.isTempResident()) {
+                    String username = resolveUsername(snapshot);
+                    String ipAddress = snapshot.getAttribute(USER_IP_ADDRESS);
+                    String userKey = (username != null ? "u:" + username :
+                            (ipAddress != null ? "i:" + ipAddress : "s:" + snapshot.getId()));
+                    userKeys.add(userKey);
+                }
+            }
+            cachedActiveUsers = userKeys.size();
+            lastCalculatedTime = now;
+            return cachedActiveUsers;
+        } finally {
+            calculatingActiveUsers.set(false);
+        }
     }
 
     private JsonString @NonNull [] getAllActiveSessions() {
+        SessionManager sessionManager = this.sessionManager;
         if (sessionManager == null) {
             return new JsonString[0];
         }
         List<JsonString> list = new ArrayList<>();
+        for (SessionSnapshot snapshot : collectActiveSnapshots(sessionManager)) {
+            list.add(serialize(snapshot));
+        }
+        return list.toArray(new JsonString[0]);
+    }
+
+    /**
+     * Collects snapshots of all active sessions.
+     * <p>Only the snapshot is taken inside the iteration, which runs while the lock of
+     * each visited session is held. Any further processing, such as username resolution
+     * by a custom {@link SessionUserResolver} or JSON serialization, is performed on the
+     * snapshots afterwards so that session locks are held as briefly as possible.</p>
+     * @param sessionManager the session manager
+     * @return the list of snapshots of active sessions
+     */
+    @NonNull
+    private static List<SessionSnapshot> collectActiveSnapshots(@NonNull SessionManager sessionManager) {
+        List<SessionSnapshot> snapshots = new ArrayList<>();
         sessionManager.forEachActiveSession(session -> {
             SessionSnapshot snapshot = session.getSnapshot();
             if (snapshot != null) {
-                list.add(serialize(snapshot));
+                snapshots.add(snapshot);
             }
         });
-        return list.toArray(new JsonString[0]);
+        return snapshots;
     }
 
     @NonNull
