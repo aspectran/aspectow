@@ -680,7 +680,6 @@
     }
     .session-box .panel.status.expanded {
         height: 200px;
-        overflow-y: auto;
         cursor: default;
     }
     .session-box .panel.status .knob-bar {
