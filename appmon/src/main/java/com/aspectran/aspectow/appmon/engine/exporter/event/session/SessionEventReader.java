@@ -453,7 +453,7 @@ public class SessionEventReader extends AbstractEventReader {
         Set<String> userKeys = new HashSet<>();
         sessionManager.forEachActiveSession(session -> {
             SessionSnapshot snapshot = session.getSnapshot();
-            if (!snapshot.isTempResident()) {
+            if (snapshot != null && !snapshot.isTempResident()) {
                 String username = resolveUsername(snapshot);
                 String ipAddress = snapshot.getAttribute(USER_IP_ADDRESS);
                 String userKey = (username != null ? "u:" + username :
