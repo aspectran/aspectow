@@ -905,7 +905,7 @@ class PollingClient extends BaseClient {
  * Handles tab visibility to prevent "bullet bursts" when returning to the tab.
  *
  * @version 4.3
- * @last-modified 2026-10-20
+ * @last-modified 2026-10-30
  */
 class TrafficPainter {
     constructor(canvas, options = {}) {
@@ -974,11 +974,15 @@ class TrafficPainter {
             ? Math.min(Math.log10(activityCount + 1) / Math.log10(targetMax + 1), 1)
             : 0;
         
-        const baseSize = 3.0 + (timeIntensity * 4);
+        const initialSize = 3.0;
+        const baseSize = initialSize + (timeIntensity * 4);
         const fullSize = baseSize + (activityIntensity * 4);
-        const initialSize = this.enableBlackHole ? baseSize : fullSize;
+        const startSize = this.enableBlackHole ? initialSize : fullSize;
         const baseSpeed = (this.canvas.width - this.finishLineOffset) / (900 / 16.6);
-        const speed = baseSpeed * (1 - (timeIntensity * 0.6));
+        const postBhSpeed = baseSpeed * (1 - (timeIntensity * 0.6)) * 1.25;
+        const startSpeed = this.enableBlackHole ? baseSpeed : baseSpeed * (1 - (timeIntensity * 0.6));
+        const finalColor = hasError ? '#ff0000' : (timeIntensity > 0.5 ? '#f1c40f' : '#11d539');
+        const startColor = this.enableBlackHole ? (hasError ? '#ff0000' : '#11d539') : finalColor;
         const initY = Math.random() * (this.canvas.height - 20) + 10;
 
         const bullet = {
@@ -986,14 +990,18 @@ class TrafficPainter {
             y: initY,
             initY: initY,
             targetY: initY,
-            speed: speed,
+            speed: startSpeed,
+            postBhSpeed: postBhSpeed,
+            initialSize: initialSize,
             baseSize: baseSize,
             fullSize: fullSize,
-            size: initialSize,
-            renderSize: initialSize,
+            size: startSize,
+            renderSize: startSize,
             timeIntensity: timeIntensity,
+            activeTimeIntensity: this.enableBlackHole ? 0 : timeIntensity,
             activityIntensity: activityIntensity,
-            color: hasError ? '#ff0000' : (timeIntensity > 0.5 ? '#f1c40f' : '#11d539'),
+            color: startColor,
+            finalColor: finalColor,
             elapsedTime: Math.max(elapsedTime, 500),
             arrived: false,
             arrivedTime: 0,
@@ -1103,6 +1111,7 @@ class TrafficPainter {
                             b.orbitSpeed = (0.12 + Math.random() * 0.08) * (Math.random() < 0.5 ? 1 : -1);
                             b.orbitRadius = (this.blackHole.radius * 0.75) * (0.25 + Math.random() * 0.75);
                             b.renderSize = Math.max(1.2, Math.min(2.5, b.baseSize * 0.4));
+                            b.color = b.finalColor;
                             this.blackHole.pulse = Math.max(this.blackHole.pulse, 0.6);
                         } else if (b.x >= leftGateX) {
                             // 좌측 유리막을 통과하면서 블랙홀 인력 영역으로 유선형 진입
@@ -1111,7 +1120,7 @@ class TrafficPainter {
                             const easePull = Math.pow(pullProgress, 1.8);
                             b.y = (b.initY || bhY) + (bhY - (b.initY || bhY)) * easePull;
                             if (distToBh < 35) {
-                                b.renderSize = Math.max(0.6, b.baseSize * (distToBh / 35));
+                                b.renderSize = Math.max(0.6, b.size * (distToBh / 35));
                             }
                             b.x += b.speed * deltaTime;
                         } else {
@@ -1129,6 +1138,8 @@ class TrafficPainter {
                         if (b.transitFrames <= 0) {
                             b.bhStage = 2;
                             b.size = b.fullSize;
+                            b.activeTimeIntensity = b.timeIntensity;
+                            b.color = b.finalColor;
 
                             // 프리즘 레인 확산 (Prism Lane Dispersion):
                             // 황금비(Golden Ratio: 0.61803398875) 기반 저변위 수열(Low-Discrepancy Sequence)
@@ -1146,7 +1157,7 @@ class TrafficPainter {
                             b.x = b.ejectStartX;
                             b.y = b.ejectStartY;
                             b.renderSize = 0.8;
-                            b.speed *= 1.25;
+                            b.speed = b.postBhSpeed;
                             this.blackHole.pulse = Math.max(this.blackHole.pulse, 0.5);
                         }
                     } else if (b.bhStage === 2) {
@@ -1249,7 +1260,8 @@ class TrafficPainter {
             // 1. Aura (Glow) - high performance alternative to shadowBlur
             this.ctx.fillStyle = b.color;
             this.ctx.beginPath();
-            let auraSize = drawSize * (1.2 + b.timeIntensity + (b.arrived ? b.impactPulse : 0));
+            const activeTimeIntensity = hasBlackHole ? b.activeTimeIntensity : b.timeIntensity;
+            let auraSize = drawSize * (1.2 + activeTimeIntensity + (b.arrived ? b.impactPulse : 0));
             this.ctx.globalAlpha = b.alpha * 0.3;
             this.ctx.arc(b.x, b.y, auraSize, 0, Math.PI * 2);
             this.ctx.fill();
