@@ -16,7 +16,7 @@
 
 /*
  * @version 4.3
- * @last-modified 2026-10-29
+ * @last-modified 2026-10-30
  */
 
 [data-bs-theme=dark] {
@@ -152,10 +152,71 @@
         color: #709185;
     }
     .session-box .panel {
-        background-color: #26322d;
+        background-color: #2a3430;
+    }
+    .session-box .panel.status .knob-bar {
+        background: linear-gradient(to bottom, rgba(38, 50, 45, 0) 0%, rgb(42, 52, 48) 65%);
     }
     .session-box .panel.status .knob {
-        background-color: #567181;
+        background-color: #384649;
+        color: #e2e8f0;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+    }
+    .session-box .panel.status .knob-bar:hover .knob,
+    .session-box .panel.status .knob-bar:active .knob {
+        background-color: #313b3d;
+    }
+    .session-box .panel p.uptime {
+        color: #7d9692;
+    }
+    .session-box .panel p.uptime:hover {
+        background-color: rgba(255, 255, 255, 0.08);
+        color: #cbd5e1;
+    }
+    .session-box .stats-highlights .stat-card {
+        background-color: rgba(255, 255, 255, 0.06);
+        border-color: rgba(255, 255, 255, 0.08);
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    }
+    .session-box .stats-highlights .stat-card .stat-label {
+        color: #9cb3ad;
+    }
+    .session-box .stats-highlights .stat-card .number {
+        color: #f1f5f9;
+    }
+    .session-box .stat-peak-bar {
+        background-color: rgba(255, 255, 255, 0.04);
+        border-color: rgba(255, 255, 255, 0.06);
+    }
+    .session-box .stat-peak-bar .peak-bar-track {
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+    .session-box .stat-peak-bar .peak-bar-fill {
+        background-color: #00a46e;
+    }
+    .session-box .stat-peak-bar .peak-bar-info {
+        color: #8da49f;
+    }
+    .session-box .stat-peak-bar .peak-bar-info .peak-ratio {
+        color: #9bd6c3;
+    }
+    .session-box .stats-sub-grid .sub-item {
+        background-color: rgba(255, 255, 255, 0.04);
+        border-color: rgba(255, 255, 255, 0.06);
+    }
+    .session-box .stats-sub-grid .sub-item .sub-label {
+        color: #8da49f;
+    }
+    .session-box .stats-sub-grid .sub-item .number {
+        color: #e2e8f0;
+    }
+    .session-box .stats-sub-grid .sub-item.rejected-item.has-rejected {
+        background-color: rgba(239, 68, 68, 0.2);
+        border-color: rgba(239, 68, 68, 0.4);
+    }
+    .session-box .stats-sub-grid .sub-item.rejected-item.has-rejected .sub-label,
+    .session-box .stats-sub-grid .sub-item.rejected-item.has-rejected .number {
+        color: #f87171;
     }
     .session-box .panel.ground {
         background-color: #191c1d;

@@ -1830,11 +1830,12 @@ class DashboardChart {
  * Responsible for rendering monitoring data, including logs, metrics, and charts.
  *
  * @version 4.3
- * @last-modified 2026-10-29
+ * @last-modified 2026-10-30
  */
 class DashboardViewer {
     constructor(sampleInterval, options = {}) {
         this.flagsUrl = options.flagsUrl || "https://cdn.jsdelivr.net/gh/aspectran/aspectran-assets@main/assets/countries/flags/";
+        this.onRenderUptime = options.onRenderUptime || null;
 
         this.isGroupView = false;
         this.groupId = null;
@@ -2579,8 +2580,22 @@ class DashboardViewer {
             $display.find(".highestNumberOfActives").text(eventData.highestNumberOfActives);
             $display.find(".numberOfRejected").text(eventData.numberOfRejected);
             if (eventData.startTime) {
-                $display.find(".startTime").text(dayjs.utc(eventData.startTime).local().format("LLL"));
+                const $uptime = $display.find(".uptime");
+                $uptime.attr("data-start-time", eventData.startTime);
+                if (typeof this.onRenderUptime === "function") {
+                    this.onRenderUptime($uptime, eventData.startTime);
+                }
             }
+
+            const actives = Number(eventData.numberOfActives) || 0;
+            const highest = Number(eventData.highestNumberOfActives) || 0;
+            const ratio = highest > 0 ? Math.min(100, Math.round((actives / highest) * 100)) : 0;
+            $display.find(".peak-bar-fill").css("width", ratio + "%");
+            $display.find(".peak-ratio").text(ratio + "%");
+
+            const rejected = Number(eventData.numberOfRejected) || 0;
+            $display.find(".rejected-item").toggleClass("has-rejected", rejected > 0);
+
             const $sessions = $display.find("ul.sessions");
 
             if (eventData.fullSync) {
@@ -3527,6 +3542,9 @@ class MetricsViewer {
 class DashboardBuilder {
     constructor(options = {}) {
         this.options = options;
+        this.options.onRenderUptime = ($el, startTime) => this.renderUptime($el, startTime);
+        this.uptimeMode = "uptime";
+        this.uptimeTimer = null;
         this.settings = {};
         this.clusterMode = "direct";
         this.isGatewayMode = false;
@@ -4410,9 +4428,25 @@ class DashboardBuilder {
                 popup.focus();
             }
         });
-        $(document).off("click", ".session-box .panel.status .knob-bar")
-            .on("click", ".session-box .panel.status .knob-bar", function() {
-                $(this).parent().toggleClass("expanded");
+        $(document).off("click", ".session-box .panel.status")
+            .on("click", ".session-box .panel.status", function(e) {
+                if ($(e.target).closest(".uptime").length) return;
+
+                const $panel = $(this);
+                const isMobile = $panel.find(".knob-bar").is(":visible");
+                if (!isMobile) return;
+
+                if (!$panel.hasClass("expanded")) {
+                    $panel.addClass("expanded");
+                } else if ($(e.target).closest(".knob-bar").length) {
+                    $panel.removeClass("expanded");
+                }
+            });
+        $(document).off("click", ".session-box .panel .uptime")
+            .on("click", ".session-box .panel .uptime", (e) => {
+                e.preventDefault();
+                this.uptimeMode = (this.uptimeMode === "uptime" ? "since" : "uptime");
+                this.renderUptime();
             });
         $(document).off("click", ".session-box .session-node-filter .btn")
             .on("click", ".session-box .session-node-filter .btn", (e) => {
@@ -4582,6 +4616,70 @@ class DashboardBuilder {
                     this.metricsViewer.hideMetricPopover();
                 }
             });
+    }
+
+    formatUptime(startTime) {
+        if (!startTime) return "";
+        const now = Date.now();
+        const start = new Date(startTime).getTime();
+        let diffSec = Math.max(0, Math.floor((now - start) / 1000));
+
+        const days = Math.floor(diffSec / 86400);
+        diffSec %= 86400;
+        const hours = Math.floor(diffSec / 3600);
+        diffSec %= 3600;
+        const minutes = Math.floor(diffSec / 60);
+        const seconds = diffSec % 60;
+
+        const parts = [];
+        if (days > 0) {
+            parts.push(`${days} ${days === 1 ? "day" : "days"}`);
+            if (hours > 0) {
+                parts.push(`${hours} ${hours === 1 ? "hour" : "hours"}`);
+            }
+        } else if (hours > 0) {
+            parts.push(`${hours} ${hours === 1 ? "hour" : "hours"}`);
+            if (minutes > 0) {
+                parts.push(`${minutes} ${minutes === 1 ? "min" : "mins"}`);
+            }
+        } else if (minutes > 0) {
+            parts.push(`${minutes} ${minutes === 1 ? "min" : "mins"}`);
+            if (seconds > 0) {
+                parts.push(`${seconds} ${seconds === 1 ? "sec" : "secs"}`);
+            }
+        } else {
+            parts.push(`${seconds} ${seconds === 1 ? "sec" : "secs"}`);
+        }
+        return `up ${parts.join(", ")}`;
+    }
+
+    renderUptime($uptime, startTime) {
+        const $targets = ($uptime && $uptime.length) ? $uptime : $(".session-box .panel .uptime");
+        const mode = this.uptimeMode || "uptime";
+
+        $targets.each((_, el) => {
+            const $el = $(el);
+            const time = startTime || $el.attr("data-start-time");
+            if (!time) return;
+
+            const uptimeStr = this.formatUptime(time);
+            const sinceStr = "Since " + dayjs.utc(time).local().format("LLL");
+
+            if (mode === "uptime") {
+                $el.find(".uptime-text").text(uptimeStr);
+                $el.attr("title", `${sinceStr} (Click to toggle)`);
+            } else {
+                $el.find(".uptime-text").text(sinceStr);
+                $el.attr("title", `${uptimeStr} (Click to toggle)`);
+            }
+        });
+
+        if (!this.uptimeTimer && typeof window !== "undefined") {
+            this.uptimeTimer = setInterval(() => {
+                if (typeof document !== "undefined" && document.hidden) return;
+                this.renderUptime();
+            }, 30000);
+        }
     }
 
     updateDateNavigator() {

@@ -636,69 +636,194 @@
     bottom: 0;
     left: 0;
     right: 0;
-    height: 20px;
+    height: 22px;
     display: none;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    background: linear-gradient(to bottom, rgba(159, 187, 187, 0) 0%, rgb(158, 186, 186) 65%);
+    z-index: 10;
+    user-select: none;
 }
 .session-box .panel.status .knob {
-    position: absolute;
-    bottom: 0;
-    left: 50%;
-    margin-left: -25px;
-    width: 50px;
-    height: 5px;
-    background-color: #69899c;
-    border-radius: 10px 10px 0 0;
+    width: 44px;
+    height: 13px;
+    background-color: #557585;
+    border-radius: 7px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    transition: background-color .15s ease, transform .15s ease;
+}
+.session-box .panel.status .knob-bar:hover .knob,
+.session-box .panel.status .knob-bar:active .knob {
+    background-color: #557585;
+    transform: scale(1.08);
+}
+.session-box .panel.status .knob i {
+    font-size: 11px;
+    line-height: 1;
+    transition: transform .25s ease;
+}
+.session-box .panel.status.expanded .knob i {
+    transform: rotate(180deg);
 }
 @media screen and (max-width: 768px) {
     .session-box .panel.status {
-        height: 33px;
+        height: 96px;
         overflow-y: hidden;
         border-bottom: none;
+        padding-bottom: 22px;
+        cursor: pointer;
     }
     .session-box .panel.status.expanded {
-        height: 200px;
+        height: 205px;
+        overflow-y: auto;
+        cursor: default;
     }
     .session-box .panel.status .knob-bar {
-        display: block;
+        display: flex;
     }
+}
+.session-box .panel p.uptime {
+    margin: 0;
+    padding: 2px 6px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-wrap: nowrap;
+    font-size: .78em;
+    color: #3b5059;
+    cursor: pointer;
+    user-select: none;
+    display: inline-flex;
+    align-items: center;
+    border-radius: 3px;
+    transition: background-color .15s ease, color .15s ease;
+    max-width: 100%;
+}
+.session-box .panel p.uptime:hover {
+    background-color: rgba(255, 255, 255, 0.4);
+    color: #1a333d;
+}
+.session-box .panel p.uptime .icon {
+    margin-right: 4px;
+    font-size: .88em;
+    opacity: 0.8;
+}
+.session-box .session-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    margin-bottom: 8px;
+}
+.session-box .stats-highlights {
+    display: flex;
+    gap: 6px;
+}
+.session-box .stats-highlights .stat-card {
+    flex: 1;
+    min-width: 0;
+    background-color: rgba(255, 255, 255, 0.45);
+    border-radius: 4px;
+    padding: 3px 6px 2px 6px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+.session-box .stats-highlights .stat-card .stat-label {
+    font-size: 0.72rem;
+    color: #3b5059;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.1;
+    margin-bottom: 1px;
+}
+.session-box .stats-highlights .stat-card .number {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1a333d;
+    line-height: 1.2;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    letter-spacing: -0.5px;
+}
+.session-box .stat-peak-bar {
+    background-color: rgba(255, 255, 255, 0.35);
+    border-radius: 4px;
+    padding: 4px 6px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+.session-box .stat-peak-bar .peak-bar-track {
+    height: 4px;
+    background-color: rgba(0, 0, 0, 0.12);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-bottom: 3px;
+}
+.session-box .stat-peak-bar .peak-bar-fill {
+    height: 100%;
+    background-color: #2b7a78;
+    border-radius: 2px;
+    transition: width 0.3s ease;
+}
+.session-box .stat-peak-bar .peak-bar-info {
+    font-size: 0.7rem;
+    color: #3b5059;
+    display: flex;
+    justify-content: space-between;
+    line-height: 1;
+}
+.session-box .stat-peak-bar .peak-bar-info .peak-ratio {
+    font-weight: 700;
+    color: #1a333d;
+}
+.session-box .stats-sub-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+}
+.session-box .stats-sub-grid .sub-item {
+    background-color: rgba(255, 255, 255, 0.28);
+    border-radius: 3px;
+    padding: 3px 6px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+.session-box .stats-sub-grid .sub-item .sub-label {
+    font-size: 0.72rem;
+    color: #3b5059;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.session-box .stats-sub-grid .sub-item .number {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #1a333d;
+    font-variant-numeric: tabular-nums;
+    margin-left: 4px;
+}
+.session-box .stats-sub-grid .sub-item.rejected-item.has-rejected {
+    background-color: #ffd6d6;
+    border-color: #ff9999;
+}
+.session-box .stats-sub-grid .sub-item.rejected-item.has-rejected .sub-label,
+.session-box .stats-sub-grid .sub-item.rejected-item.has-rejected .number {
+    color: #c92a2a;
+    font-weight: 700;
 }
 .session-box .panel.ground {
     background-color: #eff5fa;
-}
-.session-box .panel p.since {
-    margin: 0;
-    padding: 0 .5em;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    text-wrap: nowrap;
-    font-size: .85em;
-}
-.session-box dl.session-stats {
-    margin-bottom: .3em;
-}
-.session-box dl.session-stats dt {
-    float: left;
-    clear: left;
-    padding: 0 0 0 .5em;
-    margin: 0;
-    height: 24px;
-    font-size: .9em;
-    font-weight: normal;
-    width: 70%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    text-wrap: nowrap;
-}
-.session-box dl.session-stats dd {
-    text-align: right;
-    font-weight: normal;
-    font-size: 1em;
-    padding: 0 .5em 0 0;
-    margin: 0;
-    height: 24px;
-    white-space: nowrap;
 }
 .session-box .session-node-filter {
     position: sticky;

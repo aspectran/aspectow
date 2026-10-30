@@ -19,11 +19,12 @@
  * Responsible for rendering monitoring data, including logs, metrics, and charts.
  *
  * @version 4.3
- * @last-modified 2026-10-29
+ * @last-modified 2026-10-30
  */
 class DashboardViewer {
     constructor(sampleInterval, options = {}) {
         this.flagsUrl = options.flagsUrl || "https://cdn.jsdelivr.net/gh/aspectran/aspectran-assets@main/assets/countries/flags/";
+        this.onRenderUptime = options.onRenderUptime || null;
 
         this.isGroupView = false;
         this.groupId = null;
@@ -768,8 +769,22 @@ class DashboardViewer {
             $display.find(".highestNumberOfActives").text(eventData.highestNumberOfActives);
             $display.find(".numberOfRejected").text(eventData.numberOfRejected);
             if (eventData.startTime) {
-                $display.find(".startTime").text(dayjs.utc(eventData.startTime).local().format("LLL"));
+                const $uptime = $display.find(".uptime");
+                $uptime.attr("data-start-time", eventData.startTime);
+                if (typeof this.onRenderUptime === "function") {
+                    this.onRenderUptime($uptime, eventData.startTime);
+                }
             }
+
+            const actives = Number(eventData.numberOfActives) || 0;
+            const highest = Number(eventData.highestNumberOfActives) || 0;
+            const ratio = highest > 0 ? Math.min(100, Math.round((actives / highest) * 100)) : 0;
+            $display.find(".peak-bar-fill").css("width", ratio + "%");
+            $display.find(".peak-ratio").text(ratio + "%");
+
+            const rejected = Number(eventData.numberOfRejected) || 0;
+            $display.find(".rejected-item").toggleClass("has-rejected", rejected > 0);
+
             const $sessions = $display.find("ul.sessions");
 
             if (eventData.fullSync) {

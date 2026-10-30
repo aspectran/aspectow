@@ -105,27 +105,52 @@
                 </div>
                 <div class="session-box">
                     <div class="row g-0">
-                        <div class="col-sm-12 col-md-4">
+                        <div class="col-sm-12 col-md-3">
                             <div class="panel status">
-                                <dl class="session-stats">
-                                    <dt title="The number of unique active users">Active Users</dt>
-                                    <dd><span class="number numberOfUsers">0</span></dd>
-                                    <dt title="The number of active sessions">Active Sessions</dt>
-                                    <dd><span class="number numberOfActives">0</span></dd>
-                                    <dt title="The highest number of sessions that have been active at a single time">Peak Active Sessions</dt>
-                                    <dd><span class="number highestNumberOfActives">0</span></dd>
-                                    <dt title="The number of sessions created since system bootup">Created Sessions</dt>
-                                    <dd><span class="number numberOfCreated">0</span></dd>
-                                    <dt title="The number of expired sessions">Expired Sessions</dt>
-                                    <dd><span class="number numberOfExpired">0</span></dd>
-                                    <dt title="The number of rejected sessions due to reaching the maximum session limit">Rejected Sessions</dt>
-                                    <dd><span class="number numberOfRejected">0</span></dd>
-                                </dl>
-                                <p class="since"><i>Since <span class="startTime"></span></i></p>
-                                <div class="knob-bar"><div class="knob"></div></div>
+                                <div class="session-stats">
+                                    <div class="stats-highlights">
+                                        <div class="stat-card" title="The number of unique active users">
+                                            <span class="stat-label">Active Users</span>
+                                            <span class="number numberOfUsers">0</span>
+                                        </div>
+                                        <div class="stat-card" title="The number of active sessions">
+                                            <span class="stat-label">Active Sessions</span>
+                                            <span class="number numberOfActives">0</span>
+                                        </div>
+                                    </div>
+                                    <div class="stat-peak-bar" title="Active sessions relative to peak">
+                                        <div class="peak-bar-track">
+                                            <div class="peak-bar-fill" style="width: 0%;"></div>
+                                        </div>
+                                        <div class="peak-bar-info">
+                                            <span><span class="peak-ratio">0%</span> of peak</span>
+                                            <span class="highestNumberOfActives">0</span>
+                                        </div>
+                                    </div>
+                                    <div class="stats-sub-grid">
+                                        <div class="sub-item" title="The highest number of sessions that have been active at a single time">
+                                            <span class="sub-label">Peak</span>
+                                            <span class="number highestNumberOfActives">0</span>
+                                        </div>
+                                        <div class="sub-item" title="The number of sessions created since system bootup">
+                                            <span class="sub-label">Created</span>
+                                            <span class="number numberOfCreated">0</span>
+                                        </div>
+                                        <div class="sub-item" title="The number of expired sessions">
+                                            <span class="sub-label">Expired</span>
+                                            <span class="number numberOfExpired">0</span>
+                                        </div>
+                                        <div class="sub-item rejected-item" title="The number of rejected sessions due to reaching the maximum session limit">
+                                            <span class="sub-label">Rejected</span>
+                                            <span class="number numberOfRejected">0</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <p class="uptime" title="Click to toggle between Uptime and Start Time"><i class="bi bi-clock-history icon"></i><span class="uptime-text"></span></p>
+                                <div class="knob-bar" title="Toggle session stats"><div class="knob"><i class="bi bi-chevron-down"></i></div></div>
                             </div>
                         </div>
-                        <div class="col-sm-12 col-md-8">
+                        <div class="col-sm-12 col-md-9">
                             <div class="panel ground">
                                 <div class="session-node-filter btn-group" style="display: none;">
                                     <button type="button" class="btn btn-node on" data-node-id="">All</button>
