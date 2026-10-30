@@ -19,7 +19,7 @@
  * Responsible for assembling the dashboard UI based on configuration data.
  *
  * @version 4.3
- * @last-modified 2026-10-29
+ * @last-modified 2026-10-30
  */
 class DashboardBuilder {
     constructor(options = {}) {
@@ -858,9 +858,13 @@ class DashboardBuilder {
             const $picker = $(e.currentTarget).find(".date-picker-input");
             if ($picker.length) {
                 if (typeof $picker[0].showPicker === "function") {
-                    $picker[0].showPicker();
+                    try {
+                        $picker[0].showPicker();
+                    } catch (err) {
+                        // ignore if already open or unsupported (e.g. WebKit bug #261703)
+                    }
                 } else {
-                    $picker.trigger("focus").trigger("click");
+                    $picker[0].focus();
                 }
             }
         });

@@ -16,7 +16,7 @@
 
 /*
  * @version 4.3
- * @last-modified 2026-10-29
+ * @last-modified 2026-10-30
  */
 
 /* For console-integrated & standalone page-content */
@@ -413,6 +413,7 @@
 }
 .control-bar .options .date-navigator .btn-date {
     position: relative;
+    overflow: hidden;
 }
 .control-bar .options .date-navigator .date-picker-input {
     position: absolute;
@@ -424,8 +425,22 @@
     border: 0;
     padding: 0;
     margin: 0;
-    pointer-events: none;
-    z-index: -1;
+    outline: none;
+    cursor: pointer;
+    font-size: 16px;
+    -webkit-appearance: none;
+    appearance: none;
+}
+.control-bar .options .date-navigator .date-picker-input::-webkit-calendar-picker-indicator {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    opacity: 0;
+    cursor: pointer;
 }
 @media screen and (max-width: 993px) {
     .control-bar .options {
@@ -435,9 +450,6 @@
     .control-bar .options .btn-group .btn {
         padding-left: 6px;
         padding-right: 6px;
-    }
-    .event-box .control-bar .options, .charts-box .control-bar .options {
-        justify-content: flex-end;
     }
 }
 @media screen and (max-width: 576px) {
