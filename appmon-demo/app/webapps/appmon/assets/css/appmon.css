@@ -659,7 +659,7 @@
 }
 .session-box .panel.status .knob-bar:hover .knob,
 .session-box .panel.status .knob-bar:active .knob {
-    background-color: #557585;
+    background-color: #65899c;
     transform: scale(1.08);
 }
 .session-box .panel.status .knob i {
@@ -679,7 +679,7 @@
         cursor: pointer;
     }
     .session-box .panel.status.expanded {
-        height: 205px;
+        height: 200px;
         overflow-y: auto;
         cursor: default;
     }
@@ -716,12 +716,12 @@
 .session-box .session-stats {
     display: flex;
     flex-direction: column;
-    gap: 7px;
-    margin-bottom: 8px;
+    gap: 5px;
+    margin-bottom: 5px;
 }
 .session-box .stats-highlights {
     display: flex;
-    gap: 6px;
+    gap: 5px;
 }
 .session-box .stats-highlights .stat-card {
     flex: 1;
@@ -738,7 +738,6 @@
 .session-box .stats-highlights .stat-card .stat-label {
     font-size: 0.72rem;
     color: #3b5059;
-    font-weight: 600;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -786,8 +785,12 @@
 }
 .session-box .stats-sub-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
     gap: 4px;
+}
+@media screen and (max-width: 768px) {
+    .session-box .stats-sub-grid {
+        grid-template-columns: 1fr 1fr;
+    }
 }
 .session-box .stats-sub-grid .sub-item {
     background-color: rgba(255, 255, 255, 0.28);

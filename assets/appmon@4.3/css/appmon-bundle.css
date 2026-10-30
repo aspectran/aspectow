@@ -659,7 +659,7 @@
 }
 .session-box .panel.status .knob-bar:hover .knob,
 .session-box .panel.status .knob-bar:active .knob {
-    background-color: #557585;
+    background-color: #65899c;
     transform: scale(1.08);
 }
 .session-box .panel.status .knob i {
@@ -679,7 +679,7 @@
         cursor: pointer;
     }
     .session-box .panel.status.expanded {
-        height: 205px;
+        height: 200px;
         overflow-y: auto;
         cursor: default;
     }
@@ -716,12 +716,12 @@
 .session-box .session-stats {
     display: flex;
     flex-direction: column;
-    gap: 7px;
-    margin-bottom: 8px;
+    gap: 5px;
+    margin-bottom: 5px;
 }
 .session-box .stats-highlights {
     display: flex;
-    gap: 6px;
+    gap: 5px;
 }
 .session-box .stats-highlights .stat-card {
     flex: 1;
@@ -738,7 +738,6 @@
 .session-box .stats-highlights .stat-card .stat-label {
     font-size: 0.72rem;
     color: #3b5059;
-    font-weight: 600;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -786,8 +785,12 @@
 }
 .session-box .stats-sub-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
     gap: 4px;
+}
+@media screen and (max-width: 768px) {
+    .session-box .stats-sub-grid {
+        grid-template-columns: 1fr 1fr;
+    }
 }
 .session-box .stats-sub-grid .sub-item {
     background-color: rgba(255, 255, 255, 0.28);
@@ -1246,22 +1249,22 @@
         color: #709185;
     }
     .session-box .panel {
-        background-color: #2a3430;
+        background-color: #2a2c2d;
     }
     .session-box .panel.status .knob-bar {
-        background: linear-gradient(to bottom, rgba(38, 50, 45, 0) 0%, rgb(42, 52, 48) 65%);
+        background: linear-gradient(to bottom, rgba(38, 50, 45, 0) 0%, rgb(40, 42, 43) 65%);
     }
     .session-box .panel.status .knob {
-        background-color: #384649;
+        background-color: #455356;
         color: #e2e8f0;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
     }
     .session-box .panel.status .knob-bar:hover .knob,
     .session-box .panel.status .knob-bar:active .knob {
-        background-color: #313b3d;
+        background-color: #384649;
     }
     .session-box .panel p.uptime {
-        color: #7d9692;
+        color: #a6a9a8;
     }
     .session-box .panel p.uptime:hover {
         background-color: rgba(255, 255, 255, 0.08);
@@ -1273,7 +1276,7 @@
         box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
     }
     .session-box .stats-highlights .stat-card .stat-label {
-        color: #9cb3ad;
+        color: #aec2bd;
     }
     .session-box .stats-highlights .stat-card .number {
         color: #f1f5f9;
@@ -1289,17 +1292,17 @@
         background-color: #00a46e;
     }
     .session-box .stat-peak-bar .peak-bar-info {
-        color: #8da49f;
+        color: #aec2bd;
     }
     .session-box .stat-peak-bar .peak-bar-info .peak-ratio {
-        color: #9bd6c3;
+        color: #d8fff5;
     }
     .session-box .stats-sub-grid .sub-item {
         background-color: rgba(255, 255, 255, 0.04);
         border-color: rgba(255, 255, 255, 0.06);
     }
     .session-box .stats-sub-grid .sub-item .sub-label {
-        color: #8da49f;
+        color: #aec2bd;
     }
     .session-box .stats-sub-grid .sub-item .number {
         color: #e2e8f0;
