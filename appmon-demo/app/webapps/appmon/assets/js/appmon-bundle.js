@@ -3549,7 +3549,7 @@ class MetricsViewer {
  * Responsible for assembling the dashboard UI based on configuration data.
  *
  * @version 4.3
- * @last-modified 2026-10-30
+ * @last-modified 2026-10-31
  */
 class DashboardBuilder {
     constructor(options = {}) {
@@ -4536,10 +4536,12 @@ class DashboardBuilder {
             if (newMaximizedState) {
                 $btn.attr("title", $btn.data("title-compress"));
                 $icon.removeClass($icon.data("icon-expand")).addClass($icon.data("icon-compress"));
+                $consoleBox.find(".wide-switch").removeClass("d-lg-inline-block").hide();
                 $("body").css("overflow", "hidden");
             } else {
                 $btn.attr("title", $btn.data("title-expand"));
                 $icon.removeClass($icon.data("icon-compress")).addClass($icon.data("icon-expand"));
+                $consoleBox.find(".wide-switch").addClass("d-lg-inline-block").css("display", "");
                 $("body").css("overflow", "");
             }
         });
@@ -5254,7 +5256,7 @@ class DashboardBuilder {
             .attr({ "data-group-id": groupInfo.id, "data-app-id": appInfo.id, "data-log-id": logInfo.id });
         $newBox.find(".status-bar h4").text(logInfo.file);
         if (isSingle) {
-            $newBox.find(".wide-switch").hide();
+            $newBox.find(".wide-switch").remove();
         } else if (this.consoleWideMode) {
             $newBox.find(".wide-switch").addClass("on")
                 .attr("title", function() { return $(this).data("title-normal") || "Half width"; })
@@ -5308,7 +5310,7 @@ class DashboardBuilder {
             .attr({ "data-node-index": nodeInfo.index, "data-app-id": appInfo.id, "data-log-id": logInfo.id });
         $newBox.find(".status-bar h4").text(logInfo.file);
         if (isSingle) {
-            $newBox.find(".wide-switch").hide();
+            $newBox.find(".wide-switch").remove();
         } else if (this.consoleWideMode) {
             $newBox.find(".wide-switch").addClass("on")
                 .attr("title", function() { return $(this).data("title-normal") || "Half width"; })
