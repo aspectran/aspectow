@@ -19,7 +19,7 @@
  * Responsible for rendering and updating individual charts using Chart.js.
  *
  * @version 4.3
- * @last-modified 2026-10-29
+ * @last-modified 2026-11-01
  */
 class DashboardChart {
     constructor($container, eventId) {
@@ -51,9 +51,235 @@ class DashboardChart {
         return $canvas;
     }
 
+    ensureControls() {
+        let $controls = this.$container.find(".chart-zoom-controls");
+        if (!$controls.length) {
+            this.$container.find(".reset-zoom").remove();
+            $controls = $(`
+                <div class="chart-zoom-controls btn-group" style="display: none;">
+                    <button class="btn btn-zoom-in bi bi-zoom-in" type="button" title="Zoom in"></button>
+                    <button class="btn btn-zoom-out bi bi-zoom-out" type="button" title="Zoom out"></button>
+                    <button class="btn btn-zoom-reset bi bi-fullscreen-exit" type="button" title="Reset zoom"></button>
+                </div>
+            `).appendTo(this.$container);
+        }
+        $controls.find(".btn-zoom-in").off("click").on("click", (e) => {
+            e.stopPropagation();
+            this.zoomIn();
+        });
+        $controls.find(".btn-zoom-out").off("click").on("click", (e) => {
+            e.stopPropagation();
+            this.zoomOut();
+        });
+        $controls.find(".btn-zoom-reset").off("click").on("click", (e) => {
+            e.stopPropagation();
+            this.resetZoom();
+        });
+        return $controls;
+    }
+
+    bindInteractionEvents($canvas) {
+        $canvas.off(".chartZoom");
+        if (this.docEventNamespace) {
+            $(document).off(this.docEventNamespace);
+        }
+        this.docEventNamespace = "pointerdown.chartZoom_" + (this.eventId || "chart") + "_" + Math.random().toString(36).substring(2, 7);
+
+        let lastTapTime = 0;
+        let lastTapX = 0;
+        let lastTapY = 0;
+
+        $canvas.on("touchend.chartZoom", (e) => {
+            const now = Date.now();
+            const touch = e.originalEvent && e.originalEvent.changedTouches ? e.originalEvent.changedTouches[0] : null;
+            if (!touch) return;
+
+            const timeDiff = now - lastTapTime;
+            const dist = Math.hypot(touch.clientX - lastTapX, touch.clientY - lastTapY);
+
+            // Show zoom controls on first tap
+            this.showControls();
+
+            if (timeDiff < 350 && dist < 20) {
+                const rect = $canvas[0].getBoundingClientRect();
+                const xPixel = touch.clientX - rect.left;
+                if (this.chart && this.chart.scales && this.chart.scales.x) {
+                    const index = Math.round(this.chart.scales.x.getValueForPixel(xPixel));
+                    if (!isNaN(index) && index >= 0) {
+                        this.zoomIn(index);
+                    }
+                }
+                lastTapTime = 0;
+                return;
+            }
+
+            lastTapTime = now;
+            lastTapX = touch.clientX;
+            lastTapY = touch.clientY;
+        });
+
+        $canvas.on("click.chartZoom", () => {
+            this.showControls();
+        });
+
+        $canvas.on("dblclick.chartZoom", (e) => {
+            const rect = $canvas[0].getBoundingClientRect();
+            const xPixel = e.clientX - rect.left;
+            if (this.chart && this.chart.scales && this.chart.scales.x) {
+                const index = Math.round(this.chart.scales.x.getValueForPixel(xPixel));
+                if (!isNaN(index) && index >= 0) {
+                    this.zoomIn(index);
+                }
+            }
+        });
+
+        // Hide controls on click outside when not zoomed
+        $(document).on(this.docEventNamespace, (e) => {
+            if (!this.$container.is(e.target) && this.$container.has(e.target).length === 0) {
+                if (!this.isZoomed()) {
+                    this.$container.removeClass("show-controls");
+                    this.updateControls();
+                }
+            }
+        });
+    }
+
+    showControls() {
+        this.$container.addClass("show-controls");
+        this.updateControls();
+    }
+
+    isZoomed() {
+        if (!this.chart || !this.chart.data || !this.chart.data.labels) return false;
+        const total = this.chart.data.labels.length;
+        if (total <= 1) return false;
+        const xOpts = this.chart.options.scales.x;
+        const min = (xOpts && xOpts.min != null ? xOpts.min : 0);
+        const max = (xOpts && xOpts.max != null ? xOpts.max : total - 1);
+        return (min > 0 || max < total - 1);
+    }
+
+    isZoomedOrPanned() {
+        return this.isZoomed();
+    }
+
+    updateControls() {
+        const $controls = this.$container.find(".chart-zoom-controls");
+        if (!$controls.length) return;
+
+        const zoomed = this.isZoomed();
+        const shouldShow = zoomed || this.$container.hasClass("show-controls");
+        if (zoomed) {
+            this.$container.addClass("is-zoomed");
+        } else {
+            this.$container.removeClass("is-zoomed");
+        }
+
+        if (shouldShow) {
+            $controls.show();
+        } else {
+            $controls.hide();
+        }
+
+        if (this.chart && this.chart.data && this.chart.data.labels) {
+            const total = this.chart.data.labels.length;
+            const min = this.chart.options.scales.x.min != null ? this.chart.options.scales.x.min : 0;
+            const max = this.chart.options.scales.x.max != null ? this.chart.options.scales.x.max : total - 1;
+            const range = max - min;
+            const minRange = Math.min(8, total - 1);
+
+            $controls.find(".btn-zoom-in").prop("disabled", range <= minRange);
+            $controls.find(".btn-zoom-out").prop("disabled", !zoomed);
+            $controls.find(".btn-zoom-reset").prop("disabled", !zoomed);
+        }
+    }
+
+    zoomIn(centerIndex = null) {
+        if (!this.chart || !this.chart.data || !this.chart.data.labels) return;
+        const total = this.chart.data.labels.length;
+        if (total <= 1) return;
+
+        let currMin = this.chart.options.scales.x.min != null ? this.chart.options.scales.x.min : 0;
+        let currMax = this.chart.options.scales.x.max != null ? this.chart.options.scales.x.max : total - 1;
+        let currRange = currMax - currMin;
+
+        const minRange = Math.min(8, total - 1);
+        if (currRange <= minRange) {
+            // Reset to full view if already at maximum zoom level
+            this.resetZoom();
+            return;
+        }
+
+        const newRange = Math.max(minRange, Math.round(currRange * 0.5));
+        const center = (centerIndex != null && centerIndex >= 0 && centerIndex < total)
+            ? centerIndex
+            : Math.round((currMin + currMax) / 2);
+
+        let newMin = Math.round(center - newRange / 2);
+        let newMax = newMin + newRange;
+
+        if (newMin < 0) {
+            newMin = 0;
+            newMax = Math.min(total - 1, newRange);
+        } else if (newMax >= total) {
+            newMax = total - 1;
+            newMin = Math.max(0, total - 1 - newRange);
+        }
+
+        this.chart.options.scales.x.min = newMin;
+        this.chart.options.scales.x.max = newMax;
+        this.chart.update("none");
+        this.updateControls();
+    }
+
+    zoomOut() {
+        if (!this.chart || !this.chart.data || !this.chart.data.labels) return;
+        if (!this.isZoomed()) return;
+
+        const total = this.chart.data.labels.length;
+        let currMin = this.chart.options.scales.x.min != null ? this.chart.options.scales.x.min : 0;
+        let currMax = this.chart.options.scales.x.max != null ? this.chart.options.scales.x.max : total - 1;
+        let currRange = currMax - currMin;
+
+        const newRange = Math.round(currRange / 0.5);
+        if (newRange >= total - 1) {
+            this.resetZoom();
+            return;
+        }
+
+        const center = Math.round((currMin + currMax) / 2);
+        let newMin = Math.round(center - newRange / 2);
+        let newMax = newMin + newRange;
+
+        if (newMin < 0) {
+            newMin = 0;
+            newMax = Math.min(total - 1, newRange);
+        } else if (newMax >= total) {
+            newMax = total - 1;
+            newMin = Math.max(0, total - 1 - newRange);
+        }
+
+        this.chart.options.scales.x.min = newMin;
+        this.chart.options.scales.x.max = newMax;
+        this.chart.update("none");
+        this.updateControls();
+    }
+
+    resetZoom() {
+        if (this.chart) {
+            delete this.chart.options.scales.x.min;
+            delete this.chart.options.scales.x.max;
+            this.chart.update("none");
+            this.$container.removeClass("is-zoomed show-controls");
+            this.updateControls();
+        }
+    }
+
     draw(dateUnit, labels, data1, data2) {
         this.destroy();
         const $canvas = this.ensureCanvas();
+        this.ensureControls();
+        this.bindInteractionEvents($canvas);
 
         let dataLabel1;
         let borderColor1;
@@ -169,29 +395,6 @@ class DashboardChart {
                                 return label + ": " + (val != null ? Number(val).toLocaleString() : 0);
                             }
                         }
-                    },
-                    zoom: {
-                        zoom: {
-                            wheel: { enabled: false },
-                            pinch: { enabled: true },
-                            drag: {
-                                enabled: true,
-                                threshold: 21,
-                                backgroundColor: "rgba(225,225,225,0.35)",
-                                borderColor: "rgba(225,225,225)",
-                                borderWidth: 1
-                            },
-                            mode: "x",
-                            onZoomComplete: () => {
-                                const $resetZoom = this.$container.find(".reset-zoom");
-                                if (this.isZoomedOrPanned()) {
-                                    $resetZoom.off("click").on("click", () => this.resetZoom()).show();
-                                } else {
-                                    $resetZoom.hide();
-                                }
-                            }
-                        },
-                        pan: { enabled: true, mode: "x", modifierKey: "ctrl" }
                     }
                 },
                 scales: {
@@ -308,22 +511,7 @@ class DashboardChart {
         });
 
         this.dateUnit = dateUnit;
-        const $resetZoom = this.$container.find(".reset-zoom");
-        if (this.isZoomedOrPanned()) {
-            $resetZoom.show();
-        } else {
-            $resetZoom.hide();
-        }
-    }
-
-    isZoomedOrPanned() {
-        return (this.chart && typeof this.chart.isZoomedOrPanned === "function" && this.chart.isZoomedOrPanned());
-    }
-
-    resetZoom() {
-        if (this.chart && typeof this.chart.resetZoom === "function") {
-            this.chart.resetZoom();
-        }
+        this.updateControls();
     }
 
     setData(labels, data1, data2) {
@@ -331,6 +519,14 @@ class DashboardChart {
             this.chart.data.labels = labels;
             this.chart.data.datasets[0].data = data1;
             this.chart.data.datasets[1].data = data2;
+            if (this.isZoomed()) {
+                const total = labels.length;
+                if (this.chart.options.scales.x.max >= total) {
+                    this.resetZoom();
+                } else {
+                    this.updateControls();
+                }
+            }
             this.update();
         }
     }
@@ -338,7 +534,6 @@ class DashboardChart {
     /**
      * Applies real-time rollup data to the chart.
      * Recognizes date-formatted labels and accumulates values in real time.
-     *
      * @param {string} label - ISO 8601 date string
      * @param {number} delta - Primary data delta (e.g. activities or sessions)
      * @param {number|null} aux - Secondary/auxiliary data delta (e.g. errors or active users)
@@ -436,9 +631,17 @@ class DashboardChart {
 
     destroy() {
         this.updateScheduled = false;
+        if (this.docEventNamespace) {
+            $(document).off(this.docEventNamespace);
+            this.docEventNamespace = null;
+        }
         if (this.chart) {
+            const $canvas = this.$container.find("canvas");
+            $canvas.off(".chartZoom");
             this.chart.destroy();
             this.chart = null;
         }
+        this.$container.removeClass("is-zoomed show-controls");
+        this.updateControls();
     }
 }

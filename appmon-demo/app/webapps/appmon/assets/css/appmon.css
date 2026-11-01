@@ -589,6 +589,46 @@
 .charts-box .chart-box .chart canvas {
     width: 100%;
 }
+.charts-box .chart-box .chart .chart-zoom-controls {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    display: none;
+    z-index: 5;
+    background-color: rgba(255, 255, 255, 0.85);
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+    backdrop-filter: blur(2px);
+}
+.charts-box .chart-box .chart:hover .chart-zoom-controls,
+.charts-box .chart-box .chart.show-controls .chart-zoom-controls,
+.charts-box .chart-box .chart.is-zoomed .chart-zoom-controls {
+    display: inline-flex;
+}
+.charts-box .chart-box .chart .chart-zoom-controls .btn {
+    padding: 2px 7px;
+    font-size: 0.78rem;
+    line-height: 1.2;
+    border: none;
+    background: transparent;
+    color: #495057;
+    cursor: pointer;
+    transition: background-color 0.15s, color 0.15s;
+}
+.charts-box .chart-box .chart .chart-zoom-controls .btn + .btn {
+    border-left: 1px solid rgba(0, 0, 0, 0.08);
+}
+.charts-box .chart-box .chart .chart-zoom-controls .btn:hover {
+    color: #1a1a1a;
+    background-color: rgba(0, 0, 0, 0.06);
+}
+.charts-box .chart-box .chart .chart-zoom-controls .btn:disabled {
+    color: #adb5bd;
+    opacity: 0.45;
+    cursor: default;
+    background-color: transparent;
+}
 .charts-box .chart-box .chart .reset-zoom {
     position: absolute;
     top: 0;
