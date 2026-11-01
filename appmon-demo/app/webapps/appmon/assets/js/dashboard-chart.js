@@ -29,6 +29,77 @@ class DashboardChart {
         this.dateUnit = null;
         this.dateOffset = null;
         this.updateScheduled = false;
+        this.isTableView = false;
+        this.isDropdownOpen = false;
+        this.themeObserver = null;
+    }
+
+    isDarkMode() {
+        return document.documentElement.getAttribute("data-bs-theme") === "dark" ||
+               document.body.classList.contains("dark-mode");
+    }
+
+    getThemeColors() {
+        const isDark = this.isDarkMode();
+        if (isDark) {
+            return {
+                tooltipBg: "rgba(23, 32, 42, 0.95)",
+                tooltipTitle: "#ffffff",
+                tooltipBody: "#e0e6ed",
+                tooltipBorder: "rgba(255, 255, 255, 0.15)",
+                crosshair: "rgba(200, 210, 225, 0.45)",
+                gridLine: "#252b30"
+            };
+        } else {
+            return {
+                tooltipBg: "rgba(255, 255, 255, 0.96)",
+                tooltipTitle: "#0f172a",
+                tooltipBody: "#334155",
+                tooltipBorder: "rgba(0, 0, 0, 0.12)",
+                crosshair: "rgba(100, 116, 139, 0.45)",
+                gridLine: "#e4e4e4"
+            };
+        }
+    }
+
+    observeThemeChange() {
+        if (this.themeObserver) return;
+        if (typeof window !== "undefined" && window.MutationObserver) {
+            this.themeObserver = new MutationObserver((mutations) => {
+                for (const m of mutations) {
+                    if (m.type === "attributes") {
+                        this.applyTheme();
+                        break;
+                    }
+                }
+            });
+            this.themeObserver.observe(document.documentElement, {
+                attributes: true,
+                attributeFilter: ["data-bs-theme"]
+            });
+            if (document.body) {
+                this.themeObserver.observe(document.body, {
+                    attributes: true,
+                    attributeFilter: ["class"]
+                });
+            }
+        }
+    }
+
+    applyTheme() {
+        if (!this.chart) return;
+        const theme = this.getThemeColors();
+        const tt = this.chart.options.plugins && this.chart.options.plugins.tooltip;
+        if (tt) {
+            tt.backgroundColor = theme.tooltipBg;
+            tt.titleColor = theme.tooltipTitle;
+            tt.bodyColor = theme.tooltipBody;
+            tt.borderColor = theme.tooltipBorder;
+        }
+        if (this.chart.options.scales.y && this.chart.options.scales.y.grid) {
+            this.chart.options.scales.y.grid.color = theme.gridLine;
+        }
+        this.chart.update("none");
     }
 
     isDrawn() {
@@ -53,16 +124,6 @@ class DashboardChart {
 
     ensureControls() {
         let $controls = this.$container.find(".chart-zoom-controls");
-        if (!$controls.length) {
-            this.$container.find(".reset-zoom").remove();
-            $controls = $(`
-                <div class="chart-zoom-controls btn-group" style="display: none;">
-                    <button class="btn btn-zoom-in bi bi-zoom-in" type="button" title="Zoom in"></button>
-                    <button class="btn btn-zoom-out bi bi-zoom-out" type="button" title="Zoom out"></button>
-                    <button class="btn btn-zoom-reset bi bi-fullscreen-exit" type="button" title="Reset zoom"></button>
-                </div>
-            `).appendTo(this.$container);
-        }
         $controls.find(".btn-zoom-in").off("click").on("click", (e) => {
             e.stopPropagation();
             this.zoomIn();
@@ -75,7 +136,59 @@ class DashboardChart {
             e.stopPropagation();
             this.resetZoom();
         });
+
+        const $dropdown = $controls.find(".chart-options-dropdown");
+        $dropdown.off(".chartOptions")
+            .on("show.bs.dropdown.chartOptions", () => {
+                this.isDropdownOpen = true;
+                this.$container.addClass("show-controls");
+            })
+            .on("hidden.bs.dropdown.chartOptions", () => {
+                this.isDropdownOpen = false;
+                if (!this.isZoomed() && !this.isTableView) {
+                    this.$container.removeClass("show-controls");
+                    this.updateControls();
+                }
+            });
+
+        // Fallback only if Bootstrap JS is not available
+        if (typeof bootstrap === "undefined" || !bootstrap.Dropdown) {
+            $controls.find(".btn-chart-options").off("click").on("click", (e) => {
+                e.stopPropagation();
+                $controls.find(".dropdown-menu").toggleClass("show");
+            });
+        }
+
+        $controls.find(".option-view-table").off("click").on("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            this.closeDropdown();
+            this.toggleTableView();
+        });
+        $controls.find(".option-download-csv").off("click").on("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            this.closeDropdown();
+            this.downloadCsv();
+        });
+        $controls.find(".option-download-png").off("click").on("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            this.closeDropdown();
+            this.downloadPng();
+        });
+
         return $controls;
+    }
+
+    closeDropdown() {
+        const $controls = this.$container.find(".chart-zoom-controls");
+        const $btn = $controls.find(".btn-chart-options");
+        if ($btn.length && typeof bootstrap !== "undefined" && bootstrap.Dropdown) {
+            const instance = bootstrap.Dropdown.getInstance($btn[0]);
+            if (instance) instance.hide();
+        }
+        $controls.find(".dropdown-menu").removeClass("show");
     }
 
     bindInteractionEvents($canvas) {
@@ -136,7 +249,8 @@ class DashboardChart {
         // Hide controls on click outside when not zoomed
         $(document).on(this.docEventNamespace, (e) => {
             if (!this.$container.is(e.target) && this.$container.has(e.target).length === 0) {
-                if (!this.isZoomed()) {
+                this.closeDropdown();
+                if (!this.isZoomed() && !this.isTableView && !this.isDropdownOpen) {
                     this.$container.removeClass("show-controls");
                     this.updateControls();
                 }
@@ -167,8 +281,14 @@ class DashboardChart {
         const $controls = this.$container.find(".chart-zoom-controls");
         if (!$controls.length) return;
 
+        // Hide chart zoom/options controls completely when in table view
+        if (this.isTableView) {
+            $controls.hide();
+            return;
+        }
+
         const zoomed = this.isZoomed();
-        const shouldShow = zoomed || this.$container.hasClass("show-controls");
+        const shouldShow = zoomed || this.isDropdownOpen || this.$container.hasClass("show-controls");
         if (zoomed) {
             this.$container.addClass("is-zoomed");
         } else {
@@ -192,6 +312,156 @@ class DashboardChart {
             $controls.find(".btn-zoom-out").prop("disabled", !zoomed);
             $controls.find(".btn-zoom-reset").prop("disabled", !zoomed);
         }
+    }
+
+    toggleTableView() {
+        this.isTableView = !this.isTableView;
+        if (this.isTableView) {
+            this.$container.addClass("is-table-view");
+            this.renderTable();
+        } else {
+            this.$container.removeClass("is-table-view");
+        }
+        this.updateControls();
+    }
+
+    renderTable() {
+        let $tableWrap = this.$container.find(".chart-table-wrap");
+        if (!$tableWrap.length) {
+            $tableWrap = $('<div class="chart-table-wrap"></div>').appendTo(this.$container);
+        }
+
+        if (!this.chart || !this.chart.data || !this.chart.data.labels) {
+            $tableWrap.html('<button type="button" class="btn btn-close-table bi bi-x-lg" title="Close table view"></button><div class="text-muted p-2 text-center">No data available</div>');
+            $tableWrap.find(".btn-close-table").off("click").on("click", (e) => {
+                e.stopPropagation();
+                this.toggleTableView();
+            });
+            return;
+        }
+
+        const labels = this.chart.data.labels;
+        const ds1 = this.chart.data.datasets[0] || { label: "Data 1", data: [] };
+        const ds2 = this.chart.data.datasets[1] || null;
+
+        let html = '<button type="button" class="btn btn-close-table bi bi-x-lg" title="Close table view"></button>';
+        html += '<table class="table table-sm table-striped table-hover">';
+        html += '<thead><tr>';
+        html += '<th class="col-date">Date / Time</th>';
+        html += `<th class="text-end col-val1">${this.escapeHtml(ds1.label || "Value 1")}</th>`;
+        if (ds2) {
+            html += `<th class="text-end col-val2">${this.escapeHtml(ds2.label || "Value 2")}</th>`;
+        }
+        html += '</tr></thead><tbody>';
+
+        for (let i = 0; i < labels.length; i++) {
+            const formattedDate = this.formatDateTime(labels[i]);
+            const val1 = ds1.data[i] != null ? Number(ds1.data[i]).toLocaleString() : "-";
+            html += `<tr><td>${formattedDate}</td><td class="text-end">${val1}</td>`;
+            if (ds2) {
+                const val2 = ds2.data[i] != null ? Number(ds2.data[i]).toLocaleString() : "-";
+                html += `<td class="text-end">${val2}</td>`;
+            }
+            html += '</tr>';
+        }
+        html += '</tbody></table>';
+        $tableWrap.html(html);
+
+        $tableWrap.find(".btn-close-table").off("click").on("click", (e) => {
+            e.stopPropagation();
+            this.toggleTableView();
+        });
+    }
+
+    formatDateTime(labelStr) {
+        const datetime = dayjs(labelStr);
+        if (!datetime.isValid()) return labelStr;
+        switch (this.dateUnit) {
+            case "day":
+                return datetime.format("YYYY-MM-DD HH:00");
+            case "week":
+                return datetime.format("YYYY-MM-DD (ddd)");
+            case "month":
+                return datetime.format("YYYY-MM-DD");
+            case "hour":
+                return datetime.format("YYYY-MM-DD HH:00");
+            case "year":
+                return datetime.format("YYYY-MM");
+            default:
+                return datetime.format("YYYY-MM-DD HH:mm:ss");
+        }
+    }
+
+    escapeHtml(str) {
+        if (!str) return "";
+        return String(str)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+    downloadCsv() {
+        if (!this.chart || !this.chart.data || !this.chart.data.labels || this.chart.data.labels.length === 0) {
+            return;
+        }
+
+        const labels = this.chart.data.labels;
+        const ds1 = this.chart.data.datasets[0] || { label: "Data 1", data: [] };
+        const ds2 = this.chart.data.datasets[1] || null;
+
+        let csv = `"Date/Time","${(ds1.label || "Data 1").replace(/"/g, '""')}"`;
+        if (ds2) {
+            csv += `,"${(ds2.label || "Data 2").replace(/"/g, '""')}"`;
+        }
+        csv += "\r\n";
+
+        for (let i = 0; i < labels.length; i++) {
+            const formattedDate = this.formatDateTime(labels[i]);
+            const val1 = ds1.data[i] != null ? ds1.data[i] : 0;
+            csv += `"${formattedDate}",${val1}`;
+            if (ds2) {
+                const val2 = ds2.data[i] != null ? ds2.data[i] : 0;
+                csv += `,${val2}`;
+            }
+            csv += "\r\n";
+        }
+
+        const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `${this.eventId}-chart-${dayjs().format("YYYYMMDD-HHmmss")}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    }
+
+    downloadPng() {
+        if (!this.chart) return;
+        const canvas = this.$container.find("canvas")[0];
+        if (!canvas) return;
+
+        const isDark = this.isDarkMode();
+        const bgColor = isDark ? "#000000" : "#ffffff";
+
+        const offCanvas = document.createElement("canvas");
+        offCanvas.width = canvas.width;
+        offCanvas.height = canvas.height;
+        const ctx = offCanvas.getContext("2d");
+        ctx.fillStyle = bgColor;
+        ctx.fillRect(0, 0, offCanvas.width, offCanvas.height);
+        ctx.drawImage(canvas, 0, 0);
+
+        const dataUrl = offCanvas.toDataURL("image/png");
+        const link = document.createElement("a");
+        link.href = dataUrl;
+        link.download = `${this.eventId}-chart-${dayjs().format("YYYYMMDD-HHmmss")}.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     }
 
     zoomIn(centerIndex = null) {
@@ -318,6 +588,9 @@ class DashboardChart {
         }
 
         const chartType = (!dateUnit ? "line" : "bar");
+        const theme = this.getThemeColors();
+        this.observeThemeChange();
+
         this.chart = new Chart($canvas[0], {
             type: chartType,
             plugins: [
@@ -337,7 +610,7 @@ class DashboardChart {
                                 ctx.moveTo(x, topY);
                                 ctx.lineTo(x, bottomY);
                                 ctx.lineWidth = 1;
-                                ctx.strokeStyle = 'rgba(120, 130, 145, 0.45)';
+                                ctx.strokeStyle = this.getThemeColors().crosshair;
                                 ctx.stroke();
                                 ctx.restore();
                             }
@@ -364,12 +637,12 @@ class DashboardChart {
                         padding: 10,
                         boxPadding: 4,
                         cornerRadius: 6,
-                        backgroundColor: 'rgba(23, 32, 42, 0.90)',
-                        titleColor: '#ffffff',
+                        backgroundColor: theme.tooltipBg,
+                        titleColor: theme.tooltipTitle,
                         titleFont: { size: 12, weight: 'bold' },
-                        bodyColor: '#e0e6ed',
+                        bodyColor: theme.tooltipBody,
                         bodyFont: { size: 12 },
-                        borderColor: 'rgba(255, 255, 255, 0.12)',
+                        borderColor: theme.tooltipBorder,
                         borderWidth: 1,
                         callbacks: {
                             title: (tooltip) => {
@@ -428,7 +701,7 @@ class DashboardChart {
                         },
                         stacked: (this.eventId === "activity"),
                         grid: chartType === "line" ? {
-                            color: (ctx) => (this.eventId === "activity" && data2[ctx.tick.value] > 0 ? "#ff6384" : "#e4e4e4")
+                            color: (ctx) => (this.eventId === "activity" && data2[ctx.tick.value] > 0 ? "#ff6384" : this.getThemeColors().gridLine)
                         } : {}
                     },
                     y: {
@@ -440,7 +713,9 @@ class DashboardChart {
                         suggestedMin: 0,
                         suggestedMax: 5,
                         stacked: (this.eventId === "activity"),
-                        grid: { color: "#e4e4e4" }
+                        grid: {
+                            color: () => this.getThemeColors().gridLine
+                        }
                     }
                 }
             },
@@ -528,6 +803,9 @@ class DashboardChart {
                 }
             }
             this.update();
+            if (this.isTableView) {
+                this.renderTable();
+            }
         }
     }
 
@@ -615,6 +893,9 @@ class DashboardChart {
     update() {
         if (this.chart) {
             this.chart.update();
+            if (this.isTableView) {
+                this.renderTable();
+            }
         }
     }
 
@@ -625,12 +906,19 @@ class DashboardChart {
             this.updateScheduled = false;
             if (this.chart) {
                 this.chart.update("none");
+                if (this.isTableView) {
+                    this.renderTable();
+                }
             }
         });
     }
 
     destroy() {
         this.updateScheduled = false;
+        if (this.themeObserver) {
+            this.themeObserver.disconnect();
+            this.themeObserver = null;
+        }
         if (this.docEventNamespace) {
             $(document).off(this.docEventNamespace);
             this.docEventNamespace = null;
@@ -641,7 +929,9 @@ class DashboardChart {
             this.chart.destroy();
             this.chart = null;
         }
-        this.$container.removeClass("is-zoomed show-controls");
+        this.isTableView = false;
+        this.$container.removeClass("is-zoomed show-controls is-table-view");
+        this.$container.find(".chart-table-wrap").remove();
         this.updateControls();
     }
 }

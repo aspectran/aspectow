@@ -16,13 +16,10 @@
 
 /*
  * @version 4.3
- * @last-modified 2026-10-30
+ * @last-modified 2026-11-01
  */
 
 [data-bs-theme=dark] {
-    canvas:not(.traffic-canvas) {
-        filter: invert(1) hue-rotate(180deg);
-    }
     .node-bar {
         background-color: #111;
         border-color: #353b3e;
@@ -157,6 +154,44 @@
     .charts-box .chart-box .chart .chart-zoom-controls .btn:disabled {
         color: #6c757d;
         opacity: 0.45;
+    }
+    .charts-box .chart-box .chart .chart-zoom-controls .chart-options-dropdown .btn {
+        border-left: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .charts-box .chart-box .chart .chart-zoom-controls .dropdown-menu {
+        background-color: #242a2e;
+        border-color: #384146;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    }
+    .charts-box .chart-box .chart .chart-zoom-controls .dropdown-item {
+        color: #cfcfcf;
+    }
+    .charts-box .chart-box .chart .chart-zoom-controls .dropdown-item:hover {
+        background-color: #2f373d;
+        color: #fff;
+    }
+    .charts-box .chart-box .chart .chart-table-wrap {
+        background-color: #000;
+        color: #cfcfcf;
+    }
+    .charts-box .chart-box .chart .chart-table-wrap th {
+        background-color: #1a1e21;
+        color: #cfcfcf;
+        border-bottom-color: #2f373d;
+    }
+    .charts-box .chart-box .chart .chart-table-wrap td {
+        border-bottom-color: #1e2428;
+        color: #cfcfcf;
+    }
+    .charts-box .chart-box .chart .chart-table-wrap tr:hover td {
+        background-color: #151a1d;
+    }
+    .charts-box .chart-box .chart .chart-table-wrap .btn-close-table {
+        color: #adb5bd;
+    }
+    .charts-box .chart-box .chart .chart-table-wrap .btn-close-table:hover {
+        color: #fff;
+        background-color: rgba(255, 255, 255, 0.15);
     }
     .charts-box .chart-box .chart .reset-zoom {
         background-color: #3d4b52;
