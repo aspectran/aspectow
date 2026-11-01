@@ -370,13 +370,12 @@
     height: 29px;
     background-color: #677278;
     color: #eee;
-    padding : 0 6px;
     box-shadow: 0 6px 10px -10px rgba(50, 50, 50, 0.45);
     text-align: right;
 }
 .control-bar .options > .bi {
     color: #a5b4b3;
-    margin-left: 2px;
+    margin-left: 6px;
 }
 .control-bar .options .btn-group {
     display: inline-flex;
@@ -399,7 +398,7 @@
     white-space: nowrap;
 }
 .control-bar .options .btn-group .btn + .btn {
-    border-left: 1px solid #2e3f47;
+    border-left: 1px solid #486271;
 }
 .control-bar .options .btn-group .btn:hover {
     background-color: #335a73;
@@ -1341,14 +1340,14 @@
         box-shadow: 0 6px 10px -10px rgba(50, 50, 50, 0.45);
     }
     .control-bar .options > .bi {
-        color: #566872;
+        color: #808b91;
     }
     .control-bar .options .btn-group .btn {
         background-color: #243640;
         color: #cfcfcf;
     }
     .control-bar .options .btn-group .btn + .btn {
-        border-left: 1px solid #212f38;
+        border-left: 1px solid #374753;
     }
     .control-bar .options .btn-group .btn:hover {
         background-color: #294556;
