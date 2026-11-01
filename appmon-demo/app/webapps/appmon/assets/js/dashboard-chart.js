@@ -62,6 +62,24 @@ class DashboardChart {
         }
     }
 
+    getResponsiveFontSize(chartWidth, type = "tick") {
+        const width = chartWidth || (this.$container ? this.$container.width() : 0);
+        if (type === "title") {
+            if (width > 0 && width < 450) return 10;
+            if (width > 0 && width < 768) return 11;
+            return 12;
+        }
+        if (type === "tooltip") {
+            if (width > 0 && width < 450) return 11;
+            return 12;
+        }
+        // tick label
+        if (width > 0 && width < 380) return 9;
+        if (width > 0 && width < 520) return 10;
+        if (width > 0 && width < 768) return 11;
+        return 12;
+    }
+
     observeThemeChange() {
         if (this.themeObserver) return;
         if (typeof window !== "undefined" && window.MutationObserver) {
@@ -639,9 +657,14 @@ class DashboardChart {
                         cornerRadius: 6,
                         backgroundColor: theme.tooltipBg,
                         titleColor: theme.tooltipTitle,
-                        titleFont: { size: 12, weight: 'bold' },
+                        titleFont: (context) => ({
+                            size: this.getResponsiveFontSize(context.chart?.width, "tooltip"),
+                            weight: 'bold'
+                        }),
                         bodyColor: theme.tooltipBody,
-                        bodyFont: { size: 12 },
+                        bodyFont: (context) => ({
+                            size: this.getResponsiveFontSize(context.chart?.width, "tick")
+                        }),
                         borderColor: theme.tooltipBorder,
                         borderWidth: 1,
                         callbacks: {
@@ -674,6 +697,9 @@ class DashboardChart {
                     x: {
                         display: true,
                         ticks: {
+                            font: (context) => ({
+                                size: this.getResponsiveFontSize(context.chart?.width, "tick")
+                            }),
                             autoSkip: (dateUnit === "month"),
                             includeBounds: false,
                             callback: (value, index) => {
@@ -708,7 +734,15 @@ class DashboardChart {
                         display: true,
                         title: {
                             display: true,
-                            text: (this.eventId === "session" ? `${dataLabel1} / ${dataLabel2}` : dataLabel1)
+                            text: (this.eventId === "session" ? `${dataLabel1} / ${dataLabel2}` : dataLabel1),
+                            font: (context) => ({
+                                size: this.getResponsiveFontSize(context.chart?.width, "title")
+                            })
+                        },
+                        ticks: {
+                            font: (context) => ({
+                                size: this.getResponsiveFontSize(context.chart?.width, "tick")
+                            })
                         },
                         suggestedMin: 0,
                         suggestedMax: 5,
