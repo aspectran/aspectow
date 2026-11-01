@@ -44,10 +44,10 @@ class DashboardChart {
         if (isDark) {
             return {
                 tooltipBg: "rgba(23, 32, 42, 0.95)",
-                tooltipTitle: "#ffffff",
-                tooltipBody: "#e0e6ed",
-                tooltipBorder: "rgba(255, 255, 255, 0.15)",
-                crosshair: "rgba(200, 210, 225, 0.45)",
+                tooltipTitle: "#c4cbd2",
+                tooltipBody: "#9ca8b6",
+                tooltipBorder: "rgba(255, 255, 255, 0.10)",
+                crosshair: "rgba(200, 210, 225, 0.35)",
                 gridLine: "#252b30"
             };
         } else {
@@ -350,7 +350,7 @@ class DashboardChart {
         }
 
         if (!this.chart || !this.chart.data || !this.chart.data.labels) {
-            $tableWrap.html('<button type="button" class="btn btn-close-table bi bi-x-lg" title="Close table view"></button><div class="text-muted p-2 text-center">No data available</div>');
+            $tableWrap.html('<button type="button" class="btn btn-close-table bi bi-x-lg" title="Close table view"></button><div class="chart-table-body"><div class="text-muted p-2 text-center">No data available</div></div>');
             $tableWrap.find(".btn-close-table").off("click").on("click", (e) => {
                 e.stopPropagation();
                 this.toggleTableView();
@@ -363,6 +363,7 @@ class DashboardChart {
         const ds2 = this.chart.data.datasets[1] || null;
 
         let html = '<button type="button" class="btn btn-close-table bi bi-x-lg" title="Close table view"></button>';
+        html += '<div class="chart-table-body">';
         html += '<table class="table table-sm table-striped table-hover">';
         html += '<thead><tr>';
         html += '<th class="col-date">Date / Time</th>';
@@ -382,7 +383,7 @@ class DashboardChart {
             }
             html += '</tr>';
         }
-        html += '</tbody></table>';
+        html += '</tbody></table></div>';
         $tableWrap.html(html);
 
         $tableWrap.find(".btn-close-table").off("click").on("click", (e) => {

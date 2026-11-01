@@ -666,13 +666,12 @@
 }
 .charts-box .chart-box .chart .chart-table-wrap {
     position: absolute;
-    top: -2px;
-    left: -2px;
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
-    overflow-y: auto;
     background-color: #ffffff;
-    z-index: 3;
+    z-index: 6;
     display: none;
 }
 .charts-box .chart-box .chart.is-table-view .chart-table-wrap {
@@ -680,6 +679,11 @@
 }
 .charts-box .chart-box .chart.is-table-view canvas {
     display: none;
+}
+.charts-box .chart-box .chart .chart-table-wrap .chart-table-body {
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
 }
 .charts-box .chart-box .chart .chart-table-wrap table {
     width: 100%;
@@ -704,20 +708,21 @@
 }
 .charts-box .chart-box .chart .chart-table-wrap th:last-child,
 .charts-box .chart-box .chart .chart-table-wrap td:last-child {
-    padding-right: 30px !important;
+    padding-right: 32px !important;
 }
 .charts-box .chart-box .chart .chart-table-wrap .btn-close-table {
-    position: fixed;
-    right: 12px;
+    position: absolute;
+    top: 3px;
+    right: 3px;
     z-index: 10;
-    padding: 8px;
+    padding: 5px 6px;
     font-size: 0.75rem;
     line-height: 1;
     border: none;
     background: transparent;
     color: #6c757d;
     cursor: pointer;
-    border-radius: 0;
+    border-radius: 4px;
     transition: background-color 0.15s, color 0.15s;
 }
 .charts-box .chart-box .chart .chart-table-wrap .btn-close-table:hover {
