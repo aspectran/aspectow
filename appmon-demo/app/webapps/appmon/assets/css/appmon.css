@@ -586,6 +586,7 @@
 }
 .charts-box .chart-box .chart canvas {
     width: 100%;
+    touch-action: manipulation;
 }
 .charts-box .chart-box .chart .chart-zoom-controls {
     position: absolute;

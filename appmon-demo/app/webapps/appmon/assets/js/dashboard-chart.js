@@ -19,7 +19,7 @@
  * Responsible for rendering and updating individual charts using Chart.js.
  *
  * @version 4.3
- * @last-modified 2026-11-01
+ * @last-modified 2026-11-02
  */
 class DashboardChart {
     constructor($container, eventId) {
@@ -28,10 +28,11 @@ class DashboardChart {
         this.chart = null;
         this.dateUnit = null;
         this.dateOffset = null;
+        this.themeObserver = null;
         this.updateScheduled = false;
+        this.selectedXIndex = null;
         this.isTableView = false;
         this.isDropdownOpen = false;
-        this.themeObserver = null;
     }
 
     isDarkMode() {
@@ -137,6 +138,7 @@ class DashboardChart {
         if (!$canvas.length) {
             $canvas = $("<canvas/>").appendTo(this.$container);
         }
+        $canvas.css("touch-action", "manipulation");
         return $canvas;
     }
 
@@ -144,7 +146,8 @@ class DashboardChart {
         let $controls = this.$container.find(".chart-zoom-controls");
         $controls.find(".btn-zoom-in").off("click").on("click", (e) => {
             e.stopPropagation();
-            this.zoomIn();
+            const center = this.getSelectedOrVisibleCenter();
+            this.zoomIn(center);
         });
         $controls.find(".btn-zoom-out").off("click").on("click", (e) => {
             e.stopPropagation();
@@ -209,6 +212,35 @@ class DashboardChart {
         $controls.find(".dropdown-menu").removeClass("show");
     }
 
+    getIndexFromClientX(clientX, $canvas) {
+        if (!this.chart || !this.chart.scales || !this.chart.scales.x || !this.chart.chartArea) {
+            return null;
+        }
+        const rect = $canvas[0].getBoundingClientRect();
+        const xOffset = clientX - rect.left;
+        const chartArea = this.chart.chartArea;
+        // Clamp to chartArea so tapping near y-axis or outer padding resolves to edge index
+        const clampedX = Math.max(chartArea.left, Math.min(chartArea.right, xOffset));
+        const index = Math.round(this.chart.scales.x.getValueForPixel(clampedX));
+        const total = this.chart.data && this.chart.data.labels ? this.chart.data.labels.length : 0;
+        if (!isNaN(index) && index >= 0 && index < total) {
+            return index;
+        }
+        return null;
+    }
+
+    getSelectedOrVisibleCenter() {
+        if (!this.chart || !this.chart.data || !this.chart.data.labels) return null;
+        const total = this.chart.data.labels.length;
+        if (total <= 1) return null;
+        const currMin = this.chart.options.scales.x.min != null ? this.chart.options.scales.x.min : 0;
+        const currMax = this.chart.options.scales.x.max != null ? this.chart.options.scales.x.max : total - 1;
+        if (this.selectedXIndex != null && this.selectedXIndex >= currMin && this.selectedXIndex <= currMax) {
+            return this.selectedXIndex;
+        }
+        return null;
+    }
+
     bindInteractionEvents($canvas) {
         $canvas.off(".chartZoom");
         if (this.docEventNamespace) {
@@ -219,26 +251,56 @@ class DashboardChart {
         let lastTapTime = 0;
         let lastTapX = 0;
         let lastTapY = 0;
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let lastTouchZoomTime = 0;
+
+        $canvas.on("touchstart.chartZoom", (e) => {
+            const touch = e.originalEvent && e.originalEvent.touches ? e.originalEvent.touches[0] : null;
+            if (touch) {
+                touchStartX = touch.clientX;
+                touchStartY = touch.clientY;
+            }
+        });
+
+        $canvas.on("touchcancel.chartZoom", () => {
+            lastTapTime = 0;
+        });
 
         $canvas.on("touchend.chartZoom", (e) => {
-            const now = Date.now();
             const touch = e.originalEvent && e.originalEvent.changedTouches ? e.originalEvent.changedTouches[0] : null;
             if (!touch) return;
 
+            // If the finger moved significantly during touch, treat as scroll, not tap
+            const moveDist = Math.hypot(touch.clientX - touchStartX, touch.clientY - touchStartY);
+            if (moveDist > 15) {
+                lastTapTime = 0;
+                return;
+            }
+
+            const now = Date.now();
             const timeDiff = now - lastTapTime;
             const dist = Math.hypot(touch.clientX - lastTapX, touch.clientY - lastTapY);
+
+            // Record selected point on tap
+            const tappedIndex = this.getIndexFromClientX(touch.clientX, $canvas);
+            if (tappedIndex !== null) {
+                this.selectedXIndex = tappedIndex;
+            }
 
             // Show zoom controls on first tap
             this.showControls();
 
-            if (timeDiff < 350 && dist < 20) {
-                const rect = $canvas[0].getBoundingClientRect();
-                const xPixel = touch.clientX - rect.left;
-                if (this.chart && this.chart.scales && this.chart.scales.x) {
-                    const index = Math.round(this.chart.scales.x.getValueForPixel(xPixel));
-                    if (!isNaN(index) && index >= 0) {
-                        this.zoomIn(index);
-                    }
+            // Mobile double tap threshold: 450ms and 36px tolerance
+            if (timeDiff < 450 && dist < 36) {
+                if (e.cancelable) {
+                    e.preventDefault();
+                }
+                const index = (tappedIndex !== null) ? tappedIndex : this.getIndexFromClientX(touch.clientX, $canvas);
+                if (index !== null) {
+                    this.selectedXIndex = index;
+                    this.zoomIn(index);
+                    lastTouchZoomTime = now;
                 }
                 lastTapTime = 0;
                 return;
@@ -249,18 +311,23 @@ class DashboardChart {
             lastTapY = touch.clientY;
         });
 
-        $canvas.on("click.chartZoom", () => {
+        $canvas.on("click.chartZoom", (e) => {
+            const index = this.getIndexFromClientX(e.clientX, $canvas);
+            if (index !== null) {
+                this.selectedXIndex = index;
+            }
             this.showControls();
         });
 
         $canvas.on("dblclick.chartZoom", (e) => {
-            const rect = $canvas[0].getBoundingClientRect();
-            const xPixel = e.clientX - rect.left;
-            if (this.chart && this.chart.scales && this.chart.scales.x) {
-                const index = Math.round(this.chart.scales.x.getValueForPixel(xPixel));
-                if (!isNaN(index) && index >= 0) {
-                    this.zoomIn(index);
-                }
+            // Prevent synthetic dblclick fired shortly after touchend double-tap
+            if (Date.now() - lastTouchZoomTime < 600) {
+                return;
+            }
+            const index = this.getIndexFromClientX(e.clientX, $canvas);
+            if (index !== null) {
+                this.selectedXIndex = index;
+                this.zoomIn(index);
             }
         });
 
@@ -279,20 +346,6 @@ class DashboardChart {
     showControls() {
         this.$container.addClass("show-controls");
         this.updateControls();
-    }
-
-    isZoomed() {
-        if (!this.chart || !this.chart.data || !this.chart.data.labels) return false;
-        const total = this.chart.data.labels.length;
-        if (total <= 1) return false;
-        const xOpts = this.chart.options.scales.x;
-        const min = (xOpts && xOpts.min != null ? xOpts.min : 0);
-        const max = (xOpts && xOpts.max != null ? xOpts.max : total - 1);
-        return (min > 0 || max < total - 1);
-    }
-
-    isZoomedOrPanned() {
-        return this.isZoomed();
     }
 
     updateControls() {
@@ -483,6 +536,16 @@ class DashboardChart {
         document.body.removeChild(link);
     }
 
+    isZoomed() {
+        if (!this.chart || !this.chart.data || !this.chart.data.labels) return false;
+        const total = this.chart.data.labels.length;
+        if (total <= 1) return false;
+        const xOpts = this.chart.options.scales.x;
+        const min = (xOpts && xOpts.min != null ? xOpts.min : 0);
+        const max = (xOpts && xOpts.max != null ? xOpts.max : total - 1);
+        return (min > 0 || max < total - 1);
+    }
+
     zoomIn(centerIndex = null) {
         if (!this.chart || !this.chart.data || !this.chart.data.labels) return;
         const total = this.chart.data.labels.length;
@@ -558,6 +621,7 @@ class DashboardChart {
         if (this.chart) {
             delete this.chart.options.scales.x.min;
             delete this.chart.options.scales.x.max;
+            this.selectedXIndex = null;
             this.chart.update("none");
             this.$container.removeClass("is-zoomed show-controls");
             this.updateControls();
@@ -964,6 +1028,7 @@ class DashboardChart {
             this.chart.destroy();
             this.chart = null;
         }
+        this.selectedXIndex = null;
         this.isTableView = false;
         this.$container.removeClass("is-zoomed show-controls is-table-view");
         this.$container.find(".chart-table-wrap").remove();
