@@ -19,7 +19,7 @@
  * Responsible for rendering monitoring data, including logs, metrics, and charts.
  *
  * @version 4.3
- * @last-modified 2026-10-30
+ * @last-modified 2026-11-02
  */
 class DashboardViewer {
     constructor(sampleInterval, options = {}) {
@@ -1153,16 +1153,22 @@ class DashboardViewer {
                 }
             }
             if (w > 0) {
-                this.cachedCanvasWidth = w - 90;
+                this.cachedCanvasWidth = w;
             }
         }
-        const maxLabels = (this.cachedCanvasWidth > 0 ? Math.floor(this.cachedCanvasWidth / 21) : 0);
+        let maxLabels = 0;
+        if (this.cachedCanvasWidth > 0) {
+            const w = this.cachedCanvasWidth;
+            const effectiveWidth = Math.max(0, w - 65);
+            const step = Math.min(18, Math.max(14, 12 + Math.round(w / 200)));
+            maxLabels = Math.floor(effectiveWidth / step);
+        }
         if (maxLabels > 0) {
-            const cnt = labels.length - maxLabels;
-            if (cnt > 0) {
-                labels.splice(0, cnt);
-                data1.splice(0, cnt);
-                data2.splice(0, cnt);
+            const delCnt = labels.length - maxLabels;
+            if (delCnt > 0) {
+                labels.splice(0, delCnt);
+                data1.splice(0, delCnt);
+                data2.splice(0, delCnt);
             }
         }
     }
