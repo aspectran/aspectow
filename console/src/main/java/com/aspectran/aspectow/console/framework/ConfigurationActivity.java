@@ -16,6 +16,7 @@
 package com.aspectran.aspectow.console.framework;
 
 import com.aspectran.aspectow.console.common.util.ConsoleWebUtils;
+import com.aspectran.aspectow.node.management.anatomy.AnatomyDataService;
 import com.aspectran.core.component.bean.annotation.Action;
 import com.aspectran.core.component.bean.annotation.Bean;
 import com.aspectran.core.component.bean.annotation.Component;
@@ -53,7 +54,7 @@ public class ConfigurationActivity {
     @Dispatch("framework/config/viewer")
     @Action("page")
     public Map<String, Object> viewer(String contextName) {
-        Map<String, ActivityContext> contexts = AnatomyActivity.prepareContextMap();
+        Map<String, ActivityContext> contexts = AnatomyDataService.prepareContextMap();
         List<String> allContextNames = new ArrayList<>(contexts.keySet());
         if (contextName == null || !allContextNames.contains(contextName)) {
             if (!allContextNames.isEmpty()) {

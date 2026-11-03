@@ -29,8 +29,6 @@ import com.aspectran.core.component.bean.annotation.Dispatch;
 import com.aspectran.core.component.bean.annotation.Profile;
 import com.aspectran.core.component.bean.annotation.Request;
 import com.aspectran.core.context.ActivityContext;
-import com.aspectran.core.context.rule.params.ItemHolderParameters;
-import com.aspectran.core.context.rule.params.ItemParameters;
 import com.aspectran.daemon.command.CommandParameters;
 import com.aspectran.utils.StringUtils;
 import com.aspectran.utils.json.JsonParser;
@@ -38,6 +36,7 @@ import com.aspectran.web.activity.response.DefaultRestResponse;
 import com.aspectran.web.activity.response.RestResponse;
 import com.aspectran.web.support.rest.response.FailureResponse;
 import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,32 +62,30 @@ public class AnatomyActivity {
 
     private static final Logger logger = LoggerFactory.getLogger(AnatomyActivity.class);
 
-    private final AnatomyService anatomyService;
-
     private final NodeManager nodeManager;
 
     private final NodeConsoleHelper nodeConsoleHelper;
 
     private final RemoteCommandManager remoteCommandManager;
 
+    private final AnatomyDataService anatomyDataService;
+
     private final Map<String, Object> anatomyCache = new ConcurrentHashMap<>();
 
     /**
      * Constructs a new {@code AnatomyActivity} with the specified dependencies.
-     * @param anatomyService the anatomy service
      * @param nodeManager the node manager
      * @param nodeConsoleHelper the node console helper
      * @param remoteCommandManager the remote command manager
      */
     @Autowired
-    public AnatomyActivity(AnatomyService anatomyService,
-                           NodeManager nodeManager,
+    public AnatomyActivity(NodeManager nodeManager,
                            NodeConsoleHelper nodeConsoleHelper,
                            RemoteCommandManager remoteCommandManager) {
-        this.anatomyService = anatomyService;
         this.nodeManager = nodeManager;
         this.nodeConsoleHelper = nodeConsoleHelper;
         this.remoteCommandManager = remoteCommandManager;
+        this.anatomyDataService = new AnatomyDataService();
     }
 
     /**
@@ -176,7 +173,7 @@ public class AnatomyActivity {
         boolean refresh = "true".equalsIgnoreCase(translet.getParameter("refresh"));
 
         if (!StringUtils.hasText(group) || isLocalGroup(group)) {
-            Map<String, ActivityContext> contexts = prepareContextMap();
+            Map<String, ActivityContext> contexts = AnatomyDataService.prepareContextMap();
             ActivityContext context = (contextName != null ? contexts.get(contextName) : null);
             if (context == null && !contexts.isEmpty()) {
                 context = contexts.values().iterator().next();
@@ -184,7 +181,7 @@ public class AnatomyActivity {
             if (context == null) {
                 return new DefaultRestResponse().notFound();
             }
-            Map<String, Object> data = anatomyService.getAnatomyData(context);
+            Map<String, Object> data = anatomyDataService.getAnatomyData(context);
             return new DefaultRestResponse("anatomyData", data).nullWritable(false).ok();
         }
 
@@ -203,15 +200,10 @@ public class AnatomyActivity {
         }
 
         try {
-            CommandParameters command = new CommandParameters();
-            command.setCommandName("anatomy");
-            ItemHolderParameters holder = command.touchParameters("parameters");
-            ItemParameters item = holder.newItemParameters();
-            item.putValue("name", "mode");
-            item.putValue("value", "data");
-            item = holder.newItemParameters();
-            item.putValue("name", "contextName");
-            item.putValue("value", contextName);
+            CommandParameters command = new CommandParameters()
+                    .setCommandName("anatomy")
+                    .setParameter("mode", "data")
+                    .setParameter("contextName", contextName);
 
             CompletableFuture<CommandResponseParameters> future =
                     remoteCommandManager.executeRemote(targetNodeId, command, 10000);
@@ -265,7 +257,6 @@ public class AnatomyActivity {
     }
 
     @NonNull
-    @SuppressWarnings("unchecked")
     private List<String> fetchRemoteContextNames(String group) {
         if (remoteCommandManager == null) {
             return Collections.emptyList();
@@ -277,16 +268,9 @@ public class AnatomyActivity {
         }
 
         try {
-            CommandParameters command = new CommandParameters();
-            command.readFrom("""
-                    command: anatomy,
-                    parameters: {
-                        item: {
-                            name: mode
-                            value: contexts
-                        }
-                    }
-                    """);
+            CommandParameters command = new CommandParameters()
+                    .setCommandName("anatomy")
+                    .setParameter("mode", "contexts");
 
             CompletableFuture<CommandResponseParameters> future =
                     remoteCommandManager.executeRemote(targetNodeId, command, 5000);
@@ -316,59 +300,20 @@ public class AnatomyActivity {
         return Collections.emptyList();
     }
 
+    @Nullable
     private String findRepresentativeNodeId(String groupName) {
         if (nodeConsoleHelper != null) {
-            List<Map<String, Object>> nodes = nodeConsoleHelper.getNodes(false);
-            for (Map<String, Object> node : nodes) {
-                if (groupName.equals(node.get("group"))) {
-                    Object status = node.get("status");
-                    boolean alive = (status != null && !"DEAD".equalsIgnoreCase(status.toString()));
-                    Boolean hasCommandManager = (Boolean) node.get("hasCommandManager");
-                    if (alive && Boolean.TRUE.equals(hasCommandManager)) {
-                        return (String) node.get("id");
-                    }
-                }
-            }
+            return nodeConsoleHelper.findRepresentativeNodeId(groupName);
         }
         return null;
     }
 
     @NonNull
     private List<Map<String, Object>> getAvailableGroups() {
-        if (nodeConsoleHelper == null) {
-            return Collections.emptyList();
+        if (nodeConsoleHelper != null) {
+            return nodeConsoleHelper.getAvailableGroups();
         }
-        List<Map<String, Object>> nodes = nodeConsoleHelper.getNodes(false);
-        Map<String, List<Map<String, Object>>> grouped = new LinkedHashMap<>();
-        for (Map<String, Object> node : nodes) {
-            String g = (String) node.get("group");
-            if (StringUtils.hasText(g)) {
-                grouped.computeIfAbsent(g, k -> new ArrayList<>()).add(node);
-            }
-        }
-        List<Map<String, Object>> groupList = new ArrayList<>();
-        for (Map.Entry<String, List<Map<String, Object>>> entry : grouped.entrySet()) {
-            String gName = entry.getKey();
-            List<Map<String, Object>> gNodes = entry.getValue();
-            boolean hasCmd = gNodes.stream().anyMatch(n ->
-                    Boolean.TRUE.equals(n.get("hasCommandManager")) &&
-                            !"DEAD".equalsIgnoreCase(String.valueOf(n.get("status"))));
-            Map<String, Object> gInfo = new LinkedHashMap<>();
-            gInfo.put("name", gName);
-            gInfo.put("nodeCount", gNodes.size());
-            gInfo.put("hasCommandManager", hasCmd);
-            groupList.add(gInfo);
-        }
-        return groupList;
-    }
-
-    /**
-     * Prepares a map of context names to their corresponding activity contexts.
-     * @return a map of context names to activity contexts
-     */
-    @NonNull
-    public static Map<String, ActivityContext> prepareContextMap() {
-        return AnatomyDataService.prepareContextMap();
+        return Collections.emptyList();
     }
 
 }

@@ -15,8 +15,8 @@
  */
 package com.aspectran.aspectow.appmon.anatomy;
 
+import com.aspectran.aspectow.node.management.anatomy.AnatomyDataService;
 import com.aspectran.core.component.bean.annotation.Action;
-import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Bean;
 import com.aspectran.core.component.bean.annotation.Component;
 import com.aspectran.core.component.bean.annotation.Dispatch;
@@ -25,20 +25,12 @@ import com.aspectran.core.component.bean.annotation.Request;
 import com.aspectran.core.component.bean.annotation.Transform;
 import com.aspectran.core.context.ActivityContext;
 import com.aspectran.core.context.rule.type.FormatType;
-import com.aspectran.core.service.CoreService;
-import com.aspectran.core.service.CoreServiceHolder;
-import com.aspectran.utils.StringUtils;
 import com.aspectran.web.activity.response.DefaultRestResponse;
 import com.aspectran.web.activity.response.RestResponse;
-import org.jspecify.annotations.NonNull;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * A controller that provides framework anatomy data for the viewer.
@@ -48,11 +40,10 @@ import java.util.Set;
 @Bean("anatomyActivity")
 public class AnatomyActivity {
 
-    private final AnatomyService anatomyService;
+    private final AnatomyDataService anatomyDataService;
 
-    @Autowired
-    public AnatomyActivity(AnatomyService anatomyService) {
-        this.anatomyService = anatomyService;
+    public AnatomyActivity() {
+        this.anatomyDataService = new AnatomyDataService();
     }
 
     /**
@@ -62,7 +53,7 @@ public class AnatomyActivity {
     @Dispatch("anatomy/viewer")
     @Action("page")
     public Map<String, Object> viewer(String contextName) {
-        Map<String, ActivityContext> contexts = prepareContextMap();
+        Map<String, ActivityContext> contexts = AnatomyDataService.prepareContextMap();
         List<String> allContextNames = new ArrayList<>(contexts.keySet());
         if (contextName == null || !allContextNames.contains(contextName)) {
             if (!allContextNames.isEmpty()) {
@@ -87,41 +78,13 @@ public class AnatomyActivity {
     @Request("/anatomy/${contextName}/data")
     @Transform(format = FormatType.JSON)
     public RestResponse data(String contextName) {
-        Map<String, ActivityContext> contexts = prepareContextMap();
+        Map<String, ActivityContext> contexts = AnatomyDataService.prepareContextMap();
         ActivityContext context = contexts.get(contextName);
         if (context == null) {
             return new DefaultRestResponse().notFound();
         }
-        Map<String, Object> data = anatomyService.getAnatomyData(context);
+        Map<String, Object> data = anatomyDataService.getAnatomyData(context);
         return new DefaultRestResponse("anatomyData", data).nullWritable(false).ok();
-    }
-
-    /**
-     * Prepares a map of context names to their corresponding activity contexts.
-     * @return a map of context names to activity contexts
-     */
-    @NonNull
-    public static Map<String, ActivityContext> prepareContextMap() {
-        List<CoreService> services = new ArrayList<>(CoreServiceHolder.getAllServices());
-        Collections.reverse(services);
-
-        Map<String, ActivityContext> contextMap = new LinkedHashMap<>();
-        Set<ActivityContext> seenContexts = new LinkedHashSet<>();
-        int index = 0;
-        for (CoreService service : services) {
-            if (!service.isDerived() || service.getContextName() != null) {
-                ActivityContext context = service.getActivityContext();
-                if (seenContexts.add(context)) {
-                    String name = service.getContextName();
-                    if (StringUtils.isEmpty(name)) {
-                        name = Integer.toString(index);
-                    }
-                    contextMap.putIfAbsent(name, context);
-                }
-                index++;
-            }
-        }
-        return contextMap;
     }
 
 }

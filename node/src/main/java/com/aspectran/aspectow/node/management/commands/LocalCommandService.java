@@ -176,8 +176,11 @@ public class LocalCommandService {
      * @return the execution result
      */
     public CommandResult executeAnatomy(CommandParameters commandParameters) {
+        if (commandParameters == null) {
+            return new CommandResult(false, null, "Command parameters must not be null");
+        }
         try {
-            ParameterMap parameterMap = (commandParameters != null ? commandParameters.getParameterMap() : null);
+            ParameterMap parameterMap = commandParameters.getParameterMap();
             String mode = (parameterMap != null ? parameterMap.getParameter("mode") : null);
             if ("contexts".equalsIgnoreCase(mode)) {
                 List<String> names = AnatomyDataService.getContextNames();
@@ -188,7 +191,7 @@ public class LocalCommandService {
                 jsonBuilder.endArray();
                 return new CommandResult(true, jsonBuilder.toString());
             } else if ("data".equalsIgnoreCase(mode)) {
-                String contextName = (parameterMap != null ? parameterMap.getParameter("contextName") : null);
+                String contextName = parameterMap.getParameter("contextName");
                 Map<String, ActivityContext> contextMap = AnatomyDataService.prepareContextMap();
                 ActivityContext context = null;
                 if (contextName != null) {

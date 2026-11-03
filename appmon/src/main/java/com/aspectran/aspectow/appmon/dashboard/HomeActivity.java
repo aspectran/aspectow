@@ -15,11 +15,11 @@
  */
 package com.aspectran.aspectow.appmon.dashboard;
 
-import com.aspectran.aspectow.appmon.anatomy.AnatomyActivity;
 import com.aspectran.aspectow.appmon.engine.config.AppInfo;
 import com.aspectran.aspectow.appmon.engine.manager.AppMonManager;
 import com.aspectran.aspectow.node.config.GroupInfo;
 import com.aspectran.aspectow.node.config.NodeInfo;
+import com.aspectran.aspectow.node.management.anatomy.AnatomyDataService;
 import com.aspectran.core.component.bean.annotation.Action;
 import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Component;
@@ -70,7 +70,7 @@ public class HomeActivity {
                 .filter(app -> !app.isHidden())
                 .toList();
 
-        Map<String, ActivityContext> contexts = AnatomyActivity.prepareContextMap();
+        Map<String, ActivityContext> contexts = AnatomyDataService.prepareContextMap();
         List<String> allContextNames = new ArrayList<>(contexts.keySet());
 
         return Map.of(

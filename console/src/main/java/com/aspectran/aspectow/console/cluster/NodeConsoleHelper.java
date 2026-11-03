@@ -22,6 +22,7 @@ import com.aspectran.aspectow.node.manager.NodeRegistry;
 import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Component;
 import com.aspectran.core.component.bean.annotation.Profile;
+import com.aspectran.utils.StringUtils;
 import org.jspecify.annotations.NonNull;
 
 import java.util.ArrayList;
@@ -156,6 +157,59 @@ public class NodeConsoleHelper {
         map.put("hasSchedulerManager", info.hasSchedulerManager());
         map.put("hasCommandManager", info.hasCommandManager());
         return map;
+    }
+
+    /**
+     * Finds a representative active node ID in the specified group that has a command manager.
+     * @param groupName the group name
+     * @return the representative node ID, or {@code null} if no active node is found
+     */
+    public String findRepresentativeNodeId(String groupName) {
+        if (groupName == null) {
+            return null;
+        }
+        List<Map<String, Object>> nodes = getNodes(false);
+        for (Map<String, Object> node : nodes) {
+            if (groupName.equals(node.get("group"))) {
+                Object status = node.get("status");
+                boolean alive = (status != null && !"dead".equalsIgnoreCase(status.toString()));
+                Boolean hasCommandManager = (Boolean)node.get("hasCommandManager");
+                if (alive && Boolean.TRUE.equals(hasCommandManager)) {
+                    return (String)node.get("id");
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Retrieves the list of available node groups with aggregated metadata.
+     * @return the list of maps representing node groups
+     */
+    @NonNull
+    public List<Map<String, Object>> getAvailableGroups() {
+        List<Map<String, Object>> nodes = getNodes(false);
+        Map<String, List<Map<String, Object>>> grouped = new LinkedHashMap<>();
+        for (Map<String, Object> node : nodes) {
+            String g = (String) node.get("group");
+            if (StringUtils.hasText(g)) {
+                grouped.computeIfAbsent(g, k -> new ArrayList<>()).add(node);
+            }
+        }
+        List<Map<String, Object>> groupList = new ArrayList<>();
+        for (Map.Entry<String, List<Map<String, Object>>> entry : grouped.entrySet()) {
+            String gName = entry.getKey();
+            List<Map<String, Object>> gNodes = entry.getValue();
+            boolean hasCmd = gNodes.stream().anyMatch(n ->
+                    Boolean.TRUE.equals(n.get("hasCommandManager")) &&
+                            !"dead".equalsIgnoreCase(String.valueOf(n.get("status"))));
+            Map<String, Object> gInfo = new LinkedHashMap<>();
+            gInfo.put("name", gName);
+            gInfo.put("nodeCount", gNodes.size());
+            gInfo.put("hasCommandManager", hasCmd);
+            groupList.add(gInfo);
+        }
+        return groupList;
     }
 
 }
