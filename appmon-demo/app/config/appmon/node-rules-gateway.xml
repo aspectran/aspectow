@@ -21,4 +21,6 @@
         </properties>
     </bean>
 
+    <bean id="remoteCommandManager" class="com.aspectran.aspectow.node.management.commands.RemoteCommandManager"/>
+
 </aspectran>

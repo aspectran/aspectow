@@ -15,15 +15,22 @@
  */
 package com.aspectran.aspectow.node.management.commands;
 
+import com.aspectran.aspectow.node.management.anatomy.AnatomyDataService;
 import com.aspectran.aspectow.node.manager.NodeManager;
+import com.aspectran.core.activity.request.ParameterMap;
+import com.aspectran.core.context.ActivityContext;
 import com.aspectran.core.service.CoreService;
 import com.aspectran.core.service.CoreServiceHolder;
 import com.aspectran.daemon.command.CommandParameters;
 import com.aspectran.daemon.command.CommandResult;
 import com.aspectran.daemon.service.DefaultDaemonService;
 import com.aspectran.daemon.service.DefaultDaemonServiceBuilder;
+import com.aspectran.utils.json.JsonBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * LocalCommandService handles the actual execution of daemon commands
@@ -34,6 +41,8 @@ public class LocalCommandService {
     private static final Logger logger = LoggerFactory.getLogger(LocalCommandService.class);
 
     private final NodeManager nodeManager;
+
+    private final AnatomyDataService anatomyDataService = new AnatomyDataService();
 
     private DefaultDaemonService daemonService;
 
@@ -159,6 +168,48 @@ public class LocalCommandService {
             }
         }
         return new CommandResult(false, "[FAILED] Unknown node control command: " + command);
+    }
+
+    /**
+     * Executes an anatomy command to collect ActivityContext information on the local node.
+     * @param commandParameters the command parameters
+     * @return the execution result
+     */
+    public CommandResult executeAnatomy(CommandParameters commandParameters) {
+        try {
+            ParameterMap parameterMap = (commandParameters != null ? commandParameters.getParameterMap() : null);
+            String mode = (parameterMap != null ? parameterMap.getParameter("mode") : null);
+            if ("contexts".equalsIgnoreCase(mode)) {
+                List<String> names = AnatomyDataService.getContextNames();
+                JsonBuilder jsonBuilder = new JsonBuilder().array();
+                for (String name : names) {
+                    jsonBuilder.put(name);
+                }
+                jsonBuilder.endArray();
+                return new CommandResult(true, jsonBuilder.toString());
+            } else if ("data".equalsIgnoreCase(mode)) {
+                String contextName = (parameterMap != null ? parameterMap.getParameter("contextName") : null);
+                Map<String, ActivityContext> contextMap = AnatomyDataService.prepareContextMap();
+                ActivityContext context = null;
+                if (contextName != null) {
+                    context = contextMap.get(contextName);
+                }
+                if (context == null && !contextMap.isEmpty()) {
+                    context = contextMap.values().iterator().next();
+                }
+                if (context == null) {
+                    return new CommandResult(false, null, "ActivityContext not found: " + contextName);
+                }
+                Map<String, Object> data = anatomyDataService.getAnatomyData(context);
+                JsonBuilder jsonBuilder = new JsonBuilder().nullWritable(false).put(data);
+                return new CommandResult(true, jsonBuilder.toString());
+            } else {
+                return new CommandResult(false, null, "Unsupported anatomy command mode: " + mode);
+            }
+        } catch (Exception e) {
+            logger.error("Failed to execute anatomy command", e);
+            return new CommandResult(false, null, "Failed to execute anatomy command: " + e.getMessage());
+        }
     }
 
 }

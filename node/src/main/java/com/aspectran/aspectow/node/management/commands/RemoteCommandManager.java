@@ -35,7 +35,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
 
 /**
  * RemoteCommandManager orchestrates remote daemon command execution across the cluster.
@@ -47,6 +50,8 @@ public class RemoteCommandManager implements InitializableBean, DisposableBean, 
     private static final Logger logger = LoggerFactory.getLogger(RemoteCommandManager.class);
 
     private final Map<String, CommandBridge> sessionBridgeMap = new ConcurrentHashMap<>();
+
+    private final Map<String, CompletableFuture<CommandResponseParameters>> pendingRequests = new ConcurrentHashMap<>();
 
     private final NodeManager nodeManager;
 
@@ -93,6 +98,8 @@ public class RemoteCommandManager implements InitializableBean, DisposableBean, 
         if (nodeManager.getClusterEventSubscriber() != null) {
             nodeManager.getClusterEventSubscriber().removeListener(this);
         }
+        pendingRequests.values().forEach(f -> f.cancel(true));
+        pendingRequests.clear();
     }
 
     /**
@@ -220,6 +227,8 @@ public class RemoteCommandManager implements InitializableBean, DisposableBean, 
                     String commandName = commandParameters.getCommandName();
                     if ("pause".equalsIgnoreCase(commandName) || "resume".equalsIgnoreCase(commandName)) {
                         result = localCommandService.executeControl(commandName);
+                    } else if ("anatomy".equalsIgnoreCase(commandName)) {
+                        result = localCommandService.executeAnatomy(commandParameters);
                     } else {
                         result = localCommandService.execute(commandParameters);
                     }
@@ -276,6 +285,8 @@ public class RemoteCommandManager implements InitializableBean, DisposableBean, 
             String commandName = commandParameters.getCommandName();
             if ("pause".equalsIgnoreCase(commandName) || "resume".equalsIgnoreCase(commandName)) {
                 return localCommandService.executeControl(commandName);
+            } else if ("anatomy".equalsIgnoreCase(commandName)) {
+                return localCommandService.executeAnatomy(commandParameters);
             } else {
                 return localCommandService.execute(commandParameters);
             }
@@ -300,12 +311,29 @@ public class RemoteCommandManager implements InitializableBean, DisposableBean, 
     }
 
     /**
-     * Bridges a command message to a specific session.
+     * Bridges a command message to a specific session, or completes an internal
+     * pending request future if matched.
      * @param sessionId the session identifier
      * @param message the message to bridge
      */
     public void bridge(String sessionId, String message) {
         Assert.notNull(sessionId, "sessionId must not be null");
+        if (message != null && !pendingRequests.isEmpty()) {
+            try {
+                CommandResponseParameters response = new CommandResponseParameters();
+                response.readFrom(message);
+                String reqId = response.getRequestId();
+                if (reqId != null) {
+                    CompletableFuture<CommandResponseParameters> future = pendingRequests.get(reqId);
+                    if (future != null) {
+                        future.complete(response);
+                        return;
+                    }
+                }
+            } catch (Exception e) {
+                logger.warn("Failed to check pending request for message: {}", message, e);
+            }
+        }
         CommandBridge bridge = sessionBridgeMap.get(sessionId);
         if (bridge != null) {
             CommandSession session = bridge.findCommandSession(sessionId);
@@ -313,6 +341,37 @@ public class RemoteCommandManager implements InitializableBean, DisposableBean, 
                 bridge.bridge(session, message);
             }
         }
+    }
+
+    /**
+     * Dispatches a remote command to a target node and returns a {@link CompletableFuture}
+     * that completes when the target node replies with a response.
+     * @param targetNodeId the target node ID
+     * @param command the command parameters
+     * @param timeoutMs the timeout in milliseconds
+     * @return the CompletableFuture holding the response parameters
+     */
+    public CompletableFuture<CommandResponseParameters> executeRemote(
+            @NonNull String targetNodeId, @NonNull CommandParameters command, long timeoutMs) {
+        String requestId = "req_" + System.currentTimeMillis() + "_" + ThreadLocalRandom.current().nextInt(1000, 9999);
+        CompletableFuture<CommandResponseParameters> future = new CompletableFuture<>();
+        pendingRequests.put(requestId, future);
+
+        CommandRequestParameters request = new CommandRequestParameters();
+        request.setHeader("execute");
+        request.setRequestId(requestId);
+        request.setSessionId("internal:rpc");
+        request.setTargetNodeId(targetNodeId);
+        request.setCommand(command);
+
+        if (isSameNode(targetNodeId)) {
+            executeLocally(request);
+        } else {
+            dispatch(targetNodeId, request);
+        }
+
+        return future.orTimeout(timeoutMs, TimeUnit.MILLISECONDS)
+                .whenComplete((res, ex) -> pendingRequests.remove(requestId));
     }
 
     @Override

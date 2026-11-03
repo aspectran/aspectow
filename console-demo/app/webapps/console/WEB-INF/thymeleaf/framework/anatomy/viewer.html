@@ -7,7 +7,7 @@
     <title>Framework Anatomy - Aspectow Console</title>
     <style>
         .left-panel, .right-panel {
-            height: calc(100vh - 180px);
+            height: calc(100vh - 220px);
             min-height: 380px;
             display: flex;
             flex-direction: column;
@@ -51,11 +51,41 @@
 </head>
 <body>
     <th:block layout:fragment="content">
+        <div class="card p-2 mb-3 border shadow-sm" th:if="${page.groups != null && page.groups.size() > 0}">
+            <div class="row align-items-center g-2">
+                <div class="col-12 col-sm-auto">
+                    <label class="fw-bold small text-muted text-uppercase mb-0">Target Group</label>
+                </div>
+                <div class="col-12 col-sm-auto">
+                    <select id="target-group" class="form-select form-select-sm" style="min-width: 220px;">
+                        <option value="" th:selected="${page.selectedGroup == null || page.selectedGroup == ''}">
+                            Local Node <span th:if="${page.myGroupId != null}">([[${page.myGroupId}]])</span>
+                        </option>
+                        <option th:each="g : ${page.groups}"
+                                th:value="${g.name}"
+                                th:selected="${page.selectedGroup == g.name}"
+                                th:text="${g.name + ' (' + g.nodeCount + (g.nodeCount == 1 ? ' Node' : ' Nodes') + ')' + (!g.hasCommandManager ? ' [NO COMMAND MANAGER]' : '')}"
+                                th:classappend="${!g.hasCommandManager ? 'text-secondary' : ''}">
+                        </option>
+                    </select>
+                </div>
+                <div class="col-auto">
+                    <button id="btn-refresh" class="btn btn-sm btn-outline-secondary" title="Refresh Anatomy Data">
+                        <i class="bi bi-arrow-clockwise"></i>
+                    </button>
+                </div>
+                <div class="col text-end">
+                    <span id="group-status" class="badge status-pill bg-success">READY</span>
+                </div>
+            </div>
+        </div>
+
         <div class="anatomy-tabs mb-3">
-            <ul class="nav nav-btn-tabs">
+            <ul class="nav nav-btn-tabs" id="context-tabs">
                 <li class="nav-item" th:each="name : ${page.allContextNames}">
-                    <a class="nav-link"
-                       th:href="@{/framework/anatomy/{name}(name=${name})}"
+                    <a class="nav-link context-tab"
+                       href="javascript:void(0)"
+                       th:data-context="${name}"
                        th:classappend="${page.contextName == name} ? 'active' : ''">
                         <i class="bi bi-pc-display-horizontal me-1"></i>
                         <span th:text="${name}">Context Name</span>
@@ -99,18 +129,42 @@
     <th:block layout:fragment="script">
         <script th:inline="javascript">
             $(function() {
-                const dataUrl = [[@{/framework/anatomy/{name}/data(name=${page.contextName})}]];
+                const contextPath = [[@{/}]].replace(/\/$/, '');
                 const $componentTree = $('#component-tree');
                 const $detailsContent = $('#details-content');
+                const $contextTabs = $('#context-tabs');
+                const $targetGroup = $('#target-group');
+                const $groupStatus = $('#group-status');
+                const $btnRefresh = $('#btn-refresh');
 
-                $.getJSON(dataUrl, function(data) {
-                    const anatomyData = data.anatomyData;
-                    if (!anatomyData) {
-                        $componentTree.html('<div class="p-3 text-danger">Failed to load data.</div>');
+                let currentGroup = $targetGroup.val() || '';
+                let currentContext = [[${page.contextName}]];
+
+                function setStatus(status, text, bgClass) {
+                    $groupStatus.text(text).removeClass("bg-success bg-warning bg-danger bg-secondary").addClass(bgClass);
+                }
+
+                function updateUrl(group, context) {
+                    const url = new URL(window.location);
+                    if (group) {
+                        url.searchParams.set('group', group);
+                    } else {
+                        url.searchParams.delete('group');
+                    }
+                    if (context) {
+                        url.pathname = contextPath + '/framework/anatomy/' + encodeURIComponent(context);
+                    }
+                    window.history.replaceState({}, '', url);
+                }
+
+                function renderAnatomyData(anatomyData) {
+                    $componentTree.empty();
+                    $detailsContent.text('Select a rule from the left panel to see details.');
+
+                    if (!anatomyData || Object.keys(anatomyData).length === 0) {
+                        $componentTree.html('<div class="p-3 text-muted">No rules found in this context.</div>');
                         return;
                     }
-
-                    $componentTree.empty();
 
                     $.each(anatomyData, function(componentKey, rules) {
                         const componentId = 'comp-' + componentKey.replace(/\s+/g, '-').toLowerCase();
@@ -139,9 +193,12 @@
                                 $ruleItem.on('click', function() {
                                     $('.rule-item').removeClass('active');
                                     $(this).addClass('active');
-                                    
-                                    // Apply syntax highlighting from imported apon-highlighter.js
-                                    $detailsContent.html(highlightApon(rule.apon));
+
+                                    if (typeof highlightApon === 'function') {
+                                        $detailsContent.html(highlightApon(rule.apon));
+                                    } else {
+                                        $detailsContent.text(rule.apon || '');
+                                    }
                                 });
 
                                 $ruleList.append($ruleItem);
@@ -152,6 +209,114 @@
 
                         $componentTree.append($header).append($ruleList);
                     });
+                }
+
+                function loadAnatomyData(group, context, forceRefresh) {
+                    setStatus('loading', 'LOADING...', 'bg-warning');
+                    $componentTree.html(`
+                        <div class="text-center p-5 text-muted">
+                            <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+                            Loading anatomy data...
+                        </div>
+                    `);
+
+                    const params = {
+                        group: group || '',
+                        contextName: context || '',
+                        refresh: forceRefresh ? 'true' : 'false'
+                    };
+
+                    $.getJSON(contextPath + '/framework/anatomy/data', params)
+                        .done(function(data) {
+                            if (data.anatomyData) {
+                                renderAnatomyData(data.anatomyData);
+                                setStatus('ready', 'READY', 'bg-success');
+                            } else if (data.error) {
+                                $componentTree.html(`<div class="p-3 text-danger"><i class="bi bi-exclamation-triangle-fill me-1"></i> ${data.error.message || 'Error loading data'}</div>`);
+                                setStatus('error', 'ERROR', 'bg-danger');
+                            } else {
+                                $componentTree.html('<div class="p-3 text-danger">Failed to load anatomy data.</div>');
+                                setStatus('error', 'ERROR', 'bg-danger');
+                            }
+                        })
+                        .fail(function(xhr) {
+                            const err = (xhr.responseJSON && xhr.responseJSON.error) ? xhr.responseJSON.error.message : 'Server error occurred.';
+                            $componentTree.html(`<div class="p-3 text-danger"><i class="bi bi-exclamation-octagon-fill me-1"></i> ${err}</div>`);
+                            setStatus('failed', 'FAILED', 'bg-danger');
+                        });
+                }
+
+                function renderContextTabs(contextNames, activeContext) {
+                    $contextTabs.empty();
+                    if (!contextNames || contextNames.length === 0) {
+                        $contextTabs.append('<li class="nav-item"><span class="nav-link disabled text-muted">No contexts</span></li>');
+                        return;
+                    }
+                    $.each(contextNames, function(i, name) {
+                        const isActive = (name === activeContext);
+                        const $item = $(`
+                            <li class="nav-item">
+                                <a class="nav-link context-tab ${isActive ? 'active' : ''}" href="javascript:void(0)" data-context="${name}">
+                                    <i class="bi bi-pc-display-horizontal me-1"></i>
+                                    <span>${name}</span>
+                                </a>
+                            </li>
+                        `);
+                        $contextTabs.append($item);
+                    });
+                }
+
+                function switchGroup(group, forceRefresh) {
+                    currentGroup = group;
+                    setStatus('loading', 'FETCHING CONTEXTS...', 'bg-warning');
+
+                    $.getJSON(contextPath + '/framework/anatomy/contexts', { group: group })
+                        .done(function(res) {
+                            const contextNames = res.allContextNames || [];
+                            if (contextNames.length > 0) {
+                                if (!contextNames.includes(currentContext)) {
+                                    currentContext = contextNames[0];
+                                }
+                            } else {
+                                currentContext = '';
+                            }
+                            renderContextTabs(contextNames, currentContext);
+                            updateUrl(currentGroup, currentContext);
+                            if (currentContext) {
+                                loadAnatomyData(currentGroup, currentContext, forceRefresh);
+                            } else {
+                                $componentTree.html('<div class="p-3 text-muted">No active context found in target group.</div>');
+                                setStatus('empty', 'NO CONTEXTS', 'bg-secondary');
+                            }
+                        })
+                        .fail(function(xhr) {
+                            const err = (xhr.responseJSON && xhr.responseJSON.error) ? xhr.responseJSON.error.message : 'Failed to query contexts.';
+                            $componentTree.html(`<div class="p-3 text-danger"><i class="bi bi-exclamation-triangle-fill me-1"></i> ${err}</div>`);
+                            setStatus('error', 'ERROR', 'bg-danger');
+                        });
+                }
+
+                // Event Listeners
+                $targetGroup.on('change', function() {
+                    switchGroup($(this).val(), false);
+                });
+
+                $btnRefresh.on('click', function() {
+                    const $icon = $(this).find('i');
+                    $icon.addClass('spin');
+                    loadAnatomyData(currentGroup, currentContext, true);
+                    setTimeout(() => $icon.removeClass('spin'), 1000);
+                });
+
+                $(document).on('click', '.context-tab', function() {
+                    const ctx = $(this).data('context');
+                    if (ctx) {
+                        currentContext = ctx;
+                        $('.context-tab').removeClass('active');
+                        $(this).addClass('active');
+                        updateUrl(currentGroup, currentContext);
+                        loadAnatomyData(currentGroup, currentContext, false);
+                    }
                 });
 
                 $('#rule-filter').on('keyup', function() {
@@ -190,6 +355,9 @@
                         });
                     }
                 });
+
+                // Initial Load
+                loadAnatomyData(currentGroup, currentContext, false);
             });
         </script>
     </th:block>
