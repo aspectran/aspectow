@@ -229,6 +229,8 @@ public class RemoteCommandManager implements InitializableBean, DisposableBean, 
                         result = localCommandService.executeControl(commandName);
                     } else if ("anatomy".equalsIgnoreCase(commandName)) {
                         result = localCommandService.executeAnatomy(commandParameters);
+                    } else if ("components".equalsIgnoreCase(commandName)) {
+                        result = localCommandService.executeComponents(commandParameters);
                     } else {
                         result = localCommandService.execute(commandParameters);
                     }
@@ -285,6 +287,8 @@ public class RemoteCommandManager implements InitializableBean, DisposableBean, 
             String commandName = commandParameters.getCommandName();
             if ("pause".equalsIgnoreCase(commandName) || "resume".equalsIgnoreCase(commandName)) {
                 return localCommandService.executeControl(commandName);
+            } else if ("components".equalsIgnoreCase(commandName)) {
+                return localCommandService.executeComponents(commandParameters);
             } else if ("anatomy".equalsIgnoreCase(commandName)) {
                 return localCommandService.executeAnatomy(commandParameters);
             } else {

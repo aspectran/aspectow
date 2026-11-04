@@ -16,6 +16,8 @@
 package com.aspectran.aspectow.node.management.commands;
 
 import com.aspectran.aspectow.node.management.anatomy.AnatomyDataService;
+import com.aspectran.aspectow.node.management.components.ComponentDetails;
+import com.aspectran.aspectow.node.management.components.ComponentInspectorService;
 import com.aspectran.aspectow.node.manager.NodeManager;
 import com.aspectran.core.activity.request.ParameterMap;
 import com.aspectran.core.context.ActivityContext;
@@ -43,6 +45,8 @@ public class LocalCommandService {
     private final NodeManager nodeManager;
 
     private final AnatomyDataService anatomyDataService = new AnatomyDataService();
+
+    private final ComponentInspectorService componentInspectorService = new ComponentInspectorService();
 
     private DefaultDaemonService daemonService;
 
@@ -212,6 +216,51 @@ public class LocalCommandService {
         } catch (Exception e) {
             logger.error("Failed to execute anatomy command", e);
             return new CommandResult(false, null, "Failed to execute anatomy command: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Executes a components command to inspect key components on the local node.
+     * @param commandParameters the command parameters
+     * @return the execution result
+     */
+    public CommandResult executeComponents(CommandParameters commandParameters) {
+        if (commandParameters == null) {
+            return new CommandResult(false, null, "Command parameters must not be null");
+        }
+        try {
+            ParameterMap parameterMap = commandParameters.getParameterMap();
+            String mode = (parameterMap != null ? parameterMap.getParameter("mode") : null);
+            if ("contexts".equalsIgnoreCase(mode)) {
+                List<String> names = AnatomyDataService.getContextNames();
+                JsonBuilder jsonBuilder = new JsonBuilder().array();
+                for (String name : names) {
+                    jsonBuilder.put(name);
+                }
+                jsonBuilder.endArray();
+                return new CommandResult(true, jsonBuilder.toString());
+            } else if ("data".equalsIgnoreCase(mode)) {
+                String contextName = parameterMap.getParameter("contextName");
+                Map<String, ActivityContext> contextMap = AnatomyDataService.prepareContextMap();
+                ActivityContext context = null;
+                if (contextName != null) {
+                    context = contextMap.get(contextName);
+                }
+                if (context == null && !contextMap.isEmpty()) {
+                    context = contextMap.values().iterator().next();
+                }
+                if (context == null) {
+                    return new CommandResult(false, null, "ActivityContext not found: " + contextName);
+                }
+                Map<String, ComponentDetails> data = componentInspectorService.inspectAll(context);
+                JsonBuilder jsonBuilder = new JsonBuilder().nullWritable(false).put(data);
+                return new CommandResult(true, jsonBuilder.toString());
+            } else {
+                return new CommandResult(false, null, "Unsupported components command mode: " + mode);
+            }
+        } catch (Exception e) {
+            logger.error("Failed to execute components command", e);
+            return new CommandResult(false, null, "Failed to execute components command: " + e.getMessage());
         }
     }
 

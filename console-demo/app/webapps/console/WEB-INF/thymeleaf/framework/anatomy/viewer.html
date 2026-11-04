@@ -99,7 +99,7 @@
                     <div class="p-2 border-bottom">
                         <div class="input-group input-group-sm">
                             <span class="input-group-text bg-transparent border-end-0"><i class="bi bi-search"></i></span>
-                            <input type="text" id="rule-filter" class="form-control border-start-0" placeholder="Filter rules..."/>
+                            <input type="text" id="rule-filter" class="form-control border-start-0" placeholder="Filter items..."/>
                         </div>
                     </div>
                     <div class="scrollable-pane p-0" id="component-tree">
@@ -113,13 +113,13 @@
             <div class="col-md-8 right-panel">
                 <div class="card h-100 border shadow-sm overflow-hidden">
                     <div class="card-header bg-body-tertiary py-2 d-flex justify-content-between align-items-center">
-                        <span class="fw-bold small">Rule Details (APON)</span>
+                        <span class="fw-bold small" id="details-title">Details (APON)</span>
                         <button class="btn btn-sm btn-outline-secondary border-0" id="copy-btn" title="Copy to clipboard">
                             <i class="bi bi-clipboard"></i>
                         </button>
                     </div>
                     <div class="card-body scrollable-pane text-body">
-                        <pre id="details-content">Select a rule from the left panel to see details.</pre>
+                        <pre id="details-content">Select an item from the left panel to see details.</pre>
                     </div>
                 </div>
             </div>
@@ -132,6 +132,7 @@
                 const contextPath = [[@{/}]].replace(/\/$/, '');
                 const $componentTree = $('#component-tree');
                 const $detailsContent = $('#details-content');
+                const $detailsTitle = $('#details-title');
                 const $contextTabs = $('#context-tabs');
                 const $targetGroup = $('#target-group');
                 const $groupStatus = $('#group-status');
@@ -159,18 +160,21 @@
 
                 function renderAnatomyData(anatomyData) {
                     $componentTree.empty();
-                    $detailsContent.text('Select a rule from the left panel to see details.');
+                    $detailsTitle.text('Details (APON)');
+                    $detailsContent.text('Select an item from the left panel to see details.');
 
                     if (!anatomyData || Object.keys(anatomyData).length === 0) {
-                        $componentTree.html('<div class="p-3 text-muted">No rules found in this context.</div>');
+                        $componentTree.html('<div class="p-3 text-muted">No rules or configurations found in this context.</div>');
                         return;
                     }
 
+                    let isFirstCategory = true;
                     $.each(anatomyData, function(componentKey, rules) {
                         const componentId = 'comp-' + componentKey.replace(/\s+/g, '-').toLowerCase();
+                        const isExpanded = isFirstCategory;
 
                         const $header = $('<div/>', {
-                            'class': 'component-header collapsed',
+                            'class': 'component-header' + (isExpanded ? '' : ' collapsed'),
                             'data-bs-toggle': 'collapse',
                             'data-bs-target': '#' + componentId,
                             'html': `<span>${componentKey}</span> <span class="badge rounded-pill bg-secondary small">${rules.length}</span>`
@@ -178,21 +182,25 @@
 
                         const $ruleList = $('<div/>', {
                             'id': componentId,
-                            'class': 'collapse list-group list-group-flush border-bottom'
+                            'class': 'collapse list-group list-group-flush border-bottom' + (isExpanded ? ' show' : '')
                         });
 
                         if (rules.length > 0) {
                             $.each(rules, function(index, rule) {
-                                const ruleName = rule.name || rule.id || rule.className || 'Unnamed Rule';
+                                const ruleName = rule.name || rule.id || rule.className || 'Unnamed Item';
                                 const $ruleItem = $('<div/>', {
                                     'class': 'list-group-item rule-item',
                                     'text': ruleName,
-                                    'data-apon': rule.apon
+                                    'data-apon': rule.apon,
+                                    'data-name': ruleName
                                 });
 
                                 $ruleItem.on('click', function() {
                                     $('.rule-item').removeClass('active');
                                     $(this).addClass('active');
+
+                                    const title = $(this).data('name') || ruleName;
+                                    $detailsTitle.text(`${title} (APON)`);
 
                                     if (typeof highlightApon === 'function') {
                                         $detailsContent.html(highlightApon(rule.apon));
@@ -204,11 +212,18 @@
                                 $ruleList.append($ruleItem);
                             });
                         } else {
-                            $ruleList.append('<div class="list-group-item text-muted small px-3">No rules defined.</div>');
+                            $ruleList.append('<div class="list-group-item text-muted small px-3">No items defined.</div>');
                         }
 
                         $componentTree.append($header).append($ruleList);
+                        isFirstCategory = false;
                     });
+
+                    // Select the first item by default
+                    const $firstItem = $componentTree.find('.rule-item').first();
+                    if ($firstItem.length > 0) {
+                        $firstItem.trigger('click');
+                    }
                 }
 
                 function loadAnatomyData(group, context, forceRefresh) {

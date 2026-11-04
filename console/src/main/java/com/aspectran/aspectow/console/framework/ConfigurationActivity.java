@@ -46,31 +46,20 @@ import java.util.Map;
 public class ConfigurationActivity {
 
     /**
-     * Dispatches to the configuration viewer page.
+     * Redirects to the anatomy viewer page.
+     */
+    @Request
+    @Dispatch("redirect:/framework/anatomy/")
+    public void index() {
+    }
+
+    /**
+     * Redirects to the anatomy viewer page with the specified context.
      * @param contextName the name of the context
-     * @return the model map containing attributes for rendering the view
      */
     @Request("/${contextName}")
-    @Dispatch("framework/config/viewer")
-    @Action("page")
-    public Map<String, Object> viewer(String contextName) {
-        Map<String, ActivityContext> contexts = AnatomyDataService.prepareContextMap();
-        List<String> allContextNames = new ArrayList<>(contexts.keySet());
-        if (contextName == null || !allContextNames.contains(contextName)) {
-            if (!allContextNames.isEmpty()) {
-                contextName = allContextNames.getFirst();
-            }
-        }
-        if (contextName == null) {
-            contextName = "0";
-        }
-        return Map.of(
-                "title", "Framework Configuration",
-                "style", "config-page",
-                "group", "framework-menu",
-                "allContextNames", allContextNames,
-                "contextName", contextName
-        );
+    @Dispatch("redirect:/framework/anatomy/${contextName}")
+    public void viewer(String contextName) {
     }
 
     /**

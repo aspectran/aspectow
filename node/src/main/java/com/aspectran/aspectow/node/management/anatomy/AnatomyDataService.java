@@ -22,6 +22,7 @@ import com.aspectran.core.component.bean.event.ListenerMethod;
 import com.aspectran.core.component.converter.TypeConverter;
 import com.aspectran.core.component.template.DefaultTemplateRenderer;
 import com.aspectran.core.context.ActivityContext;
+import com.aspectran.core.context.config.AspectranConfig;
 import com.aspectran.core.context.rule.AspectRule;
 import com.aspectran.core.context.rule.BeanRule;
 import com.aspectran.core.context.rule.ScheduleRule;
@@ -106,7 +107,27 @@ public class AnatomyDataService {
     }
 
     /**
-     * Retrieves all framework anatomy data, including translets, beans, aspects, schedules,
+     * Finds the CoreService associated with the specified ActivityContext.
+     * @param context the activity context
+     * @return the CoreService, or null if not found
+     */
+    @Nullable
+    public static CoreService findCoreService(ActivityContext context) {
+        if (context == null) {
+            return null;
+        }
+        List<CoreService> services = new ArrayList<>(CoreServiceHolder.getAllServices());
+        Collections.reverse(services);
+        for (CoreService service : services) {
+            if (service.getActivityContext() == context) {
+                return service;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Retrieves all framework anatomy data, including configuration, translets, beans, aspects, schedules,
      * templates, and type converters, formatted for presentation.
      * @param context the current activity context
      * @return a map containing categorized framework anatomy data
@@ -116,7 +137,64 @@ public class AnatomyDataService {
 
         Map<String, Object> anatomyData = new LinkedHashMap<>();
 
-        // 1. Translet Rules
+        // 1. Framework Configuration
+        CoreService coreService = findCoreService(context);
+        AspectranConfig aspectranConfig = (coreService != null ? coreService.getAspectranConfig() : null);
+        if (aspectranConfig == null && coreService != null && coreService.getRootService() != null) {
+            aspectranConfig = coreService.getRootService().getAspectranConfig();
+        }
+        if (aspectranConfig != null) {
+            List<Map<String, Object>> configItems = new ArrayList<>();
+            configItems.add(Map.of(
+                    "name", "Full Configuration",
+                    "apon", maskSensitiveApon(aspectranConfig.toString())
+            ));
+            if (aspectranConfig.hasSystemConfig()) {
+                configItems.add(Map.of(
+                        "name", "System Config",
+                        "apon", maskSensitiveApon(aspectranConfig.getSystemConfig().toString())
+                ));
+            }
+            if (aspectranConfig.hasContextConfig()) {
+                configItems.add(Map.of(
+                        "name", "Context Config",
+                        "apon", maskSensitiveApon(aspectranConfig.getContextConfig().toString())
+                ));
+            }
+            if (aspectranConfig.hasSchedulerConfig()) {
+                configItems.add(Map.of(
+                        "name", "Scheduler Config",
+                        "apon", maskSensitiveApon(aspectranConfig.getSchedulerConfig().toString())
+                ));
+            }
+            if (aspectranConfig.hasWebConfig()) {
+                configItems.add(Map.of(
+                        "name", "Web Config",
+                        "apon", maskSensitiveApon(aspectranConfig.getWebConfig().toString())
+                ));
+            }
+            if (aspectranConfig.getDaemonConfig() != null) {
+                configItems.add(Map.of(
+                        "name", "Daemon Config",
+                        "apon", maskSensitiveApon(aspectranConfig.getDaemonConfig().toString())
+                ));
+            }
+            if (aspectranConfig.getShellConfig() != null) {
+                configItems.add(Map.of(
+                        "name", "Shell Config",
+                        "apon", maskSensitiveApon(aspectranConfig.getShellConfig().toString())
+                ));
+            }
+            if (aspectranConfig.getEmbedConfig() != null) {
+                configItems.add(Map.of(
+                        "name", "Embed Config",
+                        "apon", maskSensitiveApon(aspectranConfig.getEmbedConfig().toString())
+                ));
+            }
+            anatomyData.put("Configuration", configItems);
+        }
+
+        // 2. Translet Rules
         if (context.getTransletRuleRegistry() != null) {
             Map<String, TransletRule> ruleMap = context.getTransletRuleRegistry().getTransletRuleMap();
             List<Map<String, Object>> ruleData = ruleMap.entrySet().stream()
@@ -125,7 +203,7 @@ public class AnatomyDataService {
             anatomyData.put("Translet Rules", ruleData);
         }
 
-        // 2. Bean Rules
+        // 3. Bean Rules
         if (context.getBeanRegistry() instanceof DefaultBeanRegistry registry) {
             BeanRuleRegistry beanRuleRegistry = registry.getBeanRuleRegistry();
             Set<BeanRule> allBeanRules = new HashSet<>(beanRuleRegistry.getIdBasedBeanRules());
@@ -148,7 +226,7 @@ public class AnatomyDataService {
             }
         }
 
-        // 3. Aspect Rules
+        // 4. Aspect Rules
         if (context.getAspectRuleRegistry() != null) {
             Collection<AspectRule> rules = context.getAspectRuleRegistry().getAspectRules();
             List<Map<String, Object>> ruleData = rules.stream()
@@ -157,7 +235,7 @@ public class AnatomyDataService {
             anatomyData.put("Aspect Rules", ruleData);
         }
 
-        // 4. Schedule Rules
+        // 5. Schedule Rules
         if (context.getScheduleRuleRegistry() != null) {
             Collection<ScheduleRule> rules = context.getScheduleRuleRegistry().getScheduleRules();
             List<Map<String, Object>> ruleData = rules.stream()
@@ -166,7 +244,7 @@ public class AnatomyDataService {
             anatomyData.put("Schedule Rules", ruleData);
         }
 
-        // 5. Template Rules
+        // 6. Template Rules
         if (context.getTemplateRenderer() instanceof DefaultTemplateRenderer renderer) {
             Collection<TemplateRule> rules = renderer.getTemplateRules();
             List<Map<String, Object>> ruleData = rules.stream()
@@ -175,7 +253,7 @@ public class AnatomyDataService {
             anatomyData.put("Template Rules", ruleData);
         }
 
-        // 6. Type Converters
+        // 7. Type Converters
         if (context.getTypeConverterRegistry() != null) {
             Map<Class<?>, TypeConverter<?>> converters = context.getTypeConverterRegistry().getConverters();
             List<Map<String, Object>> ruleData = converters.entrySet().stream()
