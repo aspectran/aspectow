@@ -30,6 +30,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -208,6 +209,11 @@ class NettyThreadPoolMetricsReaderTest {
         @Override
         public NettyContextRouter getContextRouter() {
             return null;
+        }
+
+        @Override
+        public Map<String, SessionManager> getAllSessionManagers() {
+            return Map.of();
         }
 
         @Override

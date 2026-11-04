@@ -44,6 +44,7 @@ import java.lang.management.ThreadMXBean;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -100,6 +101,11 @@ class SessionEventReaderTest {
         TestSessionManager consoleSessionManager = new TestSessionManager("console");
 
         SessionManagerProvider nettyServer = new SessionManagerProvider() {
+            @Override
+            public Map<String, SessionManager> getAllSessionManagers() {
+                return Map.of("root", rootSessionManager, "console", consoleSessionManager);
+            }
+
             @Override
             public SessionManager getSessionManager() {
                 return rootSessionManager;
@@ -163,6 +169,11 @@ class SessionEventReaderTest {
 
         SessionManagerProvider undertowServer = new SessionManagerProvider() {
             @Override
+            public Map<String, SessionManager> getAllSessionManagers() {
+                return Map.of("root", rootSessionManager);
+            }
+
+            @Override
             public SessionManager getSessionManager() {
                 return rootSessionManager;
             }
@@ -213,6 +224,11 @@ class SessionEventReaderTest {
         TestSessionManager consoleSessionManager = new TestSessionManager("console");
 
         SessionManagerProvider nettyServer = new SessionManagerProvider() {
+            @Override
+            public Map<String, SessionManager> getAllSessionManagers() {
+                return Map.of("console", consoleSessionManager);
+            }
+
             @Override
             public SessionManager getSessionManager() {
                 return null;
@@ -270,6 +286,11 @@ class SessionEventReaderTest {
 
         SessionManagerProvider nettyServer = new SessionManagerProvider() {
             @Override
+            public Map<String, SessionManager> getAllSessionManagers() {
+                return Map.of("root-dup-test", rootSessionManager);
+            }
+
+            @Override
             public SessionManager getSessionManager() {
                 return rootSessionManager;
             }
@@ -315,6 +336,11 @@ class SessionEventReaderTest {
         TestSessionManager rootSessionManager = new TestSessionManager("root-destroy-test");
 
         SessionManagerProvider nettyServer = new SessionManagerProvider() {
+            @Override
+            public Map<String, SessionManager> getAllSessionManagers() {
+                return Map.of("root-destroy-test", rootSessionManager);
+            }
+
             @Override
             public SessionManager getSessionManager() {
                 return rootSessionManager;
@@ -363,6 +389,11 @@ class SessionEventReaderTest {
 
         @Override
         protected void doStop() throws Exception {
+        }
+
+        @Override
+        public Map<String, SessionManager> getAllSessionManagers() {
+            return Map.of("root", sessionManager);
         }
 
         @Override
@@ -469,6 +500,11 @@ class SessionEventReaderTest {
         sessionManager.initialize();
 
         SessionManagerProvider server = new SessionManagerProvider() {
+            @Override
+            public Map<String, SessionManager> getAllSessionManagers() {
+                return Map.of("root", sessionManager);
+            }
+
             @Override
             public SessionManager getSessionManager() {
                 return sessionManager;
