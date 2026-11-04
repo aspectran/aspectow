@@ -19,7 +19,7 @@
  * Responsible for rendering and updating individual charts using Chart.js.
  *
  * @version 4.3
- * @last-modified 2026-11-02
+ * @last-modified 2026-11-04
  */
 class DashboardChart {
     constructor($container, eventId) {
@@ -403,11 +403,12 @@ class DashboardChart {
         }
 
         if (!this.chart || !this.chart.data || !this.chart.data.labels) {
-            $tableWrap.html('<button type="button" class="btn btn-close-table bi bi-x-lg" title="Close table view"></button><div class="chart-table-body"><div class="text-muted p-2 text-center">No data available</div></div>');
+            $tableWrap.html('<button type="button" class="btn btn-close-table bi bi-x-lg" title="Close table view"></button><div class="chart-table-body pt-3"><div class="text-muted p-2 text-center">No data available</div></div>');
             $tableWrap.find(".btn-close-table").off("click").on("click", (e) => {
                 e.stopPropagation();
                 this.toggleTableView();
             });
+            setTimeout(() => this.toggleTableView(), 2200);
             return;
         }
 
@@ -415,8 +416,7 @@ class DashboardChart {
         const ds1 = this.chart.data.datasets[0] || { label: "Data 1", data: [] };
         const ds2 = this.chart.data.datasets[1] || null;
 
-        let html = '<button type="button" class="btn btn-close-table bi bi-x-lg" title="Close table view"></button>';
-        html += '<div class="chart-table-body">';
+        let html = '<div class="chart-table-body">';
         html += '<table class="table table-sm table-striped table-hover">';
         html += '<thead><tr>';
         html += '<th class="col-date">Date / Time</th>';
@@ -424,6 +424,7 @@ class DashboardChart {
         if (ds2) {
             html += `<th class="text-end col-val2">${this.escapeHtml(ds2.label || "Value 2")}</th>`;
         }
+        html += `<th class="text-end"><button type="button" class="btn btn-close-table bi bi-x-lg" title="Close table view"></button></th>`;
         html += '</tr></thead><tbody>';
 
         for (let i = 0; i < labels.length; i++) {
@@ -434,7 +435,7 @@ class DashboardChart {
                 const val2 = ds2.data[i] != null ? Number(ds2.data[i]).toLocaleString() : "-";
                 html += `<td class="text-end">${val2}</td>`;
             }
-            html += '</tr>';
+            html += '<td></td></tr>';
         }
         html += '</tbody></table></div>';
         $tableWrap.html(html);

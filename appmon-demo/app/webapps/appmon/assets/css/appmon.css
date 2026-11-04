@@ -16,7 +16,7 @@
 
 /*
  * @version 4.3
- * @last-modified 2026-10-30
+ * @last-modified 2026-11-04
  */
 
 /* For console-integrated & standalone page-content */
@@ -682,6 +682,7 @@
     width: 100%;
     height: 100%;
     overflow-y: auto;
+    scrollbar-width: thin;
 }
 .charts-box .chart-box .chart .chart-table-wrap table {
     width: 100%;
@@ -704,15 +705,7 @@
     border-bottom: 1px solid #f1f3f5;
     font-variant-numeric: tabular-nums;
 }
-.charts-box .chart-box .chart .chart-table-wrap th:last-child,
-.charts-box .chart-box .chart .chart-table-wrap td:last-child {
-    padding-right: 32px !important;
-}
 .charts-box .chart-box .chart .chart-table-wrap .btn-close-table {
-    position: absolute;
-    top: 3px;
-    right: 3px;
-    z-index: 10;
     padding: 5px 6px;
     font-size: 0.75rem;
     line-height: 1;
@@ -722,6 +715,11 @@
     cursor: pointer;
     border-radius: 4px;
     transition: background-color 0.15s, color 0.15s;
+}
+.charts-box .chart-box .chart .chart-table-wrap > .btn-close-table {
+    position: absolute;
+    top: 3px;
+    right: 3px;
 }
 .charts-box .chart-box .chart .chart-table-wrap .btn-close-table:hover {
     color: #000;
