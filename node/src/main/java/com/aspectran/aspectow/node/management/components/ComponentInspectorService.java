@@ -19,6 +19,7 @@ import com.aspectran.aspectow.node.management.components.providers.ApplicationAd
 import com.aspectran.aspectow.node.management.components.providers.AsyncTaskExecutorComponentProvider;
 import com.aspectran.aspectow.node.management.components.providers.CorsProcessorComponentProvider;
 import com.aspectran.aspectow.node.management.components.providers.DataSourceComponentProvider;
+import com.aspectran.aspectow.node.management.components.providers.EntityManagerFactoryComponentProvider;
 import com.aspectran.aspectow.node.management.components.providers.EnvironmentComponentProvider;
 import com.aspectran.aspectow.node.management.components.providers.EventPublisherComponentProvider;
 import com.aspectran.aspectow.node.management.components.providers.LocaleResolverComponentProvider;
@@ -61,6 +62,7 @@ public class ComponentInspectorService {
         providers.add(new EnvironmentComponentProvider());
         providers.add(new DataSourceComponentProvider());
         providers.add(new SqlSessionFactoryComponentProvider());
+        providers.add(new EntityManagerFactoryComponentProvider());
         providers.add(new RedisClientComponentProvider());
         providers.add(new SessionManagerComponentProvider());
         providers.add(new TemplateRendererComponentProvider());
@@ -94,6 +96,7 @@ public class ComponentInspectorService {
                 if (provider.isAvailable(context)) {
                     ComponentDetails details = provider.extractDetails(context);
                     if (details != null) {
+                        details.setRefreshable(provider.isRefreshable());
                         resultMap.put(provider.getId(), details);
                     }
                 }
@@ -116,7 +119,11 @@ public class ComponentInspectorService {
             if (provider.getId().equals(componentId)) {
                 try {
                     if (provider.isAvailable(context)) {
-                        return provider.extractDetails(context);
+                        ComponentDetails details = provider.extractDetails(context);
+                        if (details != null) {
+                            details.setRefreshable(provider.isRefreshable());
+                        }
+                        return details;
                     }
                 } catch (Exception e) {
                     logger.warn("Failed to inspect component [{}]", componentId, e);

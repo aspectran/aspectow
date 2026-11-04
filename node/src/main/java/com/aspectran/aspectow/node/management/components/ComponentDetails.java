@@ -40,6 +40,8 @@ public class ComponentDetails {
 
     private int itemCount;
 
+    private boolean refreshable;
+
     private List<Map<String, Object>> items = new ArrayList<>();
 
     private Map<String, Object> properties = new LinkedHashMap<>();
@@ -97,6 +99,15 @@ public class ComponentDetails {
 
     public ComponentDetails setItemCount(int itemCount) {
         this.itemCount = itemCount;
+        return this;
+    }
+
+    public boolean isRefreshable() {
+        return refreshable;
+    }
+
+    public ComponentDetails setRefreshable(boolean refreshable) {
+        this.refreshable = refreshable;
         return this;
     }
 

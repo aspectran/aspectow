@@ -79,13 +79,11 @@ public class SqlSessionFactoryComponentProvider implements ComponentInfoProvider
         if (clazz == null) {
             return false;
         }
-        BeanRegistry beanRegistry = context.getBeanRegistry();
-        return (beanRegistry != null && beanRegistry.containsBean(clazz));
+        return ComponentUtils.hasLocalBean(context, clazz);
     }
 
     @Override
     @Nullable
-    @SuppressWarnings("unchecked")
     public ComponentDetails extractDetails(@NonNull ActivityContext context) {
         Class<?> clazz = getSqlSessionFactoryClass();
         if (clazz == null) {
@@ -104,20 +102,22 @@ public class SqlSessionFactoryComponentProvider implements ComponentInfoProvider
             if (rules != null) {
                 for (BeanRule rule : rules) {
                     try {
-                        String beanId = rule.getId();
-                        if (beanId != null) {
-                            Object bean = defaultBeanRegistry.getBean(beanId);
-                            if (clazz.isInstance(bean)) {
-                                items.add(extractFactoryInfo(beanId, bean));
-                            }
+                        Object bean = defaultBeanRegistry.getBean(rule);
+                        if (bean == null && rule.getId() != null) {
+                            bean = defaultBeanRegistry.getBean(rule.getId());
+                        }
+                        if (bean == null && rule.getBeanClass() != null) {
+                            bean = defaultBeanRegistry.getBean(rule.getBeanClass());
+                        }
+                        if (clazz.isInstance(bean)) {
+                            String beanName = ComponentUtils.resolveBeanName(rule, "sqlSessionFactory");
+                            items.add(extractFactoryInfo(beanName, bean));
                         }
                     } catch (Exception ignored) {
                     }
                 }
             }
-        }
-
-        if (items.isEmpty()) {
+        } else {
             Object[] factories = registry.getBeansOfType((Class<?>) clazz);
             if (factories != null) {
                 int index = 1;

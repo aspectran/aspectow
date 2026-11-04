@@ -70,8 +70,7 @@ public class LocaleResolverComponentProvider implements ComponentInfoProvider {
         if (masterService != null && masterService.getLocaleResolver() != null) {
             return true;
         }
-        BeanRegistry beanRegistry = context.getBeanRegistry();
-        return (beanRegistry != null && beanRegistry.containsBean(LocaleResolver.class));
+        return ComponentUtils.hasLocalBean(context, LocaleResolver.class);
     }
 
     @Override
@@ -91,20 +90,22 @@ public class LocaleResolverComponentProvider implements ComponentInfoProvider {
             if (rules != null) {
                 for (BeanRule rule : rules) {
                     try {
-                        String beanId = rule.getId();
-                        if (beanId != null) {
-                            Object bean = defaultBeanRegistry.getBean(beanId);
-                            if (bean instanceof LocaleResolver resolver && resolver != masterResolver) {
-                                items.add(extractResolverInfo(beanId, resolver));
-                            }
+                        Object bean = defaultBeanRegistry.getBean(rule);
+                        if (bean == null && rule.getId() != null) {
+                            bean = defaultBeanRegistry.getBean(rule.getId());
+                        }
+                        if (bean == null && rule.getBeanClass() != null) {
+                            bean = defaultBeanRegistry.getBean(rule.getBeanClass());
+                        }
+                        if (bean instanceof LocaleResolver resolver && resolver != masterResolver) {
+                            String beanName = ComponentUtils.resolveBeanName(rule, "localeResolver");
+                            items.add(extractResolverInfo(beanName, resolver));
                         }
                     } catch (Exception ignored) {
                     }
                 }
             }
-        }
-
-        if (items.isEmpty() && registry != null) {
+        } else if (registry != null) {
             LocaleResolver[] resolvers = registry.getBeansOfType(LocaleResolver.class);
             if (resolvers != null) {
                 int index = 1;

@@ -80,8 +80,7 @@ public class MultipartComponentProvider implements ComponentInfoProvider {
         if (clazz == null) {
             return false;
         }
-        BeanRegistry beanRegistry = context.getBeanRegistry();
-        return (beanRegistry != null && beanRegistry.containsBean(clazz));
+        return ComponentUtils.hasLocalBean(context, clazz);
     }
 
     @Override
@@ -104,20 +103,22 @@ public class MultipartComponentProvider implements ComponentInfoProvider {
             if (rules != null) {
                 for (BeanRule rule : rules) {
                     try {
-                        String beanId = rule.getId();
-                        if (beanId != null) {
-                            Object bean = defaultBeanRegistry.getBean(beanId);
-                            if (clazz.isInstance(bean)) {
-                                items.add(extractParserInfo(beanId, bean));
-                            }
+                        Object bean = defaultBeanRegistry.getBean(rule);
+                        if (bean == null && rule.getId() != null) {
+                            bean = defaultBeanRegistry.getBean(rule.getId());
+                        }
+                        if (bean == null && rule.getBeanClass() != null) {
+                            bean = defaultBeanRegistry.getBean(rule.getBeanClass());
+                        }
+                        if (clazz.isInstance(bean)) {
+                            String beanName = ComponentUtils.resolveBeanName(rule, "multipartFormDataParser");
+                            items.add(extractParserInfo(beanName, bean));
                         }
                     } catch (Exception ignored) {
                     }
                 }
             }
-        }
-
-        if (items.isEmpty()) {
+        } else {
             Object[] parsers = registry.getBeansOfType((Class<?>) clazz);
             if (parsers != null) {
                 int index = 1;
@@ -161,8 +162,9 @@ public class MultipartComponentProvider implements ComponentInfoProvider {
         info.put("maxInMemorySize", maxInMemory);
         info.put("maxInMemorySizeFormatted", ComponentUtils.formatBytes(maxInMemory));
 
-        String tempDir = ComponentUtils.invokeString(parser, "getTempFileDir");
+        String tempDir = ComponentUtils.invokeString(parser, "getTempDir");
         info.put("tempDirectory", tempDir);
+        info.put("defaultTempDirectory", System.getProperty("java.io.tmpdir"));
 
         info.put("allowedFileExtensions", parseExtensions(parser, "getAllowedFileExtensions"));
         info.put("deniedFileExtensions", parseExtensions(parser, "getDeniedFileExtensions"));

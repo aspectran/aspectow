@@ -23,6 +23,7 @@ import com.aspectran.core.component.bean.BeanRegistry;
 import com.aspectran.core.component.bean.DefaultBeanRegistry;
 import com.aspectran.core.context.ActivityContext;
 import com.aspectran.core.context.rule.BeanRule;
+import com.aspectran.utils.DurationUtils;
 import io.lettuce.core.RedisURI;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
@@ -68,23 +69,19 @@ public class RedisClientComponentProvider implements ComponentInfoProvider {
 
     @Override
     public boolean isAvailable(@NonNull ActivityContext context) {
-        BeanRegistry beanRegistry = context.getBeanRegistry();
-        if (beanRegistry == null) {
-            return false;
-        }
-        if (beanRegistry.containsBean(RedisConnectionPoolConfig.class)) {
+        if (ComponentUtils.hasLocalBean(context, RedisConnectionPoolConfig.class)) {
             return true;
         }
         try {
             Class<?> redisClientClass = Class.forName(REDIS_CLIENT_CLASS);
-            if (beanRegistry.containsBean(redisClientClass)) {
+            if (ComponentUtils.hasLocalBean(context, redisClientClass)) {
                 return true;
             }
         } catch (ClassNotFoundException ignored) {
         }
         try {
             Class<?> clusterClientClass = Class.forName(REDIS_CLUSTER_CLIENT_CLASS);
-            if (beanRegistry.containsBean(clusterClientClass)) {
+            if (ComponentUtils.hasLocalBean(context, clusterClientClass)) {
                 return true;
             }
         } catch (ClassNotFoundException ignored) {
@@ -94,7 +91,6 @@ public class RedisClientComponentProvider implements ComponentInfoProvider {
 
     @Override
     @Nullable
-    @SuppressWarnings("unchecked")
     public ComponentDetails extractDetails(@NonNull ActivityContext context) {
         BeanRegistry registry = context.getBeanRegistry();
         if (registry == null) {
@@ -103,11 +99,10 @@ public class RedisClientComponentProvider implements ComponentInfoProvider {
 
         List<Map<String, Object>> items = new ArrayList<>();
 
-        // Check RedisConnectionPoolConfig beans
         if (registry instanceof DefaultBeanRegistry defaultBeanRegistry) {
-            BeanRule[] rules = defaultBeanRegistry.getBeanRuleRegistry().getBeanRules(RedisConnectionPoolConfig.class);
-            if (rules != null) {
-                for (BeanRule rule : rules) {
+            BeanRule[] poolRules = defaultBeanRegistry.getBeanRuleRegistry().getBeanRules(RedisConnectionPoolConfig.class);
+            if (poolRules != null) {
+                for (BeanRule rule : poolRules) {
                     try {
                         String beanId = rule.getId();
                         if (beanId != null) {
@@ -120,9 +115,29 @@ public class RedisClientComponentProvider implements ComponentInfoProvider {
                     }
                 }
             }
-        }
 
-        if (items.isEmpty()) {
+            if (items.isEmpty()) {
+                try {
+                    Class<?> clientClass = Class.forName(REDIS_CLIENT_CLASS);
+                    BeanRule[] clientRules = defaultBeanRegistry.getBeanRuleRegistry().getBeanRules(clientClass);
+                    if (clientRules != null) {
+                        for (BeanRule rule : clientRules) {
+                            try {
+                                String beanId = rule.getId();
+                                if (beanId != null) {
+                                    Object bean = defaultBeanRegistry.getBean(beanId);
+                                    if (bean != null) {
+                                        items.add(extractClientInfo(beanId, bean));
+                                    }
+                                }
+                            } catch (Exception ignored) {
+                            }
+                        }
+                    }
+                } catch (ClassNotFoundException ignored) {
+                }
+            }
+        } else {
             RedisConnectionPoolConfig[] configs = registry.getBeansOfType(RedisConnectionPoolConfig.class);
             if (configs != null) {
                 int index = 1;
@@ -131,21 +146,20 @@ public class RedisClientComponentProvider implements ComponentInfoProvider {
                     index++;
                 }
             }
-        }
 
-        // Also check standalone RedisClient beans if no pool configs were found
-        if (items.isEmpty()) {
-            try {
-                Class<?> clientClass = Class.forName(REDIS_CLIENT_CLASS);
-                Object[] clients = registry.getBeansOfType((Class<?>) clientClass);
-                if (clients != null) {
-                    int index = 1;
-                    for (Object client : clients) {
-                        items.add(extractClientInfo("redisClient" + (index > 1 ? index : ""), client));
-                        index++;
+            if (items.isEmpty()) {
+                try {
+                    Class<?> clientClass = Class.forName(REDIS_CLIENT_CLASS);
+                    Object[] clients = registry.getBeansOfType((Class<?>) clientClass);
+                    if (clients != null) {
+                        int index = 1;
+                        for (Object client : clients) {
+                            items.add(extractClientInfo("redisClient" + (index > 1 ? index : ""), client));
+                            index++;
+                        }
                     }
+                } catch (Exception ignored) {
                 }
-            } catch (Exception ignored) {
             }
         }
 
@@ -178,7 +192,7 @@ public class RedisClientComponentProvider implements ComponentInfoProvider {
             info.put("port", uri.getPort());
             info.put("database", uri.getDatabase());
             info.put("ssl", uri.isSsl());
-            info.put("timeout", uri.getTimeout() != null ? uri.getTimeout().toString() : null);
+            info.put("timeout", uri.getTimeout() != null ? DurationUtils.toHumanReadable(uri.getTimeout()) : null);
             info.put("clientName", uri.getClientName());
 
             String uriStr = (uri.toURI() != null ? uri.toURI().toString() : "");

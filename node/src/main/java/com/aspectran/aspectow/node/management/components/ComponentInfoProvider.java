@@ -63,6 +63,15 @@ public interface ComponentInfoProvider {
     boolean isAvailable(@NonNull ActivityContext context);
 
     /**
+     * Returns whether this component provides dynamic runtime metrics
+     * that can be refreshed on demand.
+     * @return true if refreshable, false by default
+     */
+    default boolean isRefreshable() {
+        return false;
+    }
+
+    /**
      * Extracts configuration and specification details from the context.
      * @param context the activity context
      * @return the component details, or null if not applicable

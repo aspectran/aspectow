@@ -60,20 +60,6 @@
                 </div>
             </div>
 
-            <!-- Security Group -->
-            <div class="nav-group" th:if="${session.USER_INFO.hasRole('SUPER_ADMIN') || session.USER_INFO.hasRole('ADMIN') || session.USER_INFO.hasRole('DEMO')}">
-                <a class="nav-link" th:classappend="${page.group == 'security-menu' ? 'active' : 'collapsed'}"
-                   data-bs-toggle="collapse" href="#security-menu" role="button" aria-expanded="false">
-                    <span><i class="bi bi-shield-lock"></i> Security</span>
-                    <i class="bi bi-chevron-down small"></i>
-                </a>
-                <div class="collapse" th:classappend="${page.group == 'security-menu' ? 'show' : ''}" id="security-menu">
-                    <a th:href="@{/vault/}" class="nav-link sub" th:classappend="${page.style == 'vault-page' ? 'active' : ''}">
-                        Vault
-                    </a>
-                </div>
-            </div>
-
             <!-- Framework Group -->
             <div class="nav-group">
                 <a class="nav-link" th:classappend="${page.group == 'framework-menu' ? 'active' : 'collapsed'}"
@@ -87,6 +73,20 @@
                     </a>
                     <a th:href="@{/framework/anatomy/}" class="nav-link sub" th:classappend="${page.style == 'anatomy-page' ? 'active' : ''}">
                         Anatomy
+                    </a>
+                </div>
+            </div>
+
+            <!-- Security Group -->
+            <div class="nav-group" th:if="${session.USER_INFO.hasRole('SUPER_ADMIN') || session.USER_INFO.hasRole('ADMIN') || session.USER_INFO.hasRole('DEMO')}">
+                <a class="nav-link" th:classappend="${page.group == 'security-menu' ? 'active' : 'collapsed'}"
+                   data-bs-toggle="collapse" href="#security-menu" role="button" aria-expanded="false">
+                    <span><i class="bi bi-shield-lock"></i> Security</span>
+                    <i class="bi bi-chevron-down small"></i>
+                </a>
+                <div class="collapse" th:classappend="${page.group == 'security-menu' ? 'show' : ''}" id="security-menu">
+                    <a th:href="@{/vault/}" class="nav-link sub" th:classappend="${page.style == 'vault-page' ? 'active' : ''}">
+                        Vault
                     </a>
                 </div>
             </div>

@@ -15,7 +15,12 @@
  */
 package com.aspectran.aspectow.node.management.components;
 
+import com.aspectran.core.component.bean.BeanRegistry;
+import com.aspectran.core.component.bean.DefaultBeanRegistry;
+import com.aspectran.core.context.ActivityContext;
+import com.aspectran.core.context.rule.BeanRule;
 import com.aspectran.utils.DataSizeUtils;
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import java.lang.reflect.Method;
@@ -139,6 +144,49 @@ public abstract class ComponentUtils {
             return "Unlimited";
         }
         return DataSizeUtils.toHumanFriendlyByteSize(b);
+    }
+
+    public static boolean hasLocalBean(@Nullable ActivityContext context, @NonNull Class<?> type) {
+        if (context == null) {
+            return false;
+        }
+        BeanRegistry registry = context.getBeanRegistry();
+        return (registry != null && registry.containsLocalBean(type));
+    }
+
+    public static boolean hasLocalBean(@Nullable ActivityContext context, @NonNull String id) {
+        if (context == null) {
+            return false;
+        }
+        BeanRegistry registry = context.getBeanRegistry();
+        return (registry != null && registry.containsLocalBean(id));
+    }
+
+    @Nullable
+    public static BeanRule[] getLocalBeanRules(@Nullable ActivityContext context, @NonNull Class<?> type) {
+        if (context == null) {
+            return null;
+        }
+        BeanRegistry registry = context.getBeanRegistry();
+        if (registry instanceof DefaultBeanRegistry defaultBeanRegistry) {
+            return defaultBeanRegistry.getBeanRuleRegistry().getBeanRules(type);
+        }
+        return null;
+    }
+
+    @NonNull
+    public static String resolveBeanName(@NonNull BeanRule rule, @NonNull String defaultName) {
+        if (rule.getId() != null) {
+            return rule.getId();
+        }
+        Class<?> beanClass = rule.getBeanClass();
+        if (beanClass != null) {
+            String name = beanClass.getSimpleName();
+            if (!name.isEmpty()) {
+                return Character.toLowerCase(name.charAt(0)) + name.substring(1);
+            }
+        }
+        return defaultName;
     }
 
 }

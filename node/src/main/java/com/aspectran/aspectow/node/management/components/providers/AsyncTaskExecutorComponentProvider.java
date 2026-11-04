@@ -70,9 +70,8 @@ public class AsyncTaskExecutorComponentProvider implements ComponentInfoProvider
 
     @Override
     public boolean isAvailable(@NonNull ActivityContext context) {
-        BeanRegistry beanRegistry = context.getBeanRegistry();
-        return (beanRegistry != null &&
-                (beanRegistry.containsBean(AsyncTaskExecutor.class) || beanRegistry.containsBean(Executor.class)));
+        return (ComponentUtils.hasLocalBean(context, AsyncTaskExecutor.class) ||
+                ComponentUtils.hasLocalBean(context, Executor.class));
     }
 
     @Override
@@ -87,22 +86,29 @@ public class AsyncTaskExecutorComponentProvider implements ComponentInfoProvider
 
         if (registry instanceof DefaultBeanRegistry defaultBeanRegistry) {
             BeanRule[] rules = defaultBeanRegistry.getBeanRuleRegistry().getBeanRules(AsyncTaskExecutor.class);
+            if (rules == null) {
+                rules = defaultBeanRegistry.getBeanRuleRegistry().getBeanRules(Executor.class);
+            }
             if (rules != null) {
                 for (BeanRule rule : rules) {
                     try {
-                        String beanId = rule.getId();
-                        Object bean = (beanId != null ? defaultBeanRegistry.getBean(beanId) : null);
+                        Object bean = defaultBeanRegistry.getBean(rule);
+                        if (bean == null && rule.getId() != null) {
+                            bean = defaultBeanRegistry.getBean(rule.getId());
+                        }
+                        if (bean == null && rule.getBeanClass() != null) {
+                            bean = defaultBeanRegistry.getBean(rule.getBeanClass());
+                        }
                         if (bean instanceof Executor executor) {
-                            items.add(extractExecutorInfo(beanId, executor));
+                            String beanName = ComponentUtils.resolveBeanName(rule, "taskExecutor");
+                            items.add(extractExecutorInfo(beanName, executor));
                         }
                     } catch (Exception e) {
                         logger.warn("Failed to extract AsyncTaskExecutor bean info: {}", rule.getId(), e);
                     }
                 }
             }
-        }
-
-        if (items.isEmpty()) {
+        } else {
             Executor[] executors = registry.getBeansOfType(Executor.class);
             if (executors != null) {
                 int index = 1;

@@ -18,14 +18,17 @@ package com.aspectran.aspectow.node.management.components.providers;
 import com.aspectran.aspectow.node.management.components.ComponentDetails;
 import com.aspectran.aspectow.node.management.components.ComponentInfoProvider;
 import com.aspectran.aspectow.node.management.components.ComponentUtils;
+import com.aspectran.core.component.Component;
 import com.aspectran.core.component.bean.BeanRegistry;
 import com.aspectran.core.component.bean.DefaultBeanRegistry;
 import com.aspectran.core.component.session.SessionCache;
 import com.aspectran.core.component.session.SessionManager;
+import com.aspectran.core.component.session.SessionManagerProvider;
 import com.aspectran.core.component.session.SessionStatistics;
 import com.aspectran.core.context.ActivityContext;
 import com.aspectran.core.context.rule.BeanRule;
 import com.aspectran.utils.DurationUtils;
+import com.aspectran.utils.StringUtils;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
@@ -66,10 +69,55 @@ public class SessionManagerComponentProvider implements ComponentInfoProvider {
         return "bi-clock-history";
     }
 
+    @Nullable
+    private String resolveContextName(@NonNull ActivityContext context) {
+        String name = context.getName();
+        if (StringUtils.hasText(name)) {
+            return name;
+        }
+        if (context.getMasterService() != null) {
+            name = context.getMasterService().getContextName();
+            if (StringUtils.hasText(name)) {
+                return name;
+            }
+        }
+        return null;
+    }
+
     @Override
     public boolean isAvailable(@NonNull ActivityContext context) {
         BeanRegistry beanRegistry = context.getBeanRegistry();
-        return (beanRegistry != null && beanRegistry.containsBean(SessionManager.class));
+        if (beanRegistry == null) {
+            return false;
+        }
+        if (beanRegistry.containsBean(SessionManagerProvider.class)) {
+            try {
+                SessionManagerProvider[] providers = beanRegistry.getBeansOfType(SessionManagerProvider.class);
+                if (providers != null) {
+                    String contextName = resolveContextName(context);
+                    for (SessionManagerProvider provider : providers) {
+                        Map<String, SessionManager> sessionManagers = provider.getAllSessionManagers();
+                        if (sessionManagers != null && !sessionManagers.isEmpty()) {
+                            if (contextName == null || sessionManagers.size() == 1 || sessionManagers.containsKey(contextName)) {
+                                return true;
+                            }
+                            for (String name : sessionManagers.keySet()) {
+                                if (name.equalsIgnoreCase(contextName)) {
+                                    return true;
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (Exception ignored) {
+            }
+        }
+        return ComponentUtils.hasLocalBean(context, SessionManager.class);
+    }
+
+    @Override
+    public boolean isRefreshable() {
+        return true;
     }
 
     @Override
@@ -82,7 +130,57 @@ public class SessionManagerComponentProvider implements ComponentInfoProvider {
 
         List<Map<String, Object>> items = new ArrayList<>();
 
-        if (registry instanceof DefaultBeanRegistry defaultBeanRegistry) {
+        SessionManagerProvider[] providers = registry.getBeansOfType(SessionManagerProvider.class);
+        if (providers != null) {
+            String contextName = resolveContextName(context);
+            for (SessionManagerProvider provider : providers) {
+                try {
+                    Map<String, SessionManager> sessionManagers = provider.getAllSessionManagers();
+                    if (sessionManagers != null && !sessionManagers.isEmpty()) {
+                        if (contextName != null && sessionManagers.containsKey(contextName)) {
+                            SessionManager manager = sessionManagers.get(contextName);
+                            if (manager != null) {
+                                items.add(extractSessionManagerInfo(contextName, manager));
+                            }
+                        } else if (contextName != null) {
+                            boolean found = false;
+                            for (Map.Entry<String, SessionManager> entry : sessionManagers.entrySet()) {
+                                if (entry.getKey().equalsIgnoreCase(contextName)) {
+                                    if (entry.getValue() != null) {
+                                        items.add(extractSessionManagerInfo(entry.getKey(), entry.getValue()));
+                                    }
+                                    found = true;
+                                    break;
+                                }
+                            }
+                            if (!found) {
+                                if (sessionManagers.size() == 1) {
+                                    Map.Entry<String, SessionManager> entry = sessionManagers.entrySet().iterator().next();
+                                    if (entry.getValue() != null) {
+                                        items.add(extractSessionManagerInfo(entry.getKey(), entry.getValue()));
+                                    }
+                                } else {
+                                    for (Map.Entry<String, SessionManager> entry : sessionManagers.entrySet()) {
+                                        if (entry.getValue() != null) {
+                                            items.add(extractSessionManagerInfo(entry.getKey(), entry.getValue()));
+                                        }
+                                    }
+                                }
+                            }
+                        } else {
+                            for (Map.Entry<String, SessionManager> entry : sessionManagers.entrySet()) {
+                                if (entry.getValue() != null) {
+                                    items.add(extractSessionManagerInfo(entry.getKey(), entry.getValue()));
+                                }
+                            }
+                        }
+                    }
+                } catch (Exception ignored) {
+                }
+            }
+        }
+
+        if (items.isEmpty() && registry instanceof DefaultBeanRegistry defaultBeanRegistry) {
             BeanRule[] rules = defaultBeanRegistry.getBeanRuleRegistry().getBeanRules(SessionManager.class);
             if (rules != null) {
                 for (BeanRule rule : rules) {
@@ -101,17 +199,6 @@ public class SessionManagerComponentProvider implements ComponentInfoProvider {
         }
 
         if (items.isEmpty()) {
-            SessionManager[] managers = registry.getBeansOfType(SessionManager.class);
-            if (managers != null) {
-                int index = 1;
-                for (SessionManager manager : managers) {
-                    items.add(extractSessionManagerInfo("sessionManager" + (index > 1 ? index : ""), manager));
-                    index++;
-                }
-            }
-        }
-
-        if (items.isEmpty()) {
             return null;
         }
 
@@ -121,6 +208,7 @@ public class SessionManagerComponentProvider implements ComponentInfoProvider {
                 .setCategory(getCategory())
                 .setIcon(getIcon())
                 .setDescription("HTTP and Web Session Management Specifications and Statistics")
+                .setRefreshable(isRefreshable())
                 .setItems(items);
     }
 
@@ -162,8 +250,12 @@ public class SessionManagerComponentProvider implements ComponentInfoProvider {
         }
 
         // Active sessions
-        Set<String> activeSessions = manager.getActiveSessions();
-        info.put("activeSessionsCount", activeSessions != null ? activeSessions.size() : 0);
+        if (!(manager instanceof Component component) || component.isAvailable()) {
+            Set<String> activeSessions = manager.getActiveSessions();
+            info.put("activeSessionsCount", activeSessions != null ? activeSessions.size() : 0);
+        } else {
+            info.put("activeSessionsCount", 0);
+        }
 
         // Statistics
         SessionStatistics statistics = manager.getStatistics();
@@ -184,17 +276,7 @@ public class SessionManagerComponentProvider implements ComponentInfoProvider {
         if (seconds <= 0) {
             return "Unlimited";
         }
-        if (seconds < 60) {
-            return seconds + "s";
-        }
-        int minutes = seconds / 60;
-        int remainingSecs = seconds % 60;
-        if (minutes < 60) {
-            return minutes + "m" + (remainingSecs > 0 ? " " + remainingSecs + "s" : "");
-        }
-        int hours = minutes / 60;
-        int remainingMins = minutes % 60;
-        return hours + "h" + (remainingMins > 0 ? " " + remainingMins + "m" : "");
+        return DurationUtils.toHumanReadableSeconds(seconds);
     }
 
 }

@@ -65,8 +65,7 @@ public class MessageSourceComponentProvider implements ComponentInfoProvider {
 
     @Override
     public boolean isAvailable(@NonNull ActivityContext context) {
-        BeanRegistry beanRegistry = context.getBeanRegistry();
-        return (beanRegistry != null && beanRegistry.containsBean(MessageSource.class));
+        return ComponentUtils.hasLocalBean(context, MessageSource.class);
     }
 
     @Override
@@ -84,18 +83,22 @@ public class MessageSourceComponentProvider implements ComponentInfoProvider {
             if (rules != null) {
                 for (BeanRule rule : rules) {
                     try {
-                        String beanId = rule.getId();
-                        Object bean = (beanId != null ? defaultBeanRegistry.getBean(beanId) : null);
+                        Object bean = defaultBeanRegistry.getBean(rule);
+                        if (bean == null && rule.getId() != null) {
+                            bean = defaultBeanRegistry.getBean(rule.getId());
+                        }
+                        if (bean == null && rule.getBeanClass() != null) {
+                            bean = defaultBeanRegistry.getBean(rule.getBeanClass());
+                        }
                         if (bean instanceof MessageSource ms) {
-                            items.add(extractMessageSourceInfo(beanId, ms));
+                            String beanName = ComponentUtils.resolveBeanName(rule, "messageSource");
+                            items.add(extractMessageSourceInfo(beanName, ms));
                         }
                     } catch (Exception ignored) {
                     }
                 }
             }
-        }
-
-        if (items.isEmpty()) {
+        } else {
             MessageSource[] sources = registry.getBeansOfType(MessageSource.class);
             if (sources != null) {
                 int index = 1;

@@ -69,8 +69,7 @@ public class DataSourceComponentProvider implements ComponentInfoProvider {
 
     @Override
     public boolean isAvailable(@NonNull ActivityContext context) {
-        BeanRegistry beanRegistry = context.getBeanRegistry();
-        return (beanRegistry != null && beanRegistry.containsBean(DataSource.class));
+        return ComponentUtils.hasLocalBean(context, DataSource.class);
     }
 
     @Override
@@ -88,19 +87,23 @@ public class DataSourceComponentProvider implements ComponentInfoProvider {
             if (rules != null) {
                 for (BeanRule rule : rules) {
                     try {
-                        String beanId = rule.getId();
-                        Object bean = (beanId != null ? defaultBeanRegistry.getBean(beanId) : null);
+                        Object bean = defaultBeanRegistry.getBean(rule);
+                        if (bean == null && rule.getId() != null) {
+                            bean = defaultBeanRegistry.getBean(rule.getId());
+                        }
+                        if (bean == null && rule.getBeanClass() != null) {
+                            bean = defaultBeanRegistry.getBean(rule.getBeanClass());
+                        }
                         if (bean instanceof DataSource ds) {
-                            items.add(extractDataSourceInfo(beanId, ds));
+                            String beanName = ComponentUtils.resolveBeanName(rule, "dataSource");
+                            items.add(extractDataSourceInfo(beanName, ds));
                         }
                     } catch (Exception e) {
                         logger.warn("Failed to extract DataSource bean info: {}", rule.getId(), e);
                     }
                 }
             }
-        }
-
-        if (items.isEmpty()) {
+        } else {
             DataSource[] dataSources = registry.getBeansOfType(DataSource.class);
             if (dataSources != null) {
                 int index = 1;
