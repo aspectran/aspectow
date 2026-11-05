@@ -18,13 +18,13 @@ package com.aspectran.aspectow.node.management.components.providers;
 import com.aspectran.aspectow.node.management.components.ComponentDetails;
 import com.aspectran.aspectow.node.management.components.ComponentInfoProvider;
 import com.aspectran.aspectow.node.management.components.ComponentUtils;
-import com.aspectran.core.component.Component;
 import com.aspectran.core.component.bean.BeanRegistry;
 import com.aspectran.core.component.bean.DefaultBeanRegistry;
+import com.aspectran.core.component.session.AbstractSessionManager;
+import com.aspectran.core.component.session.HouseKeeper;
 import com.aspectran.core.component.session.SessionCache;
 import com.aspectran.core.component.session.SessionManager;
 import com.aspectran.core.component.session.SessionManagerProvider;
-import com.aspectran.core.component.session.SessionStatistics;
 import com.aspectran.core.context.ActivityContext;
 import com.aspectran.core.context.rule.BeanRule;
 import com.aspectran.utils.DurationUtils;
@@ -36,7 +36,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Provider that extracts specification and configuration details of SessionManager components.
@@ -117,7 +116,7 @@ public class SessionManagerComponentProvider implements ComponentInfoProvider {
 
     @Override
     public boolean isRefreshable() {
-        return true;
+        return false;
     }
 
     @Override
@@ -207,7 +206,7 @@ public class SessionManagerComponentProvider implements ComponentInfoProvider {
                 .setDisplayName(getDisplayName())
                 .setCategory(getCategory())
                 .setIcon(getIcon())
-                .setDescription("HTTP and Web Session Management Specifications and Statistics")
+                .setDescription("HTTP and Web Session Management Specifications")
                 .setRefreshable(isRefreshable())
                 .setItems(items);
     }
@@ -221,10 +220,21 @@ public class SessionManagerComponentProvider implements ComponentInfoProvider {
         info.put("className", clazz.getName());
         info.put("simpleClassName", clazz.getSimpleName());
 
-        info.put("routeId", manager.getRouteId());
         info.put("defaultMaxIdleSecs", manager.getDefaultMaxIdleSecs());
         info.put("defaultMaxIdleSecsFormatted", formatSeconds(manager.getDefaultMaxIdleSecs()));
-        info.put("maxIdleSecsForNew", manager.getMaxIdleSecsForNew());
+
+        int maxIdleSecsForNew = manager.getMaxIdleSecsForNew();
+        info.put("maxIdleSecsForNew", maxIdleSecsForNew);
+        info.put("maxIdleSecsForNewFormatted", maxIdleSecsForNew > 0 ? DurationUtils.toHumanReadableSeconds(maxIdleSecsForNew) : "Default");
+
+        if (manager instanceof AbstractSessionManager asm) {
+            HouseKeeper houseKeeper = asm.getHouseKeeper();
+            if (houseKeeper != null) {
+                int scavengingInterval = houseKeeper.getScavengingInterval();
+                info.put("scavengingInterval", scavengingInterval);
+                info.put("scavengingIntervalFormatted", formatSeconds(scavengingInterval));
+            }
+        }
 
         // Cache & Store settings
         SessionCache cache = manager.getSessionCache();
@@ -234,6 +244,7 @@ public class SessionManagerComponentProvider implements ComponentInfoProvider {
             info.put("clusterEnabled", cache.isClusterEnabled());
             info.put("maxActiveSessions", cache.getMaxActiveSessions());
             info.put("evictionIdleSecs", cache.getEvictionIdleSecs());
+            info.put("evictionIdleSecsFormatted", cache.getEvictionIdleSecs() > 0 ? DurationUtils.toHumanReadableSeconds(cache.getEvictionIdleSecs()) : "Disabled");
             info.put("saveOnCreate", cache.isSaveOnCreate());
             info.put("removeUnloadableSessions", cache.isRemoveUnloadableSessions());
 
@@ -247,25 +258,6 @@ public class SessionManagerComponentProvider implements ComponentInfoProvider {
                 info.put("storeDir", ComponentUtils.invokeString(store, "getStoreDir"));
                 info.put("redisUri", ComponentUtils.invokeString(store, "getRedisURI", "getUri"));
             }
-        }
-
-        // Active sessions
-        if (!(manager instanceof Component component) || component.isAvailable()) {
-            Set<String> activeSessions = manager.getActiveSessions();
-            info.put("activeSessionsCount", activeSessions != null ? activeSessions.size() : 0);
-        } else {
-            info.put("activeSessionsCount", 0);
-        }
-
-        // Statistics
-        SessionStatistics statistics = manager.getStatistics();
-        if (statistics != null) {
-            info.put("statsActive", statistics.getNumberOfActives());
-            info.put("statsHighest", statistics.getHighestNumberOfActives());
-            info.put("statsCreated", statistics.getNumberOfCreated());
-            info.put("statsExpired", statistics.getNumberOfExpired());
-            info.put("statsRejected", statistics.getNumberOfRejected());
-            info.put("statsAvgAliveTime", statistics.getAverageSessionAliveTime());
         }
 
         return info;

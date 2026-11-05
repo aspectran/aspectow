@@ -1153,69 +1153,50 @@
                                         </div>
                                         <div class="col-md-4">
                                             <div class="p-3 bg-body-tertiary rounded border h-100">
-                                                <div class="spec-label">Current Active Sessions</div>
-                                                <div class="spec-value fs-4 text-success">${Number(sm.activeSessionsCount || 0).toLocaleString()}</div>
-                                                <div class="small text-muted">Max: ${sm.maxActiveSessions > 0 ? sm.maxActiveSessions : 'Unlimited'}</div>
+                                                <div class="spec-label">Max Active Sessions Limit</div>
+                                                <div class="spec-value fs-4 text-success">${sm.maxActiveSessions > 0 ? Number(sm.maxActiveSessions).toLocaleString() : 'Unlimited'}</div>
+                                                <div class="small text-muted">Per-node cache limit</div>
                                             </div>
                                         </div>
                                         <div class="col-md-4">
                                             <div class="p-3 bg-body-tertiary rounded border h-100">
-                                                <div class="spec-label">Cluster Mode</div>
+                                                <div class="spec-label">Session Clustering</div>
                                                 <div class="spec-value fs-4 text-info">${sm.clusterEnabled ? 'Cluster' : 'Standalone'}</div>
-                                                <div class="small text-muted">Route ID: ${escapeHtml(sm.routeId || '(None)')}</div>
+                                                <div class="small text-muted">${escapeHtml(sm.sessionStoreSimpleClassName || 'In-Memory')}</div>
                                             </div>
                                         </div>
                                     </div>
                                     <div class="spec-grid mb-3">
                                         <div>
+                                            <div class="spec-label">Session Cache</div>
+                                            <div class="spec-value spec-value-code small">${escapeHtml(sm.cacheSimpleClassName || 'DefaultSessionCache')}</div>
+                                        </div>
+                                        <div>
                                             <div class="spec-label">Session Store</div>
                                             <div class="spec-value spec-value-code small">${escapeHtml(sm.sessionStoreSimpleClassName || 'In-Memory')}</div>
                                         </div>
                                         <div>
-                                            <div class="spec-label">Eviction Idle Time</div>
-                                            <div class="spec-value">${sm.evictionIdleSecs != null ? (sm.evictionIdleSecs > 0 ? sm.evictionIdleSecs + 's' : 'Unlimited') : 'N/A'}</div>
+                                            <div class="spec-label">Max Idle (New Sessions)</div>
+                                            <div class="spec-value">${escapeHtml(sm.maxIdleSecsForNewFormatted || 'Default')}</div>
+                                        </div>
+                                        <div>
+                                            <div class="spec-label">Scavenging Interval</div>
+                                            <div class="spec-value">${escapeHtml(sm.scavengingIntervalFormatted || 'Default')}</div>
+                                        </div>
+                                        <div>
+                                            <div class="spec-label">Cache Eviction Idle Time</div>
+                                            <div class="spec-value">${escapeHtml(sm.evictionIdleSecsFormatted || 'N/A')}</div>
                                         </div>
                                         <div>
                                             <div class="spec-label">Save On Create</div>
                                             <div class="spec-value">${sm.saveOnCreate ? '<span class="badge bg-success-subtle text-success-emphasis border border-success-subtle">true</span>' : 'false'}</div>
                                         </div>
                                         <div>
-                                            <div class="spec-label">Remove Unloadable</div>
+                                            <div class="spec-label">Remove Unloadable Sessions</div>
                                             <div class="spec-value">${sm.removeUnloadableSessions ? '<span class="badge bg-danger-subtle text-danger-emphasis border border-danger-subtle">true</span>' : 'false'}</div>
                                         </div>
                                     </div>
                                     ${storeLocHtml}
-                                    <div>
-                                        <div class="spec-label mb-1">Session Lifetime Statistics</div>
-                                        <div class="p-3 bg-body-tertiary border rounded">
-                                            <div class="row g-2 text-center">
-                                                <div class="col-sm-2">
-                                                    <div class="small text-muted">Active</div>
-                                                    <div class="fw-semibold text-primary">${sm.statsActive != null ? sm.statsActive : '-'}</div>
-                                                </div>
-                                                <div class="col-sm-2">
-                                                    <div class="small text-muted">Highest Active</div>
-                                                    <div class="fw-semibold text-primary">${sm.statsHighest != null ? sm.statsHighest : '-'}</div>
-                                                </div>
-                                                <div class="col-sm-2">
-                                                    <div class="small text-muted">Created Total</div>
-                                                    <div class="fw-semibold text-success">${sm.statsCreated != null ? sm.statsCreated : '-'}</div>
-                                                </div>
-                                                <div class="col-sm-2">
-                                                    <div class="small text-muted">Expired Total</div>
-                                                    <div class="fw-semibold text-warning">${sm.statsExpired != null ? sm.statsExpired : '-'}</div>
-                                                </div>
-                                                <div class="col-sm-2">
-                                                    <div class="small text-muted">Rejected Total</div>
-                                                    <div class="fw-semibold text-danger">${sm.statsRejected != null ? sm.statsRejected : '-'}</div>
-                                                </div>
-                                                <div class="col-sm-2">
-                                                    <div class="small text-muted">Avg Alive Time</div>
-                                                    <div class="fw-semibold text-info">${sm.statsAvgAliveTime != null ? sm.statsAvgAliveTime + 's' : '-'}</div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
                                 </div>
                             </div>
                         `);
