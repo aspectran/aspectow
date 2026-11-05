@@ -59,6 +59,7 @@
     <script src="https://cdn.jsdelivr.net/gh/aspectran/aspectran-assets@main/assets/js/navigation.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/aspectran/aspectran-assets@main/assets/js/theme-toggler.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/aspectran/aspectran-assets@main/assets/countries/countries.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/aspectran/aspectran-assets@main/assets/js/apon-highlighter.js"></script>
 </head>
 <body id="top-of-page" th:class="${page.style}" itemscope="itemscope" itemtype="https://schema.org/WebPage">
 <nav id="navigation" class="navbar navbar-expand-lg" data-bs-theme="dark">
@@ -86,7 +87,10 @@
                         <a class="nav-link" th:href="@{/dashboard/}" title="AppMon Dashboard">Dashboard</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" th:href="@{/anatomy/}" title="Framework Anatomy"><i class="bi bi-diagram-3"></i> Anatomy</a>
+                        <a class="nav-link" th:href="@{/framework/components/}" title="Framework Components"><i class="bi bi-boxes"></i> Components</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/framework/anatomy/}" title="Framework Anatomy"><i class="bi bi-diagram-3"></i> Anatomy</a>
                     </li>
                 </ul>
             </div>
@@ -97,12 +101,14 @@
                             <a class="nav-link" th:href="${portalUrl}"><i class="bi bi-arrow-left me-1"></i> Back To Main</a>
                         </li>
                     </th:block>
-                    <li class="nav-item">
-                        <a class="nav-link" href="https://github.com/aspectran/aspectow-appmon" title="Get Involved"
-                           th:text="|v${@com.aspectran.aspectow.appmon.AboutMe@getVersion()}|">v1.0.0</a>
-                    </li>
                 </ul>
                 <div class="settings d-flex justify-content-end align-items-center gap-2 mx-3 my-2 m-lg-0">
+                    <!-- About AppMon Button -->
+                    <button class="btn p-0 me-3 border-0 bg-transparent text-body" type="button" data-bs-toggle="modal" data-bs-target="#aboutAppMonModal" title="About Aspectow AppMon">
+                        <i class="bi bi-question-circle fs-5"></i>
+                    </button>
+
+                    <!-- Theme Toggler -->
                     <div class="theme-toggler dropdown">
                         <button class="btn btn-secondary dropdown-toggle" type="button" id="theme-toggler-btn" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Toggle theme">
                             <i class="bi theme-icon-active"></i>
@@ -193,6 +199,51 @@
         </div>
     </div>
 </footer>
+<!-- About AppMon Modal -->
+<div class="modal fade" id="aboutAppMonModal" tabindex="-1" aria-labelledby="aboutAppMonModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h5 class="modal-title d-flex align-items-center gap-2" id="aboutAppMonModalLabel">
+                    <img src="https://cdn.jsdelivr.net/gh/aspectran/aspectran-assets@main/assets/img/aspectran-logo.svg" class="logo-img" alt="Aspectran" style="height: 24px;"/>
+                    <span class="fw-bold">Aspectow AppMon</span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body pt-3 pb-4">
+                <p class="text-muted small mb-3">
+                    Aspectow AppMon is an application monitoring and management tool for Aspectran framework applications.
+                </p>
+                <div class="bg-body-tertiary rounded p-3 mb-3 border">
+                    <div class="row g-2 small">
+                        <div class="col-5 text-muted">AppMon Version:</div>
+                        <div class="col-7 fw-semibold" th:text="${@com.aspectran.aspectow.appmon.AboutMe@getVersion()}">1.0.0</div>
+                        <div class="col-5 text-muted">Aspectran Version:</div>
+                        <div class="col-7 fw-semibold" th:text="${@com.aspectran.aspectow.appmon.AboutMe@getAspectranVersion()}">9.6.0</div>
+                        <div class="col-5 text-muted">Java Runtime:</div>
+                        <div class="col-7 fw-semibold" th:text="${@com.aspectran.aspectow.appmon.AboutMe@getJavaVersion()}">Java</div>
+                        <div class="col-5 text-muted">Operating System:</div>
+                        <div class="col-7 fw-semibold" th:text="${@com.aspectran.aspectow.appmon.AboutMe@getOsInfo()}">OS</div>
+                    </div>
+                </div>
+                <div class="d-flex flex-column gap-2 mb-3">
+                    <a href="https://aspectran.com/docs/" target="_blank" class="btn btn-sm btn-outline-secondary d-flex align-items-center justify-content-between">
+                        <span><i class="bi bi-book me-2"></i>Documentation &amp; Guides</span>
+                        <i class="bi bi-box-arrow-up-right small"></i>
+                    </a>
+                    <a href="https://github.com/aspectran/aspectow" target="_blank" class="btn btn-sm btn-outline-secondary d-flex align-items-center justify-content-between">
+                        <span><i class="bi bi-github me-2"></i>GitHub Repository</span>
+                        <i class="bi bi-box-arrow-up-right small"></i>
+                    </a>
+                </div>
+                <div class="text-center text-muted border-top pt-3" style="font-size: 0.75rem;">
+                    <div th:text="${@com.aspectran.aspectow.appmon.AboutMe@getCopyright()}">Copyright &copy; 2020-2026 The Aspectran Project</div>
+                    <div>Licensed under the Apache License, Version 2.0</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 <script>
     $(function () {
         /* google search */

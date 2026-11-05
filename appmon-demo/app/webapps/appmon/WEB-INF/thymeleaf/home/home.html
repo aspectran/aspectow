@@ -59,8 +59,8 @@
     </style>
 </head>
 <body>
-    <div layout:fragment="content" class="container-fluid pt-3">
-        <div class="row g-3">
+    <div layout:fragment="content">
+        <div class="row g-3 pt-3">
             <th:block th:if="${not #lists.isEmpty(page.groupInfoList)}">
                 <!-- Group-based layout -->
                 <div class="col-12" th:each="groupInfo : ${page.groupInfoList}">
@@ -150,18 +150,39 @@
                 </div>
             </th:block>
 
-            <!-- Framework Anatomy Panel (Always visible at bottom) -->
-            <div class="col-lg-12 mt-3">
+            <!-- Framework Components & Anatomy Panels (Always visible at bottom) -->
+            <div class="col-lg-6 mt-3">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="bi bi-boxes"></i> Framework Components</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text text-muted">Inspect runtime specifications and configurations of active framework components.</p>
+                        <th:block th:if="${not #lists.isEmpty(page.allContextNames)}">
+                            <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 mt-3">
+                                <div class="col" th:each="contextName : ${page.allContextNames}">
+                                    <a th:href="@{/framework/components/{name}(name=${contextName})}">
+                                        <i class="bi bi-pc-display-horizontal"></i> [[${contextName}]]
+                                    </a>
+                                </div>
+                            </div>
+                        </th:block>
+                        <p th:unless="${not #lists.isEmpty(page.allContextNames)}" class="text-muted mt-3">No framework contexts found.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6 mt-3">
                 <div class="card h-100">
                     <div class="card-header">
                         <h5 class="mb-0"><i class="bi bi-diagram-3"></i> Framework Anatomy</h5>
                     </div>
                     <div class="card-body">
-                        <p class="card-text text-muted">Explore the internal structure and components of the loaded framework contexts.</p>
+                        <p class="card-text text-muted">Explore the internal structure, beans, and rules of the loaded framework contexts.</p>
                         <th:block th:if="${not #lists.isEmpty(page.allContextNames)}">
-                            <div class="row row-cols-1 row-cols-sm-2 row-cols-md-4 row-cols-lg-6 mt-3">
+                            <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 mt-3">
                                 <div class="col" th:each="contextName : ${page.allContextNames}">
-                                    <a th:href="@{/anatomy/${contextName}}">
+                                    <a th:href="@{/framework/anatomy/{name}(name=${contextName})}">
                                         <i class="bi bi-pc-display-horizontal"></i> [[${contextName}]]
                                     </a>
                                 </div>

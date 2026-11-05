@@ -15,6 +15,8 @@
  */
 package com.aspectran.aspectow.appmon;
 
+import org.jspecify.annotations.NonNull;
+
 /**
  * Provides information about the AppMon build.
  * <p>This class retrieves the version of AppMon from the manifest file
@@ -65,6 +67,59 @@ public class AboutMe {
         } else {
             return VERSION + " (THIS IS NOT A STABLE RELEASE! DO NOT USE IN PRODUCTION!)";
         }
+    }
+
+    /**
+     * Returns the Aspectran framework version.
+     * @return the Aspectran framework version string
+     */
+    public static String getAspectranVersion() {
+        return com.aspectran.core.AboutMe.VERSION;
+    }
+
+    /**
+     * Returns Java runtime environment information.
+     * @return the Java runtime information string
+     */
+    public static @NonNull String getJavaVersion() {
+        String version = System.getProperty("java.version");
+        String vendor = System.getProperty("java.vendor");
+        if (version != null && vendor != null) {
+            return version + " (" + vendor + ")";
+        } else if (version != null) {
+            return version;
+        } else {
+            return "Unknown";
+        }
+    }
+
+    /**
+     * Returns operating system information.
+     * @return the OS information string
+     */
+    public static @NonNull String getOsInfo() {
+        String name = System.getProperty("os.name");
+        String version = System.getProperty("os.version");
+        String arch = System.getProperty("os.arch");
+        if (name != null) {
+            StringBuilder sb = new StringBuilder(name);
+            if (version != null) {
+                sb.append(" ").append(version);
+            }
+            if (arch != null) {
+                sb.append(" (").append(arch).append(")");
+            }
+            return sb.toString();
+        }
+        return "Unknown";
+    }
+
+    /**
+     * Returns the copyright notice string.
+     * @return the copyright string
+     */
+    public static @NonNull String getCopyright() {
+        return "Copyright \u00a9 2020-" + java.time.Year.now().getValue() + " The Aspectran Project";
     }
 
 }

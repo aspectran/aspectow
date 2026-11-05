@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.aspectran.aspectow.appmon.dashboard;
+package com.aspectran.aspectow.appmon.home;
 
 import com.aspectran.aspectow.appmon.engine.config.AppInfo;
 import com.aspectran.aspectow.appmon.engine.manager.AppMonManager;
@@ -74,7 +74,7 @@ public class HomeActivity {
         List<String> allContextNames = new ArrayList<>(contexts.keySet());
 
         return Map.of(
-                "style", "fluid compact",
+                "style", "compact",
                 "nodeInfoList", nodeInfoList,
                 "groupInfoList", groupInfoList,
                 "appInfoList", appInfoList,

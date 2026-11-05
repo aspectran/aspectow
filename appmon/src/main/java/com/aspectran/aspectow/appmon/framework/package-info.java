@@ -14,6 +14,6 @@
  * limitations under the License.
  */
 /**
- * Provides classes for displaying the internal anatomy of the Aspectran Framework.
+ * Provides classes for inspecting and displaying framework components and anatomy in Aspectow AppMon.
  */
-package com.aspectran.aspectow.appmon.anatomy;
+package com.aspectran.aspectow.appmon.framework;
