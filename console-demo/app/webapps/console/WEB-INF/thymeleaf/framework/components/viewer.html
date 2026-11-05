@@ -542,12 +542,16 @@
                                             </tr>
                                         </thead>
                                         <tbody id="prop-table-body">
-                                            ${Object.entries(appProps).map(([k, v]) => `
+                                            ${Object.keys(appProps).length > 0 ? Object.entries(appProps).map(([k, v]) => `
                                                 <tr class="prop-row">
                                                     <td class="spec-value-code small ps-2 fw-bold">${escapeHtml(k)}</td>
                                                     <td class="spec-value-code small ${v === '********' ? 'text-danger' : 'text-primary'}">${escapeHtml(v)}</td>
                                                 </tr>
-                                            `).join('')}
+                                            `).join('') : `
+                                                <tr>
+                                                    <td colspan="2" class="text-muted text-center py-3">No application properties configured</td>
+                                                </tr>
+                                            `}
                                         </tbody>
                                     </table>
                                 </div>
@@ -651,7 +655,7 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            ${items.map(item => `
+                                            ${items.length > 0 ? items.map(item => `
                                                 <tr>
                                                     <td class="ps-2">
                                                         <span class="badge bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle mb-1">${escapeHtml(item.eventSimpleType || '')}</span>
@@ -659,7 +663,11 @@
                                                     </td>
                                                     <td class="spec-value-code small">${escapeHtml(item.methodSignature || item.methodName || '')}</td>
                                                 </tr>
-                                            `).join('')}
+                                            `).join('') : `
+                                                <tr>
+                                                    <td colspan="2" class="text-muted text-center py-3">No event listeners registered</td>
+                                                </tr>
+                                            `}
                                         </tbody>
                                     </table>
                                 </div>
@@ -1041,7 +1049,7 @@
                                 </tr>
                             `).join('');
                         } else {
-                            rulesRows = '<tr><td colspan="3" class="text-muted text-center">No schedule rules registered</td></tr>';
+                            rulesRows = '<tr><td colspan="3" class="text-muted text-center py-3">No schedule rules registered</td></tr>';
                         }
 
                         const card = $(`

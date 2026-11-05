@@ -115,11 +115,6 @@ public class SessionManagerComponentInspector implements ComponentInspector {
     }
 
     @Override
-    public boolean isRefreshable() {
-        return false;
-    }
-
-    @Override
     @Nullable
     public ComponentDetails inspect(@NonNull ActivityContext context) {
         BeanRegistry registry = context.getBeanRegistry();
