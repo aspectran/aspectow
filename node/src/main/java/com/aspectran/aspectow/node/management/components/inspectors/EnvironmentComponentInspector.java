@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.aspectran.aspectow.node.management.components.providers;
+package com.aspectran.aspectow.node.management.components.inspectors;
 
 import com.aspectran.aspectow.node.management.components.ComponentDetails;
-import com.aspectran.aspectow.node.management.components.ComponentInfoProvider;
+import com.aspectran.aspectow.node.management.components.ComponentInspector;
 import com.aspectran.aspectow.node.management.components.ComponentUtils;
 import com.aspectran.core.context.ActivityContext;
 import com.aspectran.core.context.env.ActivityEnvironment;
@@ -32,11 +32,11 @@ import java.util.Map;
 import java.util.TreeMap;
 
 /**
- * Provider that extracts specification and configuration details of Environment components.
+ * Inspector that extracts specification and configuration details of Environment components.
  *
  * <p>Created: 2026-11-04</p>
  */
-public class EnvironmentComponentProvider implements ComponentInfoProvider {
+public class EnvironmentComponentInspector implements ComponentInspector {
 
     @Override
     @NonNull
@@ -69,7 +69,7 @@ public class EnvironmentComponentProvider implements ComponentInfoProvider {
 
     @Override
     @Nullable
-    public ComponentDetails extractDetails(@NonNull ActivityContext context) {
+    public ComponentDetails inspect(@NonNull ActivityContext context) {
         Environment env = context.getEnvironment();
         if (env == null) {
             return null;

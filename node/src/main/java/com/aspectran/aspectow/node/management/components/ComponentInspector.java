@@ -25,7 +25,7 @@ import org.jspecify.annotations.Nullable;
  *
  * <p>Created: 2026-11-04</p>
  */
-public interface ComponentInfoProvider {
+public interface ComponentInspector {
 
     /**
      * Returns the unique component identifier (e.g. "dataSource", "asyncTaskExecutor").
@@ -77,6 +77,6 @@ public interface ComponentInfoProvider {
      * @return the component details, or null if not applicable
      */
     @Nullable
-    ComponentDetails extractDetails(@NonNull ActivityContext context);
+    ComponentDetails inspect(@NonNull ActivityContext context);
 
 }

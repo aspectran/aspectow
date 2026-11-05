@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.aspectran.aspectow.node.management.components.providers;
+package com.aspectran.aspectow.node.management.components.inspectors;
 
 import com.aspectran.aspectow.node.management.components.ComponentDetails;
-import com.aspectran.aspectow.node.management.components.ComponentInfoProvider;
+import com.aspectran.aspectow.node.management.components.ComponentInspector;
 import com.aspectran.aspectow.node.management.components.ComponentUtils;
 import com.aspectran.core.component.schedule.ScheduleRuleRegistry;
 import com.aspectran.core.component.schedule.ScheduledJobLockProvider;
@@ -36,11 +36,11 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Provider that extracts specification and configuration details of SchedulerService components.
+ * Inspector that extracts specification and configuration details of SchedulerService components.
  *
  * <p>Created: 2026-11-04</p>
  */
-public class SchedulerComponentProvider implements ComponentInfoProvider {
+public class SchedulerComponentInspector implements ComponentInspector {
 
     @Override
     @NonNull
@@ -82,7 +82,7 @@ public class SchedulerComponentProvider implements ComponentInfoProvider {
 
     @Override
     @Nullable
-    public ComponentDetails extractDetails(@NonNull ActivityContext context) {
+    public ComponentDetails inspect(@NonNull ActivityContext context) {
         SchedulerService schedulerService = getSchedulerService(context);
         if (schedulerService == null) {
             return null;

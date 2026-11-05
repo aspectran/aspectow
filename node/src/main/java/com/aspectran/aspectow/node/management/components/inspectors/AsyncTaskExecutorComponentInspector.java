@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.aspectran.aspectow.node.management.components.providers;
+package com.aspectran.aspectow.node.management.components.inspectors;
 
 import com.aspectran.aspectow.node.management.components.ComponentDetails;
-import com.aspectran.aspectow.node.management.components.ComponentInfoProvider;
+import com.aspectran.aspectow.node.management.components.ComponentInspector;
 import com.aspectran.aspectow.node.management.components.ComponentUtils;
 import com.aspectran.core.component.bean.BeanRegistry;
 import com.aspectran.core.component.bean.DefaultBeanRegistry;
@@ -36,13 +36,13 @@ import java.util.Map;
 import java.util.concurrent.Executor;
 
 /**
- * Provider that extracts specification and configuration details of AsyncTaskExecutor components.
+ * Inspector that extracts specification and configuration details of AsyncTaskExecutor components.
  *
  * <p>Created: 2026-11-04</p>
  */
-public class AsyncTaskExecutorComponentProvider implements ComponentInfoProvider {
+public class AsyncTaskExecutorComponentInspector implements ComponentInspector {
 
-    private static final Logger logger = LoggerFactory.getLogger(AsyncTaskExecutorComponentProvider.class);
+    private static final Logger logger = LoggerFactory.getLogger(AsyncTaskExecutorComponentInspector.class);
 
     @Override
     @NonNull
@@ -76,7 +76,7 @@ public class AsyncTaskExecutorComponentProvider implements ComponentInfoProvider
 
     @Override
     @Nullable
-    public ComponentDetails extractDetails(@NonNull ActivityContext context) {
+    public ComponentDetails inspect(@NonNull ActivityContext context) {
         BeanRegistry registry = context.getBeanRegistry();
         if (registry == null) {
             return null;

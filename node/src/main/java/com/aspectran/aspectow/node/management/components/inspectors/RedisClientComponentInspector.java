@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.aspectran.aspectow.node.management.components.providers;
+package com.aspectran.aspectow.node.management.components.inspectors;
 
 import com.aspectran.aspectow.node.management.components.ComponentDetails;
-import com.aspectran.aspectow.node.management.components.ComponentInfoProvider;
+import com.aspectran.aspectow.node.management.components.ComponentInspector;
 import com.aspectran.aspectow.node.management.components.ComponentUtils;
 import com.aspectran.aspectow.node.redis.RedisConnectionPoolConfig;
 import com.aspectran.core.component.bean.BeanRegistry;
@@ -34,11 +34,11 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Provider that extracts specification and configuration details of Redis Client and Connection Pool components.
+ * Inspector that extracts specification and configuration details of Redis Client and Connection Pool components.
  *
  * <p>Created: 2026-11-04</p>
  */
-public class RedisClientComponentProvider implements ComponentInfoProvider {
+public class RedisClientComponentInspector implements ComponentInspector {
 
     private static final String REDIS_CLIENT_CLASS = "io.lettuce.core.RedisClient";
     private static final String REDIS_CLUSTER_CLIENT_CLASS = "io.lettuce.core.cluster.RedisClusterClient";
@@ -91,7 +91,7 @@ public class RedisClientComponentProvider implements ComponentInfoProvider {
 
     @Override
     @Nullable
-    public ComponentDetails extractDetails(@NonNull ActivityContext context) {
+    public ComponentDetails inspect(@NonNull ActivityContext context) {
         BeanRegistry registry = context.getBeanRegistry();
         if (registry == null) {
             return null;

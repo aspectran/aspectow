@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.aspectran.aspectow.node.management.components.providers;
+package com.aspectran.aspectow.node.management.components.inspectors;
 
 import com.aspectran.aspectow.node.management.components.ComponentDetails;
-import com.aspectran.aspectow.node.management.components.ComponentInfoProvider;
+import com.aspectran.aspectow.node.management.components.ComponentInspector;
 import com.aspectran.aspectow.node.management.components.ComponentUtils;
 import com.aspectran.core.component.bean.BeanRegistry;
 import com.aspectran.core.component.bean.DefaultBeanRegistry;
@@ -26,6 +26,7 @@ import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -33,24 +34,24 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Provider that extracts specification and configuration details of MultipartFormDataParser components.
+ * Inspector that extracts specification and configuration details of CORS Processor components.
  *
  * <p>Created: 2026-11-04</p>
  */
-public class MultipartComponentProvider implements ComponentInfoProvider {
+public class CorsProcessorComponentInspector implements ComponentInspector {
 
-    private static final String MULTIPART_PARSER_INTERFACE = "com.aspectran.web.activity.request.MultipartFormDataParser";
+    private static final String CORS_PROCESSOR_INTERFACE = "com.aspectran.web.support.cors.CorsProcessor";
 
     @Override
     @NonNull
     public String getId() {
-        return "multipartFormDataParser";
+        return "corsProcessor";
     }
 
     @Override
     @NonNull
     public String getDisplayName() {
-        return "Multipart Form Data Parser";
+        return "CORS Processor";
     }
 
     @Override
@@ -62,13 +63,13 @@ public class MultipartComponentProvider implements ComponentInfoProvider {
     @Override
     @NonNull
     public String getIcon() {
-        return "bi-cloud-upload";
+        return "bi-shield-check";
     }
 
     @Nullable
-    private Class<?> getMultipartClass() {
+    private Class<?> getCorsProcessorClass() {
         try {
-            return Class.forName(MULTIPART_PARSER_INTERFACE);
+            return Class.forName(CORS_PROCESSOR_INTERFACE);
         } catch (ClassNotFoundException e) {
             return null;
         }
@@ -76,7 +77,7 @@ public class MultipartComponentProvider implements ComponentInfoProvider {
 
     @Override
     public boolean isAvailable(@NonNull ActivityContext context) {
-        Class<?> clazz = getMultipartClass();
+        Class<?> clazz = getCorsProcessorClass();
         if (clazz == null) {
             return false;
         }
@@ -85,8 +86,8 @@ public class MultipartComponentProvider implements ComponentInfoProvider {
 
     @Override
     @Nullable
-    public ComponentDetails extractDetails(@NonNull ActivityContext context) {
-        Class<?> clazz = getMultipartClass();
+    public ComponentDetails inspect(@NonNull ActivityContext context) {
+        Class<?> clazz = getCorsProcessorClass();
         if (clazz == null) {
             return null;
         }
@@ -111,19 +112,19 @@ public class MultipartComponentProvider implements ComponentInfoProvider {
                             bean = defaultBeanRegistry.getBean(rule.getBeanClass());
                         }
                         if (clazz.isInstance(bean)) {
-                            String beanName = ComponentUtils.resolveBeanName(rule, "multipartFormDataParser");
-                            items.add(extractParserInfo(beanName, bean));
+                            String beanName = ComponentUtils.resolveBeanName(rule, "corsProcessor");
+                            items.add(extractCorsInfo(beanName, bean));
                         }
                     } catch (Exception ignored) {
                     }
                 }
             }
         } else {
-            Object[] parsers = registry.getBeansOfType((Class<?>) clazz);
-            if (parsers != null) {
+            Object[] processors = registry.getBeansOfType((Class<?>) clazz);
+            if (processors != null) {
                 int index = 1;
-                for (Object parser : parsers) {
-                    items.add(extractParserInfo("multipartFormDataParser" + (index > 1 ? index : ""), parser));
+                for (Object processor : processors) {
+                    items.add(extractCorsInfo("corsProcessor" + (index > 1 ? index : ""), processor));
                     index++;
                 }
             }
@@ -138,43 +139,37 @@ public class MultipartComponentProvider implements ComponentInfoProvider {
                 .setDisplayName(getDisplayName())
                 .setCategory(getCategory())
                 .setIcon(getIcon())
-                .setDescription("File Upload and Multipart Request Parsing Specifications")
+                .setDescription("Cross-Origin Resource Sharing (CORS) Security Specifications")
                 .setItems(items);
     }
 
     @NonNull
-    private Map<String, Object> extractParserInfo(String beanName, @NonNull Object parser) {
+    private Map<String, Object> extractCorsInfo(String beanName, @NonNull Object processor) {
         Map<String, Object> info = new LinkedHashMap<>();
-        Class<?> clazz = parser.getClass();
+        Class<?> clazz = processor.getClass();
 
         info.put("beanName", beanName);
         info.put("className", clazz.getName());
         info.put("simpleClassName", clazz.getSimpleName());
 
-        Number maxReq = ComponentUtils.invokeNumber(parser, "getMaxRequestSize");
-        Number maxFile = ComponentUtils.invokeNumber(parser, "getMaxFileSize");
-        Number maxInMemory = ComponentUtils.invokeNumber(parser, "getMaxInMemorySize");
-
-        info.put("maxRequestSize", maxReq);
-        info.put("maxRequestSizeFormatted", ComponentUtils.formatBytes(maxReq));
-        info.put("maxFileSize", maxFile);
-        info.put("maxFileSizeFormatted", ComponentUtils.formatBytes(maxFile));
-        info.put("maxInMemorySize", maxInMemory);
-        info.put("maxInMemorySizeFormatted", ComponentUtils.formatBytes(maxInMemory));
-
-        String tempDir = ComponentUtils.invokeString(parser, "getTempDir");
-        info.put("tempDirectory", tempDir);
-        info.put("defaultTempDirectory", System.getProperty("java.io.tmpdir"));
-
-        info.put("allowedFileExtensions", parseExtensions(parser, "getAllowedFileExtensions"));
-        info.put("deniedFileExtensions", parseExtensions(parser, "getDeniedFileExtensions"));
+        info.put("allowedOrigins", toList(ComponentUtils.invokeObject(processor, "getAllowedOrigins")));
+        info.put("allowedMethods", toList(ComponentUtils.invokeObject(processor, "getAllowedMethods")));
+        info.put("allowedHeaders", toList(ComponentUtils.invokeObject(processor, "getAllowedHeaders")));
+        info.put("exposedHeaders", toList(ComponentUtils.invokeObject(processor, "getExposedHeaders")));
+        info.put("allowCredentials", ComponentUtils.invokeBoolean(processor, "isAllowCredentials", "getAllowCredentials"));
+        info.put("maxAgeSeconds", ComponentUtils.invokeNumber(processor, "getMaxAgeSeconds", "getMaxAge"));
 
         return info;
     }
 
-    private @NonNull List<String> parseExtensions(Object parser, String... methodNames) {
-        Object val = ComponentUtils.invokeObject(parser, methodNames);
-        if (val instanceof Collection<?> col) {
+    private List<String> toList(Object obj) {
+        if (obj == null) {
+            return Collections.emptyList();
+        }
+        if (obj instanceof String[] arr) {
+            return Arrays.asList(arr);
+        }
+        if (obj instanceof Collection<?> col) {
             List<String> list = new ArrayList<>();
             for (Object item : col) {
                 if (item != null) {
@@ -182,6 +177,9 @@ public class MultipartComponentProvider implements ComponentInfoProvider {
                 }
             }
             return list;
+        }
+        if (obj instanceof String str && !str.isBlank()) {
+            return List.of(str);
         }
         return Collections.emptyList();
     }

@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.aspectran.aspectow.node.management.components.providers;
+package com.aspectran.aspectow.node.management.components.inspectors;
 
 import com.aspectran.aspectow.node.management.components.ComponentDetails;
-import com.aspectran.aspectow.node.management.components.ComponentInfoProvider;
+import com.aspectran.aspectow.node.management.components.ComponentInspector;
 import com.aspectran.aspectow.node.management.components.ComponentUtils;
 import com.aspectran.core.component.template.TemplateRenderer;
 import com.aspectran.core.context.ActivityContext;
@@ -30,11 +30,11 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Provider that extracts specification and configuration details of TemplateRenderer components.
+ * Inspector that extracts specification and configuration details of TemplateRenderer components.
  *
  * <p>Created: 2026-11-04</p>
  */
-public class TemplateRendererComponentProvider implements ComponentInfoProvider {
+public class TemplateRendererComponentInspector implements ComponentInspector {
 
     @Override
     @NonNull
@@ -67,7 +67,7 @@ public class TemplateRendererComponentProvider implements ComponentInfoProvider 
 
     @Override
     @Nullable
-    public ComponentDetails extractDetails(@NonNull ActivityContext context) {
+    public ComponentDetails inspect(@NonNull ActivityContext context) {
         TemplateRenderer renderer = context.getTemplateRenderer();
         if (renderer == null) {
             return null;

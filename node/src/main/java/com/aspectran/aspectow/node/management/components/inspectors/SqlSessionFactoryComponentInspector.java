@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.aspectran.aspectow.node.management.components.providers;
+package com.aspectran.aspectow.node.management.components.inspectors;
 
 import com.aspectran.aspectow.node.management.components.ComponentDetails;
-import com.aspectran.aspectow.node.management.components.ComponentInfoProvider;
+import com.aspectran.aspectow.node.management.components.ComponentInspector;
 import com.aspectran.aspectow.node.management.components.ComponentUtils;
 import com.aspectran.core.component.bean.BeanRegistry;
 import com.aspectran.core.component.bean.DefaultBeanRegistry;
@@ -32,11 +32,11 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Provider that extracts specification and configuration details of MyBatis SqlSessionFactory components.
+ * Inspector that extracts specification and configuration details of MyBatis SqlSessionFactory components.
  *
  * <p>Created: 2026-11-04</p>
  */
-public class SqlSessionFactoryComponentProvider implements ComponentInfoProvider {
+public class SqlSessionFactoryComponentInspector implements ComponentInspector {
 
     private static final String SQL_SESSION_FACTORY_INTERFACE = "org.apache.ibatis.session.SqlSessionFactory";
 
@@ -84,7 +84,7 @@ public class SqlSessionFactoryComponentProvider implements ComponentInfoProvider
 
     @Override
     @Nullable
-    public ComponentDetails extractDetails(@NonNull ActivityContext context) {
+    public ComponentDetails inspect(@NonNull ActivityContext context) {
         Class<?> clazz = getSqlSessionFactoryClass();
         if (clazz == null) {
             return null;

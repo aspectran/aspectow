@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.aspectran.aspectow.node.management.components.providers;
+package com.aspectran.aspectow.node.management.components.inspectors;
 
 import com.aspectran.aspectow.node.management.components.ComponentDetails;
-import com.aspectran.aspectow.node.management.components.ComponentInfoProvider;
+import com.aspectran.aspectow.node.management.components.ComponentInspector;
 import com.aspectran.aspectow.node.management.components.ComponentUtils;
 import com.aspectran.core.component.bean.BeanRegistry;
 import com.aspectran.core.component.bean.DefaultBeanRegistry;
@@ -34,11 +34,11 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Provider that extracts specification and configuration details of LocaleResolver components.
+ * Inspector that extracts specification and configuration details of LocaleResolver components.
  *
  * <p>Created: 2026-11-04</p>
  */
-public class LocaleResolverComponentProvider implements ComponentInfoProvider {
+public class LocaleResolverComponentInspector implements ComponentInspector {
 
     @Override
     @NonNull
@@ -75,7 +75,7 @@ public class LocaleResolverComponentProvider implements ComponentInfoProvider {
 
     @Override
     @Nullable
-    public ComponentDetails extractDetails(@NonNull ActivityContext context) {
+    public ComponentDetails inspect(@NonNull ActivityContext context) {
         BeanRegistry registry = context.getBeanRegistry();
         List<Map<String, Object>> items = new ArrayList<>();
 

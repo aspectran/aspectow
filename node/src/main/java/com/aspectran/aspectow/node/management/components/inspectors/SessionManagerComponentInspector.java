@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.aspectran.aspectow.node.management.components.providers;
+package com.aspectran.aspectow.node.management.components.inspectors;
 
 import com.aspectran.aspectow.node.management.components.ComponentDetails;
-import com.aspectran.aspectow.node.management.components.ComponentInfoProvider;
+import com.aspectran.aspectow.node.management.components.ComponentInspector;
 import com.aspectran.aspectow.node.management.components.ComponentUtils;
 import com.aspectran.core.component.bean.BeanRegistry;
 import com.aspectran.core.component.bean.DefaultBeanRegistry;
@@ -38,11 +38,11 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Provider that extracts specification and configuration details of SessionManager components.
+ * Inspector that extracts specification and configuration details of SessionManager components.
  *
  * <p>Created: 2026-11-04</p>
  */
-public class SessionManagerComponentProvider implements ComponentInfoProvider {
+public class SessionManagerComponentInspector implements ComponentInspector {
 
     @Override
     @NonNull
@@ -121,7 +121,7 @@ public class SessionManagerComponentProvider implements ComponentInfoProvider {
 
     @Override
     @Nullable
-    public ComponentDetails extractDetails(@NonNull ActivityContext context) {
+    public ComponentDetails inspect(@NonNull ActivityContext context) {
         BeanRegistry registry = context.getBeanRegistry();
         if (registry == null) {
             return null;

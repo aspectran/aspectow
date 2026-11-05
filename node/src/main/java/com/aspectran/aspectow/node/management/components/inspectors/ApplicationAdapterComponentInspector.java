@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.aspectran.aspectow.node.management.components.providers;
+package com.aspectran.aspectow.node.management.components.inspectors;
 
 import com.aspectran.aspectow.node.management.anatomy.AnatomyDataService;
 import com.aspectran.aspectow.node.management.components.ComponentDetails;
-import com.aspectran.aspectow.node.management.components.ComponentInfoProvider;
+import com.aspectran.aspectow.node.management.components.ComponentInspector;
 import com.aspectran.aspectow.node.management.components.ComponentUtils;
 import com.aspectran.core.adapter.ApplicationAdapter;
 import com.aspectran.core.context.ActivityContext;
@@ -33,11 +33,11 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Provider that extracts specification and configuration details of ApplicationAdapter components.
+ * Inspector that extracts specification and configuration details of ApplicationAdapter components.
  *
  * <p>Created: 2026-11-04</p>
  */
-public class ApplicationAdapterComponentProvider implements ComponentInfoProvider {
+public class ApplicationAdapterComponentInspector implements ComponentInspector {
 
     @Override
     @NonNull
@@ -70,7 +70,7 @@ public class ApplicationAdapterComponentProvider implements ComponentInfoProvide
 
     @Override
     @Nullable
-    public ComponentDetails extractDetails(@NonNull ActivityContext context) {
+    public ComponentDetails inspect(@NonNull ActivityContext context) {
         ApplicationAdapter adapter = context.getApplicationAdapter();
         if (adapter == null) {
             return null;

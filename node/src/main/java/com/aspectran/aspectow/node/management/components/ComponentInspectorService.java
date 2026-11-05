@@ -15,21 +15,21 @@
  */
 package com.aspectran.aspectow.node.management.components;
 
-import com.aspectran.aspectow.node.management.components.providers.ApplicationAdapterComponentProvider;
-import com.aspectran.aspectow.node.management.components.providers.AsyncTaskExecutorComponentProvider;
-import com.aspectran.aspectow.node.management.components.providers.CorsProcessorComponentProvider;
-import com.aspectran.aspectow.node.management.components.providers.DataSourceComponentProvider;
-import com.aspectran.aspectow.node.management.components.providers.EntityManagerFactoryComponentProvider;
-import com.aspectran.aspectow.node.management.components.providers.EnvironmentComponentProvider;
-import com.aspectran.aspectow.node.management.components.providers.EventPublisherComponentProvider;
-import com.aspectran.aspectow.node.management.components.providers.LocaleResolverComponentProvider;
-import com.aspectran.aspectow.node.management.components.providers.MessageSourceComponentProvider;
-import com.aspectran.aspectow.node.management.components.providers.MultipartComponentProvider;
-import com.aspectran.aspectow.node.management.components.providers.RedisClientComponentProvider;
-import com.aspectran.aspectow.node.management.components.providers.SchedulerComponentProvider;
-import com.aspectran.aspectow.node.management.components.providers.SessionManagerComponentProvider;
-import com.aspectran.aspectow.node.management.components.providers.SqlSessionFactoryComponentProvider;
-import com.aspectran.aspectow.node.management.components.providers.TemplateRendererComponentProvider;
+import com.aspectran.aspectow.node.management.components.inspectors.ApplicationAdapterComponentInspector;
+import com.aspectran.aspectow.node.management.components.inspectors.AsyncTaskExecutorComponentInspector;
+import com.aspectran.aspectow.node.management.components.inspectors.CorsProcessorComponentInspector;
+import com.aspectran.aspectow.node.management.components.inspectors.DataSourceComponentInspector;
+import com.aspectran.aspectow.node.management.components.inspectors.EntityManagerFactoryComponentInspector;
+import com.aspectran.aspectow.node.management.components.inspectors.EnvironmentComponentInspector;
+import com.aspectran.aspectow.node.management.components.inspectors.EventPublisherComponentInspector;
+import com.aspectran.aspectow.node.management.components.inspectors.LocaleResolverComponentInspector;
+import com.aspectran.aspectow.node.management.components.inspectors.MessageSourceComponentInspector;
+import com.aspectran.aspectow.node.management.components.inspectors.MultipartComponentInspector;
+import com.aspectran.aspectow.node.management.components.inspectors.RedisClientComponentInspector;
+import com.aspectran.aspectow.node.management.components.inspectors.SchedulerComponentInspector;
+import com.aspectran.aspectow.node.management.components.inspectors.SessionManagerComponentInspector;
+import com.aspectran.aspectow.node.management.components.inspectors.SqlSessionFactoryComponentInspector;
+import com.aspectran.aspectow.node.management.components.inspectors.TemplateRendererComponentInspector;
 import com.aspectran.core.context.ActivityContext;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
@@ -42,7 +42,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Service that coordinates component inspection across all registered providers
+ * Service that coordinates component inspection across all registered inspectors
  * for a given ActivityContext.
  *
  * <p>Created: 2026-11-04</p>
@@ -51,36 +51,36 @@ public class ComponentInspectorService {
 
     private static final Logger logger = LoggerFactory.getLogger(ComponentInspectorService.class);
 
-    private final List<ComponentInfoProvider> providers = new ArrayList<>();
+    private final List<ComponentInspector> inspectors = new ArrayList<>();
 
     public ComponentInspectorService() {
-        registerDefaultProviders();
+        registerDefaultInspectors();
     }
 
-    private void registerDefaultProviders() {
-        providers.add(new ApplicationAdapterComponentProvider());
-        providers.add(new EnvironmentComponentProvider());
-        providers.add(new DataSourceComponentProvider());
-        providers.add(new SqlSessionFactoryComponentProvider());
-        providers.add(new EntityManagerFactoryComponentProvider());
-        providers.add(new RedisClientComponentProvider());
-        providers.add(new SessionManagerComponentProvider());
-        providers.add(new TemplateRendererComponentProvider());
-        providers.add(new SchedulerComponentProvider());
-        providers.add(new AsyncTaskExecutorComponentProvider());
-        providers.add(new EventPublisherComponentProvider());
-        providers.add(new MultipartComponentProvider());
-        providers.add(new LocaleResolverComponentProvider());
-        providers.add(new MessageSourceComponentProvider());
-        providers.add(new CorsProcessorComponentProvider());
+    private void registerDefaultInspectors() {
+        inspectors.add(new ApplicationAdapterComponentInspector());
+        inspectors.add(new EnvironmentComponentInspector());
+        inspectors.add(new DataSourceComponentInspector());
+        inspectors.add(new SqlSessionFactoryComponentInspector());
+        inspectors.add(new EntityManagerFactoryComponentInspector());
+        inspectors.add(new RedisClientComponentInspector());
+        inspectors.add(new SessionManagerComponentInspector());
+        inspectors.add(new TemplateRendererComponentInspector());
+        inspectors.add(new SchedulerComponentInspector());
+        inspectors.add(new AsyncTaskExecutorComponentInspector());
+        inspectors.add(new EventPublisherComponentInspector());
+        inspectors.add(new MultipartComponentInspector());
+        inspectors.add(new LocaleResolverComponentInspector());
+        inspectors.add(new MessageSourceComponentInspector());
+        inspectors.add(new CorsProcessorComponentInspector());
     }
 
     /**
-     * Registers a custom component info provider.
-     * @param provider the provider to register
+     * Registers a custom component inspector.
+     * @param inspector the inspector to register
      */
-    public void registerProvider(@NonNull ComponentInfoProvider provider) {
-        providers.add(provider);
+    public void registerInspector(@NonNull ComponentInspector inspector) {
+        inspectors.add(inspector);
     }
 
     /**
@@ -91,17 +91,17 @@ public class ComponentInspectorService {
     @NonNull
     public Map<String, ComponentDetails> inspectAll(@NonNull ActivityContext context) {
         Map<String, ComponentDetails> resultMap = new LinkedHashMap<>();
-        for (ComponentInfoProvider provider : providers) {
+        for (ComponentInspector inspector : inspectors) {
             try {
-                if (provider.isAvailable(context)) {
-                    ComponentDetails details = provider.extractDetails(context);
+                if (inspector.isAvailable(context)) {
+                    ComponentDetails details = inspector.inspect(context);
                     if (details != null) {
-                        details.setRefreshable(provider.isRefreshable());
-                        resultMap.put(provider.getId(), details);
+                        details.setRefreshable(inspector.isRefreshable());
+                        resultMap.put(inspector.getId(), details);
                     }
                 }
             } catch (Exception e) {
-                logger.warn("Failed to inspect component with provider [{}]", provider.getId(), e);
+                logger.warn("Failed to inspect component with inspector [{}]", inspector.getId(), e);
             }
         }
         return resultMap;
@@ -115,13 +115,13 @@ public class ComponentInspectorService {
      */
     @Nullable
     public ComponentDetails inspect(@NonNull ActivityContext context, @NonNull String componentId) {
-        for (ComponentInfoProvider provider : providers) {
-            if (provider.getId().equals(componentId)) {
+        for (ComponentInspector inspector : inspectors) {
+            if (inspector.getId().equals(componentId)) {
                 try {
-                    if (provider.isAvailable(context)) {
-                        ComponentDetails details = provider.extractDetails(context);
+                    if (inspector.isAvailable(context)) {
+                        ComponentDetails details = inspector.inspect(context);
                         if (details != null) {
-                            details.setRefreshable(provider.isRefreshable());
+                            details.setRefreshable(inspector.isRefreshable());
                         }
                         return details;
                     }

@@ -1413,7 +1413,7 @@ class TrafficPainter {
  * Responsible for rendering and updating individual charts using Chart.js.
  *
  * @version 4.3
- * @last-modified 2026-11-02
+ * @last-modified 2026-11-04
  */
 class DashboardChart {
     constructor($container, eventId) {
