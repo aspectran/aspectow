@@ -99,6 +99,31 @@
         .table-responsive th {
             white-space: nowrap;
         }
+
+        /* APON Syntax Highlighting */
+        .apon-comment {
+            color: var(--bs-secondary-color);
+            font-style: italic;
+        }
+        .apon-key {
+            color: var(--bs-link-color);
+            font-weight: 600;
+        }
+        .apon-string {
+            color: var(--bs-success);
+        }
+        .apon-keyword {
+            color: var(--bs-danger);
+            font-weight: 700;
+        }
+        .apon-bracket {
+            color: var(--bs-body-color);
+            font-weight: 700;
+        }
+        .apon-number {
+            color: var(--bs-warning);
+            font-weight: 600;
+        }
     </style>
 </head>
 <body>
@@ -133,8 +158,8 @@
                                 <i class="bi bi-arrow-clockwise me-1"></i><span class="d-none d-sm-inline">Refresh</span>
                             </button>
                             <div class="btn-group btn-group-sm">
-                                <button class="btn btn-outline-secondary" id="toggle-raw-btn" title="Toggle Raw JSON View">
-                                    <i class="bi bi-code-slash me-1"></i><span class="d-none d-sm-inline">Raw Data</span><span class="d-sm-none">Raw</span>
+                                <button class="btn btn-outline-secondary" id="toggle-raw-btn" title="Toggle Raw APON View">
+                                    <i class="bi bi-code-slash me-1"></i><span class="d-none d-sm-inline">Raw Data (APON)</span><span class="d-sm-none">APON</span>
                                 </button>
                                 <button class="btn btn-outline-secondary" id="copy-btn" title="Copy to clipboard">
                                     <i class="bi bi-clipboard"></i>
@@ -144,7 +169,7 @@
                     </div>
                     <div class="card-body scrollable-pane p-3" id="details-panel">
                         <div id="spec-view">Select a component from the left panel to inspect its specifications.</div>
-                        <pre id="raw-view" class="d-none m-0" style="font-size: 0.85rem;"></pre>
+                        <pre id="raw-view" class="d-none m-0 h-100" style="white-space: pre; overflow-x: auto; font-family: var(--bs-font-monospace); font-size: 0.875rem;"></pre>
                     </div>
                 </div>
             </div>
@@ -204,6 +229,17 @@
                     return val;
                 }
 
+                function formatApon(obj) {
+                    if (typeof APON !== 'undefined' && typeof APON.stringify === 'function') {
+                        try {
+                            return APON.stringify(obj, { indent: '  ', style: 'PRETTY' });
+                        } catch (e) {
+                            console.warn('Failed to stringify to APON:', e);
+                        }
+                    }
+                    return JSON.stringify(obj, null, 2);
+                }
+
                 function renderComponentsList(componentsData) {
                     $componentsList.empty();
                     loadedComponentsData = componentsData || {};
@@ -241,6 +277,7 @@
                     });
 
                     $componentsList.append($listGroup);
+                    $componentsList.append('<div id="no-matching-components" class="p-3 text-muted text-center d-none"><i class="bi bi-search me-1"></i>No matching components</div>');
 
                     // Select previously selected component or first component by default
                     let targetKey = currentComponentKey;
@@ -272,8 +309,14 @@
                         $refreshComponentBtn.addClass('d-none');
                     }
 
-                    // Raw view content
-                    $rawView.text(JSON.stringify(comp, null, 2));
+                    // Raw view content (APON formatted & syntax highlighted)
+                    const rawText = formatApon(comp);
+                    $rawView.data('rawText', rawText);
+                    if (typeof highlightApon === 'function') {
+                        $rawView.html(highlightApon(rawText));
+                    } else {
+                        $rawView.text(rawText);
+                    }
 
                     // Dedicated Spec View
                     renderSpecView(key, comp);
@@ -507,7 +550,11 @@
                                                     <td class="spec-value-code small ps-2 fw-bold">${escapeHtml(k)}</td>
                                                     <td class="spec-value-code small ${v === '********' ? 'text-danger' : 'text-primary'}">${escapeHtml(v)}</td>
                                                 </tr>
-                                            `).join('') : `
+                                            `).join('') + `
+                                                <tr id="no-matching-props" class="d-none">
+                                                    <td colspan="2" class="text-muted text-center py-3"><i class="bi bi-search me-1"></i>No matching properties</td>
+                                                </tr>
+                                            ` : `
                                                 <tr>
                                                     <td colspan="2" class="text-muted text-center py-3">No application properties configured</td>
                                                 </tr>
@@ -522,12 +569,16 @@
                     $specView.append(card);
 
                     // Property filter handler
-                    $('#prop-filter').on('keyup', function() {
-                        const q = $(this).val().toLowerCase();
+                    $('#prop-filter').on('input', function() {
+                        const q = $(this).val().toLowerCase().trim();
+                        let matchCount = 0;
                         $('.prop-row').each(function() {
                             const text = $(this).text().toLowerCase();
-                            $(this).toggle(text.includes(q));
+                            const matches = text.includes(q);
+                            $(this).toggle(matches);
+                            if (matches) matchCount++;
                         });
+                        $('#no-matching-props').toggleClass('d-none', matchCount > 0);
                     });
                 }
 
@@ -1339,13 +1390,16 @@
                 }
 
                 function renderGenericView(items, props) {
+                    const rawData = (items && items.length > 0) ? items : props;
+                    const aponText = formatApon(rawData);
+                    const highlighted = (typeof highlightApon === 'function') ? highlightApon(aponText) : escapeHtml(aponText);
                     const card = $(`
                         <div class="spec-card shadow-sm">
                             <div class="spec-card-header">
                                 <span><i class="bi bi-layers me-2"></i>Specifications</span>
                             </div>
                             <div class="spec-card-body">
-                                <pre class="m-0">${escapeHtml(JSON.stringify(items.length > 0 ? items : props, null, 2))}</pre>
+                                <pre class="m-0" style="white-space: pre; overflow-x: auto; font-size: 0.875rem;">${highlighted}</pre>
                             </div>
                         </div>
                     `);
@@ -1476,10 +1530,14 @@
 
                 $('#component-filter').on('input', function() {
                     const filterText = $(this).val().trim().toLowerCase();
+                    let matchCount = 0;
                     $('.component-item').each(function() {
                         const text = $(this).text().toLowerCase();
-                        $(this).toggle(text.includes(filterText));
+                        const matches = text.includes(filterText);
+                        $(this).toggle(matches);
+                        if (matches) matchCount++;
                     });
+                    $('#no-matching-components').toggleClass('d-none', matchCount > 0);
                 });
 
                 $toggleRawBtn.on('click', function() {
@@ -1496,9 +1554,14 @@
                 });
 
                 $('#copy-btn').on('click', function() {
-                    const comp = loadedComponentsData[currentComponentKey];
-                    if (comp) {
-                        const text = JSON.stringify(comp, null, 2);
+                    let text = $rawView.data('rawText');
+                    if (!text) {
+                        const comp = loadedComponentsData[currentComponentKey];
+                        if (comp) {
+                            text = formatApon(comp);
+                        }
+                    }
+                    if (text) {
                         navigator.clipboard.writeText(text).then(() => {
                             const $icon = $(this).find('i');
                             $icon.removeClass('bi-clipboard').addClass('bi-check-lg text-success');

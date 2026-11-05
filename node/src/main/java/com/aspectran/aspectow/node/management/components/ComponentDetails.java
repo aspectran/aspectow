@@ -46,8 +46,6 @@ public class ComponentDetails {
 
     private Map<String, Object> properties = new LinkedHashMap<>();
 
-    private String apon;
-
     public String getId() {
         return id;
     }
@@ -146,15 +144,6 @@ public class ComponentDetails {
             properties = new LinkedHashMap<>();
         }
         properties.put(key, value);
-        return this;
-    }
-
-    public String getApon() {
-        return apon;
-    }
-
-    public ComponentDetails setApon(String apon) {
-        this.apon = apon;
         return this;
     }
 

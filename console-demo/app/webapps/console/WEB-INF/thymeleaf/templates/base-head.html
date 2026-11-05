@@ -69,11 +69,12 @@
     </th:block>
     <th:block th:if="${#{currentEnvironment}.matchesProfiles('(!cdn-assets, !dev)')}">
         <link rel="stylesheet" th:href="@{/assets/css/console-bundle.min.css?v=20260917}"/>
-        <script th:src="@{/assets/js/console-bundle.min.js?v=20261023}"></script>
+        <script th:src="@{/assets/js/console-bundle.min.js?v=20261105}"></script>
     </th:block>
     <th:block th:if="${#{currentEnvironment}.matchesProfiles('dev')}">
         <link rel="stylesheet" th:href="@{/assets/css/console.css}"/>
         <script th:src="@{/assets/js/console-common.js}"></script>
+        <script th:src="@{/assets/js/apon.js}"></script>
         <script th:src="@{/assets/js/apon-highlighter.js}"></script>
         <script th:src="@{/assets/js/console-client.js}"></script>
     </th:block>
