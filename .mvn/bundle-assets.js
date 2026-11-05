@@ -215,6 +215,7 @@ const consoleJsSrc = path.join(consoleSrcDir, "js");
 const consoleCssSrc = path.join(consoleSrcDir, "css");
 const consoleJsFiles = [
     "console-common.js",
+    "apon.js",
     "apon-highlighter.js",
     "console-client.js"
 ];
