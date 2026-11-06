@@ -25,6 +25,7 @@ import com.aspectran.core.component.session.HouseKeeper;
 import com.aspectran.core.component.session.SessionCache;
 import com.aspectran.core.component.session.SessionManager;
 import com.aspectran.core.component.session.SessionManagerProvider;
+import com.aspectran.core.component.session.SessionStore;
 import com.aspectran.core.context.ActivityContext;
 import com.aspectran.core.context.rule.BeanRule;
 import com.aspectran.utils.DurationUtils;
@@ -243,10 +244,7 @@ public class SessionManagerComponentInspector implements ComponentInspector {
             info.put("saveOnCreate", cache.isSaveOnCreate());
             info.put("removeUnloadableSessions", cache.isRemoveUnloadableSessions());
 
-            Object store = ComponentUtils.invokeObject(cache, "getSessionStore");
-            if (store == null) {
-                store = ComponentUtils.getFieldValue(cache, "sessionStore");
-            }
+            SessionStore store = cache.getSessionStore();
             if (store != null) {
                 info.put("sessionStoreClassName", store.getClass().getName());
                 info.put("sessionStoreSimpleClassName", store.getClass().getSimpleName());

@@ -18,8 +18,11 @@ package com.aspectran.aspectow.node.management.components.inspectors;
 import com.aspectran.aspectow.node.management.components.ComponentDetails;
 import com.aspectran.aspectow.node.management.components.ComponentInspector;
 import com.aspectran.aspectow.node.management.components.ComponentUtils;
+import com.aspectran.core.component.template.DefaultTemplateRenderer;
 import com.aspectran.core.component.template.TemplateRenderer;
+import com.aspectran.core.component.template.engine.TemplateEngine;
 import com.aspectran.core.context.ActivityContext;
+import com.aspectran.core.context.rule.TemplateRule;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
@@ -81,17 +84,25 @@ public class TemplateRendererComponentInspector implements ComponentInspector {
         info.put("simpleClassName", clazz.getSimpleName());
 
         // Template rule count
-        Object rules = ComponentUtils.invokeObject(renderer, "getTemplateRules");
-        if (rules instanceof Collection<?> col) {
-            info.put("templateRulesCount", col.size());
+        if (renderer instanceof DefaultTemplateRenderer defaultRenderer) {
+            Collection<TemplateRule> rules = defaultRenderer.getTemplateRules();
+            info.put("templateRulesCount", rules != null ? rules.size() : 0);
         } else {
-            info.put("templateRulesCount", 0);
+            Object rules = ComponentUtils.invokeObject(renderer, "getTemplateRules");
+            if (rules instanceof Collection<?> col) {
+                info.put("templateRulesCount", col.size());
+            } else {
+                info.put("templateRulesCount", 0);
+            }
         }
 
         // Internal engine inspection
         Object engine = ComponentUtils.invokeObject(renderer, "getTemplateEngine");
-        if (engine == null) {
-            engine = ComponentUtils.getFieldValue(renderer, "templateEngine");
+        if (engine == null && context.getBeanRegistry() != null && context.getBeanRegistry().containsBean(TemplateEngine.class)) {
+            try {
+                engine = context.getBeanRegistry().getBean(TemplateEngine.class);
+            } catch (Exception ignored) {
+            }
         }
 
         if (engine != null) {

@@ -275,10 +275,20 @@ public class EntityManagerFactoryComponentInspector implements ComponentInspecto
         qInfo.put("className", clazz.getName());
         qInfo.put("simpleClassName", clazz.getSimpleName());
 
-        Object txAspectId = ComponentUtils.getFieldValue(query, "txAspectId");
-        qInfo.put("txAspectId", (txAspectId != null ? txAspectId.toString() : null));
+        String txAspectId = ComponentUtils.invokeString(query, "getTxAspectId");
+        if (txAspectId == null) {
+            String primaryAspectId = ComponentUtils.invokeString(query, "getPrimaryAspectId");
+            String replicaAspectId = ComponentUtils.invokeString(query, "getReplicaAspectId");
+            if (primaryAspectId != null || replicaAspectId != null) {
+                txAspectId = (primaryAspectId != null ? primaryAspectId : "") +
+                        (replicaAspectId != null ? " / " + replicaAspectId : "");
+            }
+        }
+        if (txAspectId != null) {
+            qInfo.put("txAspectId", txAspectId);
+        }
 
-        Object templates = ComponentUtils.getFieldValue(query, "templates");
+        Object templates = ComponentUtils.invokeObject(query, "getTemplates");
         qInfo.put("templates", (templates != null ? templates.getClass().getSimpleName() : "Default"));
 
         return qInfo;

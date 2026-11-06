@@ -26,6 +26,7 @@ import com.aspectran.core.context.ActivityContext;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -96,8 +97,8 @@ public class EventPublisherComponentInspector implements ComponentInspector {
                     item.put("eventType", eventClass.getName());
                     item.put("eventSimpleType", eventClass.getSimpleName());
 
-                    Object bean = com.aspectran.aspectow.node.management.components.ComponentUtils.getFieldValue(lm, "bean");
-                    java.lang.reflect.Method method = (java.lang.reflect.Method) com.aspectran.aspectow.node.management.components.ComponentUtils.getFieldValue(lm, "method");
+                    Object bean = lm.getBean();
+                    Method method = lm.getMethod();
 
                     item.put("beanClass", (bean != null ? bean.getClass().getName() : null));
                     item.put("methodName", (method != null ? method.getName() : lm.toString()));

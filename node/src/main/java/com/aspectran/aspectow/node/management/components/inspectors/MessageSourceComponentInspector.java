@@ -22,7 +22,9 @@ import com.aspectran.core.component.bean.BeanRegistry;
 import com.aspectran.core.component.bean.DefaultBeanRegistry;
 import com.aspectran.core.context.ActivityContext;
 import com.aspectran.core.context.rule.BeanRule;
+import com.aspectran.core.support.i18n.message.AbstractMessageSource;
 import com.aspectran.core.support.i18n.message.MessageSource;
+import com.aspectran.core.support.i18n.message.ResourceBundleMessageSource;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
@@ -131,15 +133,21 @@ public class MessageSourceComponentInspector implements ComponentInspector {
         info.put("className", clazz.getName());
         info.put("simpleClassName", clazz.getSimpleName());
 
-        Object basenames = ComponentUtils.getFieldValue(ms, "basenames");
-        if (basenames instanceof String[] arr) {
-            info.put("basenames", Arrays.asList(arr));
+        if (ms instanceof ResourceBundleMessageSource rbms) {
+            String[] basenames = rbms.getBasenames();
+            if (basenames != null && basenames.length > 0) {
+                info.put("basenames", Arrays.asList(basenames));
+            }
+            info.put("defaultEncoding", rbms.getDefaultEncoding());
+            info.put("cacheMillis", rbms.getCacheMillis());
+            info.put("fallbackToSystemLocale", rbms.isFallbackToSystemLocale());
         }
 
-        info.put("defaultEncoding", ComponentUtils.getFieldValue(ms, "defaultEncoding"));
-        info.put("cacheMillis", ComponentUtils.getFieldValue(ms, "cacheMillis"));
-        info.put("fallbackToSystemLocale", ComponentUtils.getFieldValue(ms, "fallbackToSystemLocale"));
-        info.put("useCodeAsDefaultMessage", ComponentUtils.invokeBoolean(ms, "isUseCodeAsDefaultMessage"));
+        if (ms instanceof AbstractMessageSource ams) {
+            info.put("useCodeAsDefaultMessage", ams.isUseCodeAsDefaultMessage());
+        } else {
+            info.put("useCodeAsDefaultMessage", ComponentUtils.invokeBoolean(ms, "isUseCodeAsDefaultMessage"));
+        }
 
         return info;
     }
