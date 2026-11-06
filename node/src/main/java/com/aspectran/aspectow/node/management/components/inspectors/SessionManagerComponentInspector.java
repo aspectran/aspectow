@@ -60,7 +60,7 @@ public class SessionManagerComponentInspector implements ComponentInspector {
     @Override
     @NonNull
     public String getCategory() {
-        return "Web";
+        return "Core";
     }
 
     @Override
