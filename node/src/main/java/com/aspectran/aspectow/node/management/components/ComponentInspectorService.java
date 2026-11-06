@@ -64,12 +64,12 @@ public class ComponentInspectorService {
         inspectors.add(new SqlSessionFactoryComponentInspector());
         inspectors.add(new EntityManagerFactoryComponentInspector());
         inspectors.add(new RedisClientComponentInspector());
-        inspectors.add(new SessionManagerComponentInspector());
-        inspectors.add(new TemplateRendererComponentInspector());
         inspectors.add(new SchedulerComponentInspector());
+        inspectors.add(new SessionManagerComponentInspector());
         inspectors.add(new AsyncTaskExecutorComponentInspector());
         inspectors.add(new EventPublisherComponentInspector());
         inspectors.add(new MultipartComponentInspector());
+        inspectors.add(new TemplateRendererComponentInspector());
         inspectors.add(new LocaleResolverComponentInspector());
         inspectors.add(new MessageSourceComponentInspector());
         inspectors.add(new CorsProcessorComponentInspector());
