@@ -395,7 +395,7 @@
                         renderEntityManagerFactoryView(items);
                     } else if (id === 'templateRenderer') {
                         renderTemplateRendererView(items);
-                    } else if (id === 'schedulerService') {
+                    } else if (id === 'scheduler') {
                         renderSchedulerView(items);
                     } else if (id === 'sessionManager') {
                         renderSessionManagerView(items);
@@ -1092,89 +1092,126 @@
                 }
 
                 function renderSchedulerView(items) {
-                    if (items.length === 0) {
-                        $specView.html('<div class="card border shadow-sm p-4 text-center text-muted">No SchedulerService configured.</div>');
+                    if (!items || items.length === 0) {
+                        $specView.html('<div class="card border shadow-sm p-4 text-center text-muted">No Schedules configured.</div>');
                         return;
                     }
-                    $.each(items, function(i, sc) {
-                        const statusClass = (sc.status === 'Active' || sc.status === 'Started') ? 'bg-success' : (sc.status === 'Busy' ? 'bg-warning text-dark' : 'bg-secondary');
-                        let rulesRows = '';
-                        if (sc.rulesSummary && sc.rulesSummary.length > 0) {
-                            rulesRows = sc.rulesSummary.map(r => `
+                    $.each(items, function(i, rule) {
+                        const sc = rule.scheduler || {};
+                        const trigger = rule.trigger || {};
+                        const triggerBadgeClass = (rule.triggerType === 'CRON')
+                            ? 'bg-primary-subtle text-primary-emphasis border-primary-subtle'
+                            : 'bg-info-subtle text-info-emphasis border-info-subtle';
+
+                        let jobsRows = '';
+                        if (rule.jobs && rule.jobs.length > 0) {
+                            jobsRows = rule.jobs.map(j => `
                                 <tr>
-                                    <td class="spec-value-code ps-2 small">${escapeHtml(r.id)}</td>
-                                    <td><span class="badge bg-primary-subtle text-primary-emphasis border border-primary-subtle">${escapeHtml(r.triggerType || 'N/A')}</span></td>
-                                    <td class="pe-2 text-end">${r.jobCount || 0}</td>
+                                    <td class="ps-3 font-monospace">
+                                        <i class="bi bi-play-circle text-success me-2"></i>
+                                        <span class="fw-semibold">${escapeHtml(j.translet)}</span>
+                                    </td>
+                                    <td class="text-center">
+                                        ${j.isolated ? '<span class="badge bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle">Isolated</span>' : '<span class="text-muted small">Standard</span>'}
+                                    </td>
+                                    <td class="text-center pe-3">
+                                        ${j.disabled ? '<span class="badge bg-danger-subtle text-danger-emphasis border border-danger-subtle">Disabled</span>' : '<span class="badge bg-success-subtle text-success-emphasis border border-success-subtle">Active</span>'}
+                                    </td>
                                 </tr>
                             `).join('');
                         } else {
-                            rulesRows = '<tr><td colspan="3" class="text-muted text-center py-3">No schedule rules registered</td></tr>';
+                            jobsRows = '<tr><td colspan="3" class="text-muted text-center py-3">No scheduled jobs registered for this rule</td></tr>';
                         }
 
+                        const startDelayStr = (trigger.startDelaySeconds != null && trigger.startDelaySeconds > 0)
+                            ? trigger.startDelaySeconds + 's'
+                            : (sc.startDelaySeconds != null && sc.startDelaySeconds > 0 ? sc.startDelaySeconds + 's (Service)' : 'None');
+
                         const card = $(`
-                            <div class="spec-card shadow-sm">
+                            <div class="spec-card shadow-sm mb-3">
                                 <div class="spec-card-header">
-                                    <span><i class="bi bi-alarm me-2"></i>${escapeHtml(sc.schedulerName || 'Scheduler Service')}</span>
-                                    <div>
-                                        <span class="badge ${statusClass} me-1">${escapeHtml(sc.status || 'Active')}</span>
-                                        <span class="badge bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle">${escapeHtml(sc.simpleClassName || '')}</span>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <i class="bi bi-alarm fs-5 text-primary"></i>
+                                        <span class="fs-6 fw-semibold font-monospace">${escapeHtml(rule.id || 'Schedule')}</span>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-1">
+                                        <span class="badge bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle font-monospace" title="Scheduler Bean">
+                                            <i class="bi bi-cpu me-1"></i>${escapeHtml(rule.schedulerBeanId || sc.schedulerName || 'Scheduler')}
+                                        </span>
+                                        ${rule.isolated ? '<span class="badge bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle">Isolated</span>' : ''}
+                                        ${rule.disabled ? '<span class="badge bg-danger-subtle text-danger-emphasis border border-danger-subtle">Disabled</span>' : '<span class="badge bg-success-subtle text-success-emphasis border border-success-subtle">Active</span>'}
                                     </div>
                                 </div>
                                 <div class="spec-card-body">
+                                    ${rule.description ? `<div class="text-muted small mb-3"><i class="bi bi-info-circle me-1"></i>${escapeHtml(rule.description)}</div>` : ''}
                                     <div class="row g-3 mb-3">
-                                        <div class="col-md-4">
+                                        <div class="col-lg-6">
                                             <div class="p-3 bg-body-tertiary rounded border h-100">
-                                                <div class="spec-label">Schedule Rules</div>
-                                                <div class="spec-value fs-4 text-primary">${Number(sc.scheduleRulesCount || 0).toLocaleString()}</div>
-                                                <div class="small text-muted">Configured rules</div>
+                                                <div class="fw-bold small mb-2 text-uppercase text-muted d-flex align-items-center justify-content-between">
+                                                    <span><i class="bi bi-clock me-1"></i>Trigger Specification</span>
+                                                    <span class="badge border ${triggerBadgeClass}">${escapeHtml(rule.triggerType || 'N/A')}</span>
+                                                </div>
+                                                <div class="mb-2">
+                                                    <div class="spec-label">Expression / Interval</div>
+                                                    <div class="spec-value spec-value-code fs-6 text-primary fw-bold">${escapeHtml(rule.expressionSummary || rule.expression || '-')}</div>
+                                                </div>
+                                                <div class="row g-2">
+                                                    <div class="col-6">
+                                                        <div class="spec-label">Misfire Policy</div>
+                                                        <div class="spec-value small">${escapeHtml(trigger.misfirePolicy || 'Default')}</div>
+                                                    </div>
+                                                    <div class="col-6">
+                                                        <div class="spec-label">Start Delay</div>
+                                                        <div class="spec-value small">${escapeHtml(startDelayStr)}</div>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
-                                        <div class="col-md-4">
+                                        <div class="col-lg-6">
                                             <div class="p-3 bg-body-tertiary rounded border h-100">
-                                                <div class="spec-label">Jobs Executed</div>
-                                                <div class="spec-value fs-4 text-success">${sc.numberOfJobsExecuted != null ? Number(sc.numberOfJobsExecuted).toLocaleString() : 'N/A'}</div>
-                                                <div class="small text-muted">Cumulative run count</div>
+                                                <div class="fw-bold small mb-2 text-uppercase text-muted d-flex align-items-center justify-content-between">
+                                                    <span><i class="bi bi-gear-wide me-1"></i>Scheduler Engine</span>
+                                                    <span class="badge ${sc.isClustered ? 'bg-primary-subtle text-primary-emphasis border-primary-subtle' : 'bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle'} border">
+                                                        ${sc.isClustered ? 'Clustered' : 'Standalone'}
+                                                    </span>
+                                                </div>
+                                                <div class="row g-2">
+                                                    <div class="col-6">
+                                                        <div class="spec-label">Quartz Version</div>
+                                                        <div class="spec-value small">${sc.version ? 'v' + escapeHtml(sc.version) : 'Quartz'} <span class="text-muted font-monospace">(${escapeHtml(sc.schedulerSimpleClassName || 'StdScheduler')})</span></div>
+                                                    </div>
+                                                    <div class="col-6">
+                                                        <div class="spec-label">Thread Pool</div>
+                                                        <div class="spec-value small">${escapeHtml(sc.threadPoolClass || 'SimpleThreadPool')} <span class="badge bg-body-secondary text-body-secondary border ms-1">Size: ${sc.threadPoolSize != null ? sc.threadPoolSize : 'Default'}</span></div>
+                                                    </div>
+                                                    <div class="col-6">
+                                                        <div class="spec-label">Job Store</div>
+                                                        <div class="spec-value small">${escapeHtml(sc.jobStoreClass || 'N/A')}${sc.jobStoreSupportsPersistence ? '<span class="badge bg-success-subtle text-success-emphasis border border-success-subtle ms-1">Persistent</span>' : ''}</div>
+                                                    </div>
+                                                    <div class="col-6">
+                                                        <div class="spec-label">Distributed Job Lock</div>
+                                                        <div class="spec-value spec-value-code small">${escapeHtml(sc.jobLockProviderSimpleClassName || '(None)')}</div>
+                                                    </div>
+                                                </div>
                                             </div>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <div class="p-3 bg-body-tertiary rounded border h-100">
-                                                <div class="spec-label">Thread Pool Size</div>
-                                                <div class="spec-value fs-4 text-info">${sc.threadPoolSize != null ? sc.threadPoolSize : 'Default'}</div>
-                                                <div class="small text-muted">${escapeHtml(sc.threadPoolClass || 'QuartzThreadPool')}</div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="spec-grid mb-3">
-                                        <div>
-                                            <div class="spec-label">Instance ID</div>
-                                            <div class="spec-value spec-value-code small">${escapeHtml(sc.schedulerInstanceId || 'N/A')}</div>
-                                        </div>
-                                        <div>
-                                            <div class="spec-label">Clustered</div>
-                                            <div class="spec-value">${sc.isClustered ? '<span class="badge bg-primary-subtle text-primary-emphasis border border-primary-subtle">Clustered</span>' : 'Standalone'}</div>
-                                        </div>
-                                        <div>
-                                            <div class="spec-label">Job Store</div>
-                                            <div class="spec-value spec-value-code small">${escapeHtml(sc.jobStoreClass || 'N/A')}</div>
-                                        </div>
-                                        <div>
-                                            <div class="spec-label">Distributed Job Lock</div>
-                                            <div class="spec-value spec-value-code small">${escapeHtml(sc.jobLockProviderSimpleClassName || '(None)')}</div>
                                         </div>
                                     </div>
                                     <div>
-                                        <div class="spec-label mb-1">Registered Schedules</div>
+                                        <div class="fw-bold small mb-2 text-uppercase text-muted d-flex align-items-center justify-content-between">
+                                            <span><i class="bi bi-list-task me-1"></i>Scheduled Jobs (Translets)</span>
+                                            <span class="badge bg-primary-subtle text-primary-emphasis border border-primary-subtle">${Number(rule.jobCount || 0).toLocaleString()} ${rule.jobCount === 1 ? 'Job' : 'Jobs'}</span>
+                                        </div>
                                         <div class="table-responsive border rounded bg-body-tertiary">
-                                            <table class="table table-sm table-hover mb-0">
-                                                <thead>
+                                            <table class="table table-sm table-hover mb-0 align-middle">
+                                                <thead class="table-light">
                                                     <tr>
-                                                        <th class="ps-2">Schedule ID</th>
-                                                        <th>Trigger Type</th>
-                                                        <th class="pe-2 text-end">Job Count</th>
+                                                        <th class="ps-3 py-2">Translet Name</th>
+                                                        <th class="text-center py-2" style="width: 120px;">Mode</th>
+                                                        <th class="text-center py-2 pe-3" style="width: 100px;">Status</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    ${rulesRows}
+                                                    ${jobsRows}
                                                 </tbody>
                                             </table>
                                         </div>
