@@ -43,13 +43,16 @@
             border-radius: var(--bs-border-radius);
             background-color: var(--bs-body-bg);
             margin-bottom: 1rem;
-            overflow: auto;
+            overflow: hidden;
+        }
+        .spec-card:last-child {
+            margin-bottom: 0;
         }
         .spec-card-header {
             background-color: var(--bs-tertiary-bg);
-            padding: 10px 16px;
+            padding: 8px 14px;
             font-weight: 600;
-            font-size: 0.9rem;
+            font-size: 0.875rem;
             border-bottom: 1px solid var(--bs-border-color);
             display: flex;
             flex-wrap: wrap;
@@ -58,7 +61,7 @@
             gap: 8px;
         }
         .spec-card-body {
-            padding: 16px;
+            padding: 14px;
         }
         .spec-grid {
             display: grid;
@@ -186,8 +189,8 @@
                 </div>
             </div>
             <div class="col-md-8 right-panel">
-                <div class="card h-100 border shadow-sm overflow-hidden">
-                    <div class="card-header bg-body-tertiary py-2 d-flex flex-wrap justify-content-between align-items-center gap-2">
+                <div class="card border shadow-sm mb-3 flex-shrink-0">
+                    <div class="card-body py-2 px-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
                         <div class="d-flex align-items-center text-truncate me-auto">
                             <i id="details-icon" class="bi bi-layers me-2 text-primary flex-shrink-0"></i>
                             <span class="fw-bold small text-truncate" id="details-title">Component Specification</span>
@@ -207,9 +210,13 @@
                             </div>
                         </div>
                     </div>
-                    <div class="card-body scrollable-pane p-3" id="details-panel">
-                        <div id="spec-view">Select a component from the left panel to inspect its specifications.</div>
-                        <pre id="raw-view" class="d-none m-0 h-100" style="white-space: pre; overflow-x: auto; font-size: 0.875rem;"></pre>
+                </div>
+                <div class="scrollable-pane">
+                    <div id="spec-view">
+                        <div class="card shadow-sm p-4 text-center text-muted">Select a component from the left panel to inspect its specifications.</div>
+                    </div>
+                    <div id="raw-view-pane" class="card h-100 shadow-sm d-none">
+                        <pre id="raw-view" class="card-body m-0 overflow-auto" style="white-space: pre; font-size: 0.875rem;"></pre>
                     </div>
                 </div>
             </div>
@@ -223,6 +230,7 @@
                 const $componentsList = $('#components-list');
                 const $specView = $('#spec-view');
                 const $rawView = $('#raw-view');
+                const $rawViewPane = $('#raw-view-pane');
                 const $detailsTitle = $('#details-title');
                 const $detailsIcon = $('#details-icon');
                 const $detailsCategory = $('#details-category');
@@ -286,7 +294,7 @@
 
                     if (!componentsData || Object.keys(componentsData).length === 0) {
                         $componentsList.html('<div class="p-3 text-muted">No components found in this context.</div>');
-                        $specView.html('<div class="text-muted p-4">No components available.</div>');
+                        $specView.html('<div class="card border shadow-sm p-4 text-center text-muted">No components available.</div>');
                         return;
                     }
 
@@ -404,7 +412,7 @@
 
                 function renderDataSourceView(items) {
                     if (items.length === 0) {
-                        $specView.html('<div class="text-muted p-3">No DataSources defined.</div>');
+                        $specView.html('<div class="card border shadow-sm p-4 text-center text-muted">No DataSources defined.</div>');
                         return;
                     }
                     $.each(items, function(i, ds) {
@@ -471,7 +479,7 @@
 
                 function renderExecutorView(items) {
                     if (items.length === 0) {
-                        $specView.html('<div class="text-muted p-3">No Task Executors defined.</div>');
+                        $specView.html('<div class="card border shadow-sm p-4 text-center text-muted">No Task Executors defined.</div>');
                         return;
                     }
                     $.each(items, function(i, exec) {
@@ -624,7 +632,7 @@
 
                 function renderMultipartView(items) {
                     if (items.length === 0) {
-                        $specView.html('<div class="text-muted p-3">No Multipart Parser configured.</div>');
+                        $specView.html('<div class="card border shadow-sm p-4 text-center text-muted">No Multipart Parser configured.</div>');
                         return;
                     }
                     $.each(items, function(i, mp) {
@@ -730,7 +738,7 @@
 
                 function renderMessageSourceView(items) {
                     if (items.length === 0) {
-                        $specView.html('<div class="text-muted p-3">No Message Source defined.</div>');
+                        $specView.html('<div class="card border shadow-sm p-4 text-center text-muted">No Message Source defined.</div>');
                         return;
                     }
                     $.each(items, function(i, ms) {
@@ -775,7 +783,7 @@
 
                 function renderApplicationAdapterView(items) {
                     if (items.length === 0) {
-                        $specView.html('<div class="text-muted p-3">No Application Adapter available.</div>');
+                        $specView.html('<div class="card border shadow-sm p-4 text-center text-muted">No Application Adapter available.</div>');
                         return;
                     }
                     $.each(items, function(i, adapter) {
@@ -856,7 +864,7 @@
 
                 function renderSqlSessionFactoryView(items) {
                     if (items.length === 0) {
-                        $specView.html('<div class="text-muted p-3">No MyBatis SqlSessionFactory configured.</div>');
+                        $specView.html('<div class="card border shadow-sm p-4 text-center text-muted">No MyBatis SqlSessionFactory configured.</div>');
                         return;
                     }
                     $.each(items, function(i, sf) {
@@ -928,7 +936,7 @@
 
                 function renderEntityManagerFactoryView(items) {
                     if (items.length === 0) {
-                        $specView.html('<div class="text-muted p-3">No JPA EntityManagerFactory configured.</div>');
+                        $specView.html('<div class="card border shadow-sm p-4 text-center text-muted">No JPA EntityManagerFactory configured.</div>');
                         return;
                     }
                     $.each(items, function(i, emf) {
@@ -1031,14 +1039,14 @@
 
                 function renderTemplateRendererView(items) {
                     if (items.length === 0) {
-                        $specView.html('<div class="text-muted p-3">No TemplateRenderer configured.</div>');
+                        $specView.html('<div class="card border shadow-sm p-4 text-center text-muted">No TemplateRenderer configured.</div>');
                         return;
                     }
                     $.each(items, function(i, tr) {
                         const card = $(`
                             <div class="spec-card shadow-sm">
                                 <div class="spec-card-header">
-                                    <span><i class="bi bi-palette me-2"></i>Template Renderer</span>
+                                    <span><i class="bi bi-palette me-2"></i>${escapeHtml(tr.engineSimpleClassName || tr.simpleClassName || 'Template Renderer')}</span>
                                     <span class="badge bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle">${escapeHtml(tr.simpleClassName || '')}</span>
                                 </div>
                                 <div class="spec-card-body">
@@ -1085,7 +1093,7 @@
 
                 function renderSchedulerView(items) {
                     if (items.length === 0) {
-                        $specView.html('<div class="text-muted p-3">No SchedulerService configured.</div>');
+                        $specView.html('<div class="card border shadow-sm p-4 text-center text-muted">No SchedulerService configured.</div>');
                         return;
                     }
                     $.each(items, function(i, sc) {
@@ -1180,7 +1188,7 @@
 
                 function renderSessionManagerView(items) {
                     if (items.length === 0) {
-                        $specView.html('<div class="text-muted p-3">No SessionManager configured.</div>');
+                        $specView.html('<div class="card border shadow-sm p-4 text-center text-muted">No SessionManager configured.</div>');
                         return;
                     }
                     $.each(items, function(i, sm) {
@@ -1265,7 +1273,7 @@
 
                 function renderLocaleResolverView(items) {
                     if (items.length === 0) {
-                        $specView.html('<div class="text-muted p-3">No LocaleResolver configured.</div>');
+                        $specView.html('<div class="card border shadow-sm p-4 text-center text-muted">No LocaleResolver configured.</div>');
                         return;
                     }
                     $.each(items, function(i, lr) {
@@ -1328,7 +1336,7 @@
 
                 function renderCorsProcessorView(items) {
                     if (items.length === 0) {
-                        $specView.html('<div class="text-muted p-3">No CORS Processor configured.</div>');
+                        $specView.html('<div class="card border shadow-sm p-4 text-center text-muted">No CORS Processor configured.</div>');
                         return;
                     }
                     $.each(items, function(i, cors) {
@@ -1389,7 +1397,7 @@
 
                 function renderRedisClientView(items) {
                     if (items.length === 0) {
-                        $specView.html('<div class="text-muted p-3">No Redis Client or Pool configured.</div>');
+                        $specView.html('<div class="card border shadow-sm p-4 text-center text-muted">No Redis Client or Pool configured.</div>');
                         return;
                     }
                     $.each(items, function(i, rc) {
@@ -1584,11 +1592,11 @@
                     isRawMode = !isRawMode;
                     if (isRawMode) {
                         $specView.addClass('d-none');
-                        $rawView.removeClass('d-none');
+                        $rawViewPane.removeClass('d-none');
                         $(this).addClass('active btn-primary').removeClass('btn-outline-secondary');
                     } else {
                         $specView.removeClass('d-none');
-                        $rawView.addClass('d-none');
+                        $rawViewPane.addClass('d-none');
                         $(this).removeClass('active btn-primary').addClass('btn-outline-secondary');
                     }
                 });
