@@ -30,6 +30,7 @@ import com.aspectran.aspectow.node.management.components.inspectors.SchedulerCom
 import com.aspectran.aspectow.node.management.components.inspectors.SessionManagerComponentInspector;
 import com.aspectran.aspectow.node.management.components.inspectors.SqlSessionFactoryComponentInspector;
 import com.aspectran.aspectow.node.management.components.inspectors.TemplateRendererComponentInspector;
+import com.aspectran.aspectow.node.management.components.inspectors.ViewDispatcherComponentInspector;
 import com.aspectran.core.context.ActivityContext;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
@@ -77,6 +78,7 @@ public class ComponentInspectorService {
 
         // View
         inspectors.add(new TemplateRendererComponentInspector());
+        inspectors.add(new ViewDispatcherComponentInspector());
 
         // Web
         inspectors.add(new LocaleResolverComponentInspector());

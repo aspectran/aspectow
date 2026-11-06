@@ -90,6 +90,10 @@
             font-family: var(--bs-font-monospace);
             font-size: 0.85rem;
         }
+        .spec-card .font-monospace,
+        .spec-card .small {
+            word-break: break-all;
+        }
         .prop-search-box {
             position: sticky;
             top: 0;
@@ -395,6 +399,8 @@
                         renderEntityManagerFactoryView(items);
                     } else if (id === 'templateRenderer') {
                         renderTemplateRendererView(items);
+                    } else if (id === 'viewDispatcher') {
+                        renderViewDispatcherView(items);
                     } else if (id === 'scheduler') {
                         renderSchedulerView(items);
                     } else if (id === 'sessionManager') {
@@ -1055,7 +1061,7 @@
                                             <div class="p-3 bg-body-tertiary rounded border h-100">
                                                 <div class="spec-label">Template Engine</div>
                                                 <div class="spec-value fs-4 text-primary">${escapeHtml(tr.engineSimpleClassName || tr.simpleClassName || 'Default')}</div>
-                                                <div class="small text-muted">${escapeHtml(tr.engineClassName || tr.className || '')}</div>
+                                                <div class="small text-muted text-break">${escapeHtml(tr.engineClassName || tr.className || '')}</div>
                                             </div>
                                         </div>
                                         <div class="col-md-6">
@@ -1082,6 +1088,109 @@
                                         <div>
                                             <div class="spec-label">Path Suffix</div>
                                             <div class="spec-value spec-value-code small">${escapeHtml(tr.suffix || '(None)')}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `);
+                        $specView.append(card);
+                    });
+                }
+
+                function renderViewDispatcherView(items) {
+                    if (items.length === 0) {
+                        $specView.html('<div class="card border shadow-sm p-4 text-center text-muted">No ViewDispatchers configured.</div>');
+                        return;
+                    }
+                    $.each(items, function(i, vd) {
+                        const typeBadge = `<span class="badge bg-info-subtle text-info-emphasis border border-info-subtle me-1">${escapeHtml(vd.dispatcherType || 'View Dispatcher')}</span>`;
+                        const singletonBadge = vd.isSingleton
+                            ? '<span class="badge bg-success-subtle text-success-emphasis border border-success-subtle">Singleton</span>'
+                            : '<span class="badge bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle">Prototype</span>';
+
+                        let extraDetail = '';
+                        if (vd.template || vd.includePageKey) {
+                            extraDetail = `
+                                <div class="col-md-6">
+                                    <div class="p-3 bg-body-tertiary rounded border h-100">
+                                        <div class="spec-label">Template Layout</div>
+                                        <div class="spec-value spec-value-code small text-primary mb-1">${escapeHtml(vd.template || '(None)')}</div>
+                                        <div class="small text-muted">Include Key: <code class="font-monospace">${escapeHtml(vd.includePageKey || 'N/A')}</code></div>
+                                    </div>
+                                </div>
+                            `;
+                        } else if (vd.templateEngineSimpleClassName || vd.templateEngineClassName) {
+                            extraDetail = `
+                                <div class="col-md-6">
+                                    <div class="p-3 bg-body-tertiary rounded border h-100">
+                                        <div class="spec-label">Bound Template Engine</div>
+                                        <div class="spec-value fs-5 text-primary">${escapeHtml(vd.templateEngineSimpleClassName || 'Engine')}</div>
+                                        <div class="small text-muted font-monospace text-break">${escapeHtml(vd.templateEngineClassName || '')}</div>
+                                    </div>
+                                </div>
+                            `;
+                        } else {
+                            extraDetail = `
+                                <div class="col-md-6">
+                                    <div class="p-3 bg-body-tertiary rounded border h-100">
+                                        <div class="spec-label">Scope & Dispatch Mode</div>
+                                        <div class="spec-value fs-5 text-secondary">${singletonBadge}</div>
+                                        <div class="small text-muted font-monospace text-break">${escapeHtml(vd.dispatcherType || '')}</div>
+                                    </div>
+                                </div>
+                            `;
+                        }
+
+                        let targetsHtml = '';
+                        if (vd.targets && vd.targets.length > 0) {
+                            const blocks = vd.targets.map(t =>
+                                `<pre class="bg-body-secondary p-2 rounded border font-monospace small mb-1 text-break" style="white-space: pre-wrap;">${escapeHtml(t)}</pre>`
+                            ).join('');
+                            targetsHtml = `
+                                <div class="mb-3">
+                                    <div class="spec-label">적용 대상 (Target Pointcut)</div>
+                                    ${blocks}
+                                </div>
+                            `;
+                        }
+
+                        const card = $(`
+                            <div class="spec-card shadow-sm mb-3">
+                                <div class="spec-card-header">
+                                    <span><i class="bi bi-layout-text-window-reverse me-2"></i>${escapeHtml(vd.beanName || 'ViewDispatcher')}</span>
+                                    <div>
+                                        ${typeBadge}
+                                        <span class="badge bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle">${escapeHtml(vd.simpleClassName || '')}</span>
+                                    </div>
+                                </div>
+                                <div class="spec-card-body">
+                                    <div class="row g-3 mb-3">
+                                        <div class="col-md-6">
+                                            <div class="p-3 bg-body-tertiary rounded border h-100">
+                                                <div class="spec-label">Content Type</div>
+                                                <div class="spec-value fs-5 text-primary">${escapeHtml(vd.contentType || 'N/A')}</div>
+                                                <div class="small text-muted font-monospace text-break">${escapeHtml(vd.className || '')}</div>
+                                            </div>
+                                        </div>
+                                        ${extraDetail}
+                                    </div>
+                                    ${targetsHtml}
+                                    <div class="spec-grid">
+                                        <div>
+                                            <div class="spec-label">Path Prefix</div>
+                                            <div class="spec-value spec-value-code small">${escapeHtml(vd.prefix || '(None)')}</div>
+                                        </div>
+                                        <div>
+                                            <div class="spec-label">Path Suffix</div>
+                                            <div class="spec-value spec-value-code small">${escapeHtml(vd.suffix || '(None)')}</div>
+                                        </div>
+                                        <div>
+                                            <div class="spec-label">Scope</div>
+                                            <div class="spec-value">${singletonBadge}</div>
+                                        </div>
+                                        <div>
+                                            <div class="spec-label">Technology</div>
+                                            <div class="spec-value">${escapeHtml(vd.dispatcherType || 'N/A')}</div>
                                         </div>
                                     </div>
                                 </div>
