@@ -2436,7 +2436,7 @@ class DashboardChart {
  * Responsible for rendering monitoring data, including logs, metrics, and charts.
  *
  * @version 4.3
- * @last-modified 2026-11-02
+ * @last-modified 2026-11-07
  */
 class DashboardViewer {
     constructor(sampleInterval, options = {}) {
@@ -3599,7 +3599,7 @@ class DashboardViewer {
                 // Session ID
                 html += `<td><code class="session-id" title="${this.escapeHtml(s.sid)}">${this.escapeHtml(s.sid)}</code></td>`;
                 // Activities
-                html += `<td class="text-end"><span class="badge text-bg-light fw-bold">${s.count}</span></td>`;
+                html += `<td class="text-end"><span class="fw-bold">${s.count}</span></td>`;
                 // Created Time
                 html += `<td>${s.createdAt ? this.escapeHtml(s.createdAt) : "-"}</td>`;
                 html += '</tr>';
@@ -4327,7 +4327,7 @@ class MetricsViewer {
  * Responsible for assembling the dashboard UI based on configuration data.
  *
  * @version 4.3
- * @last-modified 2026-10-31
+ * @last-modified 2026-11-07
  */
 class DashboardBuilder {
     constructor(options = {}) {
