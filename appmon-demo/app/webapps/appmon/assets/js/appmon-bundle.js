@@ -2598,6 +2598,9 @@ class DashboardViewer {
                 if (this.isGroupView) {
                     this.updateSessionNodeFilterButtons($display);
                 }
+                if ($display.hasClass("is-table-view")) {
+                    this.renderSessionTable($display);
+                }
             }
         }
     }
@@ -3453,6 +3456,181 @@ class DashboardViewer {
             }
         });
         $sessionBox.find(".numberOfUsers").text(userKeys.size);
+    }
+
+    toggleSessionTableView($sessionBox) {
+        if (!$sessionBox || !$sessionBox.length) return;
+        const $tableWrap = $sessionBox.find(".session-table-wrap");
+        if ($tableWrap.length && $tableWrap.is(":visible")) {
+            this.closeSessionTableView($sessionBox);
+        } else {
+            this.openSessionTableView($sessionBox);
+        }
+    }
+
+    openSessionTableView($sessionBox) {
+        if (!$sessionBox || !$sessionBox.length) return;
+        $sessionBox.addClass("is-table-view");
+        $sessionBox.find(".stat-card.stat-users, .stat-card:has(.numberOfUsers)").addClass("active");
+        this.renderSessionTable($sessionBox);
+    }
+
+    closeSessionTableView($sessionBox) {
+        if (!$sessionBox || !$sessionBox.length) return;
+        $sessionBox.removeClass("is-table-view");
+        $sessionBox.find(".stat-card.stat-users, .stat-card:has(.numberOfUsers)").removeClass("active");
+        $sessionBox.find(".session-table-wrap").remove();
+    }
+
+    renderSessionTable($sessionBox) {
+        if (!$sessionBox || !$sessionBox.length) return;
+        const $ground = $sessionBox.find(".panel.ground");
+        if (!$ground.length) return;
+
+        let $tableWrap = $ground.find(".session-table-wrap");
+        if (!$tableWrap.length) {
+            $tableWrap = $('<div class="session-table-wrap"></div>').appendTo($ground);
+        }
+
+        const $sessions = $sessionBox.find("ul.sessions");
+        const sessionList = [];
+        const isGroup = this.isGroupView;
+
+        $sessions.find("li").each(function () {
+            const $li = $(this);
+            if ($li.hasClass("filtered-out")) return;
+
+            const sid = $li.attr("data-sid") || $li.data("sid") || "";
+            const userKey = $li.attr("data-user-key") || "";
+            const nodeId = $li.attr("data-node-id") || "";
+            const inactive = $li.hasClass("inactive");
+            const count = $li.find(".count").text().trim() || "0";
+
+            const $flag = $li.find("img.flag");
+            const flagSrc = $flag.attr("src") || "";
+            const countryCode = $flag.attr("alt") || "";
+            const countryName = $flag.attr("title") || "";
+
+            const username = $li.find(".username").text().trim();
+
+            const $details = $li.find(".detail p");
+            const createdAt = $details.eq(1).text().trim();
+            const ipAddress = $details.eq(2).text().trim();
+
+            sessionList.push({
+                sid,
+                userKey,
+                nodeId,
+                inactive,
+                count: parseInt(count, 10) || 0,
+                flagSrc,
+                countryCode,
+                countryName,
+                username,
+                createdAt,
+                ipAddress
+            });
+        });
+
+        // Unique active users count
+        const uniqueUserKeys = new Set();
+        sessionList.forEach(s => {
+            if (!s.inactive && s.userKey) {
+                uniqueUserKeys.add(s.userKey);
+            }
+        });
+        const activeUsersCount = uniqueUserKeys.size;
+
+        let html = '';
+        html += '<div class="session-table-header">';
+        html += '  <div class="table-title">';
+        html += '    <i class="bi bi-people-fill me-1"></i> Active Users';
+        html += `    <span class="badge rounded-pill session-table-count ms-1" title="Unique Active Users">${activeUsersCount}</span>`;
+        html += `    <span class="total-sessions ms-2" style="font-size: 0.75rem; font-weight: normal; opacity: 0.85;">(${sessionList.length} session${sessionList.length === 1 ? '' : 's'})</span>`;
+        html += '  </div>';
+        html += '  <div class="table-actions">';
+        html += '    <button type="button" class="btn btn-refresh-table bi bi-arrow-clockwise" title="Refresh"></button>';
+        html += '    <button type="button" class="btn btn-close-table bi bi-x-lg" title="Close table view"></button>';
+        html += '  </div>';
+        html += '</div>';
+
+        html += '<div class="session-table-body">';
+        if (sessionList.length === 0) {
+            html += '<div class="text-muted p-4 text-center">No active users</div>';
+        } else {
+            html += '<table class="table table-sm table-striped table-hover">';
+            html += '  <thead><tr>';
+            if (isGroup) {
+                html += '    <th class="col-node">Node</th>';
+            }
+            html += '    <th class="col-country">Country</th>';
+            html += '    <th class="col-user">User</th>';
+            html += '    <th class="col-ip">IP Address</th>';
+            html += '    <th class="col-sid">Session ID</th>';
+            html += '    <th class="text-end col-activities">Activities</th>';
+            html += '    <th class="col-created">Created Time</th>';
+            html += '  </tr></thead>';
+            html += '  <tbody>';
+
+            sessionList.forEach(s => {
+                const rowClass = s.inactive ? ' class="session-inactive text-muted"' : '';
+                html += `<tr${rowClass}>`;
+                if (isGroup) {
+                    html += `<td><span class="badge text-bg-secondary">${this.escapeHtml(s.nodeId || "-")}</span></td>`;
+                }
+                // Country
+                html += '<td>';
+                if (s.flagSrc) {
+                    html += `<span class="flag-wrap" title="${this.escapeHtml(s.countryName)}"><img class="flag" src="${this.escapeHtml(s.flagSrc)}" alt="${this.escapeHtml(s.countryCode)}"> <span class="country-code">${this.escapeHtml(s.countryCode)}</span></span>`;
+                } else {
+                    html += '-';
+                }
+                html += '</td>';
+                // User
+                html += '<td>';
+                if (s.username) {
+                    html += `<span class="fw-semibold">${this.escapeHtml(s.username)}</span>`;
+                } else {
+                    html += '<span class="text-muted fst-italic">Anonymous</span>';
+                }
+                html += '</td>';
+                // IP Address
+                html += `<td>${s.ipAddress ? this.escapeHtml(s.ipAddress) : "-"}</td>`;
+                // Session ID
+                html += `<td><code class="session-id" title="${this.escapeHtml(s.sid)}">${this.escapeHtml(s.sid)}</code></td>`;
+                // Activities
+                html += `<td class="text-end"><span class="badge text-bg-light fw-bold">${s.count}</span></td>`;
+                // Created Time
+                html += `<td>${s.createdAt ? this.escapeHtml(s.createdAt) : "-"}</td>`;
+                html += '</tr>';
+            });
+
+            html += '  </tbody>';
+            html += '</table>';
+        }
+        html += '</div>';
+
+        $tableWrap.html(html);
+
+        $tableWrap.find(".btn-close-table").off("click").on("click", (e) => {
+            e.stopPropagation();
+            this.closeSessionTableView($sessionBox);
+        });
+
+        $tableWrap.find(".btn-refresh-table").off("click").on("click", (e) => {
+            e.stopPropagation();
+            this.renderSessionTable($sessionBox);
+        });
+    }
+
+    escapeHtml(str) {
+        if (!str) return "";
+        return String(str)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
     }
 
     processChartData(nodeId, appId, exporterType, eventId, exporterKey, chartData) {
@@ -5042,7 +5220,7 @@ class DashboardBuilder {
         });
         $(document).off("click", ".session-box .panel.status")
             .on("click", ".session-box .panel.status", function(e) {
-                if ($(e.target).closest(".uptime").length) return;
+                if ($(e.target).closest(".uptime, .stat-card").length) return;
 
                 const $panel = $(this);
                 const isMobile = $panel.find(".knob-bar").is(":visible");
@@ -5052,6 +5230,40 @@ class DashboardBuilder {
                     $panel.addClass("expanded");
                 } else if ($(e.target).closest(".knob-bar").length) {
                     $panel.removeClass("expanded");
+                }
+            });
+        $(document).off("click", ".session-box .stat-card.stat-users, .session-box .stat-card:has(.numberOfUsers)")
+            .on("click", ".session-box .stat-card.stat-users, .session-box .stat-card:has(.numberOfUsers)", (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const $card = $(e.currentTarget);
+                const $sessionBox = $card.closest(".session-box");
+                const groupId = $sessionBox.data("group-id");
+                const nodeIndex = $sessionBox.data("node-index");
+
+                let viewer = null;
+                if (groupId && this.groupViewers[groupId]) {
+                    viewer = this.groupViewers[groupId];
+                } else if (nodeIndex !== undefined && this.viewers[nodeIndex]) {
+                    viewer = this.viewers[nodeIndex];
+                }
+
+                if (viewer && typeof viewer.toggleSessionTableView === "function") {
+                    viewer.toggleSessionTableView($sessionBox);
+                }
+            });
+        $(document).off("keydown.sessionTable")
+            .on("keydown.sessionTable", (e) => {
+                if (e.key === "Escape") {
+                    $(".session-box.is-table-view").each((_, el) => {
+                        const $box = $(el);
+                        const groupId = $box.data("group-id");
+                        const nodeIndex = $box.data("node-index");
+                        const viewer = (groupId && this.groupViewers[groupId]) || (nodeIndex !== undefined && this.viewers[nodeIndex]);
+                        if (viewer && typeof viewer.closeSessionTableView === "function") {
+                            viewer.closeSessionTableView($box);
+                        }
+                    });
                 }
             });
         $(document).off("click", ".session-box .panel .uptime")

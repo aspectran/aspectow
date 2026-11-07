@@ -16,7 +16,7 @@
 
 /*
  * @version 4.3
- * @last-modified 2026-11-01
+ * @last-modified 2026-11-07
  */
 
 [data-bs-theme=dark] {
@@ -232,6 +232,17 @@
         border-color: rgba(255, 255, 255, 0.08);
         box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
     }
+    .session-box .stats-highlights .stat-card.stat-users:hover {
+        background-color: rgba(255, 255, 255, 0.12);
+    }
+    .session-box .stats-highlights .stat-card.stat-users.active {
+        background-color: #2e5469;
+        border-color: #3b6882;
+    }
+    .session-box .stats-highlights .stat-card.stat-users.active .stat-label,
+    .session-box .stats-highlights .stat-card.stat-users.active .number {
+        color: #f1f5f9;
+    }
     .session-box .stats-highlights .stat-card .stat-label {
         color: #aec2bd;
     }
@@ -274,6 +285,42 @@
     }
     .session-box .panel.ground {
         background-color: #191c1d;
+    }
+    .session-box .session-table-wrap {
+        background-color: #191c1d;
+    }
+    .session-box .session-table-wrap .session-table-header {
+        border-bottom-color: #33383b;
+    }
+    .session-box .session-table-wrap .session-table-header .table-title {
+        color: #e2e8f0;
+    }
+    .session-box .session-table-wrap .session-table-header .table-title .badge {
+        background-color: #2e5469;
+        color: #f1f5f9;
+    }
+    .session-box .session-table-wrap .session-table-header .btn {
+        color: #94a3b8;
+    }
+    .session-box .session-table-wrap .session-table-header .btn:hover {
+        color: #fff;
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+    .session-box .session-table-wrap th {
+        background-color: #25282a;
+        color: #cbd5e1;
+        border-bottom-color: #3b4548;
+    }
+    .session-box .session-table-wrap td {
+        border-bottom-color: #2c3033;
+        color: #cbd5e1;
+    }
+    .session-box .session-table-wrap table.table-striped > tbody > tr:nth-of-type(odd) > * {
+        --bs-table-bg-type: rgba(255, 255, 255, 0.02);
+    }
+    .session-box .session-table-wrap code.session-id {
+        color: #63b3ed;
+        background-color: rgba(255, 255, 255, 0.06);
     }
     .session-box .session-node-filter {
         background-color: rgba(0, 0, 0, 0.4);

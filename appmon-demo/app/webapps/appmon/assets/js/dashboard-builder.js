@@ -19,7 +19,7 @@
  * Responsible for assembling the dashboard UI based on configuration data.
  *
  * @version 4.3
- * @last-modified 2026-10-31
+ * @last-modified 2026-11-07
  */
 class DashboardBuilder {
     constructor(options = {}) {
@@ -912,7 +912,7 @@ class DashboardBuilder {
         });
         $(document).off("click", ".session-box .panel.status")
             .on("click", ".session-box .panel.status", function(e) {
-                if ($(e.target).closest(".uptime").length) return;
+                if ($(e.target).closest(".uptime, .stat-card").length) return;
 
                 const $panel = $(this);
                 const isMobile = $panel.find(".knob-bar").is(":visible");
@@ -922,6 +922,40 @@ class DashboardBuilder {
                     $panel.addClass("expanded");
                 } else if ($(e.target).closest(".knob-bar").length) {
                     $panel.removeClass("expanded");
+                }
+            });
+        $(document).off("click", ".session-box .stat-card.stat-users, .session-box .stat-card:has(.numberOfUsers)")
+            .on("click", ".session-box .stat-card.stat-users, .session-box .stat-card:has(.numberOfUsers)", (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const $card = $(e.currentTarget);
+                const $sessionBox = $card.closest(".session-box");
+                const groupId = $sessionBox.data("group-id");
+                const nodeIndex = $sessionBox.data("node-index");
+
+                let viewer = null;
+                if (groupId && this.groupViewers[groupId]) {
+                    viewer = this.groupViewers[groupId];
+                } else if (nodeIndex !== undefined && this.viewers[nodeIndex]) {
+                    viewer = this.viewers[nodeIndex];
+                }
+
+                if (viewer && typeof viewer.toggleSessionTableView === "function") {
+                    viewer.toggleSessionTableView($sessionBox);
+                }
+            });
+        $(document).off("keydown.sessionTable")
+            .on("keydown.sessionTable", (e) => {
+                if (e.key === "Escape") {
+                    $(".session-box.is-table-view").each((_, el) => {
+                        const $box = $(el);
+                        const groupId = $box.data("group-id");
+                        const nodeIndex = $box.data("node-index");
+                        const viewer = (groupId && this.groupViewers[groupId]) || (nodeIndex !== undefined && this.viewers[nodeIndex]);
+                        if (viewer && typeof viewer.closeSessionTableView === "function") {
+                            viewer.closeSessionTableView($box);
+                        }
+                    });
                 }
             });
         $(document).off("click", ".session-box .panel .uptime")
