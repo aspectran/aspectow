@@ -16,7 +16,7 @@
 
 /*
  * @version 4.3
- * @last-modified 2026-11-07
+ * @last-modified 2026-11-08
  */
 
 /* For console-integrated & standalone page-content */
@@ -1045,6 +1045,192 @@
     overflow: auto;
 }
 
+.charts-box {
+    display: none;
+    box-shadow: 0 8px 10px -10px rgba(50, 50, 50, 0.33);
+}
+.charts-box .chart-box {
+    position: relative;
+    height: 188px;
+    background-color: #fff;
+    border-top: 1px solid #ddd;
+}
+.charts-box .chart-box .chart {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+.charts-box .chart-box .chart canvas {
+    width: 100%;
+    touch-action: manipulation;
+}
+.charts-box .chart-box .chart .chart-zoom-controls {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    display: none;
+    z-index: 5;
+    background-color: rgba(255, 255, 255, 0.85);
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+    backdrop-filter: blur(2px);
+}
+.charts-box .chart-box .chart:hover .chart-zoom-controls,
+.charts-box .chart-box .chart.show-controls .chart-zoom-controls,
+.charts-box .chart-box .chart.is-zoomed .chart-zoom-controls {
+    display: inline-flex;
+}
+.charts-box .chart-box .chart.is-table-view .chart-zoom-controls {
+    display: none !important;
+}
+.charts-box .chart-box .chart .chart-zoom-controls .btn {
+    padding: 2px 7px;
+    font-size: 0.78rem;
+    border: none;
+    background: transparent;
+    color: #495057;
+    cursor: pointer;
+    transition: background-color 0.15s, color 0.15s;
+}
+.charts-box .chart-box .chart .chart-zoom-controls .btn + .btn {
+    border-left: 1px solid rgba(0, 0, 0, 0.08);
+}
+.charts-box .chart-box .chart .chart-zoom-controls .chart-options-dropdown {
+    position: relative;
+}
+.charts-box .chart-box .chart .chart-zoom-controls .chart-options-dropdown .btn {
+    border-left: 1px solid rgba(0, 0, 0, 0.08);
+}
+.charts-box .chart-box .chart .chart-zoom-controls .dropdown-menu {
+    position: absolute !important;
+    top: 100% !important;
+    right: 0 !important;
+    left: auto !important;
+    margin-top: 3px !important;
+    transform: none !important;
+    font-size: 0.78rem;
+    min-width: 145px;
+    padding: 4px 0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    z-index: 1050;
+}
+.charts-box .chart-box .chart .chart-zoom-controls .dropdown-item {
+    padding: 5px 12px;
+    display: flex;
+    align-items: center;
+    color: #333;
+}
+.charts-box .chart-box .chart .chart-zoom-controls .dropdown-item:hover {
+    background-color: #f1f5f9;
+    color: #000;
+}
+.charts-box .chart-box .chart .chart-zoom-controls .dropdown-item i {
+    font-size: 0.85rem;
+}
+.charts-box .chart-box .chart .chart-zoom-controls .btn:hover {
+    color: #1a1a1a;
+    background-color: rgba(0, 0, 0, 0.06);
+}
+.charts-box .chart-box .chart .chart-zoom-controls .btn:disabled {
+    color: #adb5bd;
+    opacity: 0.45;
+    cursor: default;
+    background-color: transparent;
+}
+.charts-box .chart-box .chart .chart-table-wrap {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #ffffff;
+    z-index: 6;
+    display: none;
+}
+.charts-box .chart-box .chart.is-table-view .chart-table-wrap {
+    display: block;
+}
+.charts-box .chart-box .chart.is-table-view canvas {
+    display: none;
+}
+.charts-box .chart-box .chart .chart-table-wrap .chart-table-body {
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+    scrollbar-width: thin;
+}
+.charts-box .chart-box .chart .chart-table-wrap table {
+    width: 100%;
+    font-size: 0.75rem;
+    margin-bottom: 0;
+    border-collapse: collapse;
+}
+.charts-box .chart-box .chart .chart-table-wrap th {
+    position: sticky;
+    top: 0;
+    background-color: #f8f9fa;
+    color: #495057;
+    font-weight: 600;
+    padding: 3px 6px;
+    border-bottom: 1px solid #dee2e6;
+    vertical-align: middle;
+    z-index: 2;
+}
+.charts-box .chart-box .chart .chart-table-wrap td {
+    padding: 3px 6px;
+    border-bottom: 1px solid #f1f3f5;
+    font-variant-numeric: tabular-nums;
+}
+.charts-box .chart-box .chart .chart-table-wrap .btn-close-table {
+    padding: 5px 6px;
+    font-size: 0.75rem;
+    line-height: 1;
+    border: none;
+    background: transparent;
+    color: #6c757d;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.15s, color 0.15s;
+}
+.charts-box .chart-box .chart .chart-table-wrap > .btn-close-table {
+    position: absolute;
+    top: 3px;
+    right: 3px;
+}
+.charts-box .chart-box .chart .chart-table-wrap .btn-close-table:hover {
+    color: #000;
+    background-color: rgba(0, 0, 0, 0.08);
+}
+.charts-box .chart-box .chart .reset-zoom {
+    position: absolute;
+    top: 0;
+    right: 0;
+    border: none;
+    border-radius: 3px;
+    background-color: #848b8f;
+    color: #fff;
+    opacity: .7;
+    display: none;
+}
+.charts-box .chart-box .loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+}
+.charts-box .chart-box .loading-overlay .spinner-border {
+    width: 2.5rem;
+    height: 2.5rem;
+    color: #4493c8;
+}
+
 .console-box .status-bar {
     display: flex;
     align-items: center;
@@ -1187,7 +1373,7 @@
 
 /*
  * @version 4.3
- * @last-modified 2026-11-07
+ * @last-modified 2026-11-08
  */
 
 [data-bs-theme=dark] {
@@ -1199,6 +1385,7 @@
         background-color: #111;
         border-color: #353b3e;
     }
+
     .metrics-bar .metric:hover {
         background-color: rgba(255, 255, 255, .06);
     }
@@ -1222,6 +1409,7 @@
         border-right: 1px solid #3b3f42;
         background-color: #191c1d;
     }
+
     .metric-popover {
         background: #1e293b;
         border-color: #334155;
@@ -1270,6 +1458,7 @@
     .instance.metrics-bar {
         background-color: #2a2f33;
     }
+
     .control-bar {
         background-color: #3b3f42;
         color: #eee;
@@ -1298,84 +1487,7 @@
     }
     .control-bar .options .date-navigator .btn-date {
     }
-    .charts-box {
-        background-color: #000;
-        box-shadow: 0 8px 10px -10px rgba(50, 50, 50, 0.33);
-    }
-    .charts-box .chart-box {
-        background-color: #000;
-        border-top: 1px solid #212426;
-        box-shadow: 0 6px 10px -10px rgba(50, 50, 50, 0.45);
-    }
-    .charts-box .chart-box .chart .chart-zoom-controls {
-        background-color: rgba(30, 36, 40, 0.85);
-        border: 1px solid rgba(255, 255, 255, 0.12);
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
-    }
-    .charts-box .chart-box .chart .chart-zoom-controls .btn {
-        color: #cfcfcf;
-    }
-    .charts-box .chart-box .chart .chart-zoom-controls .btn + .btn {
-        border-left: 1px solid rgba(255, 255, 255, 0.1);
-    }
-    .charts-box .chart-box .chart .chart-zoom-controls .btn:hover {
-        color: #fff;
-        background-color: rgba(255, 255, 255, 0.12);
-    }
-    .charts-box .chart-box .chart .chart-zoom-controls .btn:disabled {
-        color: #6c757d;
-        opacity: 0.45;
-    }
-    .charts-box .chart-box .chart .chart-zoom-controls .chart-options-dropdown .btn {
-        border-left: 1px solid rgba(255, 255, 255, 0.1);
-    }
-    .charts-box .chart-box .chart .chart-zoom-controls .dropdown-menu {
-        background-color: #242a2e;
-        border-color: #384146;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-    }
-    .charts-box .chart-box .chart .chart-zoom-controls .dropdown-item {
-        color: #cfcfcf;
-    }
-    .charts-box .chart-box .chart .chart-zoom-controls .dropdown-item:hover {
-        background-color: #2f373d;
-        color: #fff;
-    }
-    .charts-box .chart-box .chart .chart-table-wrap {
-        background-color: #000;
-        color: #cfcfcf;
-    }
-    .charts-box .chart-box .chart .chart-table-wrap th {
-        background-color: #1a1e21;
-        color: #cfcfcf;
-        border-bottom-color: #2f373d;
-    }
-    .charts-box .chart-box .chart .chart-table-wrap td {
-        border-bottom-color: #1e2428;
-        color: #cfcfcf;
-    }
-    .charts-box .chart-box .chart .chart-table-wrap tr:hover td {
-        background-color: #151a1d;
-    }
-    .charts-box .chart-box .chart .chart-table-wrap .btn-close-table {
-        color: #adb5bd;
-    }
-    .charts-box .chart-box .chart .chart-table-wrap .btn-close-table:hover {
-        color: #fff;
-        background-color: rgba(255, 255, 255, 0.15);
-    }
-    .charts-box .chart-box .chart .reset-zoom {
-        background-color: #3d4b52;
-        color: #fff;
-        border-radius: 3px 0 0 3px;
-        z-index: 1;
-    }
-    .charts-box .chart-box .loading-overlay {
-        background-color: rgba(0, 0, 0, 0.4);
-    }
-    .charts-box .chart-box .loading-overlay .spinner-border {
-        color: #709185;
-    }
+
     .session-box .panel {
         background-color: #2a2c2d;
     }
@@ -1534,6 +1646,86 @@
         background-color: #18486b;
         color: #b1aeae;
     }
+
+    .charts-box {
+        background-color: #000;
+        box-shadow: 0 8px 10px -10px rgba(50, 50, 50, 0.33);
+    }
+    .charts-box .chart-box {
+        background-color: #000;
+        border-top: 1px solid #212426;
+        box-shadow: 0 6px 10px -10px rgba(50, 50, 50, 0.45);
+    }
+    .charts-box .chart-box .chart .chart-zoom-controls {
+        background-color: rgba(30, 36, 40, 0.85);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+    }
+    .charts-box .chart-box .chart .chart-zoom-controls .btn {
+        color: #cfcfcf;
+    }
+    .charts-box .chart-box .chart .chart-zoom-controls .btn + .btn {
+        border-left: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .charts-box .chart-box .chart .chart-zoom-controls .btn:hover {
+        color: #fff;
+        background-color: rgba(255, 255, 255, 0.12);
+    }
+    .charts-box .chart-box .chart .chart-zoom-controls .btn:disabled {
+        color: #6c757d;
+        opacity: 0.45;
+    }
+    .charts-box .chart-box .chart .chart-zoom-controls .chart-options-dropdown .btn {
+        border-left: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .charts-box .chart-box .chart .chart-zoom-controls .dropdown-menu {
+        background-color: #242a2e;
+        border-color: #384146;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    }
+    .charts-box .chart-box .chart .chart-zoom-controls .dropdown-item {
+        color: #cfcfcf;
+    }
+    .charts-box .chart-box .chart .chart-zoom-controls .dropdown-item:hover {
+        background-color: #2f373d;
+        color: #fff;
+    }
+    .charts-box .chart-box .chart .chart-table-wrap {
+        background-color: #000;
+        color: #cfcfcf;
+    }
+    .charts-box .chart-box .chart .chart-table-wrap th {
+        background-color: #1a1e21;
+        color: #cfcfcf;
+        border-bottom-color: #2f373d;
+    }
+    .charts-box .chart-box .chart .chart-table-wrap td {
+        border-bottom-color: #1e2428;
+        color: #cfcfcf;
+    }
+    .charts-box .chart-box .chart .chart-table-wrap tr:hover td {
+        background-color: #151a1d;
+    }
+    .charts-box .chart-box .chart .chart-table-wrap .btn-close-table {
+        color: #adb5bd;
+    }
+    .charts-box .chart-box .chart .chart-table-wrap .btn-close-table:hover {
+        color: #fff;
+        background-color: rgba(255, 255, 255, 0.15);
+    }
+    .charts-box .chart-box .chart .reset-zoom {
+        background-color: #3d4b52;
+        color: #fff;
+        border-radius: 3px 0 0 3px;
+        z-index: 1;
+    }
+    .charts-box .chart-box .loading-overlay {
+        background-color: rgba(0, 0, 0, 0.4);
+    }
+    .charts-box .chart-box .loading-overlay .spinner-border {
+        color: #709185;
+    }
+
     .console-box .status-bar {
         background-color: #3b3f42;
         color: #eee;

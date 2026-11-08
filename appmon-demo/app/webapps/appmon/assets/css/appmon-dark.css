@@ -16,7 +16,7 @@
 
 /*
  * @version 4.3
- * @last-modified 2026-11-07
+ * @last-modified 2026-11-08
  */
 
 [data-bs-theme=dark] {
@@ -28,6 +28,7 @@
         background-color: #111;
         border-color: #353b3e;
     }
+
     .metrics-bar .metric:hover {
         background-color: rgba(255, 255, 255, .06);
     }
@@ -51,6 +52,7 @@
         border-right: 1px solid #3b3f42;
         background-color: #191c1d;
     }
+
     .metric-popover {
         background: #1e293b;
         border-color: #334155;
@@ -99,6 +101,7 @@
     .instance.metrics-bar {
         background-color: #2a2f33;
     }
+
     .control-bar {
         background-color: #3b3f42;
         color: #eee;
@@ -127,84 +130,7 @@
     }
     .control-bar .options .date-navigator .btn-date {
     }
-    .charts-box {
-        background-color: #000;
-        box-shadow: 0 8px 10px -10px rgba(50, 50, 50, 0.33);
-    }
-    .charts-box .chart-box {
-        background-color: #000;
-        border-top: 1px solid #212426;
-        box-shadow: 0 6px 10px -10px rgba(50, 50, 50, 0.45);
-    }
-    .charts-box .chart-box .chart .chart-zoom-controls {
-        background-color: rgba(30, 36, 40, 0.85);
-        border: 1px solid rgba(255, 255, 255, 0.12);
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
-    }
-    .charts-box .chart-box .chart .chart-zoom-controls .btn {
-        color: #cfcfcf;
-    }
-    .charts-box .chart-box .chart .chart-zoom-controls .btn + .btn {
-        border-left: 1px solid rgba(255, 255, 255, 0.1);
-    }
-    .charts-box .chart-box .chart .chart-zoom-controls .btn:hover {
-        color: #fff;
-        background-color: rgba(255, 255, 255, 0.12);
-    }
-    .charts-box .chart-box .chart .chart-zoom-controls .btn:disabled {
-        color: #6c757d;
-        opacity: 0.45;
-    }
-    .charts-box .chart-box .chart .chart-zoom-controls .chart-options-dropdown .btn {
-        border-left: 1px solid rgba(255, 255, 255, 0.1);
-    }
-    .charts-box .chart-box .chart .chart-zoom-controls .dropdown-menu {
-        background-color: #242a2e;
-        border-color: #384146;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-    }
-    .charts-box .chart-box .chart .chart-zoom-controls .dropdown-item {
-        color: #cfcfcf;
-    }
-    .charts-box .chart-box .chart .chart-zoom-controls .dropdown-item:hover {
-        background-color: #2f373d;
-        color: #fff;
-    }
-    .charts-box .chart-box .chart .chart-table-wrap {
-        background-color: #000;
-        color: #cfcfcf;
-    }
-    .charts-box .chart-box .chart .chart-table-wrap th {
-        background-color: #1a1e21;
-        color: #cfcfcf;
-        border-bottom-color: #2f373d;
-    }
-    .charts-box .chart-box .chart .chart-table-wrap td {
-        border-bottom-color: #1e2428;
-        color: #cfcfcf;
-    }
-    .charts-box .chart-box .chart .chart-table-wrap tr:hover td {
-        background-color: #151a1d;
-    }
-    .charts-box .chart-box .chart .chart-table-wrap .btn-close-table {
-        color: #adb5bd;
-    }
-    .charts-box .chart-box .chart .chart-table-wrap .btn-close-table:hover {
-        color: #fff;
-        background-color: rgba(255, 255, 255, 0.15);
-    }
-    .charts-box .chart-box .chart .reset-zoom {
-        background-color: #3d4b52;
-        color: #fff;
-        border-radius: 3px 0 0 3px;
-        z-index: 1;
-    }
-    .charts-box .chart-box .loading-overlay {
-        background-color: rgba(0, 0, 0, 0.4);
-    }
-    .charts-box .chart-box .loading-overlay .spinner-border {
-        color: #709185;
-    }
+
     .session-box .panel {
         background-color: #2a2c2d;
     }
@@ -363,6 +289,86 @@
         background-color: #18486b;
         color: #b1aeae;
     }
+
+    .charts-box {
+        background-color: #000;
+        box-shadow: 0 8px 10px -10px rgba(50, 50, 50, 0.33);
+    }
+    .charts-box .chart-box {
+        background-color: #000;
+        border-top: 1px solid #212426;
+        box-shadow: 0 6px 10px -10px rgba(50, 50, 50, 0.45);
+    }
+    .charts-box .chart-box .chart .chart-zoom-controls {
+        background-color: rgba(30, 36, 40, 0.85);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+    }
+    .charts-box .chart-box .chart .chart-zoom-controls .btn {
+        color: #cfcfcf;
+    }
+    .charts-box .chart-box .chart .chart-zoom-controls .btn + .btn {
+        border-left: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .charts-box .chart-box .chart .chart-zoom-controls .btn:hover {
+        color: #fff;
+        background-color: rgba(255, 255, 255, 0.12);
+    }
+    .charts-box .chart-box .chart .chart-zoom-controls .btn:disabled {
+        color: #6c757d;
+        opacity: 0.45;
+    }
+    .charts-box .chart-box .chart .chart-zoom-controls .chart-options-dropdown .btn {
+        border-left: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .charts-box .chart-box .chart .chart-zoom-controls .dropdown-menu {
+        background-color: #242a2e;
+        border-color: #384146;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    }
+    .charts-box .chart-box .chart .chart-zoom-controls .dropdown-item {
+        color: #cfcfcf;
+    }
+    .charts-box .chart-box .chart .chart-zoom-controls .dropdown-item:hover {
+        background-color: #2f373d;
+        color: #fff;
+    }
+    .charts-box .chart-box .chart .chart-table-wrap {
+        background-color: #000;
+        color: #cfcfcf;
+    }
+    .charts-box .chart-box .chart .chart-table-wrap th {
+        background-color: #1a1e21;
+        color: #cfcfcf;
+        border-bottom-color: #2f373d;
+    }
+    .charts-box .chart-box .chart .chart-table-wrap td {
+        border-bottom-color: #1e2428;
+        color: #cfcfcf;
+    }
+    .charts-box .chart-box .chart .chart-table-wrap tr:hover td {
+        background-color: #151a1d;
+    }
+    .charts-box .chart-box .chart .chart-table-wrap .btn-close-table {
+        color: #adb5bd;
+    }
+    .charts-box .chart-box .chart .chart-table-wrap .btn-close-table:hover {
+        color: #fff;
+        background-color: rgba(255, 255, 255, 0.15);
+    }
+    .charts-box .chart-box .chart .reset-zoom {
+        background-color: #3d4b52;
+        color: #fff;
+        border-radius: 3px 0 0 3px;
+        z-index: 1;
+    }
+    .charts-box .chart-box .loading-overlay {
+        background-color: rgba(0, 0, 0, 0.4);
+    }
+    .charts-box .chart-box .loading-overlay .spinner-border {
+        color: #709185;
+    }
+
     .console-box .status-bar {
         background-color: #3b3f42;
         color: #eee;
