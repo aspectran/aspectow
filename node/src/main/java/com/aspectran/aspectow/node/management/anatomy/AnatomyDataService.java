@@ -206,9 +206,7 @@ public class AnatomyDataService {
         // 3. Bean Rules
         if (context.getBeanRegistry() instanceof DefaultBeanRegistry registry) {
             BeanRuleRegistry beanRuleRegistry = registry.getBeanRuleRegistry();
-            Set<BeanRule> allBeanRules = new HashSet<>(beanRuleRegistry.getIdBasedBeanRules());
-            beanRuleRegistry.getTypeBasedBeanRules().forEach(allBeanRules::addAll);
-            allBeanRules.addAll(beanRuleRegistry.getConfigurableBeanRules());
+            Collection<BeanRule> allBeanRules = beanRuleRegistry.getBeanRules();
 
             List<Map<String, Object>> ruleData = allBeanRules.stream()
                     .map(this::convertBeanRuleToApon)

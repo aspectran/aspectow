@@ -411,6 +411,8 @@
                         renderCorsProcessorView(items);
                     } else if (id === 'redisClient') {
                         renderRedisClientView(items);
+                    } else if (id === 'server') {
+                        renderServerView(items);
                     } else {
                         renderGenericView(items, props);
                     }
@@ -1148,7 +1150,7 @@
                             ).join('');
                             targetsHtml = `
                                 <div class="mb-3">
-                                    <div class="spec-label">적용 대상 (Target Pointcut)</div>
+                                    <div class="spec-label">Target Pointcut</div>
                                     ${blocks}
                                 </div>
                             `;
@@ -1312,7 +1314,7 @@
                                         </div>
                                         <div class="table-responsive border rounded bg-body-tertiary">
                                             <table class="table table-sm table-hover mb-0 align-middle">
-                                                <thead class="table-light">
+                                                <thead>
                                                     <tr>
                                                         <th class="ps-3 py-2">Translet Name</th>
                                                         <th class="text-center py-2" style="width: 120px;">Mode</th>
@@ -1576,6 +1578,259 @@
                                             <div class="spec-value">${escapeHtml(formatDuration(rc.timeout))}</div>
                                         </div>
                                     </div>
+                                </div>
+                            </div>
+                        `);
+                        $specView.append(card);
+                    });
+                }
+
+                function renderServerView(items) {
+                    if (items.length === 0) {
+                        $specView.html('<div class="card border shadow-sm p-4 text-center text-muted">No Server components configured.</div>');
+                        return;
+                    }
+                    $.each(items, function(i, srv) {
+                        const srvType = srv.serverType || 'Server';
+                        let typeBadgeClass = 'bg-secondary-subtle text-secondary-emphasis border-secondary-subtle';
+                        if (srvType === 'Netty') {
+                            typeBadgeClass = 'bg-success-subtle text-success-emphasis border-success-subtle';
+                        } else if (srvType === 'Undertow') {
+                            typeBadgeClass = 'bg-primary-subtle text-primary-emphasis border-primary-subtle';
+                        } else if (srvType === 'Jetty') {
+                            typeBadgeClass = 'bg-info-subtle text-info-emphasis border-info-subtle';
+                        }
+
+                        // Listeners HTML
+                        let listenersHtml = '<div class="text-muted small">No listeners configured</div>';
+                        if (srv.listeners && srv.listeners.length > 0) {
+                            listenersHtml = `
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-bordered align-middle mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>Host / Address</th>
+                                                <th>Port</th>
+                                                <th>Protocol</th>
+                                                <th>SSL/TLS</th>
+                                                <th>Options</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            ${srv.listeners.map(l => `
+                                                <tr>
+                                                    <td>${escapeHtml(l.host || '0.0.0.0')}</td>
+                                                    <td>${l.port != null ? l.port : 'Auto'}</td>
+                                                    <td>${escapeHtml(l.protocol || (l.http2 ? 'HTTP/2' : 'HTTP/1.1'))}</td>
+                                                    <td>${l.ssl ? '<span class="badge bg-success-subtle text-success-emphasis border border-success-subtle">SSL</span>' : '<span class="text-muted small">No</span>'}</td>
+                                                    <td class="small text-muted">
+                                                        ${l.backlog ? 'Backlog: ' + l.backlog : ''}
+                                                        ${l.tcpNoDelay != null ? (l.tcpNoDelay ? ' • tcpNoDelay' : '') : ''}
+                                                        ${l.keepAlive != null ? (l.keepAlive ? ' • keepAlive' : '') : ''}
+                                                    </td>
+                                                </tr>
+                                            `).join('')}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            `;
+                        }
+
+                        // Contexts HTML
+                        let contextsHtml = '';
+                        if (srv.contexts && srv.contexts.length > 0) {
+                            contextsHtml = `
+                                <div class="mb-3">
+                                    <div class="spec-label mb-2">Deployed Web Contexts</div>
+                                    <div class="d-flex flex-wrap gap-2">
+                                        ${srv.contexts.map(c => `
+                                            <span class="badge bg-body-tertiary text-body-emphasis border px-2 py-1 font-monospace">
+                                                <i class="bi bi-folder2-open me-1 text-primary"></i>${escapeHtml(c.contextPath || c.name || '/')}
+                                                ${c.name && c.contextPath && c.name !== c.contextPath ? `<span class="text-muted ms-1">(${escapeHtml(c.name)})</span>` : ''}
+                                            </span>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            `;
+                        }
+
+                        // Encoding & Access Log HTML
+                        let handlersHtml = '';
+                        const hasEncoding = srv.encoding || srv.encodingWrapper || srv.gzipHandler;
+                        const hasAccessLog = srv.accessLog || srv.accessLogWrapper;
+                        if (hasEncoding || hasAccessLog) {
+                            let encDetails = '';
+                            if (srv.encoding) {
+                                const provs = srv.encoding.providers ? srv.encoding.providers.join(', ') : 'gzip';
+                                encDetails = `<div>Providers: <span class="badge bg-success-subtle text-success-emphasis border border-success-subtle">${escapeHtml(provs)}</span></div>`;
+                                if (srv.encoding.predicates && srv.encoding.predicates.length > 0) {
+                                    encDetails += `
+                                        ${srv.encoding.predicates.map(p => `
+                                            <div class="mt-2 small text-muted">
+                                                ${p.contentSizeLargerThanFormatted ? `<span class="fw-semibold">Size > ${p.contentSizeLargerThanFormatted}</span>: ` : ''}
+                                                ${p.mediaTypes ? p.mediaTypes.map(m => `<span class="badge bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle me-1">${escapeHtml(m)}</span>`).join('') : ''}
+                                            </div>
+                                        `).join('')}
+                                    `;
+                                }
+                            } else if (srv.gzipHandler) {
+                                encDetails = `
+                                    <div>Min Gzip Size: <span class="fw-semibold">${srv.gzipHandler.minGzipSizeFormatted || (srv.gzipHandler.minGzipSize + ' B')}</span></div>
+                                    ${srv.gzipHandler.includedMimeTypes ? `<div class="mt-1">${renderBadges(srv.gzipHandler.includedMimeTypes, 'bg-secondary-subtle text-secondary-emphasis border-secondary-subtle')}</div>` : ''}
+                                `;
+                            } else if (srv.encodingWrapper) {
+                                const provs = srv.encodingWrapper.providers ? srv.encodingWrapper.providers.join(', ') : 'gzip';
+                                encDetails = `<div>Providers: <span class="badge bg-success-subtle text-success-emphasis border border-success-subtle">${escapeHtml(provs)}</span></div>`;
+                            }
+
+                            let logDetails = '';
+                            if (srv.accessLog) {
+                                logDetails = `
+                                    <div class="small font-monospace p-2 bg-body-tertiary border rounded text-break mb-1">${escapeHtml(srv.accessLog.formatString || 'N/A')}</div>
+                                    ${srv.accessLog.category ? `<div class="small text-muted">Category: <span class="font-monospace">${escapeHtml(srv.accessLog.category)}</span></div>` : ''}
+                                `;
+                            } else if (srv.accessLogWrapper) {
+                                logDetails = `
+                                    <div class="small font-monospace p-2 bg-body-tertiary border rounded text-break mb-1">${escapeHtml(srv.accessLogWrapper.formatString || 'N/A')}</div>
+                                    ${srv.accessLogWrapper.category ? `<div class="small text-muted">Category: <span class="font-monospace">${escapeHtml(srv.accessLogWrapper.category)}</span></div>` : ''}
+                                `;
+                            }
+
+                            handlersHtml = `
+                                <div class="row g-3 mb-3">
+                                    ${hasEncoding ? `
+                                        <div class="${hasAccessLog ? 'col-md-6' : 'col-12'}">
+                                            <div class="p-3 bg-body-tertiary rounded border h-100">
+                                                <div class="spec-label mb-2"><i class="bi bi-file-zip me-1"></i>Content Compression (Gzip / Encoding)</div>
+                                                ${encDetails}
+                                            </div>
+                                        </div>
+                                    ` : ''}
+                                    ${hasAccessLog ? `
+                                        <div class="${hasEncoding ? 'col-md-6' : 'col-12'}">
+                                            <div class="p-3 bg-body-tertiary rounded border h-100">
+                                                <div class="spec-label mb-2"><i class="bi bi-journal-text me-1"></i>Access / Request Log</div>
+                                                ${logDetails}
+                                            </div>
+                                        </div>
+                                    ` : ''}
+                                </div>
+                            `;
+                        }
+
+                        const card = $(`
+                            <div class="spec-card shadow-sm">
+                                <div class="spec-card-header">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span><i class="bi bi-hdd-network me-2"></i>${escapeHtml(srv.beanName || 'Server')}</span>
+                                        <span class="badge ${typeBadgeClass} border">${escapeHtml(srvType)}</span>
+                                        ${srv.version ? `<span class="badge bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle">v${escapeHtml(srv.version)}</span>` : ''}
+                                    </div>
+                                    <span class="badge bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle small">${escapeHtml(srv.simpleClassName || '')}</span>
+                                </div>
+                                <div class="spec-card-body">
+                                    <div class="spec-grid mb-3">
+                                        <div>
+                                            <div class="spec-label">Proxy Address Forwarding</div>
+                                            <div class="spec-value">
+                                                ${srv.proxyAddressForwarding ? '<span class="badge bg-success-subtle text-success-emphasis border border-success-subtle">Enabled (X-Forwarded-*)</span>' : '<span class="badge bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle">Disabled</span>'}
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div class="spec-label">Virtual Threads (Java 21+)</div>
+                                            <div class="spec-value">
+                                                ${srv.virtualThreads ? '<span class="badge bg-success-subtle text-success-emphasis border border-success-subtle">Enabled</span>' : (srv.virtualThreads === false ? '<span class="badge bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle">Disabled</span>' : '<span class="text-muted small">N/A</span>')}
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div class="spec-label">Graceful Shutdown</div>
+                                            <div class="spec-value">
+                                                ${srv.shutdownGracefully ? `<span class="badge bg-primary-subtle text-primary-emphasis border border-primary-subtle">Enabled (${srv.shutdownTimeoutSecs ? srv.shutdownTimeoutSecs + 's' : 'Drain'})</span>` : '<span class="text-muted">Forceful</span>'}
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div class="spec-label">Auto Start</div>
+                                            <div class="spec-value">
+                                                ${srv.autoStart !== false ? '<span class="badge bg-success-subtle text-success-emphasis border border-success-subtle">true</span>' : 'false'}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    ${srvType === 'Netty' ? `
+                                        <div class="p-3 bg-body-tertiary rounded border mb-3">
+                                            <div class="spec-label mb-2"><i class="bi bi-cpu me-1"></i>Netty Transport & Threading Specifications</div>
+                                            <div class="spec-grid">
+                                                <div>
+                                                    <div class="spec-label">Native Transport</div>
+                                                    <div class="spec-value">${srv.nativeTransport ? '<span class="badge bg-success-subtle text-success-emphasis border border-success-subtle">Epoll / KQueue</span>' : '<span class="badge bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle">NIO</span>'}</div>
+                                                </div>
+                                                <div>
+                                                    <div class="spec-label">Boss / Worker Threads</div>
+                                                    <div class="spec-value">${srv.bossThreads != null ? srv.bossThreads : 1} Boss / ${srv.workerThreads != null && srv.workerThreads > 0 ? srv.workerThreads : 'Auto'} Worker</div>
+                                                </div>
+                                                <div>
+                                                    <div class="spec-label">Max Content Length</div>
+                                                    <div class="spec-value">${srv.maxContentLengthFormatted || (srv.maxContentLength ? srv.maxContentLength + ' B' : '10 MB')}</div>
+                                                </div>
+                                                <div>
+                                                    <div class="spec-label">Thread Prefix</div>
+                                                    <div class="spec-value font-monospace small">${escapeHtml(srv.threadNamePrefix || 'netty-task-')}</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ` : ''}
+
+                                    ${srvType === 'Undertow' ? `
+                                        <div class="p-3 bg-body-tertiary rounded border mb-3">
+                                            <div class="spec-label mb-2"><i class="bi bi-cpu me-1"></i>Undertow XNIO Worker & Option Specifications</div>
+                                            <div class="spec-grid">
+                                                <div>
+                                                    <div class="spec-label">Worker Name</div>
+                                                    <div class="spec-value font-monospace">${escapeHtml(srv.workerName || 'TOW')}</div>
+                                                </div>
+                                                <div>
+                                                    <div class="spec-label">Worker IO Threads</div>
+                                                    <div class="spec-value">${srv.workerIoThreads != null ? srv.workerIoThreads : 'Default'}</div>
+                                                </div>
+                                                <div>
+                                                    <div class="spec-label">Worker Task Max Threads</div>
+                                                    <div class="spec-value">${srv.workerTaskMaxThreads != null ? srv.workerTaskMaxThreads : 'Default'}</div>
+                                                </div>
+                                                <div>
+                                                    <div class="spec-label">URL Decode & Charset</div>
+                                                    <div class="spec-value">${srv.decodeUrl !== false ? 'true' : 'false'} (${escapeHtml(srv.urlCharset || 'UTF-8')})</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ` : ''}
+
+                                    ${srvType === 'Jetty' ? `
+                                        <div class="p-3 bg-body-tertiary rounded border mb-3">
+                                            <div class="spec-label mb-2"><i class="bi bi-cpu me-1"></i>Jetty Thread Pool & Connection Specifications</div>
+                                            <div class="spec-grid">
+                                                <div>
+                                                    <div class="spec-label">Thread Pool Implementation</div>
+                                                    <div class="spec-value font-monospace small">${escapeHtml((srv.threadPool && srv.threadPool.simpleClassName) || 'QueuedThreadPool')}</div>
+                                                </div>
+                                                <div>
+                                                    <div class="spec-label">Min / Max Threads</div>
+                                                    <div class="spec-value">${(srv.threadPool && srv.threadPool.minThreads) || 'N/A'} ~ ${(srv.threadPool && srv.threadPool.maxThreads) || 'N/A'}</div>
+                                                </div>
+                                                <div>
+                                                    <div class="spec-label">Max Connections</div>
+                                                    <div class="spec-value">${srv.maxConnections != null ? srv.maxConnections : 'Unlimited'}</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ` : ''}
+
+                                    <div class="mb-3">
+                                        <div class="spec-label mb-2">Network Listeners & Connectors</div>
+                                        ${listenersHtml}
+                                    </div>
+
+                                    ${handlersHtml}
+                                    ${contextsHtml}
                                 </div>
                             </div>
                         `);

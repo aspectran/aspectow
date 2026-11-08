@@ -27,6 +27,7 @@ import com.aspectran.aspectow.node.management.components.inspectors.MessageSourc
 import com.aspectran.aspectow.node.management.components.inspectors.MultipartComponentInspector;
 import com.aspectran.aspectow.node.management.components.inspectors.RedisClientComponentInspector;
 import com.aspectran.aspectow.node.management.components.inspectors.SchedulerComponentInspector;
+import com.aspectran.aspectow.node.management.components.inspectors.ServerComponentInspector;
 import com.aspectran.aspectow.node.management.components.inspectors.SessionManagerComponentInspector;
 import com.aspectran.aspectow.node.management.components.inspectors.SqlSessionFactoryComponentInspector;
 import com.aspectran.aspectow.node.management.components.inspectors.TemplateRendererComponentInspector;
@@ -59,7 +60,8 @@ public class ComponentInspectorService {
     }
 
     private void registerDefaultInspectors() {
-        // Core
+        // Infrastructure & Core
+        inspectors.add(new ServerComponentInspector());
         inspectors.add(new ApplicationAdapterComponentInspector());
         inspectors.add(new EnvironmentComponentInspector());
         inspectors.add(new SessionManagerComponentInspector());
