@@ -1179,7 +1179,7 @@
 }
 .charts-box .chart-box .chart .chart-table-wrap td {
     padding: 3px 6px;
-    border-bottom: 1px solid #f1f3f5;
+    border-bottom: 1px solid #e7e7e7;
     font-variant-numeric: tabular-nums;
 }
 .charts-box .chart-box .chart .chart-table-wrap .btn-close-table {
@@ -1595,11 +1595,8 @@
         border-bottom-color: #3b4548;
     }
     .session-box .session-table-wrap td {
-        border-bottom-color: #2c3033;
+        border-bottom-color: #303a3d;
         color: #cbd5e1;
-    }
-    .session-box .session-table-wrap table.table-striped > tbody > tr:nth-of-type(odd) > * {
-        --bs-table-bg-type: rgba(255, 255, 255, 0.02);
     }
     .session-box .session-table-wrap code.session-id {
         color: #63b3ed;
@@ -1700,11 +1697,8 @@
         border-bottom-color: #2f373d;
     }
     .charts-box .chart-box .chart .chart-table-wrap td {
-        border-bottom-color: #1e2428;
+        border-bottom-color: #30363a;
         color: #cfcfcf;
-    }
-    .charts-box .chart-box .chart .chart-table-wrap tr:hover td {
-        background-color: #151a1d;
     }
     .charts-box .chart-box .chart .chart-table-wrap .btn-close-table {
         color: #adb5bd;
