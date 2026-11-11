@@ -283,6 +283,8 @@ public abstract class NodeManagerBuilder {
                 }
             });
         }
+
+        NodeManagerHolder.setNodeManager(nodeManager);
         return nodeManager;
     }
 

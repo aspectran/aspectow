@@ -365,6 +365,9 @@ public class NodeManager {
                 logger.warn("Error closing Redis connection pool during shutdown", e);
             }
         }
+        if (NodeManagerHolder.getNodeManager() == this) {
+            NodeManagerHolder.clear();
+        }
         logger.info("NodeManager destroyed successfully for node: {}", nodeId);
     }
 
