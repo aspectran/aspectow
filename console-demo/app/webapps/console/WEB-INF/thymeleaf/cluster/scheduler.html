@@ -124,42 +124,6 @@
             border-color: var(--bs-primary) !important;
             background-color: var(--bs-primary-subtle) !important;
         }
-        .log-container {
-            border-top: 1px solid #333;
-            background: #1e1e1e;
-            color: #d4d4d4;
-            padding: 0.6rem;
-            height: 300px;
-            font-family: var(--bs-font-monospace);
-            font-size: 0.8rem;
-            line-height: 1.45;
-            overflow-y: auto;
-        }
-        .log-container .text-muted {
-            color: #8c8c8c !important;
-        }
-        .log-line {
-            white-space: pre;
-            margin-bottom: 0;
-            padding: 0;
-        }
-        .log-header {
-            background: #2d2d2d;
-            color: #aaa;
-            padding: 6px 14px;
-            font-size: 0.75rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 6px;
-        }
-        .log-header .text-secondary {
-            color: #aaa !important;
-        }
-        .log-header .text-secondary:hover {
-            color: #fff !important;
-        }
         .log-wrapper.expanded {
             position: fixed;
             top: 0;
@@ -187,6 +151,45 @@
             border-radius: 0;
             border: none;
             font-size: 0.9rem;
+        }
+        .log-header {
+            background: #2d2d2d;
+            color: #aaa;
+            padding: 6px 14px;
+            font-size: 0.75rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .log-header .text-secondary {
+            color: #aaa !important;
+        }
+        .log-header .text-secondary:hover {
+            color: #fff !important;
+        }
+        .log-container {
+            border-top: 1px solid #333;
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 0.6rem;
+            height: 300px;
+            font-family: var(--bs-font-monospace);
+            font-size: 0.8rem;
+            line-height: 1.45;
+            overflow-y: auto;
+        }
+        .log-container .text-muted {
+            color: #8c8c8c !important;
+        }
+        .log-line {
+            white-space: pre;
+            padding: 0;
+        }
+        .log-line .badge {
+            user-select: none;
+            -webkit-user-select: none;
         }
 
         /* Mobile & Tablet Responsive Layout */
@@ -1086,9 +1089,9 @@
                     $container.empty();
                 }
 
-                const $line = $('<p class="log-line"></p>');
-                const $nodeTag = $('<span class="badge bg-secondary me-1 font-monospace" style="font-size:0.65rem;"></span>').text(nodeId || 'unknown');
-                const $ownerTag = owner ? $('<span class="badge bg-body-tertiary text-body-secondary me-2 font-monospace" style="font-size:0.65rem;"></span>').text(owner) : null;
+                const $line = $('<div class="log-line"></div>');
+                const $nodeTag = $('<span class="badge bg-secondary me-1"></span>').text(nodeId || 'unknown');
+                const $ownerTag = owner ? $('<span class="badge bg-body-tertiary text-body-secondary me-2"></span>').text(owner) : null;
 
                 $line.append($nodeTag);
                 if ($ownerTag) $line.append($ownerTag);
@@ -1551,7 +1554,7 @@
                     // Add all lines at once
                     const $fragment = $(document.createDocumentFragment());
                     logLines.forEach(line => {
-                        $fragment.append($('<p class="log-line"></p>').text(line));
+                        $fragment.append($('<div class="log-line"></div>').text(line));
                     });
                     
                     const $loading = $container.find('.loading-logs');
