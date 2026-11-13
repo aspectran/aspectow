@@ -181,15 +181,21 @@
                     </ol>
                 </nav>
             </div>
-            <div class="d-flex align-items-center gap-2 gap-lg-3">
+            <div class="d-flex align-items-center gap-1 gap-lg-2">
+                <!-- PWA Install Button -->
+                <button class="btn btn-sm btn-outline-secondary d-none align-items-center gap-1" id="pwa-install-btn" type="button" title="Install Aspectow Console App">
+                    <i class="bi bi-download"></i>
+                    <span class="d-none d-md-inline" style="font-size: 0.8rem;">Install</span>
+                </button>
+
                 <!-- About Console Button -->
-                <button class="btn p-0 border-0 bg-transparent text-body" type="button" data-bs-toggle="modal" data-bs-target="#aboutConsoleModal" title="About Aspectow Console">
+                <button class="btn border-0 bg-transparent text-body" type="button" data-bs-toggle="modal" data-bs-target="#aboutConsoleModal" title="About Aspectow Console">
                     <i class="bi bi-question-circle fs-5"></i>
                 </button>
 
                 <!-- Theme Toggler -->
                 <div class="theme-toggler dropdown">
-                    <button class="btn dropdown-toggle pe-1" type="button" id="theme-toggler-btn" data-bs-toggle="dropdown">
+                    <button class="btn dropdown-toggle px-1" type="button" id="theme-toggler-btn" data-bs-toggle="dropdown">
                         <i class="bi theme-icon-active"></i>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end shadow">
@@ -297,6 +303,31 @@
                     $header.removeClass('header-hidden');
                 }
                 lastScrollTop = currentScrollTop;
+            });
+
+            // PWA Install prompt handling
+            let deferredInstallPrompt = null;
+            const $pwaInstallBtn = $('#pwa-install-btn');
+
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                deferredInstallPrompt = e;
+                $pwaInstallBtn.removeClass('d-none').addClass('d-inline-flex');
+            });
+
+            $pwaInstallBtn.on('click', async function() {
+                if (!deferredInstallPrompt) return;
+                deferredInstallPrompt.prompt();
+                const { outcome } = await deferredInstallPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    $pwaInstallBtn.addClass('d-none').removeClass('d-inline-flex');
+                }
+                deferredInstallPrompt = null;
+            });
+
+            window.addEventListener('appinstalled', () => {
+                $pwaInstallBtn.addClass('d-none').removeClass('d-inline-flex');
+                deferredInstallPrompt = null;
             });
         });
     </script>

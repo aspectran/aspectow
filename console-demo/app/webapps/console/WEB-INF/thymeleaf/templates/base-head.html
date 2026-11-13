@@ -29,6 +29,13 @@
 <!-- Common external assets -->
 <th:block th:fragment="common-assets">
     <meta name="google" content="notranslate"/>
+
+    <!-- PWA Settings -->
+    <link rel="manifest" th:href="@{/manifest.webmanifest}"/>
+    <meta name="theme-color" content="#212529"/>
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+    <meta name="apple-mobile-web-app-title" content="Aspectow"/>
     <link rel="mask-icon" href="https://cdn.jsdelivr.net/gh/aspectran/aspectran-assets@main/assets/img/aspectran-logo.svg" color="#4B555A"/>
     <link rel="apple-touch-icon" sizes="57x57" href="https://cdn.jsdelivr.net/gh/aspectran/aspectran-assets@main/assets/img/apple-icon-57x57.png"/>
     <link rel="apple-touch-icon" sizes="60x60" href="https://cdn.jsdelivr.net/gh/aspectran/aspectran-assets@main/assets/img/apple-icon-60x60.png"/>
@@ -78,5 +85,16 @@
         <script th:src="@{/assets/js/apon-highlighter.js}"></script>
         <script th:src="@{/assets/js/console-client.js}"></script>
     </th:block>
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('[[@{/sw.js}]]')
+                    .catch((err) => {
+                        console.error('Service Worker registration failed:', err);
+                    });
+            });
+        }
+    </script>
 </th:block>
 </html>
