@@ -116,6 +116,14 @@
                 Placed under 'META-INF/resources' to allow direct public access from the web browser.
             -->
             <resource>
+                <directory>${project.basedir}/../console-demo/app/webapps/console</directory>
+                <targetPath>META-INF/resources/console</targetPath>
+                <includes>
+                    <include>manifest.webmanifest</include>
+                    <include>sw.js</include>
+                </includes>
+            </resource>
+            <resource>
                 <directory>${project.basedir}/../console-demo/app/webapps/console/assets</directory>
                 <targetPath>META-INF/resources/console/assets</targetPath>
             </resource>
