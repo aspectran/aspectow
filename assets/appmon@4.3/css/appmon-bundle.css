@@ -1299,15 +1299,14 @@
     background-color: #39aa56;
 }
 .console-box .console {
-    clear: both;
     margin: 0;
     padding: 10px;
-    overflow: auto;
     height: 450px;
+    overflow: auto;
+    scrollbar-width: thin;
     color: #f1f1f1;
     background-color: #222;
     border: 1px solid #54656f;
-    border-radius: 0;
 }
 .console-box .console div {
     font-size: 12px;
