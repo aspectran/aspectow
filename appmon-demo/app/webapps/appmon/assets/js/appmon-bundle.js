@@ -47,27 +47,14 @@ class BaseClient {
         this.everConnected = false;
         this.retryTimer = null;
         this.lastResumeReconnect = 0;
-        this.hiddenAt = 0;
         this.stopped = false;
         this.destroyed = false;
 
-        this.handleVisibilityChange = () => {
-            if (this.destroyed || this.stopped) {
-                return;
-            }
-            if (typeof document !== "undefined") {
-                if (document.visibilityState === "hidden") {
-                    this.onPause();
-                } else if (document.visibilityState === "visible") {
-                    this.onResume();
-                }
-            }
-        };
         this.handleResume = () => {
             if (this.destroyed || this.stopped) {
                 return;
             }
-            if (typeof document === "undefined" || document.visibilityState === "visible") {
+            if (typeof document !== "undefined" && document.visibilityState === "visible") {
                 this.onResume();
             }
         };
@@ -79,7 +66,7 @@ class BaseClient {
         };
 
         if (typeof document !== "undefined") {
-            document.addEventListener("visibilitychange", this.handleVisibilityChange);
+            document.addEventListener("visibilitychange", this.handleResume);
         }
         if (typeof window !== "undefined") {
             window.addEventListener("pageshow", this.handleResume);
@@ -195,7 +182,7 @@ class BaseClient {
         this.destroyed = true;
         this.stop();
         if (typeof document !== "undefined") {
-            document.removeEventListener("visibilitychange", this.handleVisibilityChange);
+            document.removeEventListener("visibilitychange", this.handleResume);
         }
         if (typeof window !== "undefined") {
             window.removeEventListener("pageshow", this.handleResume);
@@ -218,13 +205,6 @@ class BaseClient {
 
     setConnectedNodeId(nodeId) {
         this.connectedNodeId = nodeId;
-    }
-
-    /**
-     * Called when the page becomes hidden or inactive (e.g. switching tabs or mobile background).
-     */
-    onPause() {
-        this.hiddenAt = Date.now();
     }
 
     /**
@@ -346,11 +326,7 @@ class WebsocketClient extends BaseClient {
         this.handshakeSuccessful = false;
         this.everConnected = false;
         this.established = false;
-        this.lastPongTime = 0;
         this.connectStartTime = 0;
-        this.probeTimer = null;
-        this.staleThreshold = 30000;
-        this.probeTimeout = 2000;
     }
 
     start(appsToSubscribe, nodeToSubscribe) {
@@ -388,7 +364,7 @@ class WebsocketClient extends BaseClient {
         }
 
         if (this.socket && this.socket.readyState === WebSocket.CONNECTING) {
-            if (this.connectStartTime && (now - this.connectStartTime > 3000)) {
+            if (this.connectStartTime && (now - this.connectStartTime > 5000)) {
                 console.log(this.getConnectedNodeId(), "WebSocket connecting timed out while resuming, reconnecting immediately");
                 this.closeSocket(true);
                 this.reconnect(true);
@@ -405,44 +381,9 @@ class WebsocketClient extends BaseClient {
         }
 
         if (this.socket.readyState === WebSocket.OPEN) {
-            const backgroundDuration = this.hiddenAt ? (now - this.hiddenAt) : 0;
-            const pongDuration = this.lastPongTime ? (now - this.lastPongTime) : 0;
-
-            if (backgroundDuration > this.staleThreshold || pongDuration > (this.heartbeatInterval + 5000)) {
-                this.lastResumeReconnect = now;
-                console.log(this.getConnectedNodeId(), "connection considered stale after background/idle, reconnecting immediately");
-                this.closeSocket(true);
-                this.reconnect(true);
-                return;
-            }
-
-            this.probeConnection();
-        }
-    }
-
-    probeConnection() {
-        if (!this.socket || this.socket.readyState !== WebSocket.OPEN) {
-            return;
-        }
-        if (this.probeTimer) {
-            clearTimeout(this.probeTimer);
-            this.probeTimer = null;
-        }
-        try {
             this.sendPing();
-        } catch (e) {
-            console.warn(this.getConnectedNodeId(), "failed to send probe ping, reconnecting immediately", e);
-            this.closeSocket(true);
-            this.reconnect(true);
-            return;
+            this.heartbeatPing();
         }
-        this.probeTimer = setTimeout(() => {
-            this.probeTimer = null;
-            if (this.destroyed || this.stopped) return;
-            console.warn(this.getConnectedNodeId(), "probe ping timeout (no response in " + this.probeTimeout + "ms), reconnecting");
-            this.closeSocket(true);
-            this.reconnect(true);
-        }, this.probeTimeout);
     }
 
     openSocket() {
@@ -466,11 +407,6 @@ class WebsocketClient extends BaseClient {
             this.handshakeSuccessful = true;
             this.everConnected = true;
             this.reconnecting = false;
-            this.lastPongTime = Date.now();
-            if (this.probeTimer) {
-                clearTimeout(this.probeTimer);
-                this.probeTimer = null;
-            }
             if (this.retryTimer) {
                 clearTimeout(this.retryTimer);
                 this.retryTimer = null;
@@ -498,11 +434,6 @@ class WebsocketClient extends BaseClient {
 
             // Standard control messages
             if (message.startsWith(":pong:")) {
-                if (this.probeTimer) {
-                    clearTimeout(this.probeTimer);
-                    this.probeTimer = null;
-                }
-                this.lastPongTime = Date.now();
                 this.node.endpoint.token = message.substring(6);
                 this.heartbeatPing();
                 return;
@@ -623,10 +554,6 @@ class WebsocketClient extends BaseClient {
     closeSocket(afterClosing) {
         this.established = false;
         this.connectStartTime = 0;
-        if (this.probeTimer) {
-            clearTimeout(this.probeTimer);
-            this.probeTimer = null;
-        }
         if (this.socket) {
             const socket = this.socket;
             this.socket = null;

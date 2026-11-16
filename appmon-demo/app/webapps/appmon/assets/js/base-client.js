@@ -47,27 +47,14 @@ class BaseClient {
         this.everConnected = false;
         this.retryTimer = null;
         this.lastResumeReconnect = 0;
-        this.hiddenAt = 0;
         this.stopped = false;
         this.destroyed = false;
 
-        this.handleVisibilityChange = () => {
-            if (this.destroyed || this.stopped) {
-                return;
-            }
-            if (typeof document !== "undefined") {
-                if (document.visibilityState === "hidden") {
-                    this.onPause();
-                } else if (document.visibilityState === "visible") {
-                    this.onResume();
-                }
-            }
-        };
         this.handleResume = () => {
             if (this.destroyed || this.stopped) {
                 return;
             }
-            if (typeof document === "undefined" || document.visibilityState === "visible") {
+            if (typeof document !== "undefined" && document.visibilityState === "visible") {
                 this.onResume();
             }
         };
@@ -79,7 +66,7 @@ class BaseClient {
         };
 
         if (typeof document !== "undefined") {
-            document.addEventListener("visibilitychange", this.handleVisibilityChange);
+            document.addEventListener("visibilitychange", this.handleResume);
         }
         if (typeof window !== "undefined") {
             window.addEventListener("pageshow", this.handleResume);
@@ -195,7 +182,7 @@ class BaseClient {
         this.destroyed = true;
         this.stop();
         if (typeof document !== "undefined") {
-            document.removeEventListener("visibilitychange", this.handleVisibilityChange);
+            document.removeEventListener("visibilitychange", this.handleResume);
         }
         if (typeof window !== "undefined") {
             window.removeEventListener("pageshow", this.handleResume);
@@ -218,13 +205,6 @@ class BaseClient {
 
     setConnectedNodeId(nodeId) {
         this.connectedNodeId = nodeId;
-    }
-
-    /**
-     * Called when the page becomes hidden or inactive (e.g. switching tabs or mobile background).
-     */
-    onPause() {
-        this.hiddenAt = Date.now();
     }
 
     /**
