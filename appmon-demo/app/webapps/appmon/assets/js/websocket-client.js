@@ -19,7 +19,7 @@
  * In Gateway Mode, it manages a single physical connection for the entire cluster.
  *
  * @version 4.3
- * @last-modified 2026-10-28
+ * @last-modified 2026-11-16
  */
 class WebsocketClient extends BaseClient {
     constructor(node, viewer, onSubscribed, onClosed, onFailed, isGatewayMode) {
@@ -30,6 +30,11 @@ class WebsocketClient extends BaseClient {
         this.handshakeSuccessful = false;
         this.everConnected = false;
         this.established = false;
+        this.lastPongTime = 0;
+        this.connectStartTime = 0;
+        this.probeTimer = null;
+        this.staleThreshold = 30000;
+        this.probeTimeout = 2000;
     }
 
     start(appsToSubscribe, nodeToSubscribe) {
@@ -60,25 +65,74 @@ class WebsocketClient extends BaseClient {
         if (this.destroyed || this.stopped || !this.everConnected) {
             return;
         }
-        if (this.socket && this.socket.readyState === WebSocket.CONNECTING) {
+
+        const now = Date.now();
+        if (this.lastResumeReconnect && (now - this.lastResumeReconnect < 500)) {
             return;
         }
-        if (!this.socket || this.socket.readyState === WebSocket.CLOSING || this.socket.readyState === WebSocket.CLOSED || !this.handshakeSuccessful) {
-            if (this.lastResumeReconnect && (Date.now() - this.lastResumeReconnect < 500)) {
-                return;
+
+        if (this.socket && this.socket.readyState === WebSocket.CONNECTING) {
+            if (this.connectStartTime && (now - this.connectStartTime > 3000)) {
+                console.log(this.getConnectedNodeId(), "WebSocket connecting timed out while resuming, reconnecting immediately");
+                this.closeSocket(true);
+                this.reconnect(true);
             }
-            this.lastResumeReconnect = Date.now();
+            return;
+        }
+
+        if (!this.socket || this.socket.readyState === WebSocket.CLOSING || this.socket.readyState === WebSocket.CLOSED || !this.handshakeSuccessful) {
+            this.lastResumeReconnect = now;
             console.log(this.getConnectedNodeId(), "WebSocket disconnected while in background, reconnecting immediately");
             this.closeSocket(true);
             this.reconnect(true);
-        } else if (this.socket.readyState === WebSocket.OPEN) {
-            this.sendPing();
+            return;
         }
+
+        if (this.socket.readyState === WebSocket.OPEN) {
+            const backgroundDuration = this.hiddenAt ? (now - this.hiddenAt) : 0;
+            const pongDuration = this.lastPongTime ? (now - this.lastPongTime) : 0;
+
+            if (backgroundDuration > this.staleThreshold || pongDuration > (this.heartbeatInterval + 5000)) {
+                this.lastResumeReconnect = now;
+                console.log(this.getConnectedNodeId(), "connection considered stale after background/idle, reconnecting immediately");
+                this.closeSocket(true);
+                this.reconnect(true);
+                return;
+            }
+
+            this.probeConnection();
+        }
+    }
+
+    probeConnection() {
+        if (!this.socket || this.socket.readyState !== WebSocket.OPEN) {
+            return;
+        }
+        if (this.probeTimer) {
+            clearTimeout(this.probeTimer);
+            this.probeTimer = null;
+        }
+        try {
+            this.sendPing();
+        } catch (e) {
+            console.warn(this.getConnectedNodeId(), "failed to send probe ping, reconnecting immediately", e);
+            this.closeSocket(true);
+            this.reconnect(true);
+            return;
+        }
+        this.probeTimer = setTimeout(() => {
+            this.probeTimer = null;
+            if (this.destroyed || this.stopped) return;
+            console.warn(this.getConnectedNodeId(), "probe ping timeout (no response in " + this.probeTimeout + "ms), reconnecting");
+            this.closeSocket(true);
+            this.reconnect(true);
+        }, this.probeTimeout);
     }
 
     openSocket() {
         if (this.destroyed || this.stopped) return;
         this.closeSocket(false);
+        this.connectStartTime = Date.now();
         const url = new URL(this.node.endpoint.path + "/appmon/websocket/" + this.node.endpoint.token, location.href);
         if (!this.isGatewayMode && this.node.port && (location.hostname === "localhost" || location.hostname === "127.0.0.1")) {
             url.port = this.node.port;
@@ -96,6 +150,11 @@ class WebsocketClient extends BaseClient {
             this.handshakeSuccessful = true;
             this.everConnected = true;
             this.reconnecting = false;
+            this.lastPongTime = Date.now();
+            if (this.probeTimer) {
+                clearTimeout(this.probeTimer);
+                this.probeTimer = null;
+            }
             if (this.retryTimer) {
                 clearTimeout(this.retryTimer);
                 this.retryTimer = null;
@@ -104,7 +163,7 @@ class WebsocketClient extends BaseClient {
 
             // Connect to the current node
             this.subscribe();
-            this.sendPing();
+            this.heartbeatPing();
             this.retryCount = 0;
         };
 
@@ -123,8 +182,13 @@ class WebsocketClient extends BaseClient {
 
             // Standard control messages
             if (message.startsWith(":pong:")) {
+                if (this.probeTimer) {
+                    clearTimeout(this.probeTimer);
+                    this.probeTimer = null;
+                }
+                this.lastPongTime = Date.now();
                 this.node.endpoint.token = message.substring(6);
-                this.sendPing();
+                this.heartbeatPing();
                 return;
             }
 
@@ -242,6 +306,11 @@ class WebsocketClient extends BaseClient {
 
     closeSocket(afterClosing) {
         this.established = false;
+        this.connectStartTime = 0;
+        if (this.probeTimer) {
+            clearTimeout(this.probeTimer);
+            this.probeTimer = null;
+        }
         if (this.socket) {
             const socket = this.socket;
             this.socket = null;
@@ -310,14 +379,18 @@ class WebsocketClient extends BaseClient {
         }
     }
 
-    sendPing() {
+    heartbeatPing() {
         if (this.heartbeatTimer) {
             clearTimeout(this.heartbeatTimer);
         }
         this.heartbeatTimer = setTimeout(() => {
-            if (this.socket && this.socket.readyState === WebSocket.OPEN) {
-                this.socket.send("command:ping");
-            }
+            this.sendPing();
         }, this.heartbeatInterval);
+    }
+
+    sendPing() {
+        if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+            this.socket.send("command:ping");
+        }
     }
 }

@@ -19,7 +19,7 @@
  * Provides common functionality for connection management and retries.
  *
  * @version 4.3
- * @last-modified 2026-10-28
+ * @last-modified 2026-11-16
  */
 class BaseClient {
     constructor(node, viewer, onSubscribed, onClosed, onFailed, isGatewayMode) {
@@ -47,14 +47,27 @@ class BaseClient {
         this.everConnected = false;
         this.retryTimer = null;
         this.lastResumeReconnect = 0;
+        this.hiddenAt = 0;
         this.stopped = false;
         this.destroyed = false;
 
+        this.handleVisibilityChange = () => {
+            if (this.destroyed || this.stopped) {
+                return;
+            }
+            if (typeof document !== "undefined") {
+                if (document.visibilityState === "hidden") {
+                    this.onPause();
+                } else if (document.visibilityState === "visible") {
+                    this.onResume();
+                }
+            }
+        };
         this.handleResume = () => {
             if (this.destroyed || this.stopped) {
                 return;
             }
-            if (typeof document !== "undefined" && document.visibilityState === "visible") {
+            if (typeof document === "undefined" || document.visibilityState === "visible") {
                 this.onResume();
             }
         };
@@ -66,7 +79,7 @@ class BaseClient {
         };
 
         if (typeof document !== "undefined") {
-            document.addEventListener("visibilitychange", this.handleResume);
+            document.addEventListener("visibilitychange", this.handleVisibilityChange);
         }
         if (typeof window !== "undefined") {
             window.addEventListener("pageshow", this.handleResume);
@@ -165,39 +178,6 @@ class BaseClient {
     }
 
     /**
-     * Checks if the client is currently connected.
-     * @returns {boolean}
-     */
-    isConnected() {
-        return false;
-    }
-
-    getConnectedNodeId() {
-        return this.connectedNodeId || (this.node ? this.node.id : null);
-    }
-
-    setConnectedNodeId(nodeId) {
-        this.connectedNodeId = nodeId;
-    }
-
-    /**
-     * Called when the page becomes visible or active again (e.g. after returning from mobile background).
-     */
-    onResume() {
-        if (this.destroyed || this.stopped) {
-            return;
-        }
-        if (!this.isConnected()) {
-            if (this.lastResumeReconnect && (Date.now() - this.lastResumeReconnect < 500)) {
-                return;
-            }
-            this.lastResumeReconnect = Date.now();
-            console.log(this.getConnectedNodeId(), "app/page resumed, attempting immediate reconnect");
-            this.reconnect(true);
-        }
-    }
-
-    /**
      * Stops the client connection.
      */
     stop() {
@@ -215,12 +195,52 @@ class BaseClient {
         this.destroyed = true;
         this.stop();
         if (typeof document !== "undefined") {
-            document.removeEventListener("visibilitychange", this.handleResume);
+            document.removeEventListener("visibilitychange", this.handleVisibilityChange);
         }
         if (typeof window !== "undefined") {
             window.removeEventListener("pageshow", this.handleResume);
             window.removeEventListener("focus", this.handleResume);
             window.removeEventListener("online", this.handleOnline);
+        }
+    }
+
+    /**
+     * Checks if the client is currently connected.
+     * @returns {boolean}
+     */
+    isConnected() {
+        return false;
+    }
+
+    getConnectedNodeId() {
+        return this.connectedNodeId || (this.node ? this.node.id : null);
+    }
+
+    setConnectedNodeId(nodeId) {
+        this.connectedNodeId = nodeId;
+    }
+
+    /**
+     * Called when the page becomes hidden or inactive (e.g. switching tabs or mobile background).
+     */
+    onPause() {
+        this.hiddenAt = Date.now();
+    }
+
+    /**
+     * Called when the page becomes visible or active again (e.g. after returning from mobile background).
+     */
+    onResume() {
+        if (this.destroyed || this.stopped) {
+            return;
+        }
+        if (!this.isConnected()) {
+            if (this.lastResumeReconnect && (Date.now() - this.lastResumeReconnect < 500)) {
+                return;
+            }
+            this.lastResumeReconnect = Date.now();
+            console.log(this.getConnectedNodeId(), "app/page resumed, attempting immediate reconnect");
+            this.reconnect(true);
         }
     }
 
@@ -315,7 +335,7 @@ class BaseClient {
  * In Gateway Mode, it manages a single physical connection for the entire cluster.
  *
  * @version 4.3
- * @last-modified 2026-10-28
+ * @last-modified 2026-11-16
  */
 class WebsocketClient extends BaseClient {
     constructor(node, viewer, onSubscribed, onClosed, onFailed, isGatewayMode) {
@@ -326,6 +346,11 @@ class WebsocketClient extends BaseClient {
         this.handshakeSuccessful = false;
         this.everConnected = false;
         this.established = false;
+        this.lastPongTime = 0;
+        this.connectStartTime = 0;
+        this.probeTimer = null;
+        this.staleThreshold = 30000;
+        this.probeTimeout = 2000;
     }
 
     start(appsToSubscribe, nodeToSubscribe) {
@@ -356,25 +381,74 @@ class WebsocketClient extends BaseClient {
         if (this.destroyed || this.stopped || !this.everConnected) {
             return;
         }
-        if (this.socket && this.socket.readyState === WebSocket.CONNECTING) {
+
+        const now = Date.now();
+        if (this.lastResumeReconnect && (now - this.lastResumeReconnect < 500)) {
             return;
         }
-        if (!this.socket || this.socket.readyState === WebSocket.CLOSING || this.socket.readyState === WebSocket.CLOSED || !this.handshakeSuccessful) {
-            if (this.lastResumeReconnect && (Date.now() - this.lastResumeReconnect < 500)) {
-                return;
+
+        if (this.socket && this.socket.readyState === WebSocket.CONNECTING) {
+            if (this.connectStartTime && (now - this.connectStartTime > 3000)) {
+                console.log(this.getConnectedNodeId(), "WebSocket connecting timed out while resuming, reconnecting immediately");
+                this.closeSocket(true);
+                this.reconnect(true);
             }
-            this.lastResumeReconnect = Date.now();
+            return;
+        }
+
+        if (!this.socket || this.socket.readyState === WebSocket.CLOSING || this.socket.readyState === WebSocket.CLOSED || !this.handshakeSuccessful) {
+            this.lastResumeReconnect = now;
             console.log(this.getConnectedNodeId(), "WebSocket disconnected while in background, reconnecting immediately");
             this.closeSocket(true);
             this.reconnect(true);
-        } else if (this.socket.readyState === WebSocket.OPEN) {
-            this.sendPing();
+            return;
         }
+
+        if (this.socket.readyState === WebSocket.OPEN) {
+            const backgroundDuration = this.hiddenAt ? (now - this.hiddenAt) : 0;
+            const pongDuration = this.lastPongTime ? (now - this.lastPongTime) : 0;
+
+            if (backgroundDuration > this.staleThreshold || pongDuration > (this.heartbeatInterval + 5000)) {
+                this.lastResumeReconnect = now;
+                console.log(this.getConnectedNodeId(), "connection considered stale after background/idle, reconnecting immediately");
+                this.closeSocket(true);
+                this.reconnect(true);
+                return;
+            }
+
+            this.probeConnection();
+        }
+    }
+
+    probeConnection() {
+        if (!this.socket || this.socket.readyState !== WebSocket.OPEN) {
+            return;
+        }
+        if (this.probeTimer) {
+            clearTimeout(this.probeTimer);
+            this.probeTimer = null;
+        }
+        try {
+            this.sendPing();
+        } catch (e) {
+            console.warn(this.getConnectedNodeId(), "failed to send probe ping, reconnecting immediately", e);
+            this.closeSocket(true);
+            this.reconnect(true);
+            return;
+        }
+        this.probeTimer = setTimeout(() => {
+            this.probeTimer = null;
+            if (this.destroyed || this.stopped) return;
+            console.warn(this.getConnectedNodeId(), "probe ping timeout (no response in " + this.probeTimeout + "ms), reconnecting");
+            this.closeSocket(true);
+            this.reconnect(true);
+        }, this.probeTimeout);
     }
 
     openSocket() {
         if (this.destroyed || this.stopped) return;
         this.closeSocket(false);
+        this.connectStartTime = Date.now();
         const url = new URL(this.node.endpoint.path + "/appmon/websocket/" + this.node.endpoint.token, location.href);
         if (!this.isGatewayMode && this.node.port && (location.hostname === "localhost" || location.hostname === "127.0.0.1")) {
             url.port = this.node.port;
@@ -392,6 +466,11 @@ class WebsocketClient extends BaseClient {
             this.handshakeSuccessful = true;
             this.everConnected = true;
             this.reconnecting = false;
+            this.lastPongTime = Date.now();
+            if (this.probeTimer) {
+                clearTimeout(this.probeTimer);
+                this.probeTimer = null;
+            }
             if (this.retryTimer) {
                 clearTimeout(this.retryTimer);
                 this.retryTimer = null;
@@ -400,7 +479,7 @@ class WebsocketClient extends BaseClient {
 
             // Connect to the current node
             this.subscribe();
-            this.sendPing();
+            this.heartbeatPing();
             this.retryCount = 0;
         };
 
@@ -419,8 +498,13 @@ class WebsocketClient extends BaseClient {
 
             // Standard control messages
             if (message.startsWith(":pong:")) {
+                if (this.probeTimer) {
+                    clearTimeout(this.probeTimer);
+                    this.probeTimer = null;
+                }
+                this.lastPongTime = Date.now();
                 this.node.endpoint.token = message.substring(6);
-                this.sendPing();
+                this.heartbeatPing();
                 return;
             }
 
@@ -538,6 +622,11 @@ class WebsocketClient extends BaseClient {
 
     closeSocket(afterClosing) {
         this.established = false;
+        this.connectStartTime = 0;
+        if (this.probeTimer) {
+            clearTimeout(this.probeTimer);
+            this.probeTimer = null;
+        }
         if (this.socket) {
             const socket = this.socket;
             this.socket = null;
@@ -606,15 +695,19 @@ class WebsocketClient extends BaseClient {
         }
     }
 
-    sendPing() {
+    heartbeatPing() {
         if (this.heartbeatTimer) {
             clearTimeout(this.heartbeatTimer);
         }
         this.heartbeatTimer = setTimeout(() => {
-            if (this.socket && this.socket.readyState === WebSocket.OPEN) {
-                this.socket.send("command:ping");
-            }
+            this.sendPing();
         }, this.heartbeatInterval);
+    }
+
+    sendPing() {
+        if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+            this.socket.send("command:ping");
+        }
     }
 }
 
@@ -622,7 +715,7 @@ class WebsocketClient extends BaseClient {
  * HTTP Polling implementation of the AppMon client.
  *
  * @version 4.3
- * @last-modified 2026-10-28
+ * @last-modified 2026-11-16
  */
 class PollingClient extends BaseClient {
     constructor(node, viewer, onSubscribed, onClosed, onFailed, isGatewayMode = false) {
@@ -669,13 +762,18 @@ class PollingClient extends BaseClient {
     }
 
     onResume() {
-        if (!this.stopped && this.reconnecting) {
+        if (this.stopped) {
+            return;
+        }
+        if (this.reconnecting) {
             if (this.lastResumeReconnect && (Date.now() - this.lastResumeReconnect < 500)) {
                 return;
             }
             this.lastResumeReconnect = Date.now();
             console.log(this.getConnectedNodeId(), "PollingClient resumed while disconnected, reconnecting immediately");
             this.reconnect(true);
+        } else if (this.everConnected) {
+            this.immediatePoll();
         }
     }
 

@@ -19,7 +19,7 @@
  * Provides common functionality for connection management and retries.
  *
  * @version 4.3
- * @last-modified 2026-10-28
+ * @last-modified 2026-11-16
  */
 class BaseClient {
     constructor(node, viewer, onSubscribed, onClosed, onFailed, isGatewayMode) {
@@ -47,14 +47,27 @@ class BaseClient {
         this.everConnected = false;
         this.retryTimer = null;
         this.lastResumeReconnect = 0;
+        this.hiddenAt = 0;
         this.stopped = false;
         this.destroyed = false;
 
+        this.handleVisibilityChange = () => {
+            if (this.destroyed || this.stopped) {
+                return;
+            }
+            if (typeof document !== "undefined") {
+                if (document.visibilityState === "hidden") {
+                    this.onPause();
+                } else if (document.visibilityState === "visible") {
+                    this.onResume();
+                }
+            }
+        };
         this.handleResume = () => {
             if (this.destroyed || this.stopped) {
                 return;
             }
-            if (typeof document !== "undefined" && document.visibilityState === "visible") {
+            if (typeof document === "undefined" || document.visibilityState === "visible") {
                 this.onResume();
             }
         };
@@ -66,7 +79,7 @@ class BaseClient {
         };
 
         if (typeof document !== "undefined") {
-            document.addEventListener("visibilitychange", this.handleResume);
+            document.addEventListener("visibilitychange", this.handleVisibilityChange);
         }
         if (typeof window !== "undefined") {
             window.addEventListener("pageshow", this.handleResume);
@@ -165,39 +178,6 @@ class BaseClient {
     }
 
     /**
-     * Checks if the client is currently connected.
-     * @returns {boolean}
-     */
-    isConnected() {
-        return false;
-    }
-
-    getConnectedNodeId() {
-        return this.connectedNodeId || (this.node ? this.node.id : null);
-    }
-
-    setConnectedNodeId(nodeId) {
-        this.connectedNodeId = nodeId;
-    }
-
-    /**
-     * Called when the page becomes visible or active again (e.g. after returning from mobile background).
-     */
-    onResume() {
-        if (this.destroyed || this.stopped) {
-            return;
-        }
-        if (!this.isConnected()) {
-            if (this.lastResumeReconnect && (Date.now() - this.lastResumeReconnect < 500)) {
-                return;
-            }
-            this.lastResumeReconnect = Date.now();
-            console.log(this.getConnectedNodeId(), "app/page resumed, attempting immediate reconnect");
-            this.reconnect(true);
-        }
-    }
-
-    /**
      * Stops the client connection.
      */
     stop() {
@@ -215,12 +195,52 @@ class BaseClient {
         this.destroyed = true;
         this.stop();
         if (typeof document !== "undefined") {
-            document.removeEventListener("visibilitychange", this.handleResume);
+            document.removeEventListener("visibilitychange", this.handleVisibilityChange);
         }
         if (typeof window !== "undefined") {
             window.removeEventListener("pageshow", this.handleResume);
             window.removeEventListener("focus", this.handleResume);
             window.removeEventListener("online", this.handleOnline);
+        }
+    }
+
+    /**
+     * Checks if the client is currently connected.
+     * @returns {boolean}
+     */
+    isConnected() {
+        return false;
+    }
+
+    getConnectedNodeId() {
+        return this.connectedNodeId || (this.node ? this.node.id : null);
+    }
+
+    setConnectedNodeId(nodeId) {
+        this.connectedNodeId = nodeId;
+    }
+
+    /**
+     * Called when the page becomes hidden or inactive (e.g. switching tabs or mobile background).
+     */
+    onPause() {
+        this.hiddenAt = Date.now();
+    }
+
+    /**
+     * Called when the page becomes visible or active again (e.g. after returning from mobile background).
+     */
+    onResume() {
+        if (this.destroyed || this.stopped) {
+            return;
+        }
+        if (!this.isConnected()) {
+            if (this.lastResumeReconnect && (Date.now() - this.lastResumeReconnect < 500)) {
+                return;
+            }
+            this.lastResumeReconnect = Date.now();
+            console.log(this.getConnectedNodeId(), "app/page resumed, attempting immediate reconnect");
+            this.reconnect(true);
         }
     }
 

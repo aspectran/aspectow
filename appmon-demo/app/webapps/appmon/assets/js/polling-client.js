@@ -18,7 +18,7 @@
  * HTTP Polling implementation of the AppMon client.
  *
  * @version 4.3
- * @last-modified 2026-10-28
+ * @last-modified 2026-11-16
  */
 class PollingClient extends BaseClient {
     constructor(node, viewer, onSubscribed, onClosed, onFailed, isGatewayMode = false) {
@@ -65,13 +65,18 @@ class PollingClient extends BaseClient {
     }
 
     onResume() {
-        if (!this.stopped && this.reconnecting) {
+        if (this.stopped) {
+            return;
+        }
+        if (this.reconnecting) {
             if (this.lastResumeReconnect && (Date.now() - this.lastResumeReconnect < 500)) {
                 return;
             }
             this.lastResumeReconnect = Date.now();
             console.log(this.getConnectedNodeId(), "PollingClient resumed while disconnected, reconnecting immediately");
             this.reconnect(true);
+        } else if (this.everConnected) {
+            this.immediatePoll();
         }
     }
 
