@@ -7,7 +7,7 @@
  * - Dynamic APIs, Commands, and WebSockets: Network-Only (never cached)
  */
 
-const CACHE_NAME = 'aspectow-console-v3';
+const CACHE_NAME = 'aspectow-console-v4';
 
 // Pre-cached critical assets
 const PRECACHE_URLS = [
