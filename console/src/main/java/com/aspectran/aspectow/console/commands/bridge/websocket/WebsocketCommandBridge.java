@@ -274,7 +274,7 @@ public class WebsocketCommandBridge extends SimplifiedEndpoint implements Comman
                             severity,
                             title,
                             msg,
-                            "./cluster/commands/"
+                            "/cluster/commands/"
                     );
                 }
             } catch (Exception e) {

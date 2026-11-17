@@ -189,7 +189,7 @@ public class NotificationServiceImpl extends InstantActivitySupport implements N
         history.setSeverity("INFO");
         history.setTitle("Test Notification");
         history.setMessage("Web Push test notification was successfully sent.");
-        history.setTargetUrl("./");
+        history.setTargetUrl("/");
         notificationMapper.insertNotificationHistory(history);
 
         return sentCount;

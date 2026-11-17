@@ -572,9 +572,7 @@
 .session-box {
     display: none;
 }
-.session-box .panel {
-    border: none;
-    border-radius: 0;
+.session-box .status-panel {
     height: 256px;
     padding: 5px;
     overflow-y: auto;
@@ -582,7 +580,13 @@
     position: relative;
     box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
 }
-.session-box .panel.status .knob-bar {
+.session-box .ground-panel {
+    height: 256px;
+    background-color: #eff5fa;
+    position: relative;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+.session-box .status-panel .knob-bar {
     position: absolute;
     bottom: 0;
     left: 0;
@@ -596,7 +600,7 @@
     z-index: 10;
     user-select: none;
 }
-.session-box .panel.status .knob {
+.session-box .status-panel .knob {
     width: 44px;
     height: 13px;
     background-color: #557585;
@@ -608,36 +612,36 @@
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
     transition: background-color .15s ease, transform .15s ease;
 }
-.session-box .panel.status .knob-bar:hover .knob,
-.session-box .panel.status .knob-bar:active .knob {
+.session-box .status-panel .knob-bar:hover .knob,
+.session-box .status-panel .knob-bar:active .knob {
     background-color: #65899c;
     transform: scale(1.08);
 }
-.session-box .panel.status .knob i {
+.session-box .status-panel .knob i {
     font-size: 11px;
     line-height: 1;
     transition: transform .25s ease;
 }
-.session-box .panel.status.expanded .knob i {
+.session-box .status-panel.expanded .knob i {
     transform: rotate(180deg);
 }
 @media screen and (max-width: 768px) {
-    .session-box .panel.status {
+    .session-box .status-panel {
         height: 96px;
         overflow-y: hidden;
         border-bottom: none;
         padding-bottom: 22px;
         cursor: pointer;
     }
-    .session-box .panel.status.expanded {
+    .session-box .status-panel.expanded {
         height: 200px;
         cursor: default;
     }
-    .session-box .panel.status .knob-bar {
+    .session-box .status-panel .knob-bar {
         display: flex;
     }
 }
-.session-box .panel p.uptime {
+.session-box .status-panel p.uptime {
     margin: 0;
     padding: 2px 6px;
     overflow: hidden;
@@ -654,11 +658,11 @@
     transition: background-color .15s ease, color .15s ease;
     max-width: 100%;
 }
-.session-box .panel p.uptime:hover {
+.session-box .status-panel p.uptime:hover {
     background-color: rgba(255, 255, 255, 0.4);
     color: #1a333d;
 }
-.session-box .panel p.uptime .icon {
+.session-box .status-panel p.uptime .icon {
     margin-right: 4px;
     font-size: .88em;
     opacity: 0.8;
@@ -794,17 +798,19 @@
     color: #c92a2a;
     font-weight: 700;
 }
-.session-box .panel.ground {
-    background-color: #eff5fa;
-    position: relative;
-}
-.session-box.is-table-view .panel.ground {
-    overflow: hidden;
-    padding: 0;
-}
-.session-box.is-table-view .panel.ground ul.sessions,
-.session-box.is-table-view .panel.ground .session-node-filter {
+.session-box.is-table-view .session-list-wrap,
+.session-box.is-table-view .session-node-filter {
     display: none;
+}
+.session-box .session-list-wrap {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    padding: 5px;
+    overflow-y: auto;
+    scrollbar-width: thin;
 }
 .session-box .session-table-wrap {
     position: absolute;
@@ -908,22 +914,21 @@
     background-color: rgba(0, 0, 0, 0.04);
     padding: 1px 4px;
     border-radius: 3px;
-    font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 }
 .session-box .session-node-filter {
     position: sticky;
     top: 0;
     z-index: 10;
     float: right;
-    margin-bottom: 4px;
     max-width: 100%;
-    display: inline-flex;
     flex-wrap: nowrap;
+    margin-bottom: 4px;
+    border-bottom: 1px solid #517386;
+    background-color: rgba(0, 0, 0, 0.12);
     overflow-x: auto;
     overflow-y: hidden;
     scrollbar-width: none;
     -ms-overflow-style: none;
-    background-color: rgba(0, 0, 0, 0.12);
 }
 .session-box .session-node-filter::-webkit-scrollbar {
     display: none;

@@ -106,7 +106,7 @@ const NotificationClient = (function () {
         });
 
         // Periodic background sync every 30 seconds
-        setInterval(refreshUnreadCount, 30000);
+        //setInterval(refreshUnreadCount, 30000);
 
         loadConfig();
         bindEvents();
@@ -445,8 +445,8 @@ const NotificationClient = (function () {
             if (res && res.data) {
                 updateBadge(res.data.unreadCount || 0);
             }
-            if (targetUrl && targetUrl !== './') {
-                window.location.href = targetUrl;
+            if (targetUrl && targetUrl !== '/') {
+                location.href = ctx + targetUrl;
             } else if (notificationId) {
                 loadHistory();
             }

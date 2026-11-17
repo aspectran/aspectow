@@ -3495,11 +3495,6 @@ class DashboardViewer {
 
     openSessionTableView($sessionBox) {
         if (!$sessionBox || !$sessionBox.length) return;
-        const $ground = $sessionBox.find(".panel.ground");
-        if ($ground.length) {
-            $ground.data("saved-scroll-top", $ground.scrollTop());
-            $ground.scrollTop(0);
-        }
         $sessionBox.addClass("is-table-view");
         $sessionBox.find(".stat-card.stat-users, .stat-card:has(.numberOfUsers)").addClass("active");
         this.renderSessionTable($sessionBox);
@@ -3510,22 +3505,14 @@ class DashboardViewer {
         $sessionBox.removeClass("is-table-view");
         $sessionBox.find(".stat-card.stat-users, .stat-card:has(.numberOfUsers)").removeClass("active");
         $sessionBox.find(".session-table-wrap").remove();
-        const $ground = $sessionBox.find(".panel.ground");
-        if ($ground.length) {
-            const savedScrollTop = $ground.data("saved-scroll-top");
-            if (savedScrollTop !== undefined) {
-                $ground.scrollTop(savedScrollTop);
-                $ground.removeData("saved-scroll-top");
-            }
-        }
     }
 
     renderSessionTable($sessionBox) {
         if (!$sessionBox || !$sessionBox.length) return;
-        const $ground = $sessionBox.find(".panel.ground");
+        const $ground = $sessionBox.find(".ground-panel");
         if (!$ground.length) return;
 
-        let $tableWrap = $ground.find(".session-table-wrap");
+        let $tableWrap = $ground.find(".session-table-wrap").show();
         if (!$tableWrap.length) {
             $tableWrap = $('<div class="session-table-wrap"></div>').appendTo($ground);
         }
@@ -5256,8 +5243,8 @@ class DashboardBuilder {
                 popup.focus();
             }
         });
-        $(document).off("click", ".session-box .panel.status")
-            .on("click", ".session-box .panel.status", function(e) {
+        $(document).off("click", ".session-box .status-panel")
+            .on("click", ".session-box .status-panel", function(e) {
                 if ($(e.target).closest(".uptime, .stat-card").length) return;
 
                 const $panel = $(this);
@@ -5304,8 +5291,8 @@ class DashboardBuilder {
                     });
                 }
             });
-        $(document).off("click", ".session-box .panel .uptime")
-            .on("click", ".session-box .panel .uptime", (e) => {
+        $(document).off("click", ".session-box .status-panel .uptime")
+            .on("click", ".session-box .status-panel .uptime", (e) => {
                 e.preventDefault();
                 this.uptimeMode = (this.uptimeMode === "uptime" ? "since" : "uptime");
                 this.renderUptime();
@@ -5518,7 +5505,7 @@ class DashboardBuilder {
     }
 
     renderUptime($uptime, startTime) {
-        const $targets = ($uptime && $uptime.length) ? $uptime : $(".session-box .panel .uptime");
+        const $targets = ($uptime && $uptime.length) ? $uptime : $(".session-box .status-panel .uptime");
         const mode = this.uptimeMode || "uptime";
 
         $targets.each((_, el) => {

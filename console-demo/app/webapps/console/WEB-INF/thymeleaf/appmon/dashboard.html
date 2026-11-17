@@ -106,7 +106,7 @@
                 <div class="session-box">
                     <div class="row g-0">
                         <div class="col-sm-12 col-md-3">
-                            <div class="panel status">
+                            <div class="status-panel">
                                 <div class="session-stats">
                                     <div class="stats-highlights">
                                         <div class="stat-card stat-users" title="Click to view active users table">
@@ -151,11 +151,14 @@
                             </div>
                         </div>
                         <div class="col-sm-12 col-md-9">
-                            <div class="panel ground">
-                                <div class="session-node-filter btn-group" style="display: none;">
-                                    <button type="button" class="btn btn-node on" data-node-id="">All</button>
+                            <div class="ground-panel">
+                                <div class="session-list-wrap">
+                                    <div class="session-node-filter btn-group" style="display: none;">
+                                        <button type="button" class="btn btn-node on" data-node-id="">All</button>
+                                    </div>
+                                    <ul class="sessions"></ul>
                                 </div>
-                                <ul class="sessions"></ul>
+                                <div class="session-table-wrap" style="display: none;"></div>
                             </div>
                         </div>
                     </div>

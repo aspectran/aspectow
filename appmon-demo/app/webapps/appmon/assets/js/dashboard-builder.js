@@ -910,8 +910,8 @@ class DashboardBuilder {
                 popup.focus();
             }
         });
-        $(document).off("click", ".session-box .panel.status")
-            .on("click", ".session-box .panel.status", function(e) {
+        $(document).off("click", ".session-box .status-panel")
+            .on("click", ".session-box .status-panel", function(e) {
                 if ($(e.target).closest(".uptime, .stat-card").length) return;
 
                 const $panel = $(this);
@@ -958,8 +958,8 @@ class DashboardBuilder {
                     });
                 }
             });
-        $(document).off("click", ".session-box .panel .uptime")
-            .on("click", ".session-box .panel .uptime", (e) => {
+        $(document).off("click", ".session-box .status-panel .uptime")
+            .on("click", ".session-box .status-panel .uptime", (e) => {
                 e.preventDefault();
                 this.uptimeMode = (this.uptimeMode === "uptime" ? "since" : "uptime");
                 this.renderUptime();
@@ -1172,7 +1172,7 @@ class DashboardBuilder {
     }
 
     renderUptime($uptime, startTime) {
-        const $targets = ($uptime && $uptime.length) ? $uptime : $(".session-box .panel .uptime");
+        const $targets = ($uptime && $uptime.length) ? $uptime : $(".session-box .status-panel .uptime");
         const mode = this.uptimeMode || "uptime";
 
         $targets.each((_, el) => {

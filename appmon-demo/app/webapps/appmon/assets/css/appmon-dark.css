@@ -131,25 +131,28 @@
     .control-bar .options .date-navigator .btn-date {
     }
 
-    .session-box .panel {
+    .session-box .status-panel {
         background-color: #2a2c2d;
     }
-    .session-box .panel.status .knob-bar {
+    .session-box .ground-panel {
+        background-color: #191c1d;
+    }
+    .session-box .status-panel .knob-bar {
         background: linear-gradient(to bottom, rgba(38, 50, 45, 0) 0%, rgb(40, 42, 43) 65%);
     }
-    .session-box .panel.status .knob {
+    .session-box .status-panel .knob {
         background-color: #455356;
         color: #e2e8f0;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
     }
-    .session-box .panel.status .knob-bar:hover .knob,
-    .session-box .panel.status .knob-bar:active .knob {
+    .session-box .status-panel .knob-bar:hover .knob,
+    .session-box .status-panel .knob-bar:active .knob {
         background-color: #384649;
     }
-    .session-box .panel p.uptime {
+    .session-box .status-panel p.uptime {
         color: #a6a9a8;
     }
-    .session-box .panel p.uptime:hover {
+    .session-box .status-panel p.uptime:hover {
         background-color: rgba(255, 255, 255, 0.08);
         color: #cbd5e1;
     }
@@ -209,9 +212,6 @@
     .session-box .stats-sub-grid .sub-item.rejected-item.has-rejected .number {
         color: #f87171;
     }
-    .session-box .panel.ground {
-        background-color: #191c1d;
-    }
     .session-box .session-table-wrap {
         background-color: #191c1d;
     }
@@ -246,6 +246,7 @@
         background-color: rgba(255, 255, 255, 0.06);
     }
     .session-box .session-node-filter {
+        border-bottom: 1px solid #363839;
         background-color: rgba(0, 0, 0, 0.4);
     }
     .session-box .session-node-filter .btn {

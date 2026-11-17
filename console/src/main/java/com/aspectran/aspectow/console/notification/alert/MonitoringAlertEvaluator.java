@@ -150,7 +150,7 @@ public class MonitoringAlertEvaluator extends InstantActivitySupport
                         "CRITICAL",
                         "Cluster Node Offline",
                         "Node '" + nodeId + "' has disconnected from the cluster.",
-                        "./cluster/nodes/"
+                        "/cluster/nodes/"
                 );
             }
         } else {
@@ -169,7 +169,7 @@ public class MonitoringAlertEvaluator extends InstantActivitySupport
                         "RESOLVED",
                         "Cluster Node Connected",
                         "Node '" + nodeId + "' has joined/reconnected to the cluster.",
-                        "./cluster/nodes/"
+                        "/cluster/nodes/"
                 );
             }
         } else {
@@ -251,7 +251,7 @@ public class MonitoringAlertEvaluator extends InstantActivitySupport
                         "CRITICAL",
                         title,
                         msg,
-                        "./appmon/dashboard/?nodeId=" + nodeId
+                        "/appmon/dashboard/?nodeId=" + nodeId
                 );
             }
             // If already ALERTING, suppress repeated alerts (Throttling)
@@ -269,7 +269,7 @@ public class MonitoringAlertEvaluator extends InstantActivitySupport
                         "RESOLVED",
                         title,
                         msg,
-                        "./appmon/dashboard/?nodeId=" + nodeId
+                        "/appmon/dashboard/?nodeId=" + nodeId
                 );
             }
         }
