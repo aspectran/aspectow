@@ -7,7 +7,7 @@
  * - Dynamic APIs, Commands, and WebSockets: Network-Only (never cached)
  */
 
-const CACHE_NAME = 'aspectow-console-v5';
+const CACHE_NAME = 'aspectow-console-v6';
 
 // Pre-cached critical assets
 const PRECACHE_URLS = [
@@ -127,4 +127,79 @@ self.addEventListener('fetch', (event) => {
             })
         );
     }
+});
+
+// --- Web Push & Notification Handlers ---
+
+self.addEventListener('push', (event) => {
+    let data = {
+        title: 'Aspectow Console',
+        body: 'A new system notification has arrived.',
+        icon: './assets/icons/icon-192x192.png',
+        badge: './assets/icons/icon-192x192.png',
+        targetUrl: './'
+    };
+
+    if (event.data) {
+        try {
+            data = Object.assign(data, event.data.json());
+        } catch (e) {
+            data.body = event.data.text();
+        }
+    }
+
+    console.log('[SW] Push event received:', data);
+
+    const options = {
+        body: data.body,
+        icon: data.icon,
+        badge: data.badge,
+        data: {
+            targetUrl: data.targetUrl,
+            timestamp: Date.now()
+        },
+        tag: data.tag || 'aspectow-notification',
+        renotify: true,
+        vibrate: [200, 100, 200]
+    };
+
+    const notifyPromise = self.registration.showNotification(data.title, options)
+        .catch((err) => console.error('[SW] showNotification error:', err));
+
+    const broadcastPromise = self.clients.matchAll({ type: 'window', includeUncontrolled: true })
+        .then((clientList) => {
+            for (const client of clientList) {
+                client.postMessage({
+                    type: 'PUSH_NOTIFICATION_RECEIVED',
+                    data: data
+                });
+            }
+        })
+        .catch((err) => console.error('[SW] broadcast error:', err));
+
+    event.waitUntil(Promise.all([notifyPromise, broadcastPromise]));
+});
+
+self.addEventListener('notificationclick', (event) => {
+    event.notification.close();
+
+    const targetUrl = event.notification.data ? event.notification.data.targetUrl : './';
+    const absoluteUrl = new URL(targetUrl, self.location.origin).href;
+
+    event.waitUntil(
+        clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+            for (const client of clientList) {
+                if (client.url.startsWith(self.location.origin) && 'focus' in client) {
+                    client.focus();
+                    if (targetUrl && client.navigate) {
+                        client.navigate(absoluteUrl);
+                    }
+                    return;
+                }
+            }
+            if (clients.openWindow) {
+                return clients.openWindow(absoluteUrl);
+            }
+        })
+    );
 });

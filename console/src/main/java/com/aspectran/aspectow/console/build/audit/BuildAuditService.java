@@ -16,6 +16,7 @@
 package com.aspectran.aspectow.console.build.audit;
 
 import com.aspectran.aspectow.console.build.manager.BuildExecutionInfo;
+import com.aspectran.aspectow.console.notification.NotificationService;
 import com.aspectran.core.activity.InstantActivitySupport;
 import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Bean;
@@ -61,6 +62,8 @@ public class BuildAuditService extends InstantActivitySupport {
 
     private final BuildHistoryMapper buildHistoryMapper;
 
+    private NotificationService notificationService;
+
     /**
      * Constructs a new BuildAuditService.
      * @param buildHistoryMapper the MyBatis mapper for build history and logs
@@ -68,6 +71,11 @@ public class BuildAuditService extends InstantActivitySupport {
     @Autowired
     public BuildAuditService(BuildHistoryMapper buildHistoryMapper) {
         this.buildHistoryMapper = buildHistoryMapper;
+    }
+
+    @Autowired(required = false)
+    public void setNotificationService(NotificationService notificationService) {
+        this.notificationService = notificationService;
     }
 
     /**
@@ -208,6 +216,29 @@ public class BuildAuditService extends InstantActivitySupport {
 
                 logger.info("Build audit record completed: historyId={}, executionId={}, status={}, lines={}, integrityHash={}",
                         history.getHistoryId(), history.getExecutionId(), history.getStatus(), lineCount, integrityHash);
+
+                if (notificationService != null) {
+                    try {
+                        boolean isSuccess = "SUCCESS".equalsIgnoreCase(history.getStatus())
+                                || (info.getExitCode() != null && info.getExitCode() == 0);
+                        String severity = isSuccess ? "INFO" : "CRITICAL";
+                        String title = isSuccess ? "Build Succeeded" : "Build Failed";
+                        String scriptName = StringUtils.hasText(history.getScriptName()) ? history.getScriptName() : "build";
+                        String branch = history.getGitBranch();
+                        String branchPart = StringUtils.hasText(branch) ? " on branch '" + branch + "'" : "";
+                        String msg;
+                        if (isSuccess) {
+                            msg = "Build script '" + scriptName + "'" + branchPart + " completed successfully.";
+                        } else {
+                            String err = history.getErrorSummary();
+                            msg = "Build script '" + scriptName + "'" + branchPart + " failed" +
+                                    (StringUtils.hasText(err) ? ": " + err : ".");
+                        }
+                        notificationService.dispatchNotification("BUILD", severity, title, msg, "./build/history/");
+                    } catch (Exception ex) {
+                        logger.warn("Failed to dispatch build notification: {}", ex.getMessage());
+                    }
+                }
                 return null;
             });
         } catch (Exception e) {

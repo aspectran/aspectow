@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.aspectran.aspectow.console.common.db.mapper.NotificationMapper">
+
+    <resultMap id="UserNotificationSettingResultMap" type="com.aspectran.aspectow.console.common.db.model.UserNotificationSetting">
+        <id property="userId" column="user_id" />
+        <result property="pushEnabled" column="push_enabled" />
+        <result property="cpuThreshold" column="cpu_threshold" />
+        <result property="memoryThreshold" column="memory_threshold" />
+        <result property="notifyNodeStatus" column="notify_node_status" />
+        <result property="notifySchedulerFail" column="notify_scheduler_fail" />
+        <result property="notifyBuildResult" column="notify_build_result" />
+        <result property="notifySecurityAlert" column="notify_security_alert" />
+        <result property="notifyCommandFinish" column="notify_command_finish" />
+        <result property="createdAt" column="created_at" />
+        <result property="updatedAt" column="updated_at" />
+    </resultMap>
+
+    <resultMap id="PushSubscriptionResultMap" type="com.aspectran.aspectow.console.common.db.model.PushSubscription">
+        <id property="subscriptionId" column="subscription_id" />
+        <result property="userId" column="user_id" />
+        <result property="endpoint" column="endpoint" />
+        <result property="p256dhKey" column="p256dh_key" />
+        <result property="authKey" column="auth_key" />
+        <result property="userAgent" column="user_agent" />
+        <result property="createdAt" column="created_at" />
+        <result property="lastActiveAt" column="last_active_at" />
+    </resultMap>
+
+    <resultMap id="NotificationHistoryResultMap" type="com.aspectran.aspectow.console.common.db.model.NotificationHistory">
+        <id property="notificationId" column="notification_id" />
+        <result property="userId" column="user_id" />
+        <result property="category" column="category" />
+        <result property="severity" column="severity" />
+        <result property="title" column="title" />
+        <result property="message" column="message" />
+        <result property="targetUrl" column="target_url" />
+        <result property="readYn" column="read_yn" />
+        <result property="createdAt" column="created_at" />
+    </resultMap>
+
+    <resultMap id="VapidKeyResultMap" type="com.aspectran.aspectow.console.common.db.model.VapidKey">
+        <id property="keyId" column="key_id" />
+        <result property="publicKey" column="public_key" />
+        <result property="privateKey" column="private_key" />
+        <result property="subject" column="subject" />
+        <result property="createdAt" column="created_at" />
+    </resultMap>
+
+    <!-- UserNotificationSetting -->
+    <select id="getNotificationSettingByUserId" parameterType="long" resultMap="UserNotificationSettingResultMap">
+        select * from asc_user_notification_setting where user_id = #{userId}
+    </select>
+
+    <insert id="insertNotificationSetting" parameterType="com.aspectran.aspectow.console.common.db.model.UserNotificationSetting">
+        insert into asc_user_notification_setting (
+            user_id, push_enabled, cpu_threshold, memory_threshold,
+            notify_node_status, notify_scheduler_fail, notify_build_result,
+            notify_security_alert, notify_command_finish, created_at, updated_at
+        ) values (
+            #{userId}, #{pushEnabled}, #{cpuThreshold}, #{memoryThreshold},
+            #{notifyNodeStatus}, #{notifySchedulerFail}, #{notifyBuildResult},
+            #{notifySecurityAlert}, #{notifyCommandFinish}, current_timestamp, current_timestamp
+        )
+    </insert>
+
+    <update id="updateNotificationSetting" parameterType="com.aspectran.aspectow.console.common.db.model.UserNotificationSetting">
+        update asc_user_notification_setting
+        set push_enabled = #{pushEnabled},
+            cpu_threshold = #{cpuThreshold},
+            memory_threshold = #{memoryThreshold},
+            notify_node_status = #{notifyNodeStatus},
+            notify_scheduler_fail = #{notifySchedulerFail},
+            notify_build_result = #{notifyBuildResult},
+            notify_security_alert = #{notifySecurityAlert},
+            notify_command_finish = #{notifyCommandFinish},
+            updated_at = current_timestamp
+        where user_id = #{userId}
+    </update>
+
+    <select id="getMinCpuThreshold" resultType="int">
+        select coalesce(min(cpu_threshold), 85)
+        from asc_user_notification_setting
+        where push_enabled = 'Y'
+    </select>
+
+    <select id="getMinMemoryThreshold" resultType="int">
+        select coalesce(min(memory_threshold), 85)
+        from asc_user_notification_setting
+        where push_enabled = 'Y'
+    </select>
+
+    <!-- VapidKey -->
+    <select id="getVapidKey" resultMap="VapidKeyResultMap">
+        select * from asc_vapid_key where key_id = 1
+    </select>
+
+    <insert id="insertVapidKey" parameterType="com.aspectran.aspectow.console.common.db.model.VapidKey">
+        insert into asc_vapid_key (
+            key_id, public_key, private_key, subject, created_at
+        ) values (
+            1, #{publicKey}, #{privateKey}, #{subject}, current_timestamp
+        )
+    </insert>
+
+    <!-- PushSubscription -->
+    <select id="getPushSubscriptionByEndpoint" parameterType="string" resultMap="PushSubscriptionResultMap">
+        select * from asc_push_subscription where endpoint = #{endpoint}
+    </select>
+
+    <select id="getPushSubscriptionsByUserId" parameterType="long" resultMap="PushSubscriptionResultMap">
+        select * from asc_push_subscription where user_id = #{userId} order by subscription_id desc
+    </select>
+
+    <select id="getAllActivePushSubscriptions" resultMap="PushSubscriptionResultMap">
+        select s.* from asc_push_subscription s
+        join asc_user_notification_setting uns on s.user_id = uns.user_id
+        where uns.push_enabled = 'Y'
+        order by s.subscription_id desc
+    </select>
+
+    <insert id="insertPushSubscription" parameterType="com.aspectran.aspectow.console.common.db.model.PushSubscription" useGeneratedKeys="true" keyProperty="subscriptionId">
+        insert into asc_push_subscription (
+            user_id, endpoint, p256dh_key, auth_key, user_agent, created_at, last_active_at
+        ) values (
+            #{userId}, #{endpoint}, #{p256dhKey}, #{authKey}, #{userAgent}, current_timestamp, current_timestamp
+        )
+    </insert>
+
+    <update id="updatePushSubscriptionLastActive" parameterType="string">
+        update asc_push_subscription
+        set last_active_at = current_timestamp
+        where endpoint = #{endpoint}
+    </update>
+
+    <delete id="deletePushSubscriptionByEndpoint" parameterType="string">
+        delete from asc_push_subscription where endpoint = #{endpoint}
+    </delete>
+
+    <delete id="deletePushSubscriptionsByUserId" parameterType="long">
+        delete from asc_push_subscription where user_id = #{userId}
+    </delete>
+
+    <!-- NotificationHistory -->
+    <select id="getNotificationHistoryList" resultMap="NotificationHistoryResultMap">
+        select * from asc_notification_history
+        where user_id = #{userId}
+        order by notification_id desc
+        limit #{limit}
+    </select>
+
+    <select id="getUnreadNotificationCount" parameterType="long" resultType="long">
+        select count(*) from asc_notification_history
+        where user_id = #{userId} and read_yn = 'N'
+    </select>
+
+    <insert id="insertNotificationHistory" parameterType="com.aspectran.aspectow.console.common.db.model.NotificationHistory" useGeneratedKeys="true" keyProperty="notificationId">
+        insert into asc_notification_history (
+            user_id, category, severity, title, message, target_url, read_yn, created_at
+        ) values (
+            #{userId}, #{category}, #{severity}, #{title}, #{message}, #{targetUrl}, 'N', current_timestamp
+        )
+    </insert>
+
+    <update id="markNotificationAsRead">
+        update asc_notification_history
+        set read_yn = 'Y'
+        where notification_id = #{notificationId} and user_id = #{userId}
+    </update>
+
+    <update id="markAllNotificationsAsRead" parameterType="long">
+        update asc_notification_history
+        set read_yn = 'Y'
+        where user_id = #{userId} and read_yn = 'N'
+    </update>
+
+    <delete id="deleteAllNotificationHistory" parameterType="long">
+        delete from asc_notification_history where user_id = #{userId}
+    </delete>
+
+</mapper>

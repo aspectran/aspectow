@@ -16,6 +16,7 @@
 package com.aspectran.aspectow.console.commands.bridge.websocket;
 
 import com.aspectran.aspectow.console.auth.ConsoleTokenIssuer;
+import com.aspectran.aspectow.console.notification.NotificationService;
 import com.aspectran.aspectow.node.management.commands.CommandRequestParameters;
 import com.aspectran.aspectow.node.management.commands.CommandResponseParameters;
 import com.aspectran.aspectow.node.management.commands.RemoteCommandManager;
@@ -54,6 +55,8 @@ public class WebsocketCommandBridge extends SimplifiedEndpoint implements Comman
 
     private final RemoteCommandManager remoteCommandManager;
 
+    private NotificationService notificationService;
+
     /**
      * Constructs a new {@code WebsocketCommandBridge} with the specified remote
      * command manager and node manager.
@@ -62,6 +65,11 @@ public class WebsocketCommandBridge extends SimplifiedEndpoint implements Comman
     @Autowired
     public WebsocketCommandBridge(RemoteCommandManager remoteCommandManager) {
         this.remoteCommandManager = remoteCommandManager;
+    }
+
+    @Autowired(required = false)
+    public void setNotificationService(NotificationService notificationService) {
+        this.notificationService = notificationService;
     }
 
     /**
@@ -230,6 +238,7 @@ public class WebsocketCommandBridge extends SimplifiedEndpoint implements Comman
     public void bridge(String message) {
         if (message != null) {
             broadcast(message);
+            checkCommandResult(message);
         }
     }
 
@@ -242,6 +251,35 @@ public class WebsocketCommandBridge extends SimplifiedEndpoint implements Comman
     public void bridge(@NonNull CommandSession session, String message) {
         if (message != null && session instanceof WebsocketCommandSession websocketCommandSession) {
             sendText(websocketCommandSession.getSession(), message);
+            checkCommandResult(message);
+        }
+    }
+
+    private void checkCommandResult(String message) {
+        if (notificationService != null && message != null) {
+            try {
+                CommandResponseParameters res = new CommandResponseParameters();
+                res.readFrom(message);
+                String header = res.getHeader();
+                if ("result".equals(header)) {
+                    String node = StringUtils.hasText(res.getNodeId()) ? res.getNodeId() : "cluster";
+                    boolean hasError = StringUtils.hasText(res.getError());
+                    String severity = hasError ? "WARN" : "INFO";
+                    String title = hasError ? "Remote Command Warning" : "Remote Command Completed";
+                    String msg = hasError
+                            ? "Remote command on node '" + node + "' returned error: " + res.getError()
+                            : "Remote command on node '" + node + "' finished successfully.";
+                    notificationService.dispatchNotification(
+                            "COMMAND",
+                            severity,
+                            title,
+                            msg,
+                            "./cluster/commands/"
+                    );
+                }
+            } catch (Exception e) {
+                // Ignore parse errors
+            }
         }
     }
 

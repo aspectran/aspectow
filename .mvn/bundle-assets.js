@@ -72,6 +72,24 @@ function getAssetDir(prefix, targetVersion) {
     return path.join(assetsDir, latest);
 }
 
+function findBinary(name, fallbackCmd) {
+    try {
+        const result = execSync(`which ${name}`, { stdio: ["pipe", "pipe", "ignore"] }).toString().trim();
+        if (result) return result;
+    } catch (e) {}
+    const home = process.env.HOME || "";
+    if (home) {
+        const npxDir = path.join(home, ".npm", "_npx");
+        if (fs.existsSync(npxDir)) {
+            for (const sub of fs.readdirSync(npxDir)) {
+                const binPath = path.join(npxDir, sub, "node_modules", ".bin", name);
+                if (fs.existsSync(binPath)) return binPath;
+            }
+        }
+    }
+    return fallbackCmd;
+}
+
 function bundleJsFiles(srcDir, fileList, outputBundleName, destDirs) {
     console.log(`[bundle-assets] Bundling JS (${srcDir}) -> ${outputBundleName}.js ...`);
     let bundleContent = licenseHeader + "\n";
@@ -95,7 +113,8 @@ function bundleJsFiles(srcDir, fileList, outputBundleName, destDirs) {
     const minFile = path.join(srcDir, `${outputBundleName}.min.js`);
     try {
         console.log(`[bundle-assets] Minifying ${outputBundleName}.js with terser...`);
-        execSync(`npx --yes terser "${bundleFile}" -o "${minFile}" --comments "/^!/"`, {
+        const terserCmd = findBinary("terser", "npx --yes terser");
+        execSync(`"${terserCmd}" "${bundleFile}" -o "${minFile}" --comments "/^!/"`, {
             stdio: "inherit"
         });
         const minContent = fs.readFileSync(minFile, "utf-8");
@@ -142,7 +161,8 @@ function bundleCssFiles(srcDir, fileList, outputBundleName, destDirs) {
     const minFile = path.join(srcDir, `${outputBundleName}.min.css`);
     try {
         console.log(`[bundle-assets] Minifying ${outputBundleName}.css with esbuild...`);
-        execSync(`npx --yes esbuild "${bundleFile}" --minify --outfile="${minFile}"`, {
+        const esbuildCmd = findBinary("esbuild", "npx --yes esbuild");
+        execSync(`"${esbuildCmd}" "${bundleFile}" --minify --outfile="${minFile}"`, {
             stdio: "inherit"
         });
         const minContent = fs.readFileSync(minFile, "utf-8");
@@ -217,7 +237,8 @@ const consoleJsFiles = [
     "console-common.js",
     "apon.js",
     "apon-highlighter.js",
-    "console-client.js"
+    "console-client.js",
+    "notification-client.js"
 ];
 const consoleCssFiles = [
     "console.css"

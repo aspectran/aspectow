@@ -16,6 +16,7 @@
 package com.aspectran.aspectow.console.scheduler.bridge.websocket;
 
 import com.aspectran.aspectow.console.auth.ConsoleTokenIssuer;
+import com.aspectran.aspectow.console.notification.NotificationService;
 import com.aspectran.aspectow.node.management.scheduler.RemoteSchedulerManager;
 import com.aspectran.aspectow.node.management.scheduler.SchedulerRequestParameters;
 import com.aspectran.aspectow.node.management.scheduler.SchedulerResponseParameters;
@@ -52,6 +53,8 @@ public class WebsocketSchedulerBridge extends SimplifiedEndpoint implements Sche
 
     private final RemoteSchedulerManager remoteSchedulerManager;
 
+    private NotificationService notificationService;
+
     /**
      * Constructs a new {@code WebsocketSchedulerBridge} with the specified scheduler manager.
      * @param remoteSchedulerManager the scheduler manager to handle scheduler operations
@@ -59,6 +62,11 @@ public class WebsocketSchedulerBridge extends SimplifiedEndpoint implements Sche
     @Autowired
     public WebsocketSchedulerBridge(RemoteSchedulerManager remoteSchedulerManager) {
         this.remoteSchedulerManager = remoteSchedulerManager;
+    }
+
+    @Autowired(required = false)
+    public void setNotificationService(NotificationService notificationService) {
+        this.notificationService = notificationService;
     }
 
     /**
@@ -185,6 +193,22 @@ public class WebsocketSchedulerBridge extends SimplifiedEndpoint implements Sche
             SchedulerResponseParameters response = new SchedulerResponseParameters()
                     .setError(e.getMessage());
             sendText(session, response.toString());
+
+            if (notificationService != null) {
+                try {
+                    String targetNode = request.getTargetNodeId();
+                    String nodePart = StringUtils.hasText(targetNode) ? " on node '" + targetNode + "'" : "";
+                    notificationService.dispatchNotification(
+                            "SCHEDULER",
+                            "WARN",
+                            "Scheduler Job Failed",
+                            "Scheduler operation" + nodePart + " failed: " + e.getMessage(),
+                            "./cluster/scheduler/"
+                    );
+                } catch (Exception ex) {
+                    // ignore
+                }
+            }
         }
     }
 
@@ -207,6 +231,7 @@ public class WebsocketSchedulerBridge extends SimplifiedEndpoint implements Sche
     public void bridge(String message) {
         if (message != null) {
             broadcast(message);
+            checkSchedulerError(message);
         }
     }
 
@@ -219,6 +244,29 @@ public class WebsocketSchedulerBridge extends SimplifiedEndpoint implements Sche
     public void bridge(@NonNull SchedulerSession session, String message) {
         if (session instanceof WebsocketSchedulerSession websocketSchedulerSession) {
             sendText(websocketSchedulerSession.getSession(), message);
+            checkSchedulerError(message);
+        }
+    }
+
+    private void checkSchedulerError(String message) {
+        if (notificationService != null && message != null && message.contains("error")) {
+            try {
+                SchedulerResponseParameters res = new SchedulerResponseParameters();
+                res.readFrom(message);
+                String error = res.getString(SchedulerResponseParameters.error);
+                if (StringUtils.hasText(error)) {
+                    String node = StringUtils.hasText(res.getNodeId()) ? res.getNodeId() : "cluster";
+                    notificationService.dispatchNotification(
+                            "SCHEDULER",
+                            "WARN",
+                            "Scheduler Job Failed",
+                            "Scheduler error on node '" + node + "': " + error,
+                            "./cluster/scheduler/"
+                    );
+                }
+            } catch (Exception e) {
+                // Ignore parse errors as message might be a non-error payload
+            }
         }
     }
 

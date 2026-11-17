@@ -241,6 +241,74 @@ create table if not exists asc_build_log (
 
 comment on table asc_build_log is 'Build and Deployment Console Output Logs';
 
+-- User Notification Preferences
+create table if not exists asc_user_notification_setting (
+    user_id bigint not null,
+    push_enabled char(1) default 'Y' not null,
+    cpu_threshold int default 85 not null,
+    memory_threshold int default 85 not null,
+    notify_node_status char(1) default 'Y' not null,
+    notify_scheduler_fail char(1) default 'Y' not null,
+    notify_build_result char(1) default 'Y' not null,
+    notify_security_alert char(1) default 'Y' not null,
+    notify_command_finish char(1) default 'Y' not null,
+    created_at timestamp default current_timestamp not null,
+    updated_at timestamp default current_timestamp not null,
+    primary key (user_id),
+    foreign key (user_id) references asc_user(user_id) on delete cascade
+);
+
+comment on table asc_user_notification_setting is 'User Notification Preferences';
+
+-- Web Push Subscriptions
+create table if not exists asc_push_subscription (
+    subscription_id bigserial not null,
+    user_id bigint not null,
+    endpoint varchar(500) not null unique,
+    p256dh_key varchar(200) not null,
+    auth_key varchar(100) not null,
+    user_agent varchar(500),
+    created_at timestamp default current_timestamp not null,
+    last_active_at timestamp default current_timestamp not null,
+    primary key (subscription_id),
+    foreign key (user_id) references asc_user(user_id) on delete cascade
+);
+
+create index if not exists idx_push_sub_user on asc_push_subscription(user_id);
+
+comment on table asc_push_subscription is 'Web Push Subscriptions';
+
+-- In-app Notification History
+create table if not exists asc_notification_history (
+    notification_id bigserial not null,
+    user_id bigint not null,
+    category varchar(30) not null,
+    severity varchar(10) default 'INFO' not null,
+    title varchar(200) not null,
+    message varchar(1000) not null,
+    target_url varchar(500),
+    read_yn char(1) default 'N' not null,
+    created_at timestamp default current_timestamp not null,
+    primary key (notification_id),
+    foreign key (user_id) references asc_user(user_id) on delete cascade
+);
+
+create index if not exists idx_notif_hist_user_read on asc_notification_history(user_id, read_yn, created_at desc);
+
+comment on table asc_notification_history is 'In-app Notification History';
+
+-- Web Push VAPID Key Pair (Shared across all cluster nodes)
+create table if not exists asc_vapid_key (
+    key_id int default 1 not null,
+    public_key varchar(200) not null,
+    private_key varchar(200) not null,
+    subject varchar(200) default 'mailto:admin@aspectran.com' not null,
+    created_at timestamp default current_timestamp not null,
+    primary key (key_id)
+);
+
+comment on table asc_vapid_key is 'Web Push VAPID Key Pair (Shared across cluster nodes)';
+
 -- Initial data
 insert into asc_role (role_name, description) values ('SUPER_ADMIN', 'Super administrator with full access') on conflict (role_name) do nothing;
 insert into asc_role (role_name, description) values ('ADMIN', 'Administrator with limited management access') on conflict (role_name) do nothing;

@@ -22,6 +22,7 @@ import com.aspectran.aspectow.console.common.db.model.Permission;
 import com.aspectran.aspectow.console.common.db.model.Role;
 import com.aspectran.aspectow.console.common.db.model.User;
 import com.aspectran.aspectow.console.common.pagination.PageInfo;
+import com.aspectran.aspectow.console.notification.NotificationService;
 import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Component;
 import com.aspectran.core.component.bean.aware.EnvironmentAware;
@@ -43,6 +44,8 @@ public class UserServiceImpl implements UserService, EnvironmentAware {
 
     private final AccountMapper accountMapper;
 
+    private NotificationService notificationService;
+
     private static final int MAX_FAILED_ATTEMPTS = 5;
 
     private Environment environment;
@@ -50,6 +53,11 @@ public class UserServiceImpl implements UserService, EnvironmentAware {
     @Autowired
     public UserServiceImpl(AccountMapper accountMapper) {
         this.accountMapper = accountMapper;
+    }
+
+    @Autowired(required = false)
+    public void setNotificationService(NotificationService notificationService) {
+        this.notificationService = notificationService;
     }
 
     @Override
@@ -223,6 +231,8 @@ public class UserServiceImpl implements UserService, EnvironmentAware {
                     user.setFailedAttempts(failedAttempts);
                     if (failedAttempts >= MAX_FAILED_ATTEMPTS) {
                         user.setStatus("LOCKED");
+                        recordAuditLog(username, "USER_LOCKED", "User: " + username,
+                                "Account locked after " + failedAttempts + " consecutive failed login attempts", ipAddress);
                     }
                     accountMapper.updateUser(user);
                 }
@@ -248,6 +258,38 @@ public class UserServiceImpl implements UserService, EnvironmentAware {
         auditLog.setDetails(details);
         auditLog.setIpAddress(ipAddress);
         accountMapper.insertAuditLog(auditLog);
+
+        if (notificationService != null) {
+            try {
+                if ("LOGIN_FAILED_UNALLOWED_IP".equals(eventType)) {
+                    notificationService.dispatchNotification(
+                            "SECURITY",
+                            "WARN",
+                            "Unallowed IP Access",
+                            "Login attempt for user '" + username + "' from unallowed IP (" + ipAddress + ").",
+                            "./security/audit/"
+                    );
+                } else if ("REMEMBER_ME_THEFT_DETECTED".equals(eventType)) {
+                    notificationService.dispatchNotification(
+                            "SECURITY",
+                            "CRITICAL",
+                            "Token Theft Detected",
+                            "Suspicious Remember-Me token usage detected for user '" + username + "'.",
+                            "./security/audit/"
+                    );
+                } else if ("USER_LOCKED".equals(eventType)) {
+                    notificationService.dispatchNotification(
+                            "SECURITY",
+                            "WARN",
+                            "Account Locked",
+                            "Account '" + username + "' was locked due to consecutive failed login attempts.",
+                            "./user/list/"
+                    );
+                }
+            } catch (Exception e) {
+                // Ignore notification error so audit log persistence is never blocked
+            }
+        }
     }
 
     @Override

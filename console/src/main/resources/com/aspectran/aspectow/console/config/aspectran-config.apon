@@ -17,6 +17,7 @@ context: {
         com.aspectran.aspectow.console.scheduler
         com.aspectran.aspectow.console.user
         com.aspectran.aspectow.console.vault
+        com.aspectran.aspectow.console.notification
     ]
     profiles: {
         base: [

@@ -188,6 +188,14 @@
                     <span class="d-none d-md-inline" style="font-size: 0.8rem;">Install</span>
                 </button>
 
+                <!-- Notification Button -->
+                <button class="btn border-0 bg-transparent text-body position-relative px-2" id="notif-btn" type="button" data-bs-toggle="modal" data-bs-target="#notificationModal" title="Notifications">
+                    <i class="bi bi-bell fs-5"></i>
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none" id="notif-badge" style="font-size: 0.65rem; transform: translate(-45%, 25%) !important;">
+                        0
+                    </span>
+                </button>
+
                 <!-- About Console Button -->
                 <button class="btn border-0 bg-transparent text-body" type="button" data-bs-toggle="modal" data-bs-target="#aboutConsoleModal" title="About Aspectow Console">
                     <i class="bi bi-question-circle fs-5"></i>
@@ -216,6 +224,146 @@
             </div>
         </main>
     </div>
+    <!-- Notification Modal -->
+    <div class="modal fade" id="notificationModal" tabindex="-1" aria-labelledby="notificationModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content shadow">
+                <div class="modal-header pb-0 border-bottom-0">
+                    <ul class="nav nav-tabs card-header-tabs w-100 border-bottom" id="notifModalTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active fw-bold text-body" id="notif-history-tab" data-bs-toggle="tab" data-bs-target="#notif-history-pane" type="button" role="tab" aria-selected="true">
+                                <i class="bi bi-bell me-1"></i> Notifications
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link fw-bold text-body" id="notif-settings-tab" data-bs-toggle="tab" data-bs-target="#notif-settings-pane" type="button" role="tab" aria-selected="false">
+                                <i class="bi bi-gear me-1"></i> Settings
+                            </button>
+                        </li>
+                        <li class="nav-item ms-auto">
+                            <button type="button" class="btn-close mb-2" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </li>
+                    </ul>
+                </div>
+                <div class="modal-body p-0">
+                    <div class="tab-content" id="notifModalTabContent">
+                        <!-- History Tab Pane -->
+                        <div class="tab-pane fade show active p-3" id="notif-history-pane" role="tabpanel">
+                            <div class="d-flex justify-content-between align-items-center mb-3 px-2">
+                                <span class="small text-muted">Recent system notifications and alerts.</span>
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-sm btn-outline-secondary" id="notif-mark-all-read" type="button">
+                                        <i class="bi bi-check2-all me-1"></i> Mark All as Read
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger" id="notif-clear-history" type="button">
+                                        <i class="bi bi-trash me-1"></i> Clear
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="list-group list-group-flush border rounded overflow-y-auto" id="notif-history-list" style="max-height: 400px;">
+                                <!-- Notification items injected here -->
+                            </div>
+                            <div class="text-center py-5 text-muted d-none" id="notif-history-empty">
+                                <i class="bi bi-bell-slash fs-1 d-block mb-2 text-secondary opacity-50"></i>
+                                <span>No notifications received.</span>
+                            </div>
+                        </div>
+
+                        <!-- Settings Tab Pane -->
+                        <div class="tab-pane fade p-4" id="notif-settings-pane" role="tabpanel">
+                            <form id="notif-settings-form" onsubmit="return false;">
+                                <!-- Master Push Toggle -->
+                                <div class="d-flex align-items-center justify-content-between p-3 rounded bg-body-tertiary border mb-4">
+                                    <div>
+                                        <div class="fw-bold">Web Push Notifications (This Device)</div>
+                                        <div class="small text-muted">Receive OS-level alerts even when the browser or PWA is in the background.</div>
+                                        <div id="notif-perm-notice" class="d-none"></div>
+                                    </div>
+                                    <div class="form-check form-switch fs-4 mb-0">
+                                        <input class="form-check-input" type="checkbox" id="notif-push-toggle" role="switch">
+                                    </div>
+                                </div>
+
+                                <!-- Monitoring Thresholds -->
+                                <div class="mb-4">
+                                    <h6 class="fw-bold text-uppercase small text-muted mb-3" style="letter-spacing: 0.5px;">
+                                        <i class="bi bi-speedometer2 me-1"></i> Monitoring Alert Thresholds
+                                    </h6>
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <label for="notif-cpu-threshold" class="form-label small fw-semibold">CPU Usage Alert Threshold (%)</label>
+                                            <div class="input-group input-group-sm">
+                                                <input type="number" class="form-control" id="notif-cpu-threshold" min="10" max="100" value="85">
+                                                <span class="input-group-text">% or higher</span>
+                                            </div>
+                                            <div class="form-text" style="font-size: 0.75rem;">Fires once upon exceeding, and once upon normal recovery.</div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="notif-mem-threshold" class="form-label small fw-semibold">Memory Usage Alert Threshold (%)</label>
+                                            <div class="input-group input-group-sm">
+                                                <input type="number" class="form-control" id="notif-mem-threshold" min="10" max="100" value="85">
+                                                <span class="input-group-text">% or higher</span>
+                                            </div>
+                                            <div class="form-text" style="font-size: 0.75rem;">Fires once upon exceeding, and once upon normal recovery.</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Event Categories -->
+                                <div class="mb-4">
+                                    <h6 class="fw-bold text-uppercase small text-muted mb-3" style="letter-spacing: 0.5px;">
+                                        <i class="bi bi-bell-fill me-1"></i> Notification Event Sources
+                                    </h6>
+                                    <div class="row g-2">
+                                        <div class="col-sm-6">
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="notif-node-status" checked>
+                                                <label class="form-check-label small" for="notif-node-status">Cluster Node Offline (Node Down)</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="notif-sched-fail" checked>
+                                                <label class="form-check-label small" for="notif-sched-fail">Scheduler Job Failure / Exception</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="notif-build-result" checked>
+                                                <label class="form-check-label small" for="notif-build-result">Build &amp; Deployment Completion / Failure</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="notif-security-alert" checked>
+                                                <label class="form-check-label small" for="notif-security-alert">Security Audit &amp; Login Anomaly</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="notif-cmd-finish" checked>
+                                                <label class="form-check-label small" for="notif-cmd-finish">Remote Batch Commands Completion</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+                                    <button class="btn btn-sm btn-outline-secondary" id="notif-test-btn" type="button" disabled>
+                                        <i class="bi bi-send me-1"></i> Send Test Notification
+                                    </button>
+                                    <button class="btn btn-sm btn-primary px-3" id="notif-save-btn" type="button">
+                                        <i class="bi bi-check-lg me-1"></i> Save Settings
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- About Console Modal -->
     <div class="modal fade" id="aboutConsoleModal" tabindex="-1" aria-labelledby="aboutConsoleModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
