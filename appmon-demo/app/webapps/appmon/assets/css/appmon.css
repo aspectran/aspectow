@@ -798,6 +798,14 @@
     background-color: #eff5fa;
     position: relative;
 }
+.session-box.is-table-view .panel.ground {
+    overflow: hidden;
+    padding: 0;
+}
+.session-box.is-table-view .panel.ground ul.sessions,
+.session-box.is-table-view .panel.ground .session-node-filter {
+    display: none;
+}
 .session-box .session-table-wrap {
     position: absolute;
     top: 0;

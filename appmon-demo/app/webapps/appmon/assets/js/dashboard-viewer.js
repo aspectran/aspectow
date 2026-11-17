@@ -1053,6 +1053,11 @@ class DashboardViewer {
 
     openSessionTableView($sessionBox) {
         if (!$sessionBox || !$sessionBox.length) return;
+        const $ground = $sessionBox.find(".panel.ground");
+        if ($ground.length) {
+            $ground.data("saved-scroll-top", $ground.scrollTop());
+            $ground.scrollTop(0);
+        }
         $sessionBox.addClass("is-table-view");
         $sessionBox.find(".stat-card.stat-users, .stat-card:has(.numberOfUsers)").addClass("active");
         this.renderSessionTable($sessionBox);
@@ -1063,6 +1068,14 @@ class DashboardViewer {
         $sessionBox.removeClass("is-table-view");
         $sessionBox.find(".stat-card.stat-users, .stat-card:has(.numberOfUsers)").removeClass("active");
         $sessionBox.find(".session-table-wrap").remove();
+        const $ground = $sessionBox.find(".panel.ground");
+        if ($ground.length) {
+            const savedScrollTop = $ground.data("saved-scroll-top");
+            if (savedScrollTop !== undefined) {
+                $ground.scrollTop(savedScrollTop);
+                $ground.removeData("saved-scroll-top");
+            }
+        }
     }
 
     renderSessionTable($sessionBox) {
