@@ -104,6 +104,13 @@ public interface NotificationMapper {
     List<Long> getAllActiveUserIds();
 
     /**
+     * Retrieves active user IDs who have configured notification settings and possess the specified permission.
+     * @param permission the permission code (e.g. COMMAND_EXECUTE, BUILD_VIEW)
+     * @return the list of user IDs
+     */
+    List<Long> getUserIdsByPermission(String permission);
+
+    /**
      * Retrieves all active push subscriptions.
      * @return the list of all active push subscriptions
      */
@@ -241,6 +248,11 @@ public interface NotificationMapper {
         @Override
         public List<Long> getAllActiveUserIds() {
             return mapper().getAllActiveUserIds();
+        }
+
+        @Override
+        public List<Long> getUserIdsByPermission(String permission) {
+            return mapper().getUserIdsByPermission(permission);
         }
 
         @Override

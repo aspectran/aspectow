@@ -288,7 +288,7 @@
                                 </div>
 
                                 <!-- Monitoring Thresholds -->
-                                <div class="mb-4">
+                                <div class="mb-4" id="notif-thresholds-sec">
                                     <h6 class="fw-bold text-uppercase small text-muted mb-3" style="letter-spacing: 0.5px;">
                                         <i class="bi bi-speedometer2 me-1"></i> Monitoring Alert Thresholds
                                     </h6>
@@ -313,41 +313,44 @@
                                 </div>
 
                                 <!-- Event Categories -->
-                                <div class="mb-4">
+                                <div class="mb-4" id="notif-events-sec">
                                     <h6 class="fw-bold text-uppercase small text-muted mb-3" style="letter-spacing: 0.5px;">
                                         <i class="bi bi-bell-fill me-1"></i> Notification Event Sources
                                     </h6>
-                                    <div class="row g-2">
-                                        <div class="col-sm-6">
+                                    <div class="row g-2" id="notif-events-row">
+                                        <div class="col-sm-6" id="notif-item-node-status">
                                             <div class="form-check form-switch">
                                                 <input class="form-check-input" type="checkbox" id="notif-node-status" checked>
                                                 <label class="form-check-label small" for="notif-node-status">Cluster Node Offline (Node Down)</label>
                                             </div>
                                         </div>
-                                        <div class="col-sm-6">
+                                        <div class="col-sm-6" id="notif-item-sched-fail">
                                             <div class="form-check form-switch">
                                                 <input class="form-check-input" type="checkbox" id="notif-sched-fail" checked>
                                                 <label class="form-check-label small" for="notif-sched-fail">Scheduler Job Failure / Exception</label>
                                             </div>
                                         </div>
-                                        <div class="col-sm-6">
+                                        <div class="col-sm-6" id="notif-item-build-result">
                                             <div class="form-check form-switch">
                                                 <input class="form-check-input" type="checkbox" id="notif-build-result" checked>
                                                 <label class="form-check-label small" for="notif-build-result">Build &amp; Deployment Completion / Failure</label>
                                             </div>
                                         </div>
-                                        <div class="col-sm-6">
+                                        <div class="col-sm-6" id="notif-item-security-alert">
                                             <div class="form-check form-switch">
                                                 <input class="form-check-input" type="checkbox" id="notif-security-alert" checked>
                                                 <label class="form-check-label small" for="notif-security-alert">Security Audit &amp; Login Anomaly</label>
                                             </div>
                                         </div>
-                                        <div class="col-sm-6">
+                                        <div class="col-sm-6" id="notif-item-cmd-finish">
                                             <div class="form-check form-switch">
                                                 <input class="form-check-input" type="checkbox" id="notif-cmd-finish" checked>
                                                 <label class="form-check-label small" for="notif-cmd-finish">Remote Batch Commands Completion</label>
                                             </div>
                                         </div>
+                                    </div>
+                                    <div id="notif-no-events-notice" class="small text-muted p-3 bg-body-tertiary rounded border text-center d-none">
+                                        <i class="bi bi-info-circle me-1"></i> No configurable notification categories available for your current role.
                                     </div>
                                 </div>
 

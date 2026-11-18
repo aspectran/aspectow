@@ -92,6 +92,8 @@ public class NotificationActivity {
         data.put("vapidPublicKey", vapidPublicKey);
         data.put("setting", setting);
         data.put("unreadCount", unreadCount);
+        data.put("permissions", userInfo.getPermissions());
+        data.put("roles", userInfo.getRoles());
 
         return new SuccessResponse(data).ok();
     }

@@ -219,12 +219,16 @@ public class NotificationServiceImpl extends NotificationSupport implements Noti
         }
         dispatchExecutor.submit(() -> {
             try {
-                // Step 1: Record in-app notification history for all eligible configured users
+                // Step 1: Record in-app notification history for all eligible configured users with permission
                 Set<Long> allowedUserIds = new HashSet<>();
                 instantActivity(() -> {
-                    List<Long> configuredUserIds = notificationMapper.getAllActiveUserIds();
-                    if (configuredUserIds != null) {
-                        for (Long userId : configuredUserIds) {
+                    String requiredPerm = getRequiredPermission(category);
+                    List<Long> candidateUserIds = (requiredPerm != null)
+                            ? notificationMapper.getUserIdsByPermission(requiredPerm)
+                            : notificationMapper.getAllActiveUserIds();
+
+                    if (candidateUserIds != null) {
+                        for (Long userId : candidateUserIds) {
                             UserNotificationSetting setting = notificationMapper.getNotificationSettingByUserId(userId);
                             if (setting != null && isCategoryAllowed(setting, category)) {
                                 allowedUserIds.add(userId);
@@ -317,10 +321,24 @@ public class NotificationServiceImpl extends NotificationSupport implements Noti
         });
     }
 
+    protected String getRequiredPermission(String category) {
+        if (category == null) {
+            return null;
+        }
+        return switch (category.toUpperCase()) {
+            case "NODE", "MONITORING", "SYSTEM" -> "MONITOR_VIEW";
+            case "COMMAND" -> "COMMAND_EXECUTE";
+            case "BUILD" -> "BUILD_VIEW";
+            case "SECURITY" -> "USER_MANAGE";
+            case "SCHEDULER" -> "NODE_MANAGE";
+            default -> null;
+        };
+    }
+
     private boolean isCategoryAllowed(UserNotificationSetting setting, String category) {
         if (category == null) return true;
         return switch (category.toUpperCase()) {
-            case "MONITORING" -> setting.isNotifyNodeStatusEnabled();
+            case "NODE", "MONITORING", "SYSTEM" -> setting.isNotifyNodeStatusEnabled();
             case "SCHEDULER" -> setting.isNotifySchedulerFailEnabled();
             case "BUILD" -> setting.isNotifyBuildResultEnabled();
             case "SECURITY" -> setting.isNotifySecurityAlertEnabled();

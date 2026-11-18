@@ -122,6 +122,18 @@
         order by uns.user_id asc
     </select>
 
+    <select id="getUserIdsByPermission" parameterType="string" resultType="long">
+        select distinct uns.user_id
+        from asc_user_notification_setting uns
+        join asc_user u on uns.user_id = u.user_id
+        join asc_user_role ur on u.user_id = ur.user_id
+        join asc_role_permission rp on ur.role_id = rp.role_id
+        join asc_permission p on rp.perm_id = p.perm_id
+        where (u.status is null or u.status = 'NORMAL')
+          and p.perm_code = #{permission}
+        order by uns.user_id asc
+    </select>
+
     <select id="getAllActivePushSubscriptions" resultMap="PushSubscriptionResultMap">
         select s.* from asc_push_subscription s
         join asc_user_notification_setting uns on s.user_id = uns.user_id

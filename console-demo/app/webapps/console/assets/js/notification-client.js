@@ -20,6 +20,7 @@
 const NotificationClient = (function () {
     let vapidPublicKey = null;
     let currentSetting = null;
+    let userPermissions = null;
     let swRegistration = null;
     let webPushEnabled = true;
 
@@ -133,6 +134,9 @@ const NotificationClient = (function () {
                     webPushEnabled = (res.data.webPushEnabled !== false);
                     vapidPublicKey = res.data.vapidPublicKey;
                     currentSetting = res.data.setting;
+                    if (res.data.permissions && Array.isArray(res.data.permissions)) {
+                        userPermissions = new Set(res.data.permissions);
+                    }
                     updateBadge(res.data.unreadCount || 0);
                     populateSettingsForm(currentSetting);
                 }
@@ -140,6 +144,10 @@ const NotificationClient = (function () {
             .catch(err => {
                 console.warn('[NotificationClient] Failed to load notification config:', err);
             });
+    }
+
+    function hasPermission(requiredPermission) {
+        return (userPermissions && userPermissions.has(requiredPermission));
     }
 
     function populateSettingsForm(setting) {
@@ -161,7 +169,59 @@ const NotificationClient = (function () {
             if (cmdChk) cmdChk.checked = setting.notifyCommandFinish === 'Y';
         }
 
+        applyPermissionFilters();
         checkPushSubscriptionState();
+    }
+
+    function applyPermissionFilters() {
+        // Monitoring alert thresholds section
+        const thresholdsSec = document.getElementById('notif-thresholds-sec');
+        const canViewMonitoring = hasPermission('MONITOR_VIEW') || hasPermission('MONITOR_CONTROL');
+        if (thresholdsSec) {
+            if (canViewMonitoring) {
+                thresholdsSec.classList.remove('d-none');
+            } else {
+                thresholdsSec.classList.add('d-none');
+            }
+        }
+
+        // Notification event source items
+        const eventItems = [
+            { id: 'notif-item-node-status', chkId: 'notif-node-status', perm: 'MONITOR_VIEW' },
+            { id: 'notif-item-sched-fail', chkId: 'notif-sched-fail', perm: 'NODE_MANAGE' },
+            { id: 'notif-item-build-result', chkId: 'notif-build-result', perm: 'BUILD_VIEW' },
+            { id: 'notif-item-security-alert', chkId: 'notif-security-alert', perm: 'USER_MANAGE' },
+            { id: 'notif-item-cmd-finish', chkId: 'notif-cmd-finish', perm: 'COMMAND_EXECUTE' }
+        ];
+
+        let visibleCount = 0;
+        eventItems.forEach(item => {
+            const container = document.getElementById(item.id);
+            const chk = document.getElementById(item.chkId);
+            const allowed = hasPermission(item.perm);
+
+            if (container) {
+                if (allowed) {
+                    container.classList.remove('d-none');
+                    visibleCount++;
+                } else {
+                    container.classList.add('d-none');
+                    if (chk) {
+                        chk.checked = false;
+                    }
+                }
+            }
+        });
+
+        // Notice when no event sources are available for this user's role
+        const noEventsNotice = document.getElementById('notif-no-events-notice');
+        if (noEventsNotice) {
+            if (visibleCount === 0) {
+                noEventsNotice.classList.remove('d-none');
+            } else {
+                noEventsNotice.classList.add('d-none');
+            }
+        }
     }
 
     async function checkPushSubscriptionState() {
