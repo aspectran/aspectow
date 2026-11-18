@@ -32,7 +32,6 @@ public class VapidKey implements Serializable {
     private Integer keyId;
     private String publicKey;
     private String privateKey;
-    private String subject;
     private LocalDateTime createdAt;
 
     public Integer getKeyId() {
@@ -57,14 +56,6 @@ public class VapidKey implements Serializable {
 
     public void setPrivateKey(String privateKey) {
         this.privateKey = privateKey;
-    }
-
-    public String getSubject() {
-        return subject;
-    }
-
-    public void setSubject(String subject) {
-        this.subject = subject;
     }
 
     public LocalDateTime getCreatedAt() {

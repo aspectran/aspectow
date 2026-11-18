@@ -45,7 +45,6 @@
         <id property="keyId" column="key_id" />
         <result property="publicKey" column="public_key" />
         <result property="privateKey" column="private_key" />
-        <result property="subject" column="subject" />
         <result property="createdAt" column="created_at" />
     </resultMap>
 
@@ -99,9 +98,9 @@
 
     <insert id="insertVapidKey" parameterType="com.aspectran.aspectow.console.common.db.model.VapidKey">
         insert into asc_vapid_key (
-            key_id, public_key, private_key, subject, created_at
+            key_id, public_key, private_key, created_at
         ) values (
-            1, #{publicKey}, #{privateKey}, #{subject}, current_timestamp
+            1, #{publicKey}, #{privateKey}, current_timestamp
         )
     </insert>
 

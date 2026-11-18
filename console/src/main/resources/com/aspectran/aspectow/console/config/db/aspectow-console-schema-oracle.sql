@@ -302,7 +302,6 @@ CREATE TABLE asc_vapid_key (
     key_id NUMBER(5) DEFAULT 1 NOT NULL,
     public_key VARCHAR2(200) NOT NULL,
     private_key VARCHAR2(200) NOT NULL,
-    subject VARCHAR2(200) DEFAULT 'mailto:admin@aspectran.com' NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     PRIMARY KEY (key_id)
 );

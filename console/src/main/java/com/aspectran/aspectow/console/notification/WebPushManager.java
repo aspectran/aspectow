@@ -21,6 +21,7 @@ import com.aspectran.aspectow.console.common.db.model.VapidKey;
 import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Initialize;
 import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -84,7 +85,6 @@ public class WebPushManager extends NotificationSupport {
 
     private KeyPair vapidKeyPair;
     private String vapidPublicKeyBase64;
-    private String vapidSubject = "mailto:admin@aspectran.com";
 
     @Autowired(required = false)
     public WebPushManager(NotificationMapper notificationMapper) {
@@ -97,6 +97,10 @@ public class WebPushManager extends NotificationSupport {
 
     public WebPushManager() {
         this(null);
+    }
+
+    public String getVapidSubject() {
+        return getWebPushSubject();
     }
 
     @Initialize
@@ -116,7 +120,7 @@ public class WebPushManager extends NotificationSupport {
                 try {
                     VapidKey dbKey = instantActivity(() -> notificationMapper.getVapidKey());
                     if (dbKey != null && dbKey.getPublicKey() != null && dbKey.getPrivateKey() != null) {
-                        setVapidKeys(dbKey.getPublicKey(), dbKey.getPrivateKey(), dbKey.getSubject());
+                        setVapidKeys(dbKey.getPublicKey(), dbKey.getPrivateKey());
                         logger.info("Loaded cluster-wide VAPID key pair from database. Public key: {}", vapidPublicKeyBase64);
                         return;
                     }
@@ -133,12 +137,11 @@ public class WebPushManager extends NotificationSupport {
                     props.load(in);
                     String pub = props.getProperty("publicKey");
                     String priv = props.getProperty("privateKey");
-                    String sub = props.getProperty("subject", vapidSubject);
                     if (pub != null && priv != null) {
-                        setVapidKeys(pub, priv, sub);
+                        setVapidKeys(pub, priv);
                         logger.info("Loaded persistent VAPID key pair from file: {}", keyFile.getAbsolutePath());
                         // Sync to DB if mapper is available but DB was empty
-                        syncKeyToDatabase(pub, priv, sub);
+                        syncKeyToDatabase(pub, priv);
                         return;
                     }
                 } catch (Exception e) {
@@ -158,7 +161,7 @@ public class WebPushManager extends NotificationSupport {
             logger.info("Generated new cluster-wide VAPID EC P-256 key pair. Public key: {}", vapidPublicKeyBase64);
 
             // 4. Save to Database so all other cluster nodes can share it
-            syncKeyToDatabase(vapidPublicKeyBase64, privateKeyBase64, vapidSubject);
+            syncKeyToDatabase(vapidPublicKeyBase64, privateKeyBase64);
 
             // 5. Also persist to local file as backup
             if (keyFile != null) {
@@ -170,7 +173,6 @@ public class WebPushManager extends NotificationSupport {
                     Properties props = new Properties();
                     props.setProperty("publicKey", vapidPublicKeyBase64);
                     props.setProperty("privateKey", privateKeyBase64);
-                    props.setProperty("subject", vapidSubject);
                     try (OutputStream out = new FileOutputStream(keyFile)) {
                         props.store(out, "Aspectow Console VAPID Key Pair");
                     }
@@ -184,7 +186,7 @@ public class WebPushManager extends NotificationSupport {
         }
     }
 
-    private void syncKeyToDatabase(String pub, String priv, String sub) {
+    private void syncKeyToDatabase(String pub, String priv) {
         if (notificationMapper == null) {
             return;
         }
@@ -196,7 +198,6 @@ public class WebPushManager extends NotificationSupport {
                     vk.setKeyId(1);
                     vk.setPublicKey(pub);
                     vk.setPrivateKey(priv);
-                    vk.setSubject(sub != null ? sub : vapidSubject);
                     try {
                         notificationMapper.insertVapidKey(vk);
                         logger.info("Stored cluster-wide VAPID key pair in database successfully.");
@@ -204,7 +205,7 @@ public class WebPushManager extends NotificationSupport {
                         // In case another node inserted concurrently, load it
                         VapidKey concurrentKey = notificationMapper.getVapidKey();
                         if (concurrentKey != null) {
-                            setVapidKeys(concurrentKey.getPublicKey(), concurrentKey.getPrivateKey(), concurrentKey.getSubject());
+                            setVapidKeys(concurrentKey.getPublicKey(), concurrentKey.getPrivateKey());
                         }
                     }
                 }
@@ -215,6 +216,7 @@ public class WebPushManager extends NotificationSupport {
         }
     }
 
+    @Nullable
     private File resolveKeyFile() {
         String workPath = System.getProperty("aspectran.workPath");
         if (workPath != null && !workPath.isBlank()) {
@@ -227,7 +229,7 @@ public class WebPushManager extends NotificationSupport {
         return null;
     }
 
-    private byte[] to32Bytes(BigInteger s) {
+    private byte @NonNull [] to32Bytes(@NonNull BigInteger s) {
         byte[] raw = s.toByteArray();
         byte[] result = new byte[32];
         copyPadded(raw, result, 0, 32);
@@ -238,18 +240,14 @@ public class WebPushManager extends NotificationSupport {
      * Sets the VAPID keys from Base64URL-encoded strings.
      * @param publicKeyBase64 the Base64URL-encoded public key (65 bytes uncompressed EC point)
      * @param privateKeyBase64 the Base64URL-encoded private key (32 bytes scalar)
-     * @param subject the VAPID subject (e.g. mailto: or https:// URL)
      */
-    public void setVapidKeys(String publicKeyBase64, String privateKeyBase64, String subject) {
+    public void setVapidKeys(String publicKeyBase64, String privateKeyBase64) {
         try {
             ECPublicKey pubKey = decodePublicKey(publicKeyBase64);
             ECPrivateKey privKey = decodePrivateKey(privateKeyBase64);
             this.vapidKeyPair = new KeyPair(pubKey, privKey);
             this.vapidPublicKeyBase64 = publicKeyBase64;
-            if (subject != null && !subject.isBlank()) {
-                this.vapidSubject = subject;
-            }
-            logger.info("Configured custom VAPID keys with subject: {}", this.vapidSubject);
+            logger.info("Configured VAPID keys. Public key: {}, Subject: {}", this.vapidPublicKeyBase64, getVapidSubject());
         } catch (Exception e) {
             logger.error("Failed to set VAPID keys", e);
         }
@@ -288,7 +286,7 @@ public class WebPushManager extends NotificationSupport {
         URI endpointUri = URI.create(subscription.getEndpoint());
         String origin = endpointUri.getScheme() + "://" + endpointUri.getHost() +
                 (endpointUri.getPort() != -1 ? ":" + endpointUri.getPort() : "");
-        String vapidJwt = createVapidJwt(origin, vapidSubject, vapidKeyPair.getPrivate());
+        String vapidJwt = createVapidJwt(origin, getVapidSubject(), vapidKeyPair.getPrivate());
 
         // 3. Dispatch HTTP/2 POST request
         HttpRequest request = HttpRequest.newBuilder()
@@ -455,7 +453,7 @@ public class WebPushManager extends NotificationSupport {
         return decodePublicKeyBytes(decodeBase64Url(base64Url));
     }
 
-    private ECPublicKey decodePublicKeyBytes(byte[] keyBytes) throws Exception {
+    private ECPublicKey decodePublicKeyBytes(byte @NonNull [] keyBytes) throws Exception {
         if (keyBytes.length != 65 || keyBytes[0] != 0x04) {
             throw new IllegalArgumentException("Invalid uncompressed EC public key format");
         }
@@ -483,7 +481,7 @@ public class WebPushManager extends NotificationSupport {
         return (ECPrivateKey) kf.generatePrivate(new ECPrivateKeySpec(s, ecSpec));
     }
 
-    private void copyPadded(byte[] src, byte[] dest, int destOffset, int length) {
+    private void copyPadded(byte @NonNull [] src, byte[] dest, int destOffset, int length) {
         int srcOffset = 0;
         int srcLength = src.length;
         if (srcLength > length && src[0] == 0) {
@@ -498,7 +496,7 @@ public class WebPushManager extends NotificationSupport {
     /**
      * Converts ASN.1 DER signature to IEEE P1363 (r || s, 64 bytes).
      */
-    private byte[] derToP1363(byte[] der) throws IOException {
+    private byte @NonNull [] derToP1363(byte @NonNull [] der) throws IOException {
         if (der.length < 8 || der[0] != 0x30) {
             throw new IOException("Invalid DER signature format");
         }

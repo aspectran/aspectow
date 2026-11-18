@@ -32,9 +32,15 @@ public abstract class NotificationSupport extends InstantActivitySupport {
 
     public static final String WEBPUSH_ENABLED_PROPERTY = "aspectow.console.notification.webPush.enabled";
 
+    public static final String WEBPUSH_SUBJECT_PROPERTY = "aspectow.console.notification.webPush.subject";
+
+    public static final String DEFAULT_VAPID_SUBJECT = "mailto:admin@aspectran.com";
+
     private Boolean notificationEnabled;
 
     private Boolean webPushEnabled;
+
+    private String webPushSubject;
 
     public void setNotificationEnabled(Boolean notificationEnabled) {
         this.notificationEnabled = notificationEnabled;
@@ -42,6 +48,27 @@ public abstract class NotificationSupport extends InstantActivitySupport {
 
     public void setWebPushEnabled(Boolean webPushEnabled) {
         this.webPushEnabled = webPushEnabled;
+    }
+
+    public void setWebPushSubject(String webPushSubject) {
+        this.webPushSubject = webPushSubject;
+    }
+
+    public String getWebPushSubject() {
+        if (webPushSubject != null && !webPushSubject.isBlank()) {
+            return webPushSubject;
+        }
+        return getProperty(WEBPUSH_SUBJECT_PROPERTY, DEFAULT_VAPID_SUBJECT);
+    }
+
+    private String getProperty(String name, String defaultValue) {
+        try {
+            Environment environment = getEnvironment();
+            String prop = environment.getProperty(name);
+            return (prop != null && !prop.isBlank()) ? prop : defaultValue;
+        } catch (Exception e) {
+            return defaultValue;
+        }
     }
 
     /**

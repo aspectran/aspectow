@@ -302,7 +302,6 @@ create table if not exists asc_vapid_key (
     key_id int default 1 not null,
     public_key varchar(200) not null,
     private_key varchar(200) not null,
-    subject varchar(200) default 'mailto:admin@aspectran.com' not null,
     created_at timestamp default current_timestamp not null,
     primary key (key_id)
 );
