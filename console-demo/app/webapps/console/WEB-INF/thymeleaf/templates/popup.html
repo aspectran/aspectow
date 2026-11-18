@@ -4,10 +4,10 @@
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
 <head>
     <meta charset="utf-8"/>
-    <th:block th:replace="~{templates/base-head :: theme-script}"></th:block>
+    <th:block th:replace="~{templates/fragments/base-head :: theme-script}"></th:block>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <title th:text="${page.title != null ? page.title + ' - Aspectow Console' : 'Aspectow Console'}">Aspectow Console</title>
-    <th:block th:replace="~{templates/base-head :: common-assets}"></th:block>
+    <th:block th:replace="~{templates/fragments/base-head :: common-assets}"></th:block>
 </head>
 <body th:class="popup" th:classappend="${page.style}">
     <main id="content-area">
