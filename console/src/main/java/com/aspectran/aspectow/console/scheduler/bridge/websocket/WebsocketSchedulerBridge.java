@@ -203,7 +203,7 @@ public class WebsocketSchedulerBridge extends SimplifiedEndpoint implements Sche
                             "WARN",
                             "Scheduler Job Failed",
                             "Scheduler operation" + nodePart + " failed: " + e.getMessage(),
-                            "./cluster/scheduler/"
+                            "/cluster/scheduler/"
                     );
                 } catch (Exception ex) {
                     // ignore
@@ -261,7 +261,7 @@ public class WebsocketSchedulerBridge extends SimplifiedEndpoint implements Sche
                             "WARN",
                             "Scheduler Job Failed",
                             "Scheduler error on node '" + node + "': " + error,
-                            "./cluster/scheduler/"
+                            "/cluster/scheduler/"
                     );
                 }
             } catch (Exception e) {

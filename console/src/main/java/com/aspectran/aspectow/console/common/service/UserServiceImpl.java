@@ -267,7 +267,7 @@ public class UserServiceImpl implements UserService, EnvironmentAware {
                             "WARN",
                             "Unallowed IP Access",
                             "Login attempt for user '" + username + "' from unallowed IP (" + ipAddress + ").",
-                            "./security/audit/"
+                            "/user/audit-log"
                     );
                 } else if ("REMEMBER_ME_THEFT_DETECTED".equals(eventType)) {
                     notificationService.dispatchNotification(
@@ -275,7 +275,7 @@ public class UserServiceImpl implements UserService, EnvironmentAware {
                             "CRITICAL",
                             "Token Theft Detected",
                             "Suspicious Remember-Me token usage detected for user '" + username + "'.",
-                            "./security/audit/"
+                            "/user/audit-log"
                     );
                 } else if ("USER_LOCKED".equals(eventType)) {
                     notificationService.dispatchNotification(
@@ -283,7 +283,7 @@ public class UserServiceImpl implements UserService, EnvironmentAware {
                             "WARN",
                             "Account Locked",
                             "Account '" + username + "' was locked due to consecutive failed login attempts.",
-                            "./user/list/"
+                            "/user/"
                     );
                 }
             } catch (Exception e) {

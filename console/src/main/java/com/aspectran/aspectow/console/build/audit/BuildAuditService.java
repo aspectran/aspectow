@@ -234,7 +234,7 @@ public class BuildAuditService extends InstantActivitySupport {
                             msg = "Build script '" + scriptName + "'" + branchPart + " failed" +
                                     (StringUtils.hasText(err) ? ": " + err : ".");
                         }
-                        notificationService.dispatchNotification("BUILD", severity, title, msg, "./build/history/");
+                        notificationService.dispatchNotification("BUILD", severity, title, msg, "/cluster/build/");
                     } catch (Exception ex) {
                         logger.warn("Failed to dispatch build notification: {}", ex.getMessage());
                     }

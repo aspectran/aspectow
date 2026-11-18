@@ -1848,6 +1848,19 @@ const NotificationClient = (function () {
         return div;
     }
 
+    function resolveTargetUrl(targetUrl) {
+        if (!targetUrl) return null;
+        if (targetUrl.startsWith('http://') || targetUrl.startsWith('https://')) {
+            return targetUrl;
+        }
+        const ctx = getContextPath();
+        const cleanTarget = targetUrl.replace(/^\.?\//, '');
+        if (!cleanTarget) {
+            return ctx ? ctx + '/' : '/';
+        }
+        return (ctx ? ctx + '/' : '/') + cleanTarget;
+    }
+
     function markRead(notificationId, targetUrl) {
         const formData = new URLSearchParams();
         if (notificationId) {
@@ -1865,9 +1878,14 @@ const NotificationClient = (function () {
             if (res && res.data) {
                 updateBadge(res.data.unreadCount || 0);
             }
-            if (targetUrl && targetUrl !== '/') {
-                location.href = ctx + targetUrl;
-            } else if (notificationId) {
+            if (targetUrl) {
+                const resolved = resolveTargetUrl(targetUrl);
+                if (resolved) {
+                    location.href = resolved;
+                    return;
+                }
+            }
+            if (notificationId) {
                 loadHistory();
             }
         });

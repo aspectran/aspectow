@@ -7,7 +7,7 @@
  * - Dynamic APIs, Commands, and WebSockets: Network-Only (never cached)
  */
 
-const CACHE_NAME = 'aspectow-console-v6';
+const CACHE_NAME = 'aspectow-console-v7';
 
 // Pre-cached critical assets
 const PRECACHE_URLS = [
@@ -180,11 +180,27 @@ self.addEventListener('push', (event) => {
     event.waitUntil(Promise.all([notifyPromise, broadcastPromise]));
 });
 
+function resolveTargetUrl(targetUrl) {
+    if (!targetUrl) {
+        return self.registration.scope;
+    }
+    if (targetUrl.startsWith('http://') || targetUrl.startsWith('https://')) {
+        return targetUrl;
+    }
+    const scopeUrl = new URL(self.registration.scope);
+    let scopePath = scopeUrl.pathname;
+    if (!scopePath.endsWith('/')) {
+        scopePath += '/';
+    }
+    const cleanTarget = targetUrl.replace(/^\.?\//, '');
+    return new URL(cleanTarget, scopeUrl.origin + scopePath).href;
+}
+
 self.addEventListener('notificationclick', (event) => {
     event.notification.close();
 
     const targetUrl = event.notification.data ? event.notification.data.targetUrl : './';
-    const absoluteUrl = new URL(targetUrl, self.location.origin).href;
+    const absoluteUrl = resolveTargetUrl(targetUrl);
 
     event.waitUntil(
         clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
