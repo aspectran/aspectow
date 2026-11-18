@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="https://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{templates/default}">
+<head>
+    <th:block layout:fragment="style">
+        <style>
+            .code-box {
+                background-color: var(--bs-tertiary-bg);
+                border: 1px solid var(--bs-border-color);
+                border-radius: var(--bs-border-radius);
+                padding: 0.5rem 0.75rem;
+                font-family: var(--bs-font-monospace);
+                font-size: 0.8rem;
+                word-break: break-all;
+            }
+            .endpoint-cell {
+                max-width: 260px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+        </style>
+    </th:block>
+</head>
+<body>
+<th:block layout:fragment="content">
+    <!-- Header -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-start gap-3 mb-3">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <h3 class="fw-bold mb-0"><i class="bi bi-broadcast-pin text-primary me-2"></i> Push &amp; Notifications</h3>
+                <span class="badge" th:classappend="${page.webPushEnabled ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-secondary-subtle text-secondary border border-secondary-subtle'}"
+                      th:text="${page.webPushEnabled ? 'Web Push Active' : 'Web Push Inactive'}">Web Push Status</span>
+            </div>
+            <p class="text-muted mb-0 small">RFC 8292 VAPID Infrastructure, Active Device Subscriptions &amp; Operational Diagnostics</p>
+        </div>
+        <div class="d-flex flex-wrap flex-sm-nowrap justify-content-end align-items-center gap-2">
+            <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 fw-semibold" id="badge-total-devices">
+                <i class="bi bi-phone me-1"></i> <span th:text="${page.totalSubscriptions}">0</span> Active Devices
+            </span>
+        </div>
+    </div>
+
+    <!-- Top Row: Infrastructure Status & Test Dispatcher -->
+    <div class="row g-3 mb-4">
+        <!-- VAPID Key Infrastructure Card -->
+        <div class="col-lg-7">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-body-tertiary d-flex justify-content-between align-items-center py-3">
+                    <span class="fw-bold"><i class="bi bi-shield-check text-success me-1"></i> VAPID Infrastructure Status</span>
+                    <button class="btn btn-xs btn-outline-danger" id="btn-open-regen-modal" type="button"
+                            th:if="${session.USER_INFO.hasRole('SUPER_ADMIN')}" title="Regenerate Key Pair in case of emergency">
+                        <i class="bi bi-arrow-repeat me-1"></i> Regenerate Keys
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-muted text-uppercase mb-1" style="font-size: 0.75rem;">Public Key (Application Server Key - 65 Bytes Uncompressed P-256)</label>
+                        <div class="input-group input-group-sm">
+                            <input type="text" class="form-control font-monospace" id="vapid-public-key" th:value="${page.vapidPublicKey}" readonly>
+                            <button class="btn btn-outline-secondary" type="button" onclick="copyPublicKey()" title="Copy to clipboard">
+                                <i class="bi bi-clipboard" id="copy-icon"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="row g-2 mb-2">
+                        <div class="col-sm-6">
+                            <div class="small text-muted text-uppercase fw-semibold" style="font-size: 0.7rem;">Contact Subject (RFC 8292 'sub')</div>
+                            <div class="fw-semibold text-body text-truncate" th:text="${page.vapidSubject ?: 'Not configured'}">mailto:admin@aspectran.com</div>
+                            <div class="text-muted" style="font-size: 0.75rem;">Configured in notification-rules.xml</div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="small text-muted text-uppercase fw-semibold" style="font-size: 0.7rem;">Key Issued Date</div>
+                            <div class="fw-semibold text-body">
+                                <span class="format-local-time" th:if="${page.vapidKeyCreatedAt != null}" th:data-utc="${page.vapidKeyCreatedAt}" th:text="${#temporals.format(page.vapidKeyCreatedAt, 'yyyy-MM-dd HH:mm:ss')}">2026-11-18</span>
+                                <span th:if="${page.vapidKeyCreatedAt == null}" class="text-muted">Dynamic runtime</span>
+                            </div>
+                            <div class="text-muted" style="font-size: 0.75rem;">Shared across all cluster nodes</div>
+                        </div>
+                    </div>
+                    <div class="alert alert-light border small text-muted mb-0 py-2 px-3 mt-3">
+                        <i class="bi bi-info-circle me-1 text-primary"></i>
+                        The VAPID key pair is synchronized cluster-wide via database table <code>asc_vapid_key</code> and backed up locally.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Test Dispatcher Card -->
+        <div class="col-lg-5">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-body-tertiary py-3">
+                    <span class="fw-bold"><i class="bi bi-send text-primary me-1"></i> Send Test Notification</span>
+                </div>
+                <div class="card-body">
+                    <form id="test-push-form" onsubmit="return false;">
+                        <div class="mb-2">
+                            <label for="test-target-user" class="form-label small fw-semibold">Target User</label>
+                            <select class="form-select form-select-sm" id="test-target-user">
+                                <option value="">All Registered Devices (Broadcast Test)</option>
+                                <option th:each="u : ${page.userList}" th:value="${u.userId}" th:text="${u.username + (u.nickname != null ? ' (' + u.nickname + ')' : '')}">User</option>
+                            </select>
+                        </div>
+                        <div class="mb-2">
+                            <label for="test-title" class="form-label small fw-semibold">Title</label>
+                            <input type="text" class="form-control form-control-sm" id="test-title" value="[Admin Test] System Alert">
+                        </div>
+                        <div class="mb-3">
+                            <label for="test-message" class="form-label small fw-semibold">Message</label>
+                            <textarea class="form-control form-control-sm" id="test-message" rows="2">This is an administrative test push notification from Aspectow Console.</textarea>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div id="test-result-notice" class="small text-muted"></div>
+                            <button class="btn btn-sm btn-primary px-3" id="btn-send-test" type="button" onclick="sendAdminTestPush()">
+                                <i class="bi bi-send me-1"></i> Send Test
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Row: Subscribed Devices Table -->
+    <div class="card shadow-sm overflow-hidden">
+        <div class="card-header bg-body-tertiary d-flex justify-content-between align-items-center py-3">
+            <div>
+                <span class="fw-bold"><i class="bi bi-devices text-secondary me-1"></i> Active Device Subscriptions</span>
+                <span class="text-muted small ms-1" id="sub-count-text" th:text="'(' + ${page.totalSubscriptions} + ' registered)'">(0 registered)</span>
+            </div>
+            <div>
+                <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-refresh-subs" onclick="refreshSubscriptions()" title="Refresh subscriptions">
+                    <i class="bi bi-arrow-clockwise me-1" id="icon-refresh-subs"></i> Refresh
+                </button>
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" id="subscription-table">
+                <thead class="small text-uppercase text-muted">
+                    <tr>
+                        <th class="ps-3" style="width: 60px;">ID</th>
+                        <th style="width: 180px;">User</th>
+                        <th>Device &amp; Platform</th>
+                        <th>Endpoint Service</th>
+                        <th style="width: 160px;">Subscribed</th>
+                        <th style="width: 160px;">Last Active</th>
+                        <th class="text-end pe-3" style="width: 100px;" th:if="${session.USER_INFO.hasRole('SUPER_ADMIN')}">Action</th>
+                    </tr>
+                </thead>
+                <tbody class="small" id="subscription-tbody">
+                    <tr th:each="sub : ${page.subscriptions}" th:id="'sub-row-' + ${sub.subscriptionId}" th:data-endpoint="${sub.endpoint}">
+                        <td class="ps-3 text-muted" th:text="${sub.subscriptionId}">1</td>
+                        <td>
+                            <div class="fw-semibold text-body" th:text="${sub.username ?: ('User #' + sub.userId)}">admin</div>
+                            <div class="text-muted" style="font-size: 0.75rem;" th:if="${sub.nickname != null}" th:text="${sub.nickname}">Administrator</div>
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="bi fs-5 text-secondary"
+                                   th:classappend="${#strings.containsIgnoreCase(sub.userAgent ?: '', 'Mobile') || #strings.containsIgnoreCase(sub.userAgent ?: '', 'Android') || #strings.containsIgnoreCase(sub.userAgent ?: '', 'iPhone') ? 'bi-phone' : 'bi-laptop'}"></i>
+                                <span class="text-truncate" style="max-width: 320px;" th:text="${sub.userAgent ?: 'Unknown Client'}" th:title="${sub.userAgent}">Mozilla/5.0</span>
+                            </div>
+                        </td>
+                        <td class="endpoint-cell">
+                            <span class="badge bg-secondary-subtle text-secondary-emphasis me-1"
+                                  th:text="${#strings.containsIgnoreCase(sub.endpoint ?: '', 'fcm') ? 'Google FCM' : (#strings.containsIgnoreCase(sub.endpoint ?: '', 'apple') ? 'Apple APNs' : (#strings.containsIgnoreCase(sub.endpoint ?: '', 'mozilla') ? 'Mozilla Autopush' : 'WebPush'))}">Service</span>
+                            <span class="font-monospace text-muted" style="font-size: 0.75rem;" th:text="${sub.endpoint}">https://...</span>
+                        </td>
+                        <td class="text-muted">
+                            <span class="format-local-time" th:if="${sub.createdAt != null}" th:data-utc="${sub.createdAt}" th:text="${#temporals.format(sub.createdAt, 'yyyy-MM-dd HH:mm')}">-</span>
+                        </td>
+                        <td class="text-muted">
+                            <span class="format-local-time" th:if="${sub.lastActiveAt != null}" th:data-utc="${sub.lastActiveAt}" th:text="${#temporals.format(sub.lastActiveAt, 'yyyy-MM-dd HH:mm')}">-</span>
+                        </td>
+                        <td class="text-end pe-3" th:if="${session.USER_INFO.hasRole('SUPER_ADMIN')}">
+                            <button class="btn btn-sm btn-outline-danger py-0 px-2" type="button"
+                                    th:onclick="'deleteSubscription(' + ${sub.subscriptionId} + ')'" title="Delete subscription">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(page.subscriptions)}">
+                        <td colspan="7" class="text-center py-5 text-muted">
+                            <i class="bi bi-phone-vibrate fs-1 d-block mb-2 text-secondary opacity-50"></i>
+                            <span>No active device push subscriptions found.</span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Emergency Key Regeneration Modal -->
+    <div class="modal fade" id="regenKeyModal" tabindex="-1" aria-labelledby="regenKeyModalLabel" aria-hidden="true"
+         th:if="${session.USER_INFO.hasRole('SUPER_ADMIN')}">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content shadow border-danger">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="regenKeyModalLabel"><i class="bi bi-exclamation-triangle-fill me-2"></i> Regenerate VAPID Key Pair</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="alert alert-danger small mb-3">
+                        <div class="fw-bold mb-1"><i class="bi bi-shield-slash me-1"></i> Critical Impact Warning:</div>
+                        Regenerating the VAPID key will <strong>immediately invalidate all existing device push subscriptions</strong>.
+                        Registered clients will fail to receive background OS alerts until each user opens the console to automatically re-subscribe with the new key.
+                    </div>
+                    <p class="small text-muted mb-3">
+                        Use this operation only if the current VAPID private key is suspected to be compromised or during intentional environment reset.
+                    </p>
+                    <div class="mb-3">
+                        <label for="regen-confirm-input" class="form-label small fw-semibold">
+                            Type <span class="badge bg-secondary font-monospace">REGENERATE</span> to confirm:
+                        </label>
+                        <input type="text" class="form-control form-control-sm font-monospace" id="regen-confirm-input" placeholder="REGENERATE" autocomplete="off">
+                    </div>
+                </div>
+                <div class="modal-footer bg-body-tertiary">
+                    <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-sm btn-danger px-3" id="btn-confirm-regen" disabled onclick="executeRegenerateKey()">
+                        <i class="bi bi-arrow-repeat me-1"></i> Confirm &amp; Regenerate
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</th:block>
+
+<th:block layout:fragment="script">
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        const isSuperAdmin = /*[[${session.USER_INFO.hasRole('SUPER_ADMIN')}]]*/ false;
+
+        function getContextPath() {
+            if (typeof CONTEXT_PATH !== 'undefined' && CONTEXT_PATH !== null) {
+                return CONTEXT_PATH;
+            }
+            if (typeof window.CONTEXT_PATH !== 'undefined' && window.CONTEXT_PATH !== null) {
+                return window.CONTEXT_PATH;
+            }
+            return '';
+        }
+
+        function copyPublicKey() {
+            const keyInput = document.getElementById('vapid-public-key');
+            if (!keyInput || !keyInput.value) return;
+
+            navigator.clipboard.writeText(keyInput.value).then(() => {
+                const icon = document.getElementById('copy-icon');
+                if (icon) {
+                    icon.classList.replace('bi-clipboard', 'bi-check-lg');
+                    setTimeout(() => icon.classList.replace('bi-check-lg', 'bi-clipboard'), 2000);
+                }
+            }).catch(err => {
+                keyInput.select();
+                document.execCommand('copy');
+            });
+        }
+
+        function sendAdminTestPush() {
+            const targetUserId = document.getElementById('test-target-user').value;
+            const title = document.getElementById('test-title').value.trim();
+            const message = document.getElementById('test-message').value.trim();
+            const btn = document.getElementById('btn-send-test');
+            const notice = document.getElementById('test-result-notice');
+
+            if (!title || !message) {
+                alert('Please enter both title and message.');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Sending...';
+            notice.textContent = '';
+
+            const formData = new URLSearchParams();
+            if (targetUserId) formData.append('targetUserId', targetUserId);
+            formData.append('title', title);
+            formData.append('message', message);
+
+            const ctx = getContextPath();
+            fetch(ctx + '/admin/notification/test-push', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData
+            })
+            .then(res => res.json())
+            .then(res => {
+                if (res && (res.success || res.status === 200)) {
+                    const count = (res.data && res.data.sentCount) || 0;
+                    notice.className = 'small text-success';
+                    notice.textContent = `Sent successfully to ${count} device(s).`;
+                } else {
+                    notice.className = 'small text-danger';
+                    notice.textContent = (res && res.message) ? res.message : 'Failed to send test push.';
+                }
+            })
+            .catch(err => {
+                notice.className = 'small text-danger';
+                notice.textContent = 'Error: ' + err.message;
+            })
+            .finally(() => {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-send me-1"></i> Send Test';
+            });
+        }
+
+        function deleteSubscription(subscriptionId) {
+            if (!confirm('Are you sure you want to remove this device subscription?')) return;
+
+            const row = document.getElementById('sub-row-' + subscriptionId);
+            const targetEndpoint = row ? row.getAttribute('data-endpoint') : null;
+
+            const formData = new URLSearchParams();
+            formData.append('subscriptionId', subscriptionId);
+
+            const ctx = getContextPath();
+            fetch(ctx + '/admin/notification/delete-subscription', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData
+            })
+            .then(res => res.json())
+            .then(async res => {
+                if (res && (res.success || res.status === 200)) {
+                    if (row) row.remove();
+
+                    const tbody = document.querySelector('table tbody');
+                    if (tbody && tbody.querySelectorAll('tr[id^="sub-row-"]').length === 0) {
+                        const emptyTr = document.createElement('tr');
+                        emptyTr.innerHTML = `
+                            <td colspan="7" class="text-center py-5 text-muted">
+                                <i class="bi bi-phone-vibrate fs-1 d-block mb-2 text-secondary opacity-50"></i>
+                                <span>No active device push subscriptions found.</span>
+                            </td>
+                        `;
+                        tbody.appendChild(emptyTr);
+                    }
+
+                    const badge = document.getElementById('badge-total-devices');
+                    if (badge) {
+                        const current = parseInt(badge.textContent.replace(/[^0-9]/g, ''), 10);
+                        if (!isNaN(current) && current > 0) {
+                            badge.innerHTML = `<i class="bi bi-phone me-1"></i> <span>${current - 1}</span> Active Devices`;
+                        }
+                    }
+
+                    const countText = document.getElementById('sub-count-text');
+                    if (countText) {
+                        const currentCount = parseInt(countText.textContent.replace(/[^0-9]/g, ''), 10);
+                        if (!isNaN(currentCount) && currentCount > 0) {
+                            countText.textContent = `(${currentCount - 1} registered)`;
+                        }
+                    }
+
+                    if (targetEndpoint && typeof NotificationClient !== 'undefined') {
+                        if (NotificationClient.removeRegisteredEndpoint) {
+                            NotificationClient.removeRegisteredEndpoint(targetEndpoint);
+                        }
+                    }
+
+                    if (targetEndpoint && 'serviceWorker' in navigator) {
+                        try {
+                            const reg = await navigator.serviceWorker.ready;
+                            const currentSub = await reg.pushManager.getSubscription();
+                            if (currentSub && currentSub.endpoint === targetEndpoint) {
+                                await currentSub.unsubscribe();
+                                if (typeof NotificationClient !== 'undefined' && NotificationClient.checkPushSubscriptionState) {
+                                    NotificationClient.checkPushSubscriptionState();
+                                }
+                            }
+                        } catch (e) {
+                            console.warn('Failed to unsubscribe local device:', e);
+                        }
+                    }
+                } else {
+                    alert((res && res.message) ? res.message : 'Failed to delete subscription.');
+                }
+            })
+            .catch(err => {
+                alert('Error: ' + err.message);
+            });
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function refreshSubscriptions() {
+            const btn = document.getElementById('btn-refresh-subs');
+            const icon = document.getElementById('icon-refresh-subs');
+            if (btn) btn.disabled = true;
+            if (icon) icon.className = 'spinner-border spinner-border-sm me-1';
+
+            const ctx = getContextPath();
+            fetch(ctx + '/admin/notification/subscriptions')
+                .then(res => res.json())
+                .then(res => {
+                    if (res && (res.success || res.status === 200)) {
+                        const subs = (res.data && res.data.subscriptions) || [];
+                        const total = (res.data && res.data.totalSubscriptions) !== undefined ? res.data.totalSubscriptions : subs.length;
+                        renderSubscriptionsTable(subs, total);
+                    } else {
+                        alert((res && res.message) ? res.message : 'Failed to refresh subscriptions.');
+                    }
+                })
+                .catch(err => {
+                    console.error('Failed to fetch subscriptions:', err);
+                    alert('Error refreshing subscriptions: ' + err.message);
+                })
+                .finally(() => {
+                    if (btn) btn.disabled = false;
+                    if (icon) icon.className = 'bi bi-arrow-clockwise me-1';
+                });
+        }
+
+        function renderSubscriptionsTable(subscriptions, total) {
+            const countText = document.getElementById('sub-count-text');
+            if (countText) {
+                countText.textContent = `(${total} registered)`;
+            }
+
+            const badge = document.getElementById('badge-total-devices');
+            if (badge) {
+                badge.innerHTML = `<i class="bi bi-phone me-1"></i> <span>${total}</span> Active Devices`;
+            }
+
+            const tbody = document.getElementById('subscription-tbody');
+            if (!tbody) return;
+
+            tbody.innerHTML = '';
+
+            if (!subscriptions || subscriptions.length === 0) {
+                const emptyTr = document.createElement('tr');
+                emptyTr.innerHTML = `
+                    <td colspan="7" class="text-center py-5 text-muted">
+                        <i class="bi bi-phone-vibrate fs-1 d-block mb-2 text-secondary opacity-50"></i>
+                        <span>No active device push subscriptions found.</span>
+                    </td>
+                `;
+                tbody.appendChild(emptyTr);
+                return;
+            }
+
+            subscriptions.forEach(sub => {
+                const tr = document.createElement('tr');
+                tr.id = 'sub-row-' + sub.subscriptionId;
+                tr.setAttribute('data-endpoint', sub.endpoint || '');
+
+                const userAgent = sub.userAgent || '';
+                const isMobile = /Mobile|Android|iPhone/i.test(userAgent);
+                const deviceIconClass = isMobile ? 'bi-phone' : 'bi-laptop';
+
+                const endpoint = sub.endpoint || '';
+                let serviceLabel = 'WebPush';
+                if (/fcm/i.test(endpoint)) serviceLabel = 'Google FCM';
+                else if (/apple/i.test(endpoint)) serviceLabel = 'Apple APNs';
+                else if (/mozilla/i.test(endpoint)) serviceLabel = 'Mozilla Autopush';
+
+                const username = escapeHtml(sub.username || ('User #' + sub.userId));
+                const nicknameHtml = sub.nickname ? `<div class="text-muted" style="font-size: 0.75rem;">${escapeHtml(sub.nickname)}</div>` : '';
+
+                const actionHtml = isSuperAdmin ? `
+                    <td class="text-end pe-3">
+                        <button class="btn btn-sm btn-outline-danger py-0 px-2" type="button"
+                                onclick="deleteSubscription(${sub.subscriptionId})" title="Delete subscription">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </td>
+                ` : '';
+
+                tr.innerHTML = `
+                    <td class="ps-3 text-muted">${sub.subscriptionId}</td>
+                    <td>
+                        <div class="fw-semibold text-body">${username}</div>
+                        ${nicknameHtml}
+                    </td>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi fs-5 text-secondary ${deviceIconClass}"></i>
+                            <span class="text-truncate" style="max-width: 320px;" title="${escapeHtml(userAgent)}">${escapeHtml(userAgent || 'Unknown Client')}</span>
+                        </div>
+                    </td>
+                    <td class="endpoint-cell">
+                        <span class="badge bg-secondary-subtle text-secondary-emphasis me-1">${escapeHtml(serviceLabel)}</span>
+                        <span class="font-monospace text-muted" style="font-size: 0.75rem;">${escapeHtml(endpoint)}</span>
+                    </td>
+                    <td class="text-muted">
+                        <span class="format-local-time" data-utc="${escapeHtml(sub.createdAt || '')}">${escapeHtml(sub.createdAt ? String(sub.createdAt).substring(0, 16).replace('T', ' ') : '-')}</span>
+                    </td>
+                    <td class="text-muted">
+                        <span class="format-local-time" data-utc="${escapeHtml(sub.lastActiveAt || '')}">${escapeHtml(sub.lastActiveAt ? String(sub.lastActiveAt).substring(0, 16).replace('T', ' ') : '-')}</span>
+                    </td>
+                    ${actionHtml}
+                `;
+                tbody.appendChild(tr);
+            });
+
+            if (typeof formatLocalTime === 'function') {
+                formatLocalTime(tbody);
+            }
+        }
+
+        let regenModal;
+        document.addEventListener('DOMContentLoaded', () => {
+            const regenModalEl = document.getElementById('regenKeyModal');
+            if (regenModalEl && typeof bootstrap !== 'undefined') {
+                regenModal = new bootstrap.Modal(regenModalEl);
+                const openBtn = document.getElementById('btn-open-regen-modal');
+                if (openBtn) {
+                    openBtn.addEventListener('click', () => {
+                        const input = document.getElementById('regen-confirm-input');
+                        if (input) input.value = '';
+                        document.getElementById('btn-confirm-regen').disabled = true;
+                        regenModal.show();
+                    });
+                }
+
+                const confirmInput = document.getElementById('regen-confirm-input');
+                const confirmBtn = document.getElementById('btn-confirm-regen');
+                if (confirmInput && confirmBtn) {
+                    confirmInput.addEventListener('input', (e) => {
+                        confirmBtn.disabled = (e.target.value.trim() !== 'REGENERATE');
+                    });
+                }
+            }
+        });
+
+        function executeRegenerateKey() {
+            const confirmBtn = document.getElementById('btn-confirm-regen');
+            confirmBtn.disabled = true;
+            confirmBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Regenerating...';
+
+            const ctx = getContextPath();
+            fetch(ctx + '/admin/notification/regenerate-key', {
+                method: 'POST'
+            })
+            .then(res => res.json())
+            .then(res => {
+                if (res && (res.success || res.status === 200)) {
+                    alert('VAPID key pair regenerated successfully. The page will now reload.');
+                    location.reload();
+                } else {
+                    alert((res && res.message) ? res.message : 'Failed to regenerate key.');
+                    confirmBtn.disabled = false;
+                    confirmBtn.innerHTML = '<i class="bi bi-arrow-repeat me-1"></i> Confirm &amp; Regenerate';
+                }
+            })
+            .catch(err => {
+                alert('Error: ' + err.message);
+                confirmBtn.disabled = false;
+                confirmBtn.innerHTML = '<i class="bi bi-arrow-repeat me-1"></i> Confirm &amp; Regenerate';
+            });
+        }
+        /*]]>*/
+    </script>
+</th:block>
+</body>
+</html>
