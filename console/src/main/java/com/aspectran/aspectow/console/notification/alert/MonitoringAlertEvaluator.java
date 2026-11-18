@@ -17,15 +17,14 @@ package com.aspectran.aspectow.console.notification.alert;
 
 import com.aspectran.aspectow.console.common.db.mapper.NotificationMapper;
 import com.aspectran.aspectow.console.notification.NotificationService;
+import com.aspectran.aspectow.console.notification.NotificationSupport;
 import com.aspectran.aspectow.node.config.NodeInfo;
 import com.aspectran.aspectow.node.manager.ClusterEventListener;
 import com.aspectran.aspectow.node.manager.ClusterEventSubscriber;
 import com.aspectran.aspectow.node.manager.NodeManager;
-import com.aspectran.core.activity.InstantActivitySupport;
 import com.aspectran.core.component.bean.ablility.DisposableBean;
 import com.aspectran.core.component.bean.ablility.InitializableBean;
 import com.aspectran.core.component.bean.annotation.Autowired;
-import com.aspectran.core.component.bean.annotation.Component;
 import io.lettuce.core.SetArgs;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.sync.RedisCommands;
@@ -46,8 +45,7 @@ import java.util.concurrent.TimeUnit;
  *
  * <p>Created: 2026-11-17</p>
  */
-@Component
-public class MonitoringAlertEvaluator extends InstantActivitySupport
+public class MonitoringAlertEvaluator extends NotificationSupport
         implements InitializableBean, DisposableBean, ClusterEventListener {
 
     private static final Logger logger = LoggerFactory.getLogger(MonitoringAlertEvaluator.class);
@@ -78,7 +76,17 @@ public class MonitoringAlertEvaluator extends InstantActivitySupport
     }
 
     @Override
+    public boolean isNotificationEnabled() {
+        return notificationService != null ? notificationService.isNotificationEnabled() : super.isNotificationEnabled();
+    }
+
+    @Override
     public void initialize() {
+        if (!isNotificationEnabled()) {
+            logger.info("MonitoringAlertEvaluator is disabled by configuration (aspectow.console.notification.enabled=false)");
+            return;
+        }
+
         if (nodeManager != null) {
             ClusterEventSubscriber subscriber = nodeManager.getClusterEventSubscriber();
             if (subscriber != null) {
@@ -115,6 +123,9 @@ public class MonitoringAlertEvaluator extends InstantActivitySupport
      * Samples local host/JVM CPU and memory metrics and evaluates them against user thresholds.
      */
     private void sampleLocalMetrics() {
+        if (!isNotificationEnabled()) {
+            return;
+        }
         try {
             String nodeId = (nodeManager != null && nodeManager.getNodeId() != null)
                     ? nodeManager.getNodeId() : "console";
@@ -142,6 +153,9 @@ public class MonitoringAlertEvaluator extends InstantActivitySupport
 
     @Override
     public void onNodeLeft(String nodeId) {
+        if (!isNotificationEnabled()) {
+            return;
+        }
         logger.warn("Cluster node offline detected: {}", nodeId);
         if (acquireClusterEventLock("nodeLeft", nodeId)) {
             if (notificationService != null) {
@@ -160,6 +174,9 @@ public class MonitoringAlertEvaluator extends InstantActivitySupport
 
     @Override
     public void onNodeJoined(NodeInfo nodeInfo) {
+        if (!isNotificationEnabled()) {
+            return;
+        }
         String nodeId = nodeInfo.getId();
         logger.info("Cluster node joined/reconnected: {}", nodeId);
         if (acquireClusterEventLock("nodeJoined", nodeId)) {

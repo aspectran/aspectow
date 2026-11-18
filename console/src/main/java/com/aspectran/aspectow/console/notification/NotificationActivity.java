@@ -46,10 +46,18 @@ public class NotificationActivity {
     private final NotificationService notificationService;
     private final WebPushManager webPushManager;
 
-    @Autowired
+    @Autowired(required = false)
     public NotificationActivity(NotificationService notificationService, WebPushManager webPushManager) {
         this.notificationService = notificationService;
         this.webPushManager = webPushManager;
+    }
+
+    private boolean isNotificationEnabled() {
+        return notificationService != null && notificationService.isNotificationEnabled();
+    }
+
+    private boolean isWebPushEnabled() {
+        return isNotificationEnabled() && notificationService.isWebPushEnabled();
     }
 
     private UserInfo getCurrentUser(@NonNull Translet translet) {
@@ -66,11 +74,22 @@ public class NotificationActivity {
             return new FailureResponse().unauthorized();
         }
 
-        UserNotificationSetting setting = notificationService.getOrCreateNotificationSetting(userInfo.getUserId());
+        if (!isNotificationEnabled()) {
+            Map<String, Object> data = new HashMap<>();
+            data.put("enabled", false);
+            data.put("webPushEnabled", false);
+            return new SuccessResponse(data).ok();
+        }
+
+        UserNotificationSetting setting = notificationService.getNotificationSetting(userInfo.getUserId());
         long unreadCount = notificationService.getUnreadNotificationCount(userInfo.getUserId());
+        boolean webPushEnabled = isWebPushEnabled();
+        String vapidPublicKey = (webPushEnabled && webPushManager != null) ? webPushManager.getVapidPublicKey() : null;
 
         Map<String, Object> data = new HashMap<>();
-        data.put("vapidPublicKey", webPushManager.getVapidPublicKey());
+        data.put("enabled", true);
+        data.put("webPushEnabled", webPushEnabled);
+        data.put("vapidPublicKey", vapidPublicKey);
         data.put("setting", setting);
         data.put("unreadCount", unreadCount);
 
@@ -94,8 +113,15 @@ public class NotificationActivity {
         if (userInfo == null) {
             return new FailureResponse().unauthorized();
         }
+        if (!isNotificationEnabled()) {
+            return new FailureResponse("Notification service is disabled").forbidden();
+        }
 
-        UserNotificationSetting setting = notificationService.getOrCreateNotificationSetting(userInfo.getUserId());
+        UserNotificationSetting setting = notificationService.getNotificationSetting(userInfo.getUserId());
+        if (setting == null) {
+            setting = new UserNotificationSetting();
+            setting.setUserId(userInfo.getUserId());
+        }
         if (pushEnabled != null) setting.setPushEnabled(pushEnabled);
         if (cpuThreshold != null && cpuThreshold >= 10 && cpuThreshold <= 100) setting.setCpuThreshold(cpuThreshold);
         if (memoryThreshold != null && memoryThreshold >= 10 && memoryThreshold <= 100) setting.setMemoryThreshold(memoryThreshold);
@@ -105,7 +131,7 @@ public class NotificationActivity {
         if (notifySecurityAlert != null) setting.setNotifySecurityAlert(notifySecurityAlert);
         if (notifyCommandFinish != null) setting.setNotifyCommandFinish(notifyCommandFinish);
 
-        notificationService.updateNotificationSetting(setting);
+        notificationService.saveNotificationSetting(setting);
         return new SuccessResponse(setting).ok();
     }
 
@@ -121,6 +147,9 @@ public class NotificationActivity {
         UserInfo userInfo = getCurrentUser(translet);
         if (userInfo == null) {
             return new FailureResponse().unauthorized();
+        }
+        if (!isNotificationEnabled() || !isWebPushEnabled()) {
+            return new FailureResponse("Web Push is disabled").forbidden();
         }
 
         if (StringUtils.isEmpty(endpoint) || StringUtils.isEmpty(p256dhKey) || StringUtils.isEmpty(authKey)) {
@@ -144,6 +173,9 @@ public class NotificationActivity {
         if (userInfo == null) {
             return new FailureResponse().unauthorized();
         }
+        if (!isNotificationEnabled()) {
+            return new FailureResponse("Notification service is disabled").forbidden();
+        }
 
         if (!StringUtils.isEmpty(endpoint)) {
             notificationService.unregisterPushSubscription(endpoint);
@@ -159,6 +191,9 @@ public class NotificationActivity {
         UserInfo userInfo = getCurrentUser(translet);
         if (userInfo == null) {
             return new FailureResponse().unauthorized();
+        }
+        if (!isNotificationEnabled()) {
+            return new FailureResponse("Notification service is disabled").forbidden();
         }
 
         int fetchLimit = (limit != null && limit > 0) ? limit : 30;
@@ -181,6 +216,9 @@ public class NotificationActivity {
         if (userInfo == null) {
             return new FailureResponse().unauthorized();
         }
+        if (!isNotificationEnabled()) {
+            return new FailureResponse("Notification service is disabled").forbidden();
+        }
 
         long unreadCount = notificationService.getUnreadNotificationCount(userInfo.getUserId());
         return new SuccessResponse(Map.of("unreadCount", unreadCount)).ok();
@@ -194,6 +232,9 @@ public class NotificationActivity {
         UserInfo userInfo = getCurrentUser(translet);
         if (userInfo == null) {
             return new FailureResponse().unauthorized();
+        }
+        if (!isNotificationEnabled()) {
+            return new FailureResponse("Notification service is disabled").forbidden();
         }
 
         if (notificationId != null) {
@@ -215,6 +256,9 @@ public class NotificationActivity {
         if (userInfo == null) {
             return new FailureResponse().unauthorized();
         }
+        if (!isNotificationEnabled()) {
+            return new FailureResponse("Notification service is disabled").forbidden();
+        }
 
         notificationService.clearNotificationHistory(userInfo.getUserId());
         return new SuccessResponse().ok();
@@ -228,6 +272,9 @@ public class NotificationActivity {
         UserInfo userInfo = getCurrentUser(translet);
         if (userInfo == null) {
             return new FailureResponse().unauthorized();
+        }
+        if (!isNotificationEnabled()) {
+            return new FailureResponse("Notification service is disabled").forbidden();
         }
 
         int sentCount = notificationService.sendTestNotification(userInfo.getUserId());

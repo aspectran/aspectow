@@ -37,6 +37,7 @@ import java.util.Arrays;
 import java.util.Base64;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -52,7 +53,16 @@ class WebPushManagerTest {
     @BeforeEach
     void setUp() {
         webPushManager = new WebPushManager();
+        webPushManager.setNotificationEnabled(true);
+        webPushManager.setWebPushEnabled(true);
         webPushManager.initialize();
+    }
+
+    @Test
+    void testDisabledByDefault() {
+        WebPushManager defaultManager = new WebPushManager();
+        assertFalse(defaultManager.isNotificationEnabled(), "Notification must be disabled by default (opt-in)");
+        assertFalse(defaultManager.isWebPushEnabled(), "Web Push must be disabled by default (opt-in)");
     }
 
     @Test

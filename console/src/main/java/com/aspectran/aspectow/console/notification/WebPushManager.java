@@ -18,9 +18,7 @@ package com.aspectran.aspectow.console.notification;
 import com.aspectran.aspectow.console.common.db.mapper.NotificationMapper;
 import com.aspectran.aspectow.console.common.db.model.PushSubscription;
 import com.aspectran.aspectow.console.common.db.model.VapidKey;
-import com.aspectran.core.activity.InstantActivitySupport;
 import com.aspectran.core.component.bean.annotation.Autowired;
-import com.aspectran.core.component.bean.annotation.Component;
 import com.aspectran.core.component.bean.annotation.Initialize;
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
@@ -50,7 +48,6 @@ import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.PrivateKey;
-import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.security.Signature;
 import java.security.interfaces.ECPrivateKey;
@@ -72,8 +69,7 @@ import java.util.Properties;
  *
  * <p>Created: 2026-11-17</p>
  */
-@Component
-public class WebPushManager extends InstantActivitySupport {
+public class WebPushManager extends NotificationSupport {
 
     private static final Logger logger = LoggerFactory.getLogger(WebPushManager.class);
 
@@ -106,6 +102,11 @@ public class WebPushManager extends InstantActivitySupport {
     @Initialize
     public void initialize() {
         try {
+            if (!isWebPushEnabled()) {
+                logger.info("Web Push functionality is disabled by configuration (aspectow.console.notification.webPush.enabled=false)");
+                return;
+            }
+
             if (this.vapidKeyPair != null) {
                 return;
             }
@@ -256,9 +257,12 @@ public class WebPushManager extends InstantActivitySupport {
 
     /**
      * Returns the Base64URL-encoded VAPID public key to be sent to browsers.
-     * @return the VAPID public key
+     * @return the VAPID public key, or null if Web Push is disabled
      */
     public String getVapidPublicKey() {
+        if (!isWebPushEnabled()) {
+            return null;
+        }
         return vapidPublicKeyBase64;
     }
 
@@ -270,6 +274,10 @@ public class WebPushManager extends InstantActivitySupport {
      * @throws Exception if an error occurs during encryption or HTTP transmission
      */
     public int sendPushNotification(@NonNull PushSubscription subscription, @NonNull String payloadJson) throws Exception {
+        if (!isWebPushEnabled()) {
+            logger.debug("Web Push is disabled; skipping notification to endpoint: {}", subscription.getEndpoint());
+            return 200;
+        }
         byte[] clientPublicKey = decodeBase64Url(subscription.getP256dhKey());
         byte[] clientAuthSecret = decodeBase64Url(subscription.getAuthKey());
 

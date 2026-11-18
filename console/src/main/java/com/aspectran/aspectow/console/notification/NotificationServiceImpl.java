@@ -19,9 +19,7 @@ import com.aspectran.aspectow.console.common.db.mapper.NotificationMapper;
 import com.aspectran.aspectow.console.common.db.model.NotificationHistory;
 import com.aspectran.aspectow.console.common.db.model.PushSubscription;
 import com.aspectran.aspectow.console.common.db.model.UserNotificationSetting;
-import com.aspectran.core.activity.InstantActivitySupport;
 import com.aspectran.core.component.bean.annotation.Autowired;
-import com.aspectran.core.component.bean.annotation.Component;
 import com.aspectran.core.component.bean.annotation.Destroy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,8 +36,7 @@ import java.util.concurrent.Executors;
  *
  * <p>Created: 2026-11-17</p>
  */
-@Component
-public class NotificationServiceImpl extends InstantActivitySupport implements NotificationService {
+public class NotificationServiceImpl extends NotificationSupport implements NotificationService {
 
     private static final Logger logger = LoggerFactory.getLogger(NotificationServiceImpl.class);
 
@@ -47,7 +44,7 @@ public class NotificationServiceImpl extends InstantActivitySupport implements N
     private final WebPushManager webPushManager;
     private final ExecutorService dispatchExecutor;
 
-    @Autowired
+    @Autowired(required = false)
     public NotificationServiceImpl(NotificationMapper notificationMapper, WebPushManager webPushManager) {
         this.notificationMapper = notificationMapper;
         this.webPushManager = webPushManager;
@@ -58,34 +55,28 @@ public class NotificationServiceImpl extends InstantActivitySupport implements N
         });
     }
 
+    @Override
+    public boolean isWebPushEnabled() {
+        return super.isWebPushEnabled() && (webPushManager != null && webPushManager.isWebPushEnabled());
+    }
+
     @Destroy
     public void destroy() {
         dispatchExecutor.shutdown();
     }
 
     @Override
-    public UserNotificationSetting getOrCreateNotificationSetting(Long userId) {
-        UserNotificationSetting setting = notificationMapper.getNotificationSettingByUserId(userId);
-        if (setting == null) {
-            setting = new UserNotificationSetting();
-            setting.setUserId(userId);
-            setting.setPushEnabled("Y");
-            setting.setCpuThreshold(85);
-            setting.setMemoryThreshold(85);
-            setting.setNotifyNodeStatus("Y");
-            setting.setNotifySchedulerFail("Y");
-            setting.setNotifyBuildResult("Y");
-            setting.setNotifySecurityAlert("Y");
-            setting.setNotifyCommandFinish("Y");
-            notificationMapper.insertNotificationSetting(setting);
+    public UserNotificationSetting getNotificationSetting(Long userId) {
+        if (userId == null) {
+            return null;
         }
-        return setting;
+        return notificationMapper.getNotificationSettingByUserId(userId);
     }
 
     @Override
-    public void updateNotificationSetting(UserNotificationSetting setting) {
-        if (setting.getUserId() == null) {
-            throw new IllegalArgumentException("User ID must not be null");
+    public void saveNotificationSetting(UserNotificationSetting setting) {
+        if (setting == null || setting.getUserId() == null) {
+            throw new IllegalArgumentException("Setting and User ID must not be null");
         }
         UserNotificationSetting existing = notificationMapper.getNotificationSettingByUserId(setting.getUserId());
         if (existing == null) {
@@ -96,7 +87,24 @@ public class NotificationServiceImpl extends InstantActivitySupport implements N
     }
 
     @Override
+    public void updateNotificationSetting(UserNotificationSetting setting) {
+        saveNotificationSetting(setting);
+    }
+
+    @Override
     public PushSubscription registerPushSubscription(Long userId, String endpoint, String p256dhKey, String authKey, String userAgent) {
+        // Ensure notification setting exists and push is enabled for this user
+        UserNotificationSetting setting = notificationMapper.getNotificationSettingByUserId(userId);
+        if (setting == null) {
+            setting = new UserNotificationSetting();
+            setting.setUserId(userId);
+            setting.setPushEnabled("Y");
+            notificationMapper.insertNotificationSetting(setting);
+        } else if (!"Y".equalsIgnoreCase(setting.getPushEnabled())) {
+            setting.setPushEnabled("Y");
+            notificationMapper.updateNotificationSetting(setting);
+        }
+
         PushSubscription existing = notificationMapper.getPushSubscriptionByEndpoint(endpoint);
         if (existing != null) {
             existing.setUserId(userId);
@@ -152,34 +160,43 @@ public class NotificationServiceImpl extends InstantActivitySupport implements N
 
     @Override
     public int sendTestNotification(Long userId) {
+        if (!isNotificationEnabled()) {
+            logger.info("Notification system is disabled; cannot send test notification");
+            return 0;
+        }
+
         List<PushSubscription> subscriptions = notificationMapper.getPushSubscriptionsByUserId(userId);
         if (subscriptions.isEmpty()) {
             logger.info("No push subscriptions found for user ID: {}", userId);
             return 0;
         }
 
-        String payloadJson = buildPayloadJson(
-                "Aspectow Console",
-                "Test notification received successfully!",
-                "./",
-                "test-alert"
-        );
-
         int sentCount = 0;
-        for (PushSubscription sub : subscriptions) {
-            try {
-                int status = webPushManager.sendPushNotification(sub, payloadJson);
-                if (status >= 200 && status < 300) {
-                    notificationMapper.updatePushSubscriptionLastActive(sub.getEndpoint());
-                    sentCount++;
-                } else if (status == 401 || status == 404 || status == 410) {
-                    // Endpoint invalid (VAPID key mismatch) or expired
-                    logger.info("Removing invalid/expired push subscription endpoint: {} (status: {})", sub.getEndpoint(), status);
-                    notificationMapper.deletePushSubscriptionByEndpoint(sub.getEndpoint());
+        if (webPushManager != null && isWebPushEnabled()) {
+            String payloadJson = buildPayloadJson(
+                    "Aspectow Console",
+                    "Test notification received successfully!",
+                    "./",
+                    "test-alert"
+            );
+
+            for (PushSubscription sub : subscriptions) {
+                try {
+                    int status = webPushManager.sendPushNotification(sub, payloadJson);
+                    if (status >= 200 && status < 300) {
+                        notificationMapper.updatePushSubscriptionLastActive(sub.getEndpoint());
+                        sentCount++;
+                    } else if (status == 401 || status == 404 || status == 410) {
+                        // Endpoint invalid (VAPID key mismatch) or expired
+                        logger.info("Removing invalid/expired push subscription endpoint: {} (status: {})", sub.getEndpoint(), status);
+                        notificationMapper.deletePushSubscriptionByEndpoint(sub.getEndpoint());
+                    }
+                } catch (Exception e) {
+                    logger.error("Failed to send test push notification to endpoint: " + sub.getEndpoint(), e);
                 }
-            } catch (Exception e) {
-                logger.error("Failed to send test push notification to endpoint: " + sub.getEndpoint(), e);
             }
+        } else {
+            logger.info("Web Push is disabled; test notification recorded to in-app history only");
         }
 
         // Also record to in-app notification history
@@ -197,41 +214,54 @@ public class NotificationServiceImpl extends InstantActivitySupport implements N
 
     @Override
     public void dispatchNotification(String category, String severity, String title, String message, String targetUrl) {
+        if (!isNotificationEnabled()) {
+            return;
+        }
         dispatchExecutor.submit(() -> {
             try {
-                // Step 1: Query subscriptions and record in-app history within short DB transaction
+                // Step 1: Record in-app notification history for all eligible configured users
+                Set<Long> allowedUserIds = new HashSet<>();
+                instantActivity(() -> {
+                    List<Long> configuredUserIds = notificationMapper.getAllActiveUserIds();
+                    if (configuredUserIds != null) {
+                        for (Long userId : configuredUserIds) {
+                            UserNotificationSetting setting = notificationMapper.getNotificationSettingByUserId(userId);
+                            if (setting != null && isCategoryAllowed(setting, category)) {
+                                allowedUserIds.add(userId);
+
+                                NotificationHistory history = new NotificationHistory();
+                                history.setUserId(userId);
+                                history.setCategory(category);
+                                history.setSeverity(severity);
+                                history.setTitle(title);
+                                history.setMessage(message);
+                                history.setTargetUrl(targetUrl);
+                                notificationMapper.insertNotificationHistory(history);
+                            }
+                        }
+                    }
+                    return null;
+                });
+
+                if (allowedUserIds.isEmpty()) {
+                    return;
+                }
+
+                // If Web Push is disabled or webPushManager is null, skip external HTTP/2 dispatch
+                if (webPushManager == null || !isWebPushEnabled()) {
+                    return;
+                }
+
+                // Step 2: Query push subscriptions for allowed users
                 List<PushSubscription> targetsToSend = new ArrayList<>();
                 instantActivity(() -> {
                     List<PushSubscription> activeSubscriptions = notificationMapper.getAllActivePushSubscriptions();
-                    if (activeSubscriptions == null || activeSubscriptions.isEmpty()) {
-                        return null;
-                    }
-
-                    Set<Long> recordedUserIds = new HashSet<>();
-                    for (PushSubscription sub : activeSubscriptions) {
-                        UserNotificationSetting setting = notificationMapper.getNotificationSettingByUserId(sub.getUserId());
-                        if (setting == null || !setting.isPushAlertEnabled()) {
-                            continue;
+                    if (activeSubscriptions != null) {
+                        for (PushSubscription sub : activeSubscriptions) {
+                            if (allowedUserIds.contains(sub.getUserId())) {
+                                targetsToSend.add(sub);
+                            }
                         }
-
-                        // Check category-level permission
-                        if (!isCategoryAllowed(setting, category)) {
-                            continue;
-                        }
-
-                        // Record in-app notification once per user
-                        if (recordedUserIds.add(sub.getUserId())) {
-                            NotificationHistory history = new NotificationHistory();
-                            history.setUserId(sub.getUserId());
-                            history.setCategory(category);
-                            history.setSeverity(severity);
-                            history.setTitle(title);
-                            history.setMessage(message);
-                            history.setTargetUrl(targetUrl);
-                            notificationMapper.insertNotificationHistory(history);
-                        }
-
-                        targetsToSend.add(sub);
                     }
                     return null;
                 });
@@ -240,7 +270,7 @@ public class NotificationServiceImpl extends InstantActivitySupport implements N
                     return;
                 }
 
-                // Step 2: Send Web Push (Outside DB transaction to avoid connection starvation / timeout)
+                // Step 3: Send Web Push (Outside DB transaction to avoid connection starvation / timeout)
                 String payloadJson = buildPayloadJson(
                         title,
                         message,
@@ -263,7 +293,7 @@ public class NotificationServiceImpl extends InstantActivitySupport implements N
                     }
                 }
 
-                // Step 3: Update subscription statuses in DB
+                // Step 4: Update subscription statuses in DB
                 if (!successEndpoints.isEmpty() || !expiredEndpoints.isEmpty()) {
                     instantActivity(() -> {
                         for (String ep : successEndpoints) {

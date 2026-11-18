@@ -114,6 +114,14 @@
         select * from asc_push_subscription where user_id = #{userId} order by subscription_id desc
     </select>
 
+    <select id="getAllActiveUserIds" resultType="long">
+        select uns.user_id
+        from asc_user_notification_setting uns
+        join asc_user u on uns.user_id = u.user_id
+        where u.status is null or u.status = 'NORMAL'
+        order by uns.user_id asc
+    </select>
+
     <select id="getAllActivePushSubscriptions" resultMap="PushSubscriptionResultMap">
         select s.* from asc_push_subscription s
         join asc_user_notification_setting uns on s.user_id = uns.user_id

@@ -98,6 +98,12 @@ public interface NotificationMapper {
     List<PushSubscription> getPushSubscriptionsByUserId(Long userId);
 
     /**
+     * Retrieves all active user IDs eligible for notifications.
+     * @return the list of active user IDs
+     */
+    List<Long> getAllActiveUserIds();
+
+    /**
      * Retrieves all active push subscriptions.
      * @return the list of all active push subscriptions
      */
@@ -230,6 +236,11 @@ public interface NotificationMapper {
         @Override
         public List<PushSubscription> getPushSubscriptionsByUserId(Long userId) {
             return mapper().getPushSubscriptionsByUserId(userId);
+        }
+
+        @Override
+        public List<Long> getAllActiveUserIds() {
+            return mapper().getAllActiveUserIds();
         }
 
         @Override

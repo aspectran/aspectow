@@ -29,11 +29,29 @@ import java.util.List;
 public interface NotificationService {
 
     /**
-     * Retrieves or creates default notification preferences for a user.
-     * @param userId the user ID
-     * @return the notification setting
+     * Checks if the notification system is enabled.
+     * @return true if enabled, false otherwise
      */
-    UserNotificationSetting getOrCreateNotificationSetting(Long userId);
+    boolean isNotificationEnabled();
+
+    /**
+     * Checks if external Web Push dispatching is enabled.
+     * @return true if enabled, false otherwise
+     */
+    boolean isWebPushEnabled();
+
+    /**
+     * Retrieves notification preferences for a user, or null if not yet configured.
+     * @param userId the user ID
+     * @return the notification setting, or null if not configured
+     */
+    UserNotificationSetting getNotificationSetting(Long userId);
+
+    /**
+     * Saves (inserts or updates) notification preferences and thresholds for a user.
+     * @param setting the setting to save
+     */
+    void saveNotificationSetting(UserNotificationSetting setting);
 
     /**
      * Updates notification preferences and thresholds for a user.

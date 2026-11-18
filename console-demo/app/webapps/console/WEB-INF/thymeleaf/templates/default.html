@@ -189,12 +189,14 @@
                 </button>
 
                 <!-- Notification Button -->
+                <th:block th:if="${#{currentEnvironment}.getProperty('aspectow.console.notification.enabled')}">
                 <button class="btn border-0 bg-transparent text-body position-relative px-2" id="notif-btn" type="button" data-bs-toggle="modal" data-bs-target="#notificationModal" title="Notifications">
                     <i class="bi bi-bell fs-5"></i>
                     <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none" id="notif-badge" style="font-size: 0.65rem; transform: translate(-45%, 25%) !important;">
                         0
                     </span>
                 </button>
+                </th:block>
 
                 <!-- About Console Button -->
                 <button class="btn border-0 bg-transparent text-body" type="button" data-bs-toggle="modal" data-bs-target="#aboutConsoleModal" title="About Aspectow Console">
@@ -225,6 +227,7 @@
         </main>
     </div>
     <!-- Notification Modal -->
+    <th:block th:if="${#{currentEnvironment}.getProperty('aspectow.console.notification.enabled')}">
     <div class="modal fade" id="notificationModal" tabindex="-1" aria-labelledby="notificationModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content shadow">
@@ -363,6 +366,7 @@
             </div>
         </div>
     </div>
+    </th:block>
 
     <!-- About Console Modal -->
     <div class="modal fade" id="aboutConsoleModal" tabindex="-1" aria-labelledby="aboutConsoleModalLabel" aria-hidden="true">
