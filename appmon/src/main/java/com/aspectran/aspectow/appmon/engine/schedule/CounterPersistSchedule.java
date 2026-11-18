@@ -90,7 +90,7 @@ public class CounterPersistSchedule {
      */
     @Initialize
     public void initialize() throws Exception {
-        appMonManager.instantActivity(() -> {
+        appMonManager.executeInActivity(() -> {
             for (EventCounter eventCounter : counterPersist.getEventCounterList()) {
                 EventCountVO vo = dao.getLastEventCount(
                         nodeId, eventCounter.getAppId(), eventCounter.getEventId());
@@ -123,7 +123,7 @@ public class CounterPersistSchedule {
     @Destroy
     public void destroy() {
         try {
-            appMonManager.instantActivity(() -> {
+            appMonManager.executeInActivity(() -> {
                 rollupAndSave(false);
                 return null;
             });

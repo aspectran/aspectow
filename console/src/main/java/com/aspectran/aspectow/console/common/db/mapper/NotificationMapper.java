@@ -84,6 +84,38 @@ public interface NotificationMapper {
     int insertVapidKey(VapidKey vapidKey);
 
     /**
+     * Updates the cluster-wide VAPID key pair.
+     * @param vapidKey the VAPID key pair to update
+     * @return the number of affected rows
+     */
+    int updateVapidKey(VapidKey vapidKey);
+
+    /**
+     * Counts the total number of push subscriptions.
+     * @return the total number of subscriptions
+     */
+    int countPushSubscriptions();
+
+    /**
+     * Retrieves all push subscriptions joined with user account info.
+     * @return the list of subscriptions with user details
+     */
+    List<PushSubscription> getAllPushSubscriptionsWithUser();
+
+    /**
+     * Deletes a push subscription by its subscription ID.
+     * @param subscriptionId the subscription ID
+     * @return the number of affected rows
+     */
+    int deletePushSubscriptionById(Long subscriptionId);
+
+    /**
+     * Deletes all push subscriptions.
+     * @return the number of affected rows
+     */
+    int deleteAllPushSubscriptions();
+
+    /**
      * Retrieves a push subscription by its endpoint URL.
      * @param endpoint the push endpoint URL
      * @return the push subscription, or null if not found
@@ -233,6 +265,31 @@ public interface NotificationMapper {
         @Override
         public int insertVapidKey(VapidKey vapidKey) {
             return mapper().insertVapidKey(vapidKey);
+        }
+
+        @Override
+        public int updateVapidKey(VapidKey vapidKey) {
+            return mapper().updateVapidKey(vapidKey);
+        }
+
+        @Override
+        public int countPushSubscriptions() {
+            return mapper().countPushSubscriptions();
+        }
+
+        @Override
+        public List<PushSubscription> getAllPushSubscriptionsWithUser() {
+            return mapper().getAllPushSubscriptionsWithUser();
+        }
+
+        @Override
+        public int deletePushSubscriptionById(Long subscriptionId) {
+            return mapper().deletePushSubscriptionById(subscriptionId);
+        }
+
+        @Override
+        public int deleteAllPushSubscriptions() {
+            return mapper().deleteAllPushSubscriptions();
         }
 
         @Override

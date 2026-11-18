@@ -1330,6 +1330,9 @@ const NotificationClient = (function () {
     let userPermissions = null;
     let swRegistration = null;
     let webPushEnabled = true;
+    let unreadCount = 0;
+    let hasNewNotification = false;
+    let registeredEndpoints = null;
 
     function getContextPath() {
         if (typeof CONTEXT_PATH !== 'undefined' && CONTEXT_PATH !== null) {
@@ -1355,10 +1358,15 @@ const NotificationClient = (function () {
     }
 
     function updateBadge(count) {
+        const newCount = typeof count === 'number' ? count : parseInt(count, 10) || 0;
+        if (newCount > unreadCount) {
+            hasNewNotification = true;
+        }
+        unreadCount = newCount;
         const badge = document.getElementById('notif-badge');
         if (!badge) return;
-        if (count > 0) {
-            badge.textContent = count > 99 ? '99+' : count;
+        if (unreadCount > 0) {
+            badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
             badge.classList.remove('d-none');
         } else {
             badge.textContent = '0';
@@ -1403,11 +1411,12 @@ const NotificationClient = (function () {
             navigator.serviceWorker.addEventListener('message', (event) => {
                 if (event.data && event.data.type === 'PUSH_NOTIFICATION_RECEIVED') {
                     console.log('[NotificationClient] Realtime push notification received:', event.data);
+                    hasNewNotification = true;
                     refreshUnreadCount();
                     animateBell();
                     const modal = document.getElementById('notificationModal');
                     if (modal && modal.classList.contains('show')) {
-                        loadHistory();
+                        loadHistory(true);
                     }
                 }
             });
@@ -1429,7 +1438,7 @@ const NotificationClient = (function () {
 
     function loadConfig() {
         const ctx = getContextPath();
-        fetch(ctx + '/notification/config')
+        return fetch(ctx + '/notification/config')
             .then(res => res.json())
             .then(res => {
                 if (res && res.data) {
@@ -1443,6 +1452,11 @@ const NotificationClient = (function () {
                     currentSetting = res.data.setting;
                     if (res.data.permissions && Array.isArray(res.data.permissions)) {
                         userPermissions = new Set(res.data.permissions);
+                    }
+                    if (res.data.registeredEndpoints && Array.isArray(res.data.registeredEndpoints)) {
+                        registeredEndpoints = new Set(res.data.registeredEndpoints);
+                    } else {
+                        registeredEndpoints = new Set();
                     }
                     updateBadge(res.data.unreadCount || 0);
                     populateSettingsForm(currentSetting);
@@ -1577,6 +1591,20 @@ const NotificationClient = (function () {
         if (swRegistration) {
             const sub = await swRegistration.pushManager.getSubscription();
             if (sub) {
+                // Verify if this local subscription is still registered on the server for the current user
+                if (registeredEndpoints !== null && !registeredEndpoints.has(sub.endpoint)) {
+                    console.warn('[NotificationClient] Push subscription endpoint is not registered on server. Unsubscribing stale local subscription...');
+                    try {
+                        await sub.unsubscribe();
+                    } catch (e) {
+                        console.warn('[NotificationClient] Error unsubscribing stale subscription:', e);
+                    }
+                    if (toggle) toggle.checked = false;
+                    if (testBtn) testBtn.disabled = true;
+                    if (permNotice) permNotice.classList.add('d-none');
+                    return;
+                }
+
                 // Verify if existing subscription matches current server VAPID public key
                 if (vapidPublicKey && sub.options && sub.options.applicationServerKey) {
                     const currentKeyBytes = new Uint8Array(sub.options.applicationServerKey);
@@ -1621,13 +1649,6 @@ const NotificationClient = (function () {
                     permNotice.classList.remove('d-none');
                 }
             } else {
-                // If browser permission is already granted and push was explicitly enabled in user settings, auto-subscribe silently
-                if (Notification.permission === 'granted' && currentSetting && currentSetting.pushEnabled === 'Y' && vapidPublicKey) {
-                    console.log('[NotificationClient] User previously enabled push and permission is granted. Re-subscribing push endpoint...');
-                    await handlePushToggle(true, true);
-                    return;
-                }
-
                 if (toggle) toggle.checked = false;
                 if (testBtn) testBtn.disabled = true;
                 if (permNotice) permNotice.classList.add('d-none');
@@ -1691,6 +1712,10 @@ const NotificationClient = (function () {
                     body: formData
                 });
 
+                if (registeredEndpoints) {
+                    registeredEndpoints.add(sub.endpoint);
+                }
+
                 const toggle = document.getElementById('notif-push-toggle');
                 if (toggle) toggle.checked = true;
                 if (currentSetting) currentSetting.pushEnabled = 'Y';
@@ -1711,6 +1736,10 @@ const NotificationClient = (function () {
                 if (sub) {
                     const endpoint = sub.endpoint;
                     await sub.unsubscribe();
+
+                    if (registeredEndpoints && endpoint) {
+                        registeredEndpoints.delete(endpoint);
+                    }
 
                     const formData = new URLSearchParams();
                     formData.append('endpoint', endpoint);
@@ -1770,20 +1799,24 @@ const NotificationClient = (function () {
         });
     }
 
-    function loadHistory() {
+    function loadHistory(silent = false) {
         const listContainer = document.getElementById('notif-history-list');
         const emptyNotice = document.getElementById('notif-history-empty');
-        if (!listContainer) return;
+        if (!listContainer) return Promise.resolve();
 
-        listContainer.innerHTML = '<div class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm me-2"></div>Loading notifications...</div>';
+        const hasExistingItems = listContainer.children.length > 0 && !listContainer.querySelector('.spinner-border');
+        if (!silent && !hasExistingItems) {
+            listContainer.innerHTML = '<div class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm me-2"></div>Loading notifications...</div>';
+            if (emptyNotice) emptyNotice.classList.add('d-none');
+        }
 
         const ctx = getContextPath();
-        fetch(ctx + '/notification/history?limit=40')
+        return fetch(ctx + '/notification/history?limit=40')
             .then(res => res.json())
             .then(res => {
                 const list = (res && res.data && res.data.history) || [];
-                const unreadCount = (res && res.data) ? res.data.unreadCount : 0;
-                updateBadge(unreadCount);
+                const latestUnreadCount = (res && res.data) ? res.data.unreadCount : 0;
+                updateBadge(latestUnreadCount);
 
                 if (list.length === 0) {
                     listContainer.innerHTML = '';
@@ -1792,15 +1825,23 @@ const NotificationClient = (function () {
                 }
 
                 if (emptyNotice) emptyNotice.classList.add('d-none');
-                listContainer.innerHTML = '';
 
+                const fragment = document.createDocumentFragment();
                 list.forEach(item => {
                     const card = createNotificationCard(item);
-                    listContainer.appendChild(card);
+                    fragment.appendChild(card);
                 });
+                if (typeof listContainer.replaceChildren === 'function') {
+                    listContainer.replaceChildren(fragment);
+                } else {
+                    listContainer.innerHTML = '';
+                    listContainer.appendChild(fragment);
+                }
             })
             .catch(err => {
-                listContainer.innerHTML = '<div class="text-center py-4 text-danger">Failed to load notifications.</div>';
+                if (!hasExistingItems) {
+                    listContainer.innerHTML = '<div class="text-center py-4 text-danger">Failed to load notifications.</div>';
+                }
             });
     }
 
@@ -1868,7 +1909,7 @@ const NotificationClient = (function () {
         }
 
         const ctx = getContextPath();
-        fetch(ctx + '/notification/read', {
+        return fetch(ctx + '/notification/read', {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: formData
@@ -1877,6 +1918,9 @@ const NotificationClient = (function () {
         .then(res => {
             if (res && res.data) {
                 updateBadge(res.data.unreadCount || 0);
+                if ((res.data.unreadCount || 0) === 0) {
+                    hasNewNotification = false;
+                }
             }
             if (targetUrl) {
                 const resolved = resolveTargetUrl(targetUrl);
@@ -1886,14 +1930,41 @@ const NotificationClient = (function () {
                 }
             }
             if (notificationId) {
-                loadHistory();
+                loadHistory(true);
             }
         });
     }
 
     function markAllRead() {
-        markRead(null, null);
-        setTimeout(loadHistory, 300);
+        hasNewNotification = false;
+        // Optimistic UI update: instantly clear unread styling without flickering
+        const listContainer = document.getElementById('notif-history-list');
+        if (listContainer) {
+            listContainer.querySelectorAll('.notif-item').forEach(card => {
+                card.classList.remove('bg-primary-subtle', 'bg-opacity-10');
+                const title = card.querySelector('.fw-bold');
+                if (title) {
+                    title.classList.remove('fw-bold', 'text-body');
+                    title.classList.add('text-body-secondary');
+                }
+                const msg = card.querySelector('.small.text-body-secondary');
+                if (msg) {
+                    msg.classList.remove('text-body-secondary');
+                    msg.classList.add('text-muted');
+                }
+                const newBadge = card.querySelector('.badge.bg-primary');
+                if (newBadge) newBadge.remove();
+                const unreadDot = card.querySelector('.bg-primary.rounded-circle');
+                if (unreadDot) unreadDot.remove();
+            });
+        }
+        updateBadge(0);
+
+        markRead(null, null)
+            .then(() => {
+                loadHistory(true);
+            })
+            .catch(() => {});
     }
 
     function clearHistory() {
@@ -1902,8 +1973,15 @@ const NotificationClient = (function () {
         const ctx = getContextPath();
         fetch(ctx + '/notification/clear', { method: 'POST' })
             .then(() => {
-                loadHistory();
+                hasNewNotification = false;
                 updateBadge(0);
+                const listContainer = document.getElementById('notif-history-list');
+                const emptyNotice = document.getElementById('notif-history-empty');
+                if (listContainer) listContainer.innerHTML = '';
+                if (emptyNotice) emptyNotice.classList.remove('d-none');
+            })
+            .catch(err => {
+                alert('Failed to clear notification history: ' + err.message);
             });
     }
 
@@ -1943,12 +2021,27 @@ const NotificationClient = (function () {
             .replace(/'/g, '&#39;');
     }
 
+    function activateHistoryTab() {
+        const historyTabBtn = document.getElementById('notif-history-tab');
+        if (!historyTabBtn) return;
+        if (typeof bootstrap !== 'undefined' && bootstrap.Tab) {
+            const tabInstance = bootstrap.Tab.getOrCreateInstance(historyTabBtn);
+            tabInstance.show();
+        } else {
+            historyTabBtn.click();
+        }
+    }
+
     function bindEvents() {
         const modal = document.getElementById('notificationModal');
         if (modal) {
             modal.addEventListener('show.bs.modal', () => {
+                if (hasNewNotification || unreadCount > 0) {
+                    activateHistoryTab();
+                    hasNewNotification = false;
+                }
                 loadHistory();
-                checkPushSubscriptionState();
+                loadConfig().then(() => checkPushSubscriptionState());
             });
         }
 
@@ -1980,12 +2073,21 @@ const NotificationClient = (function () {
         }
     }
 
+    function removeRegisteredEndpoint(endpoint) {
+        if (registeredEndpoints && endpoint) {
+            registeredEndpoints.delete(endpoint);
+        }
+    }
+
     return {
         init: init,
         loadHistory: loadHistory,
         markAllRead: markAllRead,
         clearHistory: clearHistory,
-        sendTestNotification: sendTestNotification
+        sendTestNotification: sendTestNotification,
+        activateHistoryTab: activateHistoryTab,
+        checkPushSubscriptionState: checkPushSubscriptionState,
+        removeRegisteredEndpoint: removeRegisteredEndpoint
     };
 })();
 

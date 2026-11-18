@@ -27,6 +27,8 @@
         <result property="userAgent" column="user_agent" />
         <result property="createdAt" column="created_at" />
         <result property="lastActiveAt" column="last_active_at" />
+        <result property="username" column="username" />
+        <result property="nickname" column="nickname" />
     </resultMap>
 
     <resultMap id="NotificationHistoryResultMap" type="com.aspectran.aspectow.console.common.db.model.NotificationHistory">
@@ -104,6 +106,14 @@
         )
     </insert>
 
+    <update id="updateVapidKey" parameterType="com.aspectran.aspectow.console.common.db.model.VapidKey">
+        update asc_vapid_key
+        set public_key = #{publicKey},
+            private_key = #{privateKey},
+            created_at = current_timestamp
+        where key_id = 1
+    </update>
+
     <!-- PushSubscription -->
     <select id="getPushSubscriptionByEndpoint" parameterType="string" resultMap="PushSubscriptionResultMap">
         select * from asc_push_subscription where endpoint = #{endpoint}
@@ -140,6 +150,17 @@
         order by s.subscription_id desc
     </select>
 
+    <select id="countPushSubscriptions" resultType="int">
+        select count(*) from asc_push_subscription
+    </select>
+
+    <select id="getAllPushSubscriptionsWithUser" resultMap="PushSubscriptionResultMap">
+        select s.*, u.username, u.nickname
+        from asc_push_subscription s
+        left join asc_user u on s.user_id = u.user_id
+        order by s.subscription_id desc
+    </select>
+
     <insert id="insertPushSubscription" parameterType="com.aspectran.aspectow.console.common.db.model.PushSubscription" useGeneratedKeys="true" keyProperty="subscriptionId">
         insert into asc_push_subscription (
             user_id, endpoint, p256dh_key, auth_key, user_agent, created_at, last_active_at
@@ -158,8 +179,16 @@
         delete from asc_push_subscription where endpoint = #{endpoint}
     </delete>
 
+    <delete id="deletePushSubscriptionById" parameterType="long">
+        delete from asc_push_subscription where subscription_id = #{subscriptionId}
+    </delete>
+
     <delete id="deletePushSubscriptionsByUserId" parameterType="long">
         delete from asc_push_subscription where user_id = #{userId}
+    </delete>
+
+    <delete id="deleteAllPushSubscriptions">
+        delete from asc_push_subscription
     </delete>
 
     <!-- NotificationHistory -->

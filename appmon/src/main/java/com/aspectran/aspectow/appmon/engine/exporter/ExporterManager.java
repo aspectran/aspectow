@@ -219,8 +219,8 @@ public class ExporterManager {
      * @param <V> the type of the result
      * @return the result of the action
      */
-    public <V> V instantActivity(InstantAction<V> instantAction) {
-        return appMonManager.instantActivity(instantAction);
+    public <V> V executeInActivity(InstantAction<V> instantAction) {
+        return appMonManager.executeInActivity(instantAction);
     }
 
     /**

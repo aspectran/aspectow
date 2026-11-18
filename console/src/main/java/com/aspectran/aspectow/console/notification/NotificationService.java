@@ -128,4 +128,39 @@ public interface NotificationService {
      */
     void dispatchNotification(String category, String severity, String title, String message, String targetUrl);
 
+    /**
+     * Retrieves all push subscriptions for a user.
+     * @param userId the user ID
+     * @return the list of push subscriptions
+     */
+    List<PushSubscription> getPushSubscriptionsByUserId(Long userId);
+
+    /**
+     * Retrieves all push subscriptions joined with user account details.
+     * @return the list of subscriptions
+     */
+    List<PushSubscription> getAllPushSubscriptionsWithUser();
+
+    /**
+     * Deletes a specific push subscription by its ID.
+     * @param subscriptionId the subscription ID
+     */
+    void deletePushSubscription(Long subscriptionId);
+
+    /**
+     * Sends an administrative test push notification to a target user, or all registered users if targetUserId is null.
+     * @param targetUserId optional target user ID
+     * @param title the test notification title
+     * @param message the test notification message
+     * @return number of devices successfully notified
+     */
+    int sendAdminTestPush(Long targetUserId, String title, String message);
+
+    /**
+     * Regenerates the cluster-wide VAPID key pair, updates persistence, and clears invalid device subscriptions.
+     * @return the new public key string
+     * @throws Exception if regeneration fails
+     */
+    String regenerateVapidKey() throws Exception;
+
 }

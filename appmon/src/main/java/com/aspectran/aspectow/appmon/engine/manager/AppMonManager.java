@@ -379,8 +379,8 @@ public class AppMonManager extends InstantActivitySupport {
     }
 
     @Override
-    public <V> V instantActivity(InstantAction<V> instantAction) {
-        return super.instantActivity(instantAction);
+    public <V> V executeInActivity(InstantAction<V> instantAction) {
+        return super.executeInActivity(instantAction);
     }
 
     /**

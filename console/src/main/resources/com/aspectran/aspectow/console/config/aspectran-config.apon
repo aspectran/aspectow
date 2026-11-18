@@ -18,6 +18,7 @@ context: {
         com.aspectran.aspectow.console.user
         com.aspectran.aspectow.console.vault
         com.aspectran.aspectow.console.notification
+        com.aspectran.aspectow.console.admin
     ]
     profiles: {
         base: [

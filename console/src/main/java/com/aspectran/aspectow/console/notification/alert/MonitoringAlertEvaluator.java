@@ -28,6 +28,7 @@ import com.aspectran.core.component.bean.annotation.Autowired;
 import io.lettuce.core.SetArgs;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.sync.RedisCommands;
+import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -296,7 +297,7 @@ public class MonitoringAlertEvaluator extends NotificationSupport
         int defaultThreshold = 85;
         if (notificationMapper != null) {
             try {
-                return instantActivity(() -> {
+                return executeInActivity(() -> {
                     if ("CPU".equalsIgnoreCase(metricType)) {
                         int val = notificationMapper.getMinCpuThreshold();
                         return val > 0 ? val : defaultThreshold;
@@ -313,7 +314,7 @@ public class MonitoringAlertEvaluator extends NotificationSupport
         return defaultThreshold;
     }
 
-    public AlertState getAlertState(String nodeId, String metricType) {
+    public AlertState getAlertState(String nodeId, @NonNull String metricType) {
         return alertStates.getOrDefault(nodeId + ":" + metricType.toUpperCase(), AlertState.NORMAL);
     }
 

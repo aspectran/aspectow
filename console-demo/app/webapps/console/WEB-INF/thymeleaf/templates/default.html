@@ -139,6 +139,23 @@
                     </a>
                 </div>
             </div>
+
+            <!-- Administration Group -->
+            <div class="mt-4 px-3 small text-muted text-uppercase fw-bold" style="font-size: 0.7rem; letter-spacing: 1px;"
+                 th:if="${session.USER_INFO.hasRole('SUPER_ADMIN') || session.USER_INFO.hasRole('DEMO')}">Administration</div>
+
+            <div class="nav-group" th:if="${session.USER_INFO.hasRole('SUPER_ADMIN') || session.USER_INFO.hasRole('DEMO')}">
+                <a class="nav-link" th:classappend="${page.group == 'admin-menu' ? 'active' : 'collapsed'}"
+                   data-bs-toggle="collapse" href="#admin-menu" role="button" aria-expanded="false">
+                    <span><i class="bi bi-gear-wide-connected"></i> System Settings</span>
+                    <i class="bi bi-chevron-down small"></i>
+                </a>
+                <div class="collapse" th:classappend="${page.group == 'admin-menu' ? 'show' : ''}" id="admin-menu">
+                    <a th:href="@{/admin/notification/}" class="nav-link sub" th:classappend="${page.style == 'admin-notification-page' ? 'active' : ''}">
+                        Push &amp; Notifications
+                    </a>
+                </div>
+            </div>
         </nav>
         <div class="p-3 border-top">
             <div class="d-flex align-items-center gap-2 mb-2">

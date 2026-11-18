@@ -17,6 +17,7 @@ package com.aspectran.aspectow.console.notification;
 
 import com.aspectran.aspectow.console.auth.UserInfo;
 import com.aspectran.aspectow.console.common.db.model.NotificationHistory;
+import com.aspectran.aspectow.console.common.db.model.PushSubscription;
 import com.aspectran.aspectow.console.common.db.model.UserNotificationSetting;
 import com.aspectran.core.activity.Translet;
 import com.aspectran.core.component.bean.annotation.Autowired;
@@ -30,6 +31,7 @@ import com.aspectran.web.support.rest.response.FailureResponse;
 import com.aspectran.web.support.rest.response.SuccessResponse;
 import org.jspecify.annotations.NonNull;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -86,12 +88,21 @@ public class NotificationActivity {
         boolean webPushEnabled = isWebPushEnabled();
         String vapidPublicKey = (webPushEnabled && webPushManager != null) ? webPushManager.getVapidPublicKey() : null;
 
+        List<PushSubscription> userSubscriptions = notificationService.getPushSubscriptionsByUserId(userInfo.getUserId());
+        List<String> registeredEndpoints = new ArrayList<>();
+        if (userSubscriptions != null) {
+            for (PushSubscription sub : userSubscriptions) {
+                registeredEndpoints.add(sub.getEndpoint());
+            }
+        }
+
         Map<String, Object> data = new HashMap<>();
         data.put("enabled", true);
         data.put("webPushEnabled", webPushEnabled);
         data.put("vapidPublicKey", vapidPublicKey);
         data.put("setting", setting);
         data.put("unreadCount", unreadCount);
+        data.put("registeredEndpoints", registeredEndpoints);
         data.put("permissions", userInfo.getPermissions());
         data.put("roles", userInfo.getRoles());
 

@@ -1332,6 +1332,7 @@ const NotificationClient = (function () {
     let webPushEnabled = true;
     let unreadCount = 0;
     let hasNewNotification = false;
+    let registeredEndpoints = null;
 
     function getContextPath() {
         if (typeof CONTEXT_PATH !== 'undefined' && CONTEXT_PATH !== null) {
@@ -1437,7 +1438,7 @@ const NotificationClient = (function () {
 
     function loadConfig() {
         const ctx = getContextPath();
-        fetch(ctx + '/notification/config')
+        return fetch(ctx + '/notification/config')
             .then(res => res.json())
             .then(res => {
                 if (res && res.data) {
@@ -1451,6 +1452,11 @@ const NotificationClient = (function () {
                     currentSetting = res.data.setting;
                     if (res.data.permissions && Array.isArray(res.data.permissions)) {
                         userPermissions = new Set(res.data.permissions);
+                    }
+                    if (res.data.registeredEndpoints && Array.isArray(res.data.registeredEndpoints)) {
+                        registeredEndpoints = new Set(res.data.registeredEndpoints);
+                    } else {
+                        registeredEndpoints = new Set();
                     }
                     updateBadge(res.data.unreadCount || 0);
                     populateSettingsForm(currentSetting);
@@ -1585,6 +1591,20 @@ const NotificationClient = (function () {
         if (swRegistration) {
             const sub = await swRegistration.pushManager.getSubscription();
             if (sub) {
+                // Verify if this local subscription is still registered on the server for the current user
+                if (registeredEndpoints !== null && !registeredEndpoints.has(sub.endpoint)) {
+                    console.warn('[NotificationClient] Push subscription endpoint is not registered on server. Unsubscribing stale local subscription...');
+                    try {
+                        await sub.unsubscribe();
+                    } catch (e) {
+                        console.warn('[NotificationClient] Error unsubscribing stale subscription:', e);
+                    }
+                    if (toggle) toggle.checked = false;
+                    if (testBtn) testBtn.disabled = true;
+                    if (permNotice) permNotice.classList.add('d-none');
+                    return;
+                }
+
                 // Verify if existing subscription matches current server VAPID public key
                 if (vapidPublicKey && sub.options && sub.options.applicationServerKey) {
                     const currentKeyBytes = new Uint8Array(sub.options.applicationServerKey);
@@ -1629,13 +1649,6 @@ const NotificationClient = (function () {
                     permNotice.classList.remove('d-none');
                 }
             } else {
-                // If browser permission is already granted and push was explicitly enabled in user settings, auto-subscribe silently
-                if (Notification.permission === 'granted' && currentSetting && currentSetting.pushEnabled === 'Y' && vapidPublicKey) {
-                    console.log('[NotificationClient] User previously enabled push and permission is granted. Re-subscribing push endpoint...');
-                    await handlePushToggle(true, true);
-                    return;
-                }
-
                 if (toggle) toggle.checked = false;
                 if (testBtn) testBtn.disabled = true;
                 if (permNotice) permNotice.classList.add('d-none');
@@ -1699,6 +1712,10 @@ const NotificationClient = (function () {
                     body: formData
                 });
 
+                if (registeredEndpoints) {
+                    registeredEndpoints.add(sub.endpoint);
+                }
+
                 const toggle = document.getElementById('notif-push-toggle');
                 if (toggle) toggle.checked = true;
                 if (currentSetting) currentSetting.pushEnabled = 'Y';
@@ -1719,6 +1736,10 @@ const NotificationClient = (function () {
                 if (sub) {
                     const endpoint = sub.endpoint;
                     await sub.unsubscribe();
+
+                    if (registeredEndpoints && endpoint) {
+                        registeredEndpoints.delete(endpoint);
+                    }
 
                     const formData = new URLSearchParams();
                     formData.append('endpoint', endpoint);
@@ -2020,7 +2041,7 @@ const NotificationClient = (function () {
                     hasNewNotification = false;
                 }
                 loadHistory();
-                checkPushSubscriptionState();
+                loadConfig().then(() => checkPushSubscriptionState());
             });
         }
 
@@ -2052,13 +2073,21 @@ const NotificationClient = (function () {
         }
     }
 
+    function removeRegisteredEndpoint(endpoint) {
+        if (registeredEndpoints && endpoint) {
+            registeredEndpoints.delete(endpoint);
+        }
+    }
+
     return {
         init: init,
         loadHistory: loadHistory,
         markAllRead: markAllRead,
         clearHistory: clearHistory,
         sendTestNotification: sendTestNotification,
-        activateHistoryTab: activateHistoryTab
+        activateHistoryTab: activateHistoryTab,
+        checkPushSubscriptionState: checkPushSubscriptionState,
+        removeRegisteredEndpoint: removeRegisteredEndpoint
     };
 })();
 

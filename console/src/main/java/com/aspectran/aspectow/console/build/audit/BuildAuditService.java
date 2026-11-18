@@ -85,7 +85,7 @@ public class BuildAuditService extends InstantActivitySupport {
      * @return the created BuildHistory entity
      */
     public BuildHistory startAudit(@NonNull BuildExecutionInfo info, String requester) {
-        return instantActivity(() -> {
+        return executeInActivity(() -> {
             BuildHistory history = null;
             if (StringUtils.hasText(info.getExecutionId()) && StringUtils.hasText(info.getTargetNodeId())) {
                 history = buildHistoryMapper.getBuildHistoryByExecutionIdAndNodeId(info.getExecutionId(), info.getTargetNodeId());
@@ -143,7 +143,7 @@ public class BuildAuditService extends InstantActivitySupport {
      */
     public void completeAudit(@NonNull BuildExecutionInfo info, List<String> logLines) {
         try {
-            instantActivity(() -> {
+            executeInActivity(() -> {
                 BuildHistory history;
                 if (info.getTargetNodeId() != null) {
                     history = buildHistoryMapper.getBuildHistoryByExecutionIdAndNodeId(info.getExecutionId(), info.getTargetNodeId());
@@ -252,7 +252,7 @@ public class BuildAuditService extends InstantActivitySupport {
      */
     public void updateStatus(@NonNull BuildExecutionInfo info) {
         try {
-            instantActivity(() -> {
+            executeInActivity(() -> {
                 BuildHistory history;
                 if (info.getTargetNodeId() != null) {
                     history = buildHistoryMapper.getBuildHistoryByExecutionIdAndNodeId(info.getExecutionId(), info.getTargetNodeId());
@@ -284,7 +284,7 @@ public class BuildAuditService extends InstantActivitySupport {
      * @return true if valid and unmodified; false otherwise
      */
     public boolean verifyIntegrity(Long historyId) {
-        return instantActivity(() -> {
+        return executeInActivity(() -> {
             BuildHistory history = buildHistoryMapper.getBuildHistoryById(historyId);
             if (history == null || StringUtils.isEmpty(history.getIntegrityHash())) {
                 return false;
@@ -313,7 +313,7 @@ public class BuildAuditService extends InstantActivitySupport {
         if (query == null) {
             return Collections.emptyList();
         }
-        return instantActivity(() -> buildHistoryMapper.searchBuildHistory(query));
+        return executeInActivity(() -> buildHistoryMapper.searchBuildHistory(query));
     }
 
     /**
@@ -325,7 +325,7 @@ public class BuildAuditService extends InstantActivitySupport {
         if (query == null) {
             return 0;
         }
-        return instantActivity(() -> buildHistoryMapper.countBuildHistory(query));
+        return executeInActivity(() -> buildHistoryMapper.countBuildHistory(query));
     }
 
     /**
@@ -334,7 +334,7 @@ public class BuildAuditService extends InstantActivitySupport {
      * @return the build history entity
      */
     public BuildHistory getHistoryDetail(Long historyId) {
-        return instantActivity(() -> buildHistoryMapper.getBuildHistoryById(historyId));
+        return executeInActivity(() -> buildHistoryMapper.getBuildHistoryById(historyId));
     }
 
     /**
@@ -346,7 +346,7 @@ public class BuildAuditService extends InstantActivitySupport {
         if (StringUtils.isEmpty(targetNodeId)) {
             return null;
         }
-        return instantActivity(() -> buildHistoryMapper.getLatestBuildHistoryByNodeId(targetNodeId));
+        return executeInActivity(() -> buildHistoryMapper.getLatestBuildHistoryByNodeId(targetNodeId));
     }
 
     /**
@@ -358,7 +358,7 @@ public class BuildAuditService extends InstantActivitySupport {
         if (targetNodeIds == null || targetNodeIds.isEmpty()) {
             return Collections.emptyList();
         }
-        return instantActivity(() -> buildHistoryMapper.getLatestBuildHistories(targetNodeIds));
+        return executeInActivity(() -> buildHistoryMapper.getLatestBuildHistories(targetNodeIds));
     }
 
     /**
@@ -371,7 +371,7 @@ public class BuildAuditService extends InstantActivitySupport {
         if (StringUtils.isEmpty(executionId)) {
             return null;
         }
-        return instantActivity(() -> buildHistoryMapper.getBuildHistoryByExecutionIdAndNodeId(executionId, targetNodeId));
+        return executeInActivity(() -> buildHistoryMapper.getBuildHistoryByExecutionIdAndNodeId(executionId, targetNodeId));
     }
 
     /**
@@ -383,7 +383,7 @@ public class BuildAuditService extends InstantActivitySupport {
         if (StringUtils.isEmpty(executionId)) {
             return null;
         }
-        return instantActivity(() -> buildHistoryMapper.getBuildHistoryByExecutionId(executionId));
+        return executeInActivity(() -> buildHistoryMapper.getBuildHistoryByExecutionId(executionId));
     }
 
     /**
@@ -395,7 +395,7 @@ public class BuildAuditService extends InstantActivitySupport {
         if (StringUtils.isEmpty(executionId)) {
             return Collections.emptyList();
         }
-        return instantActivity(() -> buildHistoryMapper.getBuildHistoriesByExecutionId(executionId));
+        return executeInActivity(() -> buildHistoryMapper.getBuildHistoriesByExecutionId(executionId));
     }
 
     /**
@@ -407,7 +407,7 @@ public class BuildAuditService extends InstantActivitySupport {
         if (StringUtils.isEmpty(executionId)) {
             return Collections.emptyMap();
         }
-        return instantActivity(() -> {
+        return executeInActivity(() -> {
             List<BuildHistory> histories = buildHistoryMapper.getBuildHistoriesByExecutionId(executionId);
             if (histories == null || histories.isEmpty()) {
                 return Collections.emptyMap();
@@ -432,7 +432,7 @@ public class BuildAuditService extends InstantActivitySupport {
      * @return raw log string
      */
     public String getDecompressedLogs(Long historyId) {
-        return instantActivity(() -> getDecompressedLogsInternal(historyId));
+        return executeInActivity(() -> getDecompressedLogsInternal(historyId));
     }
 
     @Nullable
@@ -462,7 +462,7 @@ public class BuildAuditService extends InstantActivitySupport {
         if (StringUtils.isEmpty(executionId)) {
             return "";
         }
-        return instantActivity(() -> {
+        return executeInActivity(() -> {
             BuildLog buildLog = buildHistoryMapper.getBuildLogByExecutionId(executionId);
             if (buildLog == null || buildLog.getLogContent() == null) {
                 return "";
@@ -486,7 +486,7 @@ public class BuildAuditService extends InstantActivitySupport {
      * @return CSV formatted string
      */
     public String exportCsvReport(BuildAuditQuery query) {
-        return instantActivity(() -> {
+        return executeInActivity(() -> {
             List<BuildHistory> list = buildHistoryMapper.searchBuildHistory(query);
             ZoneId zoneId = ZoneOffset.UTC;
             if (query != null && query.getTimeZone() != null) {

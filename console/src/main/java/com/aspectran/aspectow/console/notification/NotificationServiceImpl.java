@@ -21,10 +21,12 @@ import com.aspectran.aspectow.console.common.db.model.PushSubscription;
 import com.aspectran.aspectow.console.common.db.model.UserNotificationSetting;
 import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Destroy;
+import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -192,7 +194,7 @@ public class NotificationServiceImpl extends NotificationSupport implements Noti
                         notificationMapper.deletePushSubscriptionByEndpoint(sub.getEndpoint());
                     }
                 } catch (Exception e) {
-                    logger.error("Failed to send test push notification to endpoint: " + sub.getEndpoint(), e);
+                    logger.error("Failed to send test push notification to endpoint: {}", sub.getEndpoint(), e);
                 }
             }
         } else {
@@ -217,108 +219,236 @@ public class NotificationServiceImpl extends NotificationSupport implements Noti
         if (!isNotificationEnabled()) {
             return;
         }
-        dispatchExecutor.submit(() -> {
+
+        if (hasCurrentActivity()) {
+            // Within an active request activity context (e.g., LoginActivity, audit logging):
+            // Perform DB operations (history recording and target push subscriptions query)
+            // within the existing request transaction to prevent opening a second concurrent DB connection.
             try {
-                // Step 1: Record in-app notification history for all eligible configured users with permission
-                Set<Long> allowedUserIds = new HashSet<>();
-                instantActivity(() -> {
-                    String requiredPerm = getRequiredPermission(category);
-                    List<Long> candidateUserIds = (requiredPerm != null)
-                            ? notificationMapper.getUserIdsByPermission(requiredPerm)
-                            : notificationMapper.getAllActiveUserIds();
-
-                    if (candidateUserIds != null) {
-                        for (Long userId : candidateUserIds) {
-                            UserNotificationSetting setting = notificationMapper.getNotificationSettingByUserId(userId);
-                            if (setting != null && isCategoryAllowed(setting, category)) {
-                                allowedUserIds.add(userId);
-
-                                NotificationHistory history = new NotificationHistory();
-                                history.setUserId(userId);
-                                history.setCategory(category);
-                                history.setSeverity(severity);
-                                history.setTitle(title);
-                                history.setMessage(message);
-                                history.setTargetUrl(targetUrl);
-                                notificationMapper.insertNotificationHistory(history);
-                            }
-                        }
+                List<PushSubscription> targetsToSend = recordNotificationAndFindPushTargets(
+                        category, severity, title, message, targetUrl);
+                if (targetsToSend != null && !targetsToSend.isEmpty() && isWebPushEnabled() && webPushManager != null) {
+                    dispatchExecutor.submit(() -> sendWebPushes(targetsToSend, title, message, targetUrl, category));
+                }
+            } catch (Exception e) {
+                logger.error("Error dispatching notification in current activity", e);
+            }
+        } else {
+            // Background / non-activity thread (e.g., scheduler, monitoring evaluator):
+            // Delegate full workflow asynchronously via dispatchExecutor with activity boundary
+            dispatchExecutor.submit(() -> {
+                try {
+                    List<PushSubscription> targetsToSend = recordNotificationAndFindPushTargets(
+                            category, severity, title, message, targetUrl);
+                    if (targetsToSend != null && !targetsToSend.isEmpty() && isWebPushEnabled() && webPushManager != null) {
+                        sendWebPushes(targetsToSend, title, message, targetUrl, category);
                     }
-                    return null;
-                });
-
-                if (allowedUserIds.isEmpty()) {
-                    return;
+                } catch (Exception e) {
+                    logger.error("Error in asynchronous dispatchNotification task", e);
                 }
+            });
+        }
+    }
 
-                // If Web Push is disabled or webPushManager is null, skip external HTTP/2 dispatch
-                if (webPushManager == null || !isWebPushEnabled()) {
-                    return;
-                }
+    private List<PushSubscription> recordNotificationAndFindPushTargets(
+            String category, String severity, String title, String message, String targetUrl) {
+        return executeInActivity(() -> {
+            String requiredPerm = getRequiredPermission(category);
+            List<Long> candidateUserIds = (requiredPerm != null)
+                    ? notificationMapper.getUserIdsByPermission(requiredPerm)
+                    : notificationMapper.getAllActiveUserIds();
 
-                // Step 2: Query push subscriptions for allowed users
-                List<PushSubscription> targetsToSend = new ArrayList<>();
-                instantActivity(() -> {
-                    List<PushSubscription> activeSubscriptions = notificationMapper.getAllActivePushSubscriptions();
-                    if (activeSubscriptions != null) {
-                        for (PushSubscription sub : activeSubscriptions) {
-                            if (allowedUserIds.contains(sub.getUserId())) {
-                                targetsToSend.add(sub);
-                            }
-                        }
+            Set<Long> allowedUserIds = new HashSet<>();
+            if (candidateUserIds != null) {
+                for (Long userId : candidateUserIds) {
+                    UserNotificationSetting setting = notificationMapper.getNotificationSettingByUserId(userId);
+                    if (setting != null && isCategoryAllowed(setting, category)) {
+                        allowedUserIds.add(userId);
+
+                        NotificationHistory history = new NotificationHistory();
+                        history.setUserId(userId);
+                        history.setCategory(category);
+                        history.setSeverity(severity);
+                        history.setTitle(title);
+                        history.setMessage(message);
+                        history.setTargetUrl(targetUrl);
+                        notificationMapper.insertNotificationHistory(history);
                     }
-                    return null;
-                });
-
-                if (targetsToSend.isEmpty()) {
-                    return;
                 }
+            }
 
-                // Step 3: Send Web Push (Outside DB transaction to avoid connection starvation / timeout)
-                String payloadJson = buildPayloadJson(
-                        title,
-                        message,
-                        targetUrl,
-                        category != null ? category.toLowerCase() : "default"
-                );
-                List<String> successEndpoints = new ArrayList<>();
-                List<String> expiredEndpoints = new ArrayList<>();
+            if (allowedUserIds.isEmpty() || !isWebPushEnabled() || webPushManager == null) {
+                return Collections.emptyList();
+            }
 
-                for (PushSubscription sub : targetsToSend) {
+            List<PushSubscription> targetsToSend = new ArrayList<>();
+            List<PushSubscription> activeSubscriptions = notificationMapper.getAllActivePushSubscriptions();
+            if (activeSubscriptions != null) {
+                for (PushSubscription sub : activeSubscriptions) {
+                    if (allowedUserIds.contains(sub.getUserId())) {
+                        targetsToSend.add(sub);
+                    }
+                }
+            }
+            return targetsToSend;
+        });
+    }
+
+    private void sendWebPushes(@NonNull List<PushSubscription> targetsToSend,
+                               String title, String message, String targetUrl, String category) {
+        String payloadJson = buildPayloadJson(
+                title,
+                message,
+                targetUrl,
+                category != null ? category.toLowerCase() : "default"
+        );
+        List<String> successEndpoints = new ArrayList<>();
+        List<String> expiredEndpoints = new ArrayList<>();
+
+        for (PushSubscription sub : targetsToSend) {
+            try {
+                int status = webPushManager.sendPushNotification(sub, payloadJson);
+                if (status >= 200 && status < 300) {
+                    successEndpoints.add(sub.getEndpoint());
+                } else if (status == 401 || status == 404 || status == 410) {
+                    expiredEndpoints.add(sub.getEndpoint());
+                }
+            } catch (Exception e) {
+                logger.error("Error dispatching push notification to {}", sub.getEndpoint(), e);
+            }
+        }
+
+        if (!successEndpoints.isEmpty() || !expiredEndpoints.isEmpty()) {
+            executeInActivity(() -> {
+                for (String ep : successEndpoints) {
                     try {
-                        int status = webPushManager.sendPushNotification(sub, payloadJson);
-                        if (status >= 200 && status < 300) {
-                            successEndpoints.add(sub.getEndpoint());
-                        } else if (status == 401 || status == 404 || status == 410) {
-                            expiredEndpoints.add(sub.getEndpoint());
-                        }
-                    } catch (Exception e) {
-                        logger.error("Error dispatching push notification to {}", sub.getEndpoint(), e);
+                        notificationMapper.updatePushSubscriptionLastActive(ep);
+                    } catch (Exception ignored) {
                     }
                 }
+                for (String ep : expiredEndpoints) {
+                    try {
+                        notificationMapper.deletePushSubscriptionByEndpoint(ep);
+                    } catch (Exception ignored) {
+                    }
+                }
+                return null;
+            });
+        }
+    }
 
-                // Step 4: Update subscription statuses in DB
-                if (!successEndpoints.isEmpty() || !expiredEndpoints.isEmpty()) {
-                    instantActivity(() -> {
-                        for (String ep : successEndpoints) {
-                            try {
-                                notificationMapper.updatePushSubscriptionLastActive(ep);
-                            } catch (Exception ignored) {
-                            }
-                        }
-                        for (String ep : expiredEndpoints) {
-                            try {
-                                notificationMapper.deletePushSubscriptionByEndpoint(ep);
-                            } catch (Exception ignored) {
-                            }
-                        }
+    @Override
+    public List<PushSubscription> getPushSubscriptionsByUserId(Long userId) {
+        if (notificationMapper == null || userId == null) {
+            return Collections.emptyList();
+        }
+        return executeInActivity(() -> notificationMapper.getPushSubscriptionsByUserId(userId));
+    }
+
+    @Override
+    public List<PushSubscription> getAllPushSubscriptionsWithUser() {
+        if (notificationMapper == null) {
+            return Collections.emptyList();
+        }
+        return executeInActivity(notificationMapper::getAllPushSubscriptionsWithUser);
+    }
+
+    @Override
+    public void deletePushSubscription(Long subscriptionId) {
+        if (notificationMapper == null || subscriptionId == null) {
+            return;
+        }
+        executeInActivity(() -> {
+            notificationMapper.deletePushSubscriptionById(subscriptionId);
+            return null;
+        });
+    }
+
+    @Override
+    public int sendAdminTestPush(Long targetUserId, String title, String message) {
+        if (!isWebPushEnabled() || webPushManager == null || notificationMapper == null) {
+            return 0;
+        }
+
+        List<PushSubscription> subscriptions;
+        if (targetUserId != null) {
+            subscriptions = executeInActivity(() -> notificationMapper.getPushSubscriptionsByUserId(targetUserId));
+        } else {
+            subscriptions = executeInActivity(notificationMapper::getAllActivePushSubscriptions);
+        }
+
+        String finalTitle = (title != null && !title.isBlank()) ? title : "[Admin Test] Push Notification";
+        String finalMessage = (message != null && !message.isBlank()) ? message : "This is an administrative test push notification from Aspectow Console.";
+
+        // Also record to in-app notification history for target users
+        Set<Long> targetUserIds = new HashSet<>();
+        if (targetUserId != null) {
+            targetUserIds.add(targetUserId);
+        } else if (subscriptions != null) {
+            for (PushSubscription sub : subscriptions) {
+                if (sub.getUserId() != null) {
+                    targetUserIds.add(sub.getUserId());
+                }
+            }
+        }
+        for (Long uid : targetUserIds) {
+            try {
+                NotificationHistory history = new NotificationHistory();
+                history.setUserId(uid);
+                history.setCategory("TEST");
+                history.setSeverity("INFO");
+                history.setTitle(finalTitle);
+                history.setMessage(finalMessage);
+                history.setTargetUrl("/admin/notification/");
+                executeInActivity(() -> {
+                    notificationMapper.insertNotificationHistory(history);
+                    return null;
+                });
+            } catch (Exception e) {
+                logger.warn("Failed to record admin test notification history for user ID: {}", uid, e);
+            }
+        }
+
+        if (subscriptions == null || subscriptions.isEmpty()) {
+            return 0;
+        }
+
+        String payload = buildPayloadJson(
+                finalTitle,
+                finalMessage,
+                "./",
+                "aspectow-admin-test-" + System.currentTimeMillis()
+        );
+
+        int sentCount = 0;
+        for (PushSubscription sub : subscriptions) {
+            try {
+                int status = webPushManager.sendPushNotification(sub, payload);
+                if (status >= 200 && status < 300) {
+                    executeInActivity(() -> {
+                        notificationMapper.updatePushSubscriptionLastActive(sub.getEndpoint());
+                        return null;
+                    });
+                    sentCount++;
+                } else if (status == 401 || status == 404 || status == 410) {
+                    executeInActivity(() -> {
+                        notificationMapper.deletePushSubscriptionByEndpoint(sub.getEndpoint());
                         return null;
                     });
                 }
             } catch (Exception e) {
-                logger.error("Error in dispatchNotification task", e);
+                logger.warn("Failed to dispatch admin test push to {}: {}", sub.getEndpoint(), e.getMessage());
             }
-        });
+        }
+        return sentCount;
+    }
+
+    @Override
+    public String regenerateVapidKey() throws Exception {
+        if (webPushManager == null) {
+            throw new IllegalStateException("WebPushManager is not configured");
+        }
+        return webPushManager.regenerateVapidKeyPair();
     }
 
     protected String getRequiredPermission(String category) {
@@ -347,7 +477,7 @@ public class NotificationServiceImpl extends NotificationSupport implements Noti
         };
     }
 
-    private String buildPayloadJson(String title, String body, String targetUrl, String tag) {
+    private @NonNull String buildPayloadJson(String title, String body, String targetUrl, String tag) {
         return "{" +
                 "\"title\":\"" + escapeJson(title) + "\"," +
                 "\"body\":\"" + escapeJson(body) + "\"," +
@@ -358,7 +488,7 @@ public class NotificationServiceImpl extends NotificationSupport implements Noti
                 "}";
     }
 
-    private String escapeJson(String s) {
+    private @NonNull String escapeJson(String s) {
         if (s == null) return "";
         return s.replace("\\", "\\\\")
                 .replace("\"", "\\\"")

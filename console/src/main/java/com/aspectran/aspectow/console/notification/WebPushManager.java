@@ -118,7 +118,7 @@ public class WebPushManager extends NotificationSupport {
             // 1. Try to load cluster-wide VAPID key from Database first
             if (notificationMapper != null) {
                 try {
-                    VapidKey dbKey = instantActivity(() -> notificationMapper.getVapidKey());
+                    VapidKey dbKey = instantActivity(notificationMapper::getVapidKey);
                     if (dbKey != null && dbKey.getPublicKey() != null && dbKey.getPrivateKey() != null) {
                         setVapidKeys(dbKey.getPublicKey(), dbKey.getPrivateKey());
                         logger.info("Loaded cluster-wide VAPID key pair from database. Public key: {}", vapidPublicKeyBase64);
@@ -262,6 +262,87 @@ public class WebPushManager extends NotificationSupport {
             return null;
         }
         return vapidPublicKeyBase64;
+    }
+
+    /**
+     * Regenerates a new VAPID key pair, updates the database, overwrites the local file backup,
+     * and deletes all existing invalidated subscriptions.
+     * @return the new Base64URL-encoded public key
+     * @throws Exception if key generation or persistence fails
+     */
+    public synchronized String regenerateVapidKeyPair() throws Exception {
+        KeyPairGenerator kpg = KeyPairGenerator.getInstance("EC");
+        kpg.initialize(new ECGenParameterSpec(EC_CURVE), secureRandom);
+        KeyPair newKeyPair = kpg.generateKeyPair();
+        String newPublicKeyBase64 = encodeBase64Url(toUncompressedPoint((ECPublicKey) newKeyPair.getPublic()));
+
+        ECPrivateKey priv = (ECPrivateKey) newKeyPair.getPrivate();
+        String newPrivateKeyBase64 = encodeBase64Url(to32Bytes(priv.getS()));
+
+        // Update database
+        if (notificationMapper != null) {
+            executeInActivity(() -> {
+                VapidKey vk = new VapidKey();
+                vk.setKeyId(1);
+                vk.setPublicKey(newPublicKeyBase64);
+                vk.setPrivateKey(newPrivateKeyBase64);
+                int updated = notificationMapper.updateVapidKey(vk);
+                if (updated == 0) {
+                    notificationMapper.insertVapidKey(vk);
+                }
+                // Clear all invalidated device subscriptions
+                notificationMapper.deleteAllPushSubscriptions();
+                return null;
+            });
+        }
+
+        // Update local file backup
+        File keyFile = resolveKeyFile();
+        if (keyFile != null) {
+            try {
+                File parent = keyFile.getParentFile();
+                if (parent != null && !parent.exists()) {
+                    parent.mkdirs();
+                }
+                Properties props = new Properties();
+                props.setProperty("publicKey", newPublicKeyBase64);
+                props.setProperty("privateKey", newPrivateKeyBase64);
+                try (OutputStream out = new FileOutputStream(keyFile)) {
+                    props.store(out, "Aspectow Console VAPID Key Pair");
+                }
+            } catch (Exception e) {
+                logger.warn("Failed to overwrite VAPID key file: {}", keyFile.getAbsolutePath(), e);
+            }
+        }
+
+        this.vapidKeyPair = newKeyPair;
+        this.vapidPublicKeyBase64 = newPublicKeyBase64;
+        logger.info("Successfully regenerated and persisted new VAPID key pair. Public key: {}", newPublicKeyBase64);
+        return newPublicKeyBase64;
+    }
+
+    /**
+     * Retrieves the stored VAPID key entity from the database or local fallback.
+     * @return VapidKey entity, or null if not available
+     */
+    public VapidKey getVapidKeyEntity() {
+        if (notificationMapper != null) {
+            try {
+                VapidKey dbKey = executeInActivity(notificationMapper::getVapidKey);
+                if (dbKey != null) {
+                    return dbKey;
+                }
+            } catch (Exception e) {
+                logger.warn("Failed to load VapidKey entity from database: {}", e.getMessage());
+            }
+        }
+        if (vapidPublicKeyBase64 != null) {
+            VapidKey fallback = new VapidKey();
+            fallback.setKeyId(1);
+            fallback.setPublicKey(vapidPublicKeyBase64);
+            return fallback;
+        }
+        return null;
     }
 
     /**

@@ -162,7 +162,7 @@ public class ChartDataExporter extends AbstractExporter implements EventCountRol
         final int finalZoneOffsetInSeconds = zoneOffsetInSeconds;
         final LocalDateTime finalDateOffset = dateOffset;
         EventCountMapper dao = exporterManager.getBean(EventCountMapper.class);
-        List<EventCountVO> list = exporterManager.instantActivity(() -> {
+        List<EventCountVO> list = exporterManager.executeInActivity(() -> {
             String nodeId = eventInfo.getNodeId();
             String groupId = exporterManager.getAppMonManager().getGroupId();
             String appId = eventInfo.getAppId();
@@ -347,7 +347,7 @@ public class ChartDataExporter extends AbstractExporter implements EventCountRol
         String appId = eventInfo.getAppId();
         String eventId = eventInfo.getEventId();
 
-        List<EventCountVO> currentList = exporterManager.instantActivity(() -> {
+        List<EventCountVO> currentList = exporterManager.executeInActivity(() -> {
             if (isGroupScope && groupId != null) {
                 return dao.getGroupChartDataByRange(groupId, appId, eventId, startUtc, endUtc);
             } else {
