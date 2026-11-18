@@ -1327,7 +1327,9 @@ class ConsoleClient {
 const NotificationClient = (function () {
     let vapidPublicKey = null;
     let currentSetting = null;
+    let userPermissions = null;
     let swRegistration = null;
+    let webPushEnabled = true;
 
     function getContextPath() {
         if (typeof CONTEXT_PATH !== 'undefined' && CONTEXT_PATH !== null) {
@@ -1385,6 +1387,12 @@ const NotificationClient = (function () {
     }
 
     async function init() {
+        const notifBtn = document.getElementById('notif-btn');
+        if (!notifBtn) {
+            // Notification feature is not enabled or rendered on this page
+            return;
+        }
+
         if ('serviceWorker' in navigator) {
             try {
                 swRegistration = await navigator.serviceWorker.ready;
@@ -1425,8 +1433,17 @@ const NotificationClient = (function () {
             .then(res => res.json())
             .then(res => {
                 if (res && res.data) {
+                    if (res.data.enabled === false) {
+                        const notifBtn = document.getElementById('notif-btn');
+                        if (notifBtn) notifBtn.classList.add('d-none');
+                        return;
+                    }
+                    webPushEnabled = (res.data.webPushEnabled !== false);
                     vapidPublicKey = res.data.vapidPublicKey;
                     currentSetting = res.data.setting;
+                    if (res.data.permissions && Array.isArray(res.data.permissions)) {
+                        userPermissions = new Set(res.data.permissions);
+                    }
                     updateBadge(res.data.unreadCount || 0);
                     populateSettingsForm(currentSetting);
                 }
@@ -1436,31 +1453,102 @@ const NotificationClient = (function () {
             });
     }
 
+    function hasPermission(requiredPermission) {
+        return (userPermissions && userPermissions.has(requiredPermission));
+    }
+
     function populateSettingsForm(setting) {
-        if (!setting) return;
-        const cpuInput = document.getElementById('notif-cpu-threshold');
-        const memInput = document.getElementById('notif-mem-threshold');
-        const nodeChk = document.getElementById('notif-node-status');
-        const schedChk = document.getElementById('notif-sched-fail');
-        const buildChk = document.getElementById('notif-build-result');
-        const secChk = document.getElementById('notif-security-alert');
-        const cmdChk = document.getElementById('notif-cmd-finish');
+        if (setting) {
+            const cpuInput = document.getElementById('notif-cpu-threshold');
+            const memInput = document.getElementById('notif-mem-threshold');
+            const nodeChk = document.getElementById('notif-node-status');
+            const schedChk = document.getElementById('notif-sched-fail');
+            const buildChk = document.getElementById('notif-build-result');
+            const secChk = document.getElementById('notif-security-alert');
+            const cmdChk = document.getElementById('notif-cmd-finish');
 
-        if (cpuInput) cpuInput.value = setting.cpuThreshold || 85;
-        if (memInput) memInput.value = setting.memoryThreshold || 85;
-        if (nodeChk) nodeChk.checked = setting.notifyNodeStatus === 'Y';
-        if (schedChk) schedChk.checked = setting.notifySchedulerFail === 'Y';
-        if (buildChk) buildChk.checked = setting.notifyBuildResult === 'Y';
-        if (secChk) secChk.checked = setting.notifySecurityAlert === 'Y';
-        if (cmdChk) cmdChk.checked = setting.notifyCommandFinish === 'Y';
+            if (cpuInput) cpuInput.value = setting.cpuThreshold || 85;
+            if (memInput) memInput.value = setting.memoryThreshold || 85;
+            if (nodeChk) nodeChk.checked = setting.notifyNodeStatus === 'Y';
+            if (schedChk) schedChk.checked = setting.notifySchedulerFail === 'Y';
+            if (buildChk) buildChk.checked = setting.notifyBuildResult === 'Y';
+            if (secChk) secChk.checked = setting.notifySecurityAlert === 'Y';
+            if (cmdChk) cmdChk.checked = setting.notifyCommandFinish === 'Y';
+        }
 
+        applyPermissionFilters();
         checkPushSubscriptionState();
+    }
+
+    function applyPermissionFilters() {
+        // Monitoring alert thresholds section
+        const thresholdsSec = document.getElementById('notif-thresholds-sec');
+        const canViewMonitoring = hasPermission('MONITOR_VIEW') || hasPermission('MONITOR_CONTROL');
+        if (thresholdsSec) {
+            if (canViewMonitoring) {
+                thresholdsSec.classList.remove('d-none');
+            } else {
+                thresholdsSec.classList.add('d-none');
+            }
+        }
+
+        // Notification event source items
+        const eventItems = [
+            { id: 'notif-item-node-status', chkId: 'notif-node-status', perm: 'MONITOR_VIEW' },
+            { id: 'notif-item-sched-fail', chkId: 'notif-sched-fail', perm: 'NODE_MANAGE' },
+            { id: 'notif-item-build-result', chkId: 'notif-build-result', perm: 'BUILD_VIEW' },
+            { id: 'notif-item-security-alert', chkId: 'notif-security-alert', perm: 'USER_MANAGE' },
+            { id: 'notif-item-cmd-finish', chkId: 'notif-cmd-finish', perm: 'COMMAND_EXECUTE' }
+        ];
+
+        let visibleCount = 0;
+        eventItems.forEach(item => {
+            const container = document.getElementById(item.id);
+            const chk = document.getElementById(item.chkId);
+            const allowed = hasPermission(item.perm);
+
+            if (container) {
+                if (allowed) {
+                    container.classList.remove('d-none');
+                    visibleCount++;
+                } else {
+                    container.classList.add('d-none');
+                    if (chk) {
+                        chk.checked = false;
+                    }
+                }
+            }
+        });
+
+        // Notice when no event sources are available for this user's role
+        const noEventsNotice = document.getElementById('notif-no-events-notice');
+        if (noEventsNotice) {
+            if (visibleCount === 0) {
+                noEventsNotice.classList.remove('d-none');
+            } else {
+                noEventsNotice.classList.add('d-none');
+            }
+        }
     }
 
     async function checkPushSubscriptionState() {
         const toggle = document.getElementById('notif-push-toggle');
         const testBtn = document.getElementById('notif-test-btn');
         const permNotice = document.getElementById('notif-perm-notice');
+
+        if (!webPushEnabled) {
+            if (toggle) {
+                toggle.checked = false;
+                toggle.disabled = true;
+            }
+            if (testBtn) testBtn.disabled = true;
+            if (permNotice) {
+                permNotice.textContent = 'Web Push is disabled by corporate policy or firewall configuration. In-app notifications remain active.';
+                permNotice.className = 'small text-warning mt-1';
+                permNotice.classList.remove('d-none');
+            }
+            return;
+        }
 
         if (!('Notification' in window) || !('PushManager' in window)) {
             if (toggle) toggle.disabled = true;
@@ -1533,6 +1621,13 @@ const NotificationClient = (function () {
                     permNotice.classList.remove('d-none');
                 }
             } else {
+                // If browser permission is already granted and push was explicitly enabled in user settings, auto-subscribe silently
+                if (Notification.permission === 'granted' && currentSetting && currentSetting.pushEnabled === 'Y' && vapidPublicKey) {
+                    console.log('[NotificationClient] User previously enabled push and permission is granted. Re-subscribing push endpoint...');
+                    await handlePushToggle(true, true);
+                    return;
+                }
+
                 if (toggle) toggle.checked = false;
                 if (testBtn) testBtn.disabled = true;
                 if (permNotice) permNotice.classList.add('d-none');
@@ -1540,7 +1635,13 @@ const NotificationClient = (function () {
         }
     }
 
-    async function handlePushToggle(enabled) {
+    async function handlePushToggle(enabled, silent = false) {
+        if (!webPushEnabled) {
+            if (!silent) alert('Web Push is disabled by corporate policy or firewall configuration.');
+            checkPushSubscriptionState();
+            return;
+        }
+
         const testBtn = document.getElementById('notif-test-btn');
         const permNotice = document.getElementById('notif-perm-notice');
 
@@ -1549,14 +1650,20 @@ const NotificationClient = (function () {
         }
 
         if (enabled) {
-            const permission = await Notification.requestPermission();
+            let permission = Notification.permission;
             if (permission !== 'granted') {
-                checkPushSubscriptionState();
-                return;
+                if (silent) {
+                    return;
+                }
+                permission = await Notification.requestPermission();
+                if (permission !== 'granted') {
+                    checkPushSubscriptionState();
+                    return;
+                }
             }
 
             if (!vapidPublicKey) {
-                alert('Failed to retrieve VAPID Public Key.');
+                if (!silent) alert('Failed to retrieve VAPID Public Key.');
                 return;
             }
 
@@ -1584,6 +1691,9 @@ const NotificationClient = (function () {
                     body: formData
                 });
 
+                const toggle = document.getElementById('notif-push-toggle');
+                if (toggle) toggle.checked = true;
+                if (currentSetting) currentSetting.pushEnabled = 'Y';
                 if (testBtn) testBtn.disabled = false;
                 if (permNotice) {
                     permNotice.textContent = 'Web Push notifications have been activated on this device.';
@@ -1592,7 +1702,7 @@ const NotificationClient = (function () {
                 }
             } catch (err) {
                 console.error('[NotificationClient] Failed to subscribe to push:', err);
-                alert('Error subscribing to push notifications: ' + err.message);
+                if (!silent) alert('Error subscribing to push notifications: ' + err.message);
                 checkPushSubscriptionState();
             }
         } else {
@@ -1611,6 +1721,9 @@ const NotificationClient = (function () {
                         body: formData
                     });
                 }
+                const toggle = document.getElementById('notif-push-toggle');
+                if (toggle) toggle.checked = false;
+                if (currentSetting) currentSetting.pushEnabled = 'N';
                 if (testBtn) testBtn.disabled = true;
                 if (permNotice) permNotice.classList.add('d-none');
             } catch (err) {
@@ -1735,6 +1848,19 @@ const NotificationClient = (function () {
         return div;
     }
 
+    function resolveTargetUrl(targetUrl) {
+        if (!targetUrl) return null;
+        if (targetUrl.startsWith('http://') || targetUrl.startsWith('https://')) {
+            return targetUrl;
+        }
+        const ctx = getContextPath();
+        const cleanTarget = targetUrl.replace(/^\.?\//, '');
+        if (!cleanTarget) {
+            return ctx ? ctx + '/' : '/';
+        }
+        return (ctx ? ctx + '/' : '/') + cleanTarget;
+    }
+
     function markRead(notificationId, targetUrl) {
         const formData = new URLSearchParams();
         if (notificationId) {
@@ -1752,9 +1878,14 @@ const NotificationClient = (function () {
             if (res && res.data) {
                 updateBadge(res.data.unreadCount || 0);
             }
-            if (targetUrl && targetUrl !== '/') {
-                location.href = ctx + targetUrl;
-            } else if (notificationId) {
+            if (targetUrl) {
+                const resolved = resolveTargetUrl(targetUrl);
+                if (resolved) {
+                    location.href = resolved;
+                    return;
+                }
+            }
+            if (notificationId) {
                 loadHistory();
             }
         });
