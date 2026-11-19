@@ -4,7 +4,7 @@
 <th:block th:fragment="notification-modal">
     <th:block th:if="${#{currentEnvironment}.getProperty('aspectow.console.notification.enabled')}">
     <div class="modal fade" id="notificationModal" tabindex="-1" aria-labelledby="notificationModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
             <div class="modal-content shadow">
                 <div class="modal-header pb-0 border-bottom-0">
                     <ul class="nav nav-tabs w-100 border-bottom" id="notifModalTabs" role="tablist">
@@ -27,7 +27,7 @@
                     <div class="tab-content" id="notifModalTabContent">
                         <!-- History Tab Pane -->
                         <div class="tab-pane fade show active p-3" id="notif-history-pane" role="tabpanel">
-                            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-3">
+                            <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-2 mb-3">
                                 <span class="small text-muted">Recent system notifications and alerts.</span>
                                 <div class="d-flex align-items-end justify-content-end gap-2">
                                     <button class="btn btn-sm btn-outline-secondary" id="notif-mark-all-read" type="button">
@@ -38,7 +38,7 @@
                                     </button>
                                 </div>
                             </div>
-                            <div class="list-group list-group-flush border rounded overflow-y-auto" id="notif-history-list" style="min-height: 200px; max-height: 400px;">
+                            <div class="list-group list-group-flush border rounded overflow-y-auto" id="notif-history-list" style="min-height: 400px; max-height: 500px;">
                                 <!-- Notification items injected here -->
                             </div>
                             <div class="text-center py-5 text-muted d-none" id="notif-history-empty" style="min-height: 200px;">

@@ -513,10 +513,12 @@ const NotificationClient = (function () {
 
                 if (list.length === 0) {
                     listContainer.innerHTML = '';
+                    listContainer.classList.add('d-none');
                     if (emptyNotice) emptyNotice.classList.remove('d-none');
                     return;
                 }
 
+                listContainer.classList.remove('d-none');
                 if (emptyNotice) emptyNotice.classList.add('d-none');
 
                 const fragment = document.createDocumentFragment();
@@ -541,7 +543,7 @@ const NotificationClient = (function () {
     function createNotificationCard(item) {
         const isUnread = (item.readYn === 'N');
         const div = document.createElement('div');
-        div.className = 'list-group-item list-group-item-action p-3 notif-item ' + (isUnread ? 'bg-primary-subtle bg-opacity-10' : '');
+        div.className = 'list-group-item list-group-item-action p-3 border-bottom rounded-0 notif-item ' + (isUnread ? 'list-group-item-primary' : '');
         div.style.cursor = 'pointer';
 
         let iconHtml = '<i class="bi bi-info-circle-fill text-primary fs-5"></i>';
@@ -671,6 +673,7 @@ const NotificationClient = (function () {
                 const listContainer = document.getElementById('notif-history-list');
                 const emptyNotice = document.getElementById('notif-history-empty');
                 if (listContainer) listContainer.innerHTML = '';
+                listContainer.classList.add('d-none');
                 if (emptyNotice) emptyNotice.classList.remove('d-none');
             })
             .catch(err => {
