@@ -4,7 +4,7 @@
   "short_name": "Aspectow",
   "description": "Aspectow Cluster Management & Application Monitoring Console",
   "id": "/console/",
-  "start_url": "./v=8",
+  "start_url": "./?v=8",
   "scope": "./",
   "display": "standalone",
   "display_override": [
