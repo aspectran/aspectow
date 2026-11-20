@@ -96,14 +96,16 @@ public class ActivityEventCounter extends AbstractEventCounter {
                 getEventCount().count();
                 if (activity.hasSessionAdapter()) {
                     SessionAdapter sessionAdapter = activity.getSessionAdapter();
-                    AtomicInteger count = sessionAdapter.getAttribute(USER_ACTIVITY_COUNT);
-                    if (count != null) {
-                        count.incrementAndGet();
-                    } else {
-                        count = new AtomicInteger(1);
+                    if (!sessionAdapter.isNew()) {
+                        AtomicInteger count = sessionAdapter.getAttribute(USER_ACTIVITY_COUNT);
+                        if (count != null) {
+                            count.incrementAndGet();
+                        } else {
+                            count = new AtomicInteger(2);
+                        }
+                        // To ensure that session data is stored
+                        sessionAdapter.setAttribute(USER_ACTIVITY_COUNT, count);
                     }
-                    // To ensure that session data is stored
-                    sessionAdapter.setAttribute(USER_ACTIVITY_COUNT, count);
                 }
                 return null;
             });

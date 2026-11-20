@@ -84,9 +84,13 @@ public class ActivityEventAdvice {
         int activityCount = 0;
         if (activity.hasSessionAdapter()) {
             SessionAdapter sessionAdapter = activity.getSessionAdapter();
-            AtomicInteger counter = sessionAdapter.getAttribute(USER_ACTIVITY_COUNT);
-            if (counter != null) {
-                activityCount = counter.get();
+            if (sessionAdapter.isNew()) {
+                activityCount = 1;
+            } else {
+                AtomicInteger counter = sessionAdapter.getAttribute(USER_ACTIVITY_COUNT);
+                if (counter != null) {
+                    activityCount = counter.get();
+                }
             }
         }
 
