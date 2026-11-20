@@ -82,8 +82,8 @@
     </select>
 
     <insert id="insertUser" parameterType="com.aspectran.aspectow.console.common.db.model.User" useGeneratedKeys="true" keyProperty="userId">
-        insert into asc_user (username, password, nickname, email, status, allowed_ips, failed_attempts)
-        values (#{username}, #{password}, #{nickname}, #{email}, #{status}, #{allowedIps}, #{failedAttempts})
+        insert into asc_user (username, password, nickname, email, status, allowed_ips, failed_attempts, created_at, updated_at)
+        values (#{username}, #{password}, #{nickname}, #{email}, #{status}, #{allowedIps}, #{failedAttempts}, #{createdAt}, #{updatedAt})
     </insert>
 
     <update id="updateUser" parameterType="com.aspectran.aspectow.console.common.db.model.User">
@@ -97,7 +97,7 @@
             status = #{status},
             allowed_ips = #{allowedIps},
             failed_attempts = #{failedAttempts},
-            updated_at = current_timestamp
+            updated_at = #{updatedAt}
         where user_id = #{userId}
     </update>
 
@@ -105,9 +105,9 @@
         delete from asc_user where user_id = #{userId}
     </delete>
 
-    <update id="updateLastLogin" parameterType="string">
+    <update id="updateLastLogin">
         update asc_user
-        set last_login_at = current_timestamp,
+        set last_login_at = #{lastLoginAt},
             failed_attempts = 0
         where username = #{username}
     </update>
@@ -153,8 +153,8 @@
     </delete>
 
     <insert id="insertLoginHistory" parameterType="com.aspectran.aspectow.console.common.db.model.LoginHistory">
-        insert into asc_login_history (username, ip_address, country_code, user_agent, success_yn, auto_login_yn)
-        values (#{username}, #{ipAddress}, #{countryCode}, #{userAgent}, #{successYn}, #{autoLoginYn})
+        insert into asc_login_history (username, ip_address, country_code, user_agent, success_yn, auto_login_yn, login_at)
+        values (#{username}, #{ipAddress}, #{countryCode}, #{userAgent}, #{successYn}, #{autoLoginYn}, #{loginAt})
     </insert>
 
     <select id="getLoginHistoryList" resultType="com.aspectran.aspectow.console.common.db.model.LoginHistory">
@@ -196,8 +196,8 @@
     </select>
 
     <insert id="insertAuditLog" parameterType="com.aspectran.aspectow.console.common.db.model.AuditLog" useGeneratedKeys="true" keyProperty="auditId">
-        insert into asc_audit_log (username, event_type, target, details, ip_address)
-        values (#{username}, #{eventType}, #{target}, #{details}, #{ipAddress})
+        insert into asc_audit_log (username, event_type, target, details, ip_address, created_at)
+        values (#{username}, #{eventType}, #{target}, #{details}, #{ipAddress}, #{createdAt})
     </insert>
 
     <select id="getAuditLogList" resultMap="AuditLogResultMap">

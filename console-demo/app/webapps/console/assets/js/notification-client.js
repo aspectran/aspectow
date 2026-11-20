@@ -555,7 +555,14 @@ const NotificationClient = (function () {
             iconHtml = '<i class="bi bi-check-circle-fill text-success fs-5"></i>';
         }
 
-        const timeStr = typeof formatDateTime === 'function' ? formatDateTime(item.createdAt) : item.createdAt;
+        const timeInfo = (typeof getRelativeTimeInfo === 'function')
+            ? getRelativeTimeInfo(item.createdAt)
+            : {
+                relativeTime: (typeof formatRelativeTime === 'function' ? formatRelativeTime(item.createdAt) : (typeof formatDateTime === 'function' ? formatDateTime(item.createdAt) : item.createdAt)),
+                fullTime: (typeof formatDateTime === 'function' ? formatDateTime(item.createdAt) : item.createdAt)
+            };
+        const relativeTime = timeInfo.relativeTime || '-';
+        const fullTime = timeInfo.fullTime || timeInfo.standardTime || relativeTime;
 
         div.innerHTML = `
             <div class="d-flex align-items-start gap-3">
@@ -567,7 +574,7 @@ const NotificationClient = (function () {
                             ${isUnread ? '<span class="badge rounded-pill bg-primary" style="font-size: 0.6rem;">NEW</span>' : ''}
                         </div>
                         <div class="d-flex align-items-center gap-1">
-                            <small class="text-muted" style="font-size: 0.75rem;">${escapeHtml(timeStr)}</small>
+                            <small class="text-muted" style="font-size: 0.75rem;" title="${escapeHtml(fullTime)}">${escapeHtml(relativeTime)}</small>
                             ${isUnread ? '<span class="bg-primary rounded-circle ms-1" style="width: 7px; height: 7px; display: inline-block;" title="Unread"></span>' : ''}
                         </div>
                     </div>

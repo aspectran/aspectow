@@ -132,7 +132,7 @@ public class NotificationAdminActivity {
         }
 
         if (notificationService == null || !notificationService.isWebPushEnabled()) {
-            return new FailureResponse("Web Push functionality is disabled in this environment.").badRequest();
+            return new FailureResponse("SERVICE_DISABLED", "Web Push functionality is disabled in this environment.").badRequest();
         }
 
         try {
@@ -142,7 +142,7 @@ public class NotificationAdminActivity {
             return new SuccessResponse(result).ok();
         } catch (Exception e) {
             logger.error("Failed to send admin test push", e);
-            return new FailureResponse().setError("error", "Failed to send test push: " + e.getMessage());
+            return new FailureResponse("DISPATCH_FAILED", "Failed to send test push: " + e.getMessage()).internalServerError();
         }
     }
 
@@ -185,13 +185,83 @@ public class NotificationAdminActivity {
             return new FailureResponse().forbidden();
         }
         if (subscriptionId == null) {
-            return new FailureResponse().setError("required", "Missing subscriptionId");
+            return new FailureResponse("REQUIRED_FIELD", "Missing subscriptionId").badRequest();
         }
 
         if (notificationService != null) {
             notificationService.deletePushSubscription(subscriptionId);
         }
         return new SuccessResponse().ok();
+    }
+
+    /**
+     * Sends an administrative test push notification to a single specific device subscription.
+     */
+    @RequestToPost("/test-device")
+    public RestResponse testDevice(@NonNull Translet translet, Long subscriptionId) {
+        UserInfo currentUser = getCurrentUser(translet);
+        if (currentUser == null) {
+            return new FailureResponse().unauthorized();
+        }
+        if (currentUser.hasRole("DEMO")) {
+            return new FailureResponse().forbidden();
+        }
+        if (subscriptionId == null) {
+            return new FailureResponse("REQUIRED_FIELD", "Missing subscriptionId").badRequest();
+        }
+
+        if (notificationService == null || !notificationService.isWebPushEnabled()) {
+            return new FailureResponse("SERVICE_DISABLED", "Web Push functionality is disabled.").badRequest();
+        }
+
+        try {
+            int result = notificationService.sendAdminTestPushToSubscription(subscriptionId);
+            Map<String, Object> data = new HashMap<>();
+            data.put("result", result);
+            if (result == 1) {
+                data.put("message", "Ping notification sent successfully.");
+                return new SuccessResponse(data).ok();
+            } else if (result == -1) {
+                data.put("message", "Device subscription was expired and has been automatically removed.");
+                return new SuccessResponse(data).ok();
+            } else {
+                return new FailureResponse("PING_FAILED", "Failed to send ping notification to the device.").badRequest();
+            }
+        } catch (Exception e) {
+            logger.error("Failed to send device ping push", e);
+            return new FailureResponse("DISPATCH_FAILED", "Failed to send ping: " + e.getMessage()).internalServerError();
+        }
+    }
+
+    /**
+     * Purges stale push subscriptions inactive for more than the specified number of days (default 30 days).
+     */
+    @RequestToPost("/prune-stale")
+    public RestResponse pruneStale(@NonNull Translet translet, Integer days) {
+        UserInfo currentUser = getCurrentUser(translet);
+        if (currentUser == null) {
+            return new FailureResponse().unauthorized();
+        }
+        if (!currentUser.hasRole("SUPER_ADMIN")) {
+            return new FailureResponse().forbidden();
+        }
+
+        if (notificationService == null) {
+            return new FailureResponse("SERVICE_UNAVAILABLE", "NotificationService is not available.").badRequest();
+        }
+
+        int thresholdDays = (days != null && days > 0) ? days : 30;
+        try {
+            int prunedCount = notificationService.pruneStalePushSubscriptions(thresholdDays);
+            Map<String, Object> data = new HashMap<>();
+            data.put("prunedCount", prunedCount);
+            data.put("days", thresholdDays);
+            data.put("message", "Pruned " + prunedCount + " stale device subscription(s).");
+            return new SuccessResponse(data).ok();
+        } catch (Exception e) {
+            logger.error("Failed to prune stale push subscriptions", e);
+            return new FailureResponse("PRUNE_FAILED", "Failed to prune stale devices: " + e.getMessage()).internalServerError();
+        }
     }
 
     /**
@@ -208,7 +278,7 @@ public class NotificationAdminActivity {
         }
 
         if (notificationService == null || !notificationService.isWebPushEnabled()) {
-            return new FailureResponse("Web Push functionality is disabled.").badRequest();
+            return new FailureResponse("SERVICE_DISABLED", "Web Push functionality is disabled.").badRequest();
         }
 
         try {
@@ -218,7 +288,7 @@ public class NotificationAdminActivity {
             return new SuccessResponse(data).ok();
         } catch (Exception e) {
             logger.error("Failed to regenerate VAPID key", e);
-            return new FailureResponse().setError("error", "Failed to regenerate VAPID key: " + e.getMessage());
+            return new FailureResponse("REGEN_FAILED", "Failed to regenerate VAPID key: " + e.getMessage()).internalServerError();
         }
     }
 

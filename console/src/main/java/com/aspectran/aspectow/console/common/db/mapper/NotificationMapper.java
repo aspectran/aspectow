@@ -20,6 +20,7 @@ import com.aspectran.aspectow.console.common.db.model.PushSubscription;
 import com.aspectran.aspectow.console.common.db.model.UserNotificationSetting;
 import com.aspectran.aspectow.console.common.db.model.VapidKey;
 import com.aspectran.aspectow.console.common.db.tx.ConsoleSqlMapperProvider;
+import com.aspectran.aspectow.console.notification.alert.ResourceThresholds;
 import com.aspectran.core.component.bean.annotation.Autowired;
 import com.aspectran.core.component.bean.annotation.Bean;
 import com.aspectran.core.component.bean.annotation.Component;
@@ -27,6 +28,7 @@ import com.aspectran.mybatis.SqlMapperAccess;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import java.time.Instant;
 import java.util.List;
 
 /**
@@ -71,6 +73,12 @@ public interface NotificationMapper {
     int getMinMemoryThreshold();
 
     /**
+     * Retrieves the minimum CPU and memory alert thresholds in a single query.
+     * @return the resource thresholds
+     */
+    ResourceThresholds getMinThresholds();
+
+    /**
      * Retrieves the cluster-wide VAPID key pair.
      * @return the VAPID key pair, or null if not yet generated
      */
@@ -108,6 +116,20 @@ public interface NotificationMapper {
      * @return the number of affected rows
      */
     int deletePushSubscriptionById(Long subscriptionId);
+
+    /**
+     * Retrieves a push subscription by its subscription ID.
+     * @param subscriptionId the subscription ID
+     * @return the push subscription, or null if not found
+     */
+    PushSubscription getPushSubscriptionById(Long subscriptionId);
+
+    /**
+     * Deletes push subscriptions whose last active timestamp is older than the specified cutoff.
+     * @param cutoff the cutoff timestamp
+     * @return the number of affected rows
+     */
+    int deletePushSubscriptionsOlderThan(@Param("cutoff") Instant cutoff);
 
     /**
      * Deletes all push subscriptions.
@@ -158,9 +180,10 @@ public interface NotificationMapper {
     /**
      * Updates the last active timestamp of a push subscription.
      * @param endpoint the push endpoint URL
+     * @param lastActiveAt the last active timestamp
      * @return the number of affected rows
      */
-    int updatePushSubscriptionLastActive(String endpoint);
+    int updatePushSubscriptionLastActive(@Param("endpoint") String endpoint, @Param("lastActiveAt") Instant lastActiveAt);
 
     /**
      * Deletes a push subscription by its endpoint URL.
@@ -258,6 +281,11 @@ public interface NotificationMapper {
         }
 
         @Override
+        public ResourceThresholds getMinThresholds() {
+            return mapper().getMinThresholds();
+        }
+
+        @Override
         public VapidKey getVapidKey() {
             return mapper().getVapidKey();
         }
@@ -285,6 +313,16 @@ public interface NotificationMapper {
         @Override
         public int deletePushSubscriptionById(Long subscriptionId) {
             return mapper().deletePushSubscriptionById(subscriptionId);
+        }
+
+        @Override
+        public PushSubscription getPushSubscriptionById(Long subscriptionId) {
+            return mapper().getPushSubscriptionById(subscriptionId);
+        }
+
+        @Override
+        public int deletePushSubscriptionsOlderThan(Instant cutoff) {
+            return mapper().deletePushSubscriptionsOlderThan(cutoff);
         }
 
         @Override
@@ -323,8 +361,8 @@ public interface NotificationMapper {
         }
 
         @Override
-        public int updatePushSubscriptionLastActive(String endpoint) {
-            return mapper().updatePushSubscriptionLastActive(endpoint);
+        public int updatePushSubscriptionLastActive(String endpoint, Instant lastActiveAt) {
+            return mapper().updatePushSubscriptionLastActive(endpoint, lastActiveAt);
         }
 
         @Override

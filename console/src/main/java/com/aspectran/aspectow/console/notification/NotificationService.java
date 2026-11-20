@@ -157,6 +157,20 @@ public interface NotificationService {
     int sendAdminTestPush(Long targetUserId, String title, String message);
 
     /**
+     * Sends an administrative test push notification to a single specific device subscription.
+     * @param subscriptionId the subscription ID
+     * @return 1 if successfully delivered, 0 if failed, or -1 if expired/deleted
+     */
+    int sendAdminTestPushToSubscription(Long subscriptionId);
+
+    /**
+     * Purges stale push subscriptions that have not been active for the specified number of days.
+     * @param olderThanDays the number of days of inactivity threshold
+     * @return the number of purged subscriptions
+     */
+    int pruneStalePushSubscriptions(int olderThanDays);
+
+    /**
      * Regenerates the cluster-wide VAPID key pair, updates persistence, and clears invalid device subscriptions.
      * @return the new public key string
      * @throws Exception if regeneration fails

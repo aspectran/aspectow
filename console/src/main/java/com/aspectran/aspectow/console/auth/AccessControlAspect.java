@@ -124,7 +124,8 @@ public class AccessControlAspect {
         } else if (requestName.startsWith("/admin")) {
             if (userInfo.hasRole("DEMO")) {
                 hasAccess = !requestName.equals("/admin/notification/regenerate-key") &&
-                        !requestName.equals("/admin/notification/delete-subscription");
+                        !requestName.equals("/admin/notification/delete-subscription") &&
+                        !requestName.equals("/admin/notification/prune-stale");
             } else {
                 hasAccess = userInfo.hasRole("SUPER_ADMIN");
             }

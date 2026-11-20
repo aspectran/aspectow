@@ -46,8 +46,8 @@
     </select>
 
     <insert id="insertVault" parameterType="com.aspectran.aspectow.console.common.db.model.Vault" useGeneratedKeys="true" keyProperty="vaultId">
-        insert into asc_vault (label, token_type, encrypted_value, description, valid_until)
-        values (#{label}, #{tokenType}, #{encryptedValue}, #{description}, #{validUntil})
+        insert into asc_vault (label, token_type, encrypted_value, description, valid_until, created_at, updated_at)
+        values (#{label}, #{tokenType}, #{encryptedValue}, #{description}, #{validUntil}, #{createdAt}, #{updatedAt})
     </insert>
 
     <update id="updateVault" parameterType="com.aspectran.aspectow.console.common.db.model.Vault">
@@ -59,7 +59,7 @@
             </if>
             description = #{description},
             valid_until = #{validUntil},
-            updated_at = current_timestamp
+            updated_at = #{updatedAt}
         where vault_id = #{vaultId}
     </update>
 

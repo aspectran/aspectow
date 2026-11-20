@@ -15,7 +15,7 @@
                         </li>
                         <li class="nav-item" role="presentation">
                             <button class="nav-link fw-bold text-body" id="notif-settings-tab" data-bs-toggle="tab" data-bs-target="#notif-settings-pane" type="button" role="tab" aria-selected="false">
-                                <i class="bi bi-gear me-1"></i> Settings
+                                <i class="bi bi-gear me-1"></i> <span class="d-none d-sm-inline-block">Settings</span>
                             </button>
                         </li>
                         <li class="nav-item ms-auto">
@@ -23,18 +23,18 @@
                         </li>
                     </ul>
                 </div>
-                <div class="modal-body p-0">
+                <div class="modal-body">
                     <div class="tab-content" id="notifModalTabContent">
                         <!-- History Tab Pane -->
-                        <div class="tab-pane fade show active p-3" id="notif-history-pane" role="tabpanel">
+                        <div class="tab-pane fade show active" id="notif-history-pane" role="tabpanel">
                             <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-2 mb-3">
                                 <span class="small text-muted">Recent system notifications and alerts.</span>
-                                <div class="d-flex align-items-end justify-content-end gap-2">
+                                <div class="d-flex align-items-end justify-content-end gap-2 text-nowrap">
                                     <button class="btn btn-sm btn-outline-secondary" id="notif-mark-all-read" type="button">
                                         <i class="bi bi-check2-all me-1"></i> Mark All as Read
                                     </button>
                                     <button class="btn btn-sm btn-outline-danger" id="notif-clear-history" type="button">
-                                        <i class="bi bi-trash me-1"></i> Clear
+                                        <i class="bi bi-trash me-1"></i> <span class="d-none d-sm-inline-block">Clear</span>
                                     </button>
                                 </div>
                             </div>
@@ -48,7 +48,7 @@
                         </div>
 
                         <!-- Settings Tab Pane -->
-                        <div class="tab-pane fade p-4" id="notif-settings-pane" role="tabpanel">
+                        <div class="tab-pane fade" id="notif-settings-pane" role="tabpanel">
                             <form id="notif-settings-form" onsubmit="return false;">
                                 <!-- Master Push Toggle -->
                                 <div class="d-flex align-items-center justify-content-between p-3 rounded bg-body-tertiary border mb-4">
@@ -64,7 +64,7 @@
 
                                 <!-- Monitoring Thresholds -->
                                 <div class="mb-4" id="notif-thresholds-sec">
-                                    <h6 class="fw-bold text-uppercase small text-muted mb-3" style="letter-spacing: 0.5px;">
+                                    <h6 class="fw-bold text-uppercase small text-muted mb-2 pb-1 border-bottom">
                                         <i class="bi bi-speedometer2 me-1"></i> Monitoring Alert Thresholds
                                     </h6>
                                     <div class="row g-3">
@@ -89,7 +89,7 @@
 
                                 <!-- Event Categories -->
                                 <div class="mb-4" id="notif-events-sec">
-                                    <h6 class="fw-bold text-uppercase small text-muted mb-3" style="letter-spacing: 0.5px;">
+                                    <h6 class="fw-bold text-uppercase small text-muted mb-2 pb-1 border-bottom">
                                         <i class="bi bi-bell-fill me-1"></i> Notification Event Sources
                                     </h6>
                                     <div class="row g-2" id="notif-events-row">

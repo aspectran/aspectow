@@ -31,7 +31,7 @@ import org.jasypt.properties.PropertyValueEncryptionUtils;
 import org.jspecify.annotations.NonNull;
 
 import java.time.Duration;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 import static com.aspectran.utils.PBEncryptionUtils.getDefaultEncryptor;
@@ -68,6 +68,9 @@ public class VaultServiceImpl implements VaultService {
         if (StringUtils.hasText(plainText)) {
             vault.setEncryptedValue(encrypt(vault, plainText));
         }
+        Instant now = Instant.now();
+        vault.setCreatedAt(now);
+        vault.setUpdatedAt(now);
         vaultMapper.insertVault(vault);
     }
 
@@ -79,6 +82,7 @@ public class VaultServiceImpl implements VaultService {
                 vault.setEncryptedValue(encrypt(vault, plainText));
             }
         }
+        vault.setUpdatedAt(Instant.now());
         vaultMapper.updateVault(vault);
     }
 
@@ -91,7 +95,7 @@ public class VaultServiceImpl implements VaultService {
             try {
                 Parameters payload = AponReader.read(plainText);
                 if ("TIME_LIMITED".equals(type) && vault.getValidUntil() != null) {
-                    long expirationTime = Duration.between(LocalDateTime.now(), vault.getValidUntil()).toMillis();
+                    long expirationTime = Duration.between(Instant.now(), vault.getValidUntil()).toMillis();
                     return TimeLimitedPBTokenIssuer.createToken(payload, Math.max(expirationTime, 0));
                 } else {
                     return PBTokenIssuer.createToken(payload);

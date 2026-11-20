@@ -17,7 +17,7 @@ package com.aspectran.aspectow.console.common.db.model;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 /**
  * Entity representing the cluster-wide Web Push VAPID key pair.
@@ -32,7 +32,7 @@ public class VapidKey implements Serializable {
     private Integer keyId;
     private String publicKey;
     private String privateKey;
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     public Integer getKeyId() {
         return keyId;
@@ -58,11 +58,11 @@ public class VapidKey implements Serializable {
         this.privateKey = privateKey;
     }
 
-    public LocalDateTime getCreatedAt() {
+    public Instant getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
+    public void setCreatedAt(Instant createdAt) {
         this.createdAt = createdAt;
     }
 

@@ -32,7 +32,7 @@
     <th:block layout:fragment="content">
         <div class="card login-card shadow px-3 p-md-0">
             <div class="card-body px-4 p-md-5 text-center">
-                <img src="https://cdn.jsdelivr.net/gh/aspectran/aspectran-assets@main/assets/img/aspectran-logo.svg" class="mb-4" style="height: 64px;" alt="Aspectow Console"/>
+                <a th:href="@{/}"><img src="https://cdn.jsdelivr.net/gh/aspectran/aspectran-assets@main/assets/img/aspectran-logo.svg" class="mb-4" style="height: 64px;" alt="Aspectow Console"/></a>
 
                 <form id="login-form">
                     <input type="hidden" id="referrer" name="referrer" th:value="${param.referrer != null ? param.referrer[0] : ''}">
@@ -103,6 +103,12 @@
 
     <th:block layout:fragment="script">
         <script th:inline="javascript">
+            window.addEventListener('pageshow', function(event) {
+                if (event.persisted) {
+                    window.location.reload();
+                }
+            });
+
             $(function() {
                 const STORAGE_KEY = 'saved_username';
                 const $username = $('#username');
@@ -145,7 +151,7 @@
                                 const redirectUrl = (response.data && response.data.redirectUrl)
                                     ? response.data.redirectUrl
                                     : [[@{/}]];
-                                location.href = redirectUrl;
+                                location.replace(redirectUrl);
                             } else {
                                 if (response.error && response.error.code === 'setup_required') {
                                     $('#setup-username').val($('#username').val());

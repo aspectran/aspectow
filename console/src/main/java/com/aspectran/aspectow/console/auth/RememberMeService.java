@@ -40,7 +40,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 import java.util.UUID;
@@ -162,7 +162,7 @@ public class RememberMeService implements EnvironmentAware {
         persistentLogin.setToken(token);
         persistentLogin.setIpAddress(remoteAddr);
         persistentLogin.setUserAgent(userAgent);
-        persistentLogin.setLastUsed(LocalDateTime.now());
+        persistentLogin.setLastUsed(Instant.now());
 
         accountMapper.insertPersistentLogin(persistentLogin);
 
@@ -211,9 +211,9 @@ public class RememberMeService implements EnvironmentAware {
         }
 
         // Check token expiration
-        LocalDateTime now = LocalDateTime.now();
+        Instant now = Instant.now();
         if (persistentLogin.getLastUsed() != null &&
-                persistentLogin.getLastUsed().plusSeconds(getTokenValiditySeconds()).isBefore(now)) {
+                persistentLogin.getLastUsed().plus(getTokenValiditySeconds(), ChronoUnit.SECONDS).isBefore(now)) {
             accountMapper.deletePersistentLoginBySeries(series);
             removeRememberMeToken(translet);
             recordAutoLoginFailure(translet, persistentLogin.getUsername());

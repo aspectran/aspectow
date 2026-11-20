@@ -17,7 +17,7 @@ package com.aspectran.aspectow.console.common.db.model;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 /**
  * Entity representing an encrypted token in the vault.
@@ -32,9 +32,9 @@ public class Vault implements Serializable {
     private String tokenType;
     private String encryptedValue;
     private String description;
-    private LocalDateTime validUntil;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    private Instant validUntil;
+    private Instant createdAt;
+    private Instant updatedAt;
 
     /**
      * Gets the vault ID.
@@ -120,7 +120,7 @@ public class Vault implements Serializable {
      * Gets the expiration time of the vault entry.
      * @return the expiration time, or null if it does not expire
      */
-    public LocalDateTime getValidUntil() {
+    public Instant getValidUntil() {
         return validUntil;
     }
 
@@ -128,7 +128,7 @@ public class Vault implements Serializable {
      * Sets the expiration time of the vault entry.
      * @param validUntil the expiration time
      */
-    public void setValidUntil(LocalDateTime validUntil) {
+    public void setValidUntil(Instant validUntil) {
         this.validUntil = validUntil;
     }
 
@@ -136,7 +136,7 @@ public class Vault implements Serializable {
      * Gets the creation time.
      * @return the creation time
      */
-    public LocalDateTime getCreatedAt() {
+    public Instant getCreatedAt() {
         return createdAt;
     }
 
@@ -144,7 +144,7 @@ public class Vault implements Serializable {
      * Sets the creation time.
      * @param createdAt the creation time
      */
-    public void setCreatedAt(LocalDateTime createdAt) {
+    public void setCreatedAt(Instant createdAt) {
         this.createdAt = createdAt;
     }
 
@@ -152,7 +152,7 @@ public class Vault implements Serializable {
      * Gets the modification time.
      * @return the modification time
      */
-    public LocalDateTime getUpdatedAt() {
+    public Instant getUpdatedAt() {
         return updatedAt;
     }
 
@@ -160,7 +160,7 @@ public class Vault implements Serializable {
      * Sets the modification time.
      * @param updatedAt the modification time
      */
-    public void setUpdatedAt(LocalDateTime updatedAt) {
+    public void setUpdatedAt(Instant updatedAt) {
         this.updatedAt = updatedAt;
     }
 

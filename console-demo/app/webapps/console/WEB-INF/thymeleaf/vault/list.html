@@ -138,11 +138,11 @@
                         <td>
                             <div th:if="${v.validUntil != null}" class="small">
                                 <span th:if="${v.validUntil.isBefore(page.now)}" class="badge bg-danger">EXPIRED</span>
-                                <span th:if="${v.validUntil.isAfter(page.now)}" class="text-muted format-local-time" data-format="YYYY-MM-DD HH:mm" th:data-utc="${v.validUntil}" th:text="${#temporals.format(v.validUntil, 'yyyy-MM-dd HH:mm')}">2023-12-31</span>
+                                <span th:if="${v.validUntil.isAfter(page.now)}" class="text-muted format-local-time" data-format="YYYY-MM-DD HH:mm" th:data-utc="${v.validUntil}" th:text="${v.validUntil}">2023-12-31</span>
                             </div>
                             <span th:if="${v.validUntil == null}" class="text-muted small">-</span>
                         </td>
-                        <td class="small text-muted format-local-time" th:data-utc="${v.updatedAt}" th:text="${#temporals.format(v.updatedAt, 'yyyy-MM-dd HH:mm:ss')}">2023-10-01</td>
+                        <td class="small text-muted format-local-time" th:data-utc="${v.updatedAt}" th:text="${v.updatedAt ?: '-'}">-</td>
                         <td class="text-end pe-3">
                             <button class="btn btn-sm btn-outline-secondary"
                                     th:onclick="openVaultModal([[${v.vaultId}]], [[${v.label}]], [[${v.description}]], [[${v.tokenType}]], [[${v.encryptedValue}]], [[${v.validUntil}]] )">
@@ -216,12 +216,10 @@
                     </div>
                     <div class="modal-body">
                         <input type="hidden" id="vaultId" name="vaultId" />
-                        
                         <div class="mb-3">
                             <label for="label" class="form-label">Label</label>
                             <input type="text" class="form-control" id="label" name="label" required placeholder="e.g. DB_PASSWORD">
                         </div>
-
                         <div class="mb-3">
                             <label for="tokenType" class="form-label">Token Type</label>
                             <select class="form-select" id="tokenType" name="tokenType" onchange="onTokenTypeChange()">
@@ -230,18 +228,15 @@
                                 <option value="TIME_LIMITED">Time-Limited (Data via APON + Expiry)</option>
                             </select>
                         </div>
-                        
                         <div class="mb-3">
                             <label for="plainText" class="form-label" id="plainTextLabel">Plain Text Value</label>
                             <textarea class="form-control font-monospace" id="plainText" name="plainText" rows="3" placeholder="Enter value"></textarea>
                             <div id="plainTextHelp" class="form-text">This value will be encrypted and stored.</div>
                         </div>
-                        
                         <div class="mb-3">
                             <label for="description" class="form-label">Description</label>
                             <textarea class="form-control" id="description" name="description" rows="2"></textarea>
                         </div>
-                        
                         <div class="mb-3">
                             <label for="expirationMinutes" class="form-label">Expiration (Minutes)</label>
                             <input type="number" class="form-control" id="expirationMinutes" name="expirationMinutes" min="0" placeholder="0 for no expiration">
@@ -430,7 +425,7 @@
 
         function onTokenTypeChange() {
             const type = $('#tokenType').val();
-            const $exp = $('#expirationMinutes').closest('.mb-3');
+            const $exp = $('#expirationMinutes').closest('div');
             const $label = $('#plainTextLabel');
             const $help = $('#plainTextHelp');
             

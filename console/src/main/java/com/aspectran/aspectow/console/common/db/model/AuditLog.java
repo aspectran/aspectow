@@ -17,7 +17,7 @@ package com.aspectran.aspectow.console.common.db.model;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 /**
  * Entity representing a security audit log entry.
@@ -33,7 +33,7 @@ public class AuditLog implements Serializable {
     private String target;
     private String details;
     private String ipAddress;
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     /**
      * Gets the audit ID.
@@ -135,7 +135,7 @@ public class AuditLog implements Serializable {
      * Gets the timestamp when the audit entry was created.
      * @return the creation timestamp
      */
-    public LocalDateTime getCreatedAt() {
+    public Instant getCreatedAt() {
         return createdAt;
     }
 
@@ -143,7 +143,7 @@ public class AuditLog implements Serializable {
      * Sets the timestamp when the audit entry was created.
      * @param createdAt the creation timestamp
      */
-    public void setCreatedAt(LocalDateTime createdAt) {
+    public void setCreatedAt(Instant createdAt) {
         this.createdAt = createdAt;
     }
 

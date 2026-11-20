@@ -67,7 +67,13 @@ public class LoginActivity {
     @Request("/login")
     @Dispatch("auth/login")
     @Action("page")
-    public Map<String, Object> loginPage() {
+    public Map<String, Object> loginPage(@NonNull Translet translet) {
+        SessionAdapter sessionAdapter = translet.getSessionAdapter();
+        if (sessionAdapter.containsAttribute(UserInfo.USERINFO_KEY)) {
+            translet.redirect("/");
+            return null;
+        }
+
         boolean rememberMeEnabled = (rememberMeService != null && rememberMeService.isRememberMeEnabled());
         return Map.of(
                 "title", "Login",

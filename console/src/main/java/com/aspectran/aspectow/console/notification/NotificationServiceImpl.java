@@ -25,6 +25,8 @@ import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -82,8 +84,12 @@ public class NotificationServiceImpl extends NotificationSupport implements Noti
         }
         UserNotificationSetting existing = notificationMapper.getNotificationSettingByUserId(setting.getUserId());
         if (existing == null) {
+            Instant now = Instant.now();
+            setting.setCreatedAt(now);
+            setting.setUpdatedAt(now);
             notificationMapper.insertNotificationSetting(setting);
         } else {
+            setting.setUpdatedAt(Instant.now());
             notificationMapper.updateNotificationSetting(setting);
         }
     }
@@ -101,9 +107,13 @@ public class NotificationServiceImpl extends NotificationSupport implements Noti
             setting = new UserNotificationSetting();
             setting.setUserId(userId);
             setting.setPushEnabled("Y");
+            Instant now = Instant.now();
+            setting.setCreatedAt(now);
+            setting.setUpdatedAt(now);
             notificationMapper.insertNotificationSetting(setting);
         } else if (!"Y".equalsIgnoreCase(setting.getPushEnabled())) {
             setting.setPushEnabled("Y");
+            setting.setUpdatedAt(Instant.now());
             notificationMapper.updateNotificationSetting(setting);
         }
 
@@ -113,7 +123,9 @@ public class NotificationServiceImpl extends NotificationSupport implements Noti
             existing.setP256dhKey(p256dhKey);
             existing.setAuthKey(authKey);
             existing.setUserAgent(userAgent);
-            notificationMapper.updatePushSubscriptionLastActive(endpoint);
+            Instant now = Instant.now();
+            existing.setLastActiveAt(now);
+            notificationMapper.updatePushSubscriptionLastActive(endpoint, now);
             return existing;
         }
 
@@ -123,6 +135,9 @@ public class NotificationServiceImpl extends NotificationSupport implements Noti
         subscription.setP256dhKey(p256dhKey);
         subscription.setAuthKey(authKey);
         subscription.setUserAgent(userAgent);
+        Instant now = Instant.now();
+        subscription.setCreatedAt(now);
+        subscription.setLastActiveAt(now);
         notificationMapper.insertPushSubscription(subscription);
         return subscription;
     }
@@ -186,7 +201,7 @@ public class NotificationServiceImpl extends NotificationSupport implements Noti
                 try {
                     int status = webPushManager.sendPushNotification(sub, payloadJson);
                     if (status >= 200 && status < 300) {
-                        notificationMapper.updatePushSubscriptionLastActive(sub.getEndpoint());
+                        notificationMapper.updatePushSubscriptionLastActive(sub.getEndpoint(), Instant.now());
                         sentCount++;
                     } else if (status == 401 || status == 404 || status == 410) {
                         // Endpoint invalid (VAPID key mismatch) or expired
@@ -209,6 +224,7 @@ public class NotificationServiceImpl extends NotificationSupport implements Noti
         history.setTitle("Test Notification");
         history.setMessage("Web Push test notification was successfully sent.");
         history.setTargetUrl("/");
+        history.setCreatedAt(Instant.now());
         notificationMapper.insertNotificationHistory(history);
 
         return sentCount;
@@ -272,6 +288,7 @@ public class NotificationServiceImpl extends NotificationSupport implements Noti
                         history.setTitle(title);
                         history.setMessage(message);
                         history.setTargetUrl(targetUrl);
+                        history.setCreatedAt(Instant.now());
                         notificationMapper.insertNotificationHistory(history);
                     }
                 }
@@ -320,9 +337,10 @@ public class NotificationServiceImpl extends NotificationSupport implements Noti
 
         if (!successEndpoints.isEmpty() || !expiredEndpoints.isEmpty()) {
             executeInActivity(() -> {
+                Instant now = Instant.now();
                 for (String ep : successEndpoints) {
                     try {
-                        notificationMapper.updatePushSubscriptionLastActive(ep);
+                        notificationMapper.updatePushSubscriptionLastActive(ep, now);
                     } catch (Exception ignored) {
                     }
                 }
@@ -400,6 +418,7 @@ public class NotificationServiceImpl extends NotificationSupport implements Noti
                 history.setTitle(finalTitle);
                 history.setMessage(finalMessage);
                 history.setTargetUrl("/admin/notification/");
+                history.setCreatedAt(Instant.now());
                 executeInActivity(() -> {
                     notificationMapper.insertNotificationHistory(history);
                     return null;
@@ -425,8 +444,9 @@ public class NotificationServiceImpl extends NotificationSupport implements Noti
             try {
                 int status = webPushManager.sendPushNotification(sub, payload);
                 if (status >= 200 && status < 300) {
+                    Instant now = Instant.now();
                     executeInActivity(() -> {
-                        notificationMapper.updatePushSubscriptionLastActive(sub.getEndpoint());
+                        notificationMapper.updatePushSubscriptionLastActive(sub.getEndpoint(), now);
                         return null;
                     });
                     sentCount++;
@@ -441,6 +461,82 @@ public class NotificationServiceImpl extends NotificationSupport implements Noti
             }
         }
         return sentCount;
+    }
+
+    @Override
+    public int sendAdminTestPushToSubscription(Long subscriptionId) {
+        if (webPushManager == null || !isWebPushEnabled() || subscriptionId == null) {
+            return 0;
+        }
+        PushSubscription sub = executeInActivity(() -> notificationMapper.getPushSubscriptionById(subscriptionId));
+        if (sub == null) {
+            return 0;
+        }
+
+        String title = "[Admin Test] Device Ping";
+        String targetName = (sub.getUsername() != null ? sub.getUsername() : ("User #" + sub.getUserId()));
+        String message = "Ping test notification to " + targetName + "'s device succeeded!";
+
+        // Also record to in-app notification history for target user
+        if (sub.getUserId() != null) {
+            try {
+                NotificationHistory history = new NotificationHistory();
+                history.setUserId(sub.getUserId());
+                history.setCategory("TEST");
+                history.setSeverity("INFO");
+                history.setTitle(title);
+                history.setMessage(message);
+                history.setTargetUrl("/admin/notification/");
+                history.setCreatedAt(Instant.now());
+                executeInActivity(() -> {
+                    notificationMapper.insertNotificationHistory(history);
+                    return null;
+                });
+            } catch (Exception e) {
+                logger.warn("Failed to record device ping notification history for user ID: {}", sub.getUserId(), e);
+            }
+        }
+
+        String payload = buildPayloadJson(
+                title,
+                message,
+                "./",
+                "aspectow-device-ping-" + System.currentTimeMillis()
+        );
+
+        try {
+            int status = webPushManager.sendPushNotification(sub, payload);
+            if (status >= 200 && status < 300) {
+                Instant now = Instant.now();
+                executeInActivity(() -> {
+                    notificationMapper.updatePushSubscriptionLastActive(sub.getEndpoint(), now);
+                    return null;
+                });
+                return 1;
+            } else if (status == 401 || status == 404 || status == 410) {
+                logger.info("Device subscription {} is expired/invalid (status: {}), removing...", subscriptionId, status);
+                executeInActivity(() -> {
+                    notificationMapper.deletePushSubscriptionByEndpoint(sub.getEndpoint());
+                    return null;
+                });
+                return -1;
+            }
+        } catch (Exception e) {
+            logger.warn("Failed to dispatch device ping push to subscription {}: {}", subscriptionId, e.getMessage());
+        }
+        return 0;
+    }
+
+    @Override
+    public int pruneStalePushSubscriptions(int olderThanDays) {
+        if (olderThanDays <= 0) {
+            olderThanDays = 30;
+        }
+        Instant cutoff = Instant.now().minus(olderThanDays, ChronoUnit.DAYS);
+        Integer deleted = executeInActivity(() -> notificationMapper.deletePushSubscriptionsOlderThan(cutoff));
+        int count = (deleted != null ? deleted : 0);
+        logger.info("Pruned {} stale push subscriptions older than {} days (cutoff: {})", count, olderThanDays, cutoff);
+        return count;
     }
 
     @Override

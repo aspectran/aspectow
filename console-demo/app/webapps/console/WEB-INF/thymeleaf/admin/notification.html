@@ -3,27 +3,6 @@
       xmlns:th="https://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{templates/default}">
-<head>
-    <th:block layout:fragment="style">
-        <style>
-            .code-box {
-                background-color: var(--bs-tertiary-bg);
-                border: 1px solid var(--bs-border-color);
-                border-radius: var(--bs-border-radius);
-                padding: 0.5rem 0.75rem;
-                font-family: var(--bs-font-monospace);
-                font-size: 0.8rem;
-                word-break: break-all;
-            }
-            .endpoint-cell {
-                max-width: 260px;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-            }
-        </style>
-    </th:block>
-</head>
 <body>
 <th:block layout:fragment="content">
     <!-- Header -->
@@ -76,7 +55,7 @@
                         <div class="col-sm-6">
                             <div class="small text-muted text-uppercase fw-semibold" style="font-size: 0.7rem;">Key Issued Date</div>
                             <div class="fw-semibold text-body">
-                                <span class="format-local-time" th:if="${page.vapidKeyCreatedAt != null}" th:data-utc="${page.vapidKeyCreatedAt}" th:text="${#temporals.format(page.vapidKeyCreatedAt, 'yyyy-MM-dd HH:mm:ss')}">2026-11-18</span>
+                                <span class="format-local-time" th:if="${page.vapidKeyCreatedAt != null}" th:data-utc="${page.vapidKeyCreatedAt}" data-format="LLL" th:text="${page.vapidKeyCreatedAt}">2026-11-18</span>
                                 <span th:if="${page.vapidKeyCreatedAt == null}" class="text-muted">Dynamic runtime</span>
                             </div>
                             <div class="text-muted" style="font-size: 0.75rem;">Shared across all cluster nodes</div>
@@ -132,7 +111,11 @@
                 <span class="fw-bold"><i class="bi bi-devices text-secondary me-1"></i> Active Device Subscriptions</span>
                 <span class="text-muted small ms-1" id="sub-count-text" th:text="'(' + ${page.totalSubscriptions} + ' registered)'">(0 registered)</span>
             </div>
-            <div class="d-flex flex-wrap flex-sm-nowrap justify-content-end gap-2">
+            <div class="d-flex flex-wrap flex-sm-nowrap justify-content-end align-items-center gap-2">
+                <button type="button" class="btn btn-sm btn-outline-warning" id="btn-prune-stale" onclick="pruneStaleDevices()"
+                        th:if="${session.USER_INFO.hasRole('SUPER_ADMIN')}" title="Prune device subscriptions inactive for 30+ days">
+                    <i class="bi bi-broom me-1"></i> Prune Inactive (30d+)
+                </button>
                 <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-refresh-subs" onclick="refreshSubscriptions()" title="Refresh subscriptions">
                     <i class="bi bi-arrow-clockwise me-1" id="icon-refresh-subs"></i> Refresh
                 </button>
@@ -142,47 +125,17 @@
             <table class="table table-hover text-nowrap align-middle mb-0" id="subscription-table">
                 <thead class="small text-uppercase text-muted">
                     <tr>
-                        <th class="ps-3" style="width: 60px;">ID</th>
-                        <th style="width: 180px;">User</th>
+                        <th class="ps-3" style="width: 50px;">ID</th>
+                        <th style="width: 170px;">User</th>
                         <th>Device &amp; Platform</th>
+                        <th style="width: 220px;">Status &amp; Last Active</th>
                         <th>Endpoint Service</th>
-                        <th style="width: 160px;">Subscribed</th>
-                        <th style="width: 160px;">Last Active</th>
-                        <th class="text-end pe-3" style="width: 100px;" th:if="${session.USER_INFO.hasRole('SUPER_ADMIN')}">Action</th>
+                        <th style="width: 180px;">Subscribed</th>
+                        <th class="text-end pe-3" style="width: 110px;" th:if="${session.USER_INFO.hasRole('SUPER_ADMIN')}">Action</th>
                     </tr>
                 </thead>
                 <tbody class="small" id="subscription-tbody">
-                    <tr th:each="sub : ${page.subscriptions}" th:id="'sub-row-' + ${sub.subscriptionId}" th:data-endpoint="${sub.endpoint}">
-                        <td class="ps-3 text-muted" th:text="${sub.subscriptionId}">1</td>
-                        <td>
-                            <div class="fw-semibold text-body" th:text="${sub.username ?: ('User #' + sub.userId)}">admin</div>
-                            <div class="text-muted" style="font-size: 0.75rem;" th:if="${sub.nickname != null}" th:text="${sub.nickname}">Administrator</div>
-                        </td>
-                        <td>
-                            <div class="d-flex align-items-center gap-2">
-                                <i class="bi fs-5 text-secondary"
-                                   th:classappend="${#strings.containsIgnoreCase(sub.userAgent ?: '', 'Mobile') || #strings.containsIgnoreCase(sub.userAgent ?: '', 'Android') || #strings.containsIgnoreCase(sub.userAgent ?: '', 'iPhone') ? 'bi-phone' : 'bi-laptop'}"></i>
-                                <span class="text-truncate" style="max-width: 320px;" th:text="${sub.userAgent ?: 'Unknown Client'}" th:title="${sub.userAgent}">Mozilla/5.0</span>
-                            </div>
-                        </td>
-                        <td class="endpoint-cell">
-                            <span class="badge bg-secondary-subtle text-secondary-emphasis me-1"
-                                  th:text="${#strings.containsIgnoreCase(sub.endpoint ?: '', 'fcm') ? 'Google FCM' : (#strings.containsIgnoreCase(sub.endpoint ?: '', 'apple') ? 'Apple APNs' : (#strings.containsIgnoreCase(sub.endpoint ?: '', 'mozilla') ? 'Mozilla Autopush' : 'WebPush'))}">Service</span>
-                            <span class="font-monospace text-muted" style="font-size: 0.75rem;" th:text="${sub.endpoint}">https://...</span>
-                        </td>
-                        <td class="text-muted">
-                            <span class="format-local-time" th:if="${sub.createdAt != null}" th:data-utc="${sub.createdAt}" th:text="${#temporals.format(sub.createdAt, 'yyyy-MM-dd HH:mm')}">-</span>
-                        </td>
-                        <td class="text-muted">
-                            <span class="format-local-time" th:if="${sub.lastActiveAt != null}" th:data-utc="${sub.lastActiveAt}" th:text="${#temporals.format(sub.lastActiveAt, 'yyyy-MM-dd HH:mm')}">-</span>
-                        </td>
-                        <td class="text-end pe-3" th:if="${session.USER_INFO.hasRole('SUPER_ADMIN')}">
-                            <button class="btn btn-sm btn-outline-danger py-0 px-2" type="button"
-                                    th:onclick="'deleteSubscription(' + ${sub.subscriptionId} + ')'" title="Delete subscription">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                        </td>
-                    </tr>
+                    <!-- Populated dynamically via JavaScript with Local Timezone & Device Parsing -->
                     <tr th:if="${#lists.isEmpty(page.subscriptions)}">
                         <td colspan="7" class="text-center py-5 text-muted">
                             <i class="bi bi-phone-vibrate fs-1 d-block mb-2 text-secondary opacity-50"></i>
@@ -203,7 +156,7 @@
                     <h5 class="modal-title" id="regenKeyModalLabel"><i class="bi bi-exclamation-triangle-fill me-2"></i> Regenerate VAPID Key Pair</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body p-4">
+                <div class="modal-body">
                     <div class="alert alert-danger small mb-3">
                         <div class="fw-bold mb-1"><i class="bi bi-shield-slash me-1"></i> Critical Impact Warning:</div>
                         Regenerating the VAPID key will <strong>immediately invalidate all existing device push subscriptions</strong>.
@@ -234,6 +187,9 @@
     <script th:inline="javascript">
         /*<![CDATA[*/
         const isSuperAdmin = /*[[${session.USER_INFO.hasRole('SUPER_ADMIN')}]]*/ false;
+        const initialSubscriptions = /*[[${page.subscriptions}]]*/ [];
+        const initialTotalSubscriptions = /*[[${page.totalSubscriptions}]]*/ 0;
+        let currentLocalEndpoint = null;
 
         function getContextPath() {
             if (typeof CONTEXT_PATH !== 'undefined' && CONTEXT_PATH !== null) {
@@ -243,6 +199,146 @@
                 return window.CONTEXT_PATH;
             }
             return '';
+        }
+
+        function getErrorMessage(res, defaultMsg) {
+            if (res && res.error) {
+                if (typeof res.error === 'string') return res.error;
+                if (res.error.message) return res.error.message;
+                if (res.error.code) return res.error.code;
+            }
+            if (res && res.message) {
+                return res.message;
+            }
+            return defaultMsg || 'An unexpected error occurred.';
+        }
+
+        function parseToDayjs(val) {
+            if (!val) return null;
+            if (typeof val === 'object' && val !== null) {
+                if (val.year !== undefined && val.monthValue !== undefined && val.dayOfMonth !== undefined) {
+                    const pad = n => String(n).padStart(2, '0');
+                    const iso = `${val.year}-${pad(val.monthValue)}-${pad(val.dayOfMonth)}T${pad(val.hour || 0)}:${pad(val.minute || 0)}:${pad(val.second || 0)}`;
+                    return (typeof dayjs.utc === 'function') ? dayjs.utc(iso).local() : dayjs(iso);
+                }
+                if (val.epochSecond !== undefined) {
+                    return (typeof dayjs.unix === 'function') ? dayjs.unix(val.epochSecond).local() : dayjs(val.epochSecond * 1000);
+                }
+            }
+            if (typeof dayjs.utc === 'function') {
+                return dayjs.utc(val).local();
+            }
+            return dayjs(val);
+        }
+
+        function formatUtcToLocal(utcVal) {
+            if (typeof getRelativeTimeInfo === 'function') {
+                return getRelativeTimeInfo(utcVal);
+            }
+
+            const d = parseToDayjs(utcVal);
+            if (!d || !d.isValid()) {
+                return { fullTime: '-', relativeTime: '-', daysDiff: 999 };
+            }
+
+            const fullTime = (typeof d.format === 'function') ? d.format('LLL') : String(utcVal);
+            const standardTime = (typeof d.format === 'function') ? d.format('YYYY-MM-DD HH:mm:ss') : String(utcVal);
+            const now = dayjs();
+            const diffMinutes = Math.max(0, now.diff(d, 'minute'));
+            const diffHours = Math.max(0, now.diff(d, 'hour'));
+            const diffDays = Math.max(0, now.diff(d, 'day'));
+
+            const isKo = (typeof navigator !== 'undefined' && navigator.language && navigator.language.startsWith('ko'));
+
+            let relativeTime = '';
+            if (diffMinutes < 1) {
+                relativeTime = isKo ? '방금 전' : 'Just now';
+            } else if (diffMinutes < 60) {
+                relativeTime = `${diffMinutes}m ago`;
+            } else if (diffHours < 24) {
+                relativeTime = `${diffHours}h ago`;
+            } else {
+                relativeTime = `${diffDays}d ago`;
+            }
+
+            return { fullTime, standardTime, relativeTime, daysDiff: diffDays };
+        }
+
+        async function detectCurrentDeviceEndpoint() {
+            if ('serviceWorker' in navigator) {
+                try {
+                    const reg = await navigator.serviceWorker.ready;
+                    const currentSub = await reg.pushManager.getSubscription();
+                    if (currentSub && currentSub.endpoint) {
+                        currentLocalEndpoint = currentSub.endpoint;
+                    }
+                } catch (e) {
+                    console.debug('[NotificationAdmin] Unable to inspect local push subscription:', e);
+                }
+            }
+        }
+
+        function parseDevicePlatform(userAgent) {
+            if (!userAgent) {
+                return {
+                    icon: 'bi-question-circle',
+                    deviceType: 'Unknown',
+                    display: 'Unknown Device',
+                    raw: ''
+                };
+            }
+            const ua = userAgent;
+            let icon = 'bi-laptop';
+            let deviceType = 'Desktop';
+            let os = 'Unknown OS';
+            let browser = 'Browser';
+
+            // 1. Tablet detection (iPad, Android Tablet, etc.)
+            const isTablet = /iPad|Tablet|PlayBook|Silk|Kindle/i.test(ua) ||
+                (/Android/i.test(ua) && !/Mobile/i.test(ua)) ||
+                (navigator.maxTouchPoints > 1 && /Macintosh/i.test(ua)); // iPad Pro iOS 13+
+
+            const isMobile = !isTablet && /Mobile|Android|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+
+            if (isTablet) {
+                icon = 'bi-tablet';
+                deviceType = 'Tablet';
+            } else if (isMobile) {
+                icon = 'bi-phone';
+                deviceType = 'Mobile';
+            } else {
+                icon = 'bi-laptop';
+                deviceType = 'Desktop';
+            }
+
+            // OS detection
+            if (/iPhone/i.test(ua)) os = 'iOS (iPhone)';
+            else if (/iPad/i.test(ua)) os = 'iPadOS';
+            else if (/Android/i.test(ua)) {
+                if (/SM-X|SM-T|Tab/i.test(ua)) os = 'Galaxy Tab';
+                else os = isTablet ? 'Android Tablet' : 'Android';
+            }
+            else if (/Macintosh|Mac OS X/i.test(ua)) os = 'macOS';
+            else if (/Windows NT 10.0/i.test(ua)) os = 'Windows 10/11';
+            else if (/Windows NT/i.test(ua)) os = 'Windows';
+            else if (/CrOS/i.test(ua)) os = 'Chrome OS';
+            else if (/Linux/i.test(ua)) os = 'Linux';
+
+            // Browser detection
+            if (/Edg\//i.test(ua)) browser = 'Edge';
+            else if (/Whale\//i.test(ua)) browser = 'Whale';
+            else if (/SamsungBrowser\//i.test(ua)) browser = 'Samsung Internet';
+            else if (/Chrome\//i.test(ua) && !/Chromium\//i.test(ua)) browser = 'Chrome';
+            else if (/Safari\//i.test(ua) && !/Chrome\//i.test(ua)) browser = 'Safari';
+            else if (/Firefox\//i.test(ua)) browser = 'Firefox';
+            else if (/Opera|OPR\//i.test(ua)) browser = 'Opera';
+
+            return {
+                icon: icon,
+                deviceType: deviceType,
+                display: `${os} • ${browser}`,
+                raw: ua
+            };
         }
 
         function copyPublicKey() {
@@ -296,7 +392,7 @@
                     notice.textContent = `Sent successfully to ${count} device(s).`;
                 } else {
                     notice.className = 'small text-danger';
-                    notice.textContent = (res && res.message) ? res.message : 'Failed to send test push.';
+                    notice.textContent = getErrorMessage(res, 'Failed to send test push.');
                 }
             })
             .catch(err => {
@@ -309,11 +405,97 @@
             });
         }
 
-        function deleteSubscription(subscriptionId) {
-            if (!confirm('Are you sure you want to remove this device subscription?')) return;
+        function testSingleDevice(subscriptionId, btn) {
+            if (!subscriptionId) return;
+            const originHtml = btn ? btn.innerHTML : '';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+            }
 
+            const formData = new URLSearchParams();
+            formData.append('subscriptionId', subscriptionId);
+
+            const ctx = getContextPath();
+            fetch(ctx + '/admin/notification/test-device', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData
+            })
+            .then(res => res.json())
+            .then(res => {
+                if (res && (res.success || res.status === 200)) {
+                    const result = (res.data && res.data.result) !== undefined ? res.data.result : 1;
+                    if (result === -1) {
+                        alert('This device subscription was expired/invalid and has been automatically removed.');
+                        refreshSubscriptions();
+                    } else {
+                        alert('Ping notification sent to this device successfully!\nPlease check the device notification tray.');
+                    }
+                } else {
+                    alert(getErrorMessage(res, 'Failed to send ping notification.'));
+                }
+            })
+            .catch(err => {
+                alert('Error sending ping: ' + err.message);
+            })
+            .finally(() => {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = originHtml;
+                }
+            });
+        }
+
+        function pruneStaleDevices() {
+            const staleElements = document.querySelectorAll('#subscription-tbody .badge-stale-device');
+            const staleCount = staleElements.length;
+            let msg = 'Are you sure you want to remove all device subscriptions inactive for more than 30 days?';
+            if (staleCount > 0) {
+                msg = `Found ${staleCount} stale device(s) inactive for more than 30 days.\nDo you want to permanently remove them?`;
+            }
+            if (!confirm(msg)) return;
+
+            const btn = document.getElementById('btn-prune-stale');
+            if (btn) btn.disabled = true;
+
+            const formData = new URLSearchParams();
+            formData.append('days', 30);
+
+            const ctx = getContextPath();
+            fetch(ctx + '/admin/notification/prune-stale', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData
+            })
+            .then(res => res.json())
+            .then(res => {
+                if (res && (res.success || res.status === 200)) {
+                    const count = (res.data && res.data.prunedCount) || 0;
+                    alert(`Successfully pruned ${count} stale device subscription(s).`);
+                    refreshSubscriptions();
+                } else {
+                    alert(getErrorMessage(res, 'Failed to prune stale subscriptions.'));
+                }
+            })
+            .catch(err => {
+                alert('Error: ' + err.message);
+            })
+            .finally(() => {
+                if (btn) btn.disabled = false;
+            });
+        }
+
+        function deleteSubscription(subscriptionId) {
             const row = document.getElementById('sub-row-' + subscriptionId);
             const targetEndpoint = row ? row.getAttribute('data-endpoint') : null;
+            const isCurrentDevice = (currentLocalEndpoint && targetEndpoint === currentLocalEndpoint);
+
+            let confirmMsg = 'Are you sure you want to remove this device subscription?';
+            if (isCurrentDevice) {
+                confirmMsg = 'Warning: This subscription belongs to your CURRENT browser device.\nAre you sure you want to remove it?';
+            }
+            if (!confirm(confirmMsg)) return;
 
             const formData = new URLSearchParams();
             formData.append('subscriptionId', subscriptionId);
@@ -378,7 +560,7 @@
                         }
                     }
                 } else {
-                    alert((res && res.message) ? res.message : 'Failed to delete subscription.');
+                    alert(getErrorMessage(res, 'Failed to delete subscription.'));
                 }
             })
             .catch(err => {
@@ -411,7 +593,7 @@
                         const total = (res.data && res.data.totalSubscriptions) !== undefined ? res.data.totalSubscriptions : subs.length;
                         renderSubscriptionsTable(subs, total);
                     } else {
-                        alert((res && res.message) ? res.message : 'Failed to refresh subscriptions.');
+                        alert(getErrorMessage(res, 'Failed to refresh subscriptions.'));
                     }
                 })
                 .catch(err => {
@@ -457,9 +639,8 @@
                 tr.id = 'sub-row-' + sub.subscriptionId;
                 tr.setAttribute('data-endpoint', sub.endpoint || '');
 
-                const userAgent = sub.userAgent || '';
-                const isMobile = /Mobile|Android|iPhone/i.test(userAgent);
-                const deviceIconClass = isMobile ? 'bi-phone' : 'bi-laptop';
+                const parsed = parseDevicePlatform(sub.userAgent || '');
+                const isCurrentDevice = (currentLocalEndpoint && sub.endpoint === currentLocalEndpoint);
 
                 const endpoint = sub.endpoint || '';
                 let serviceLabel = 'WebPush';
@@ -469,9 +650,30 @@
 
                 const username = escapeHtml(sub.username || ('User #' + sub.userId));
                 const nicknameHtml = sub.nickname ? `<div class="text-muted" style="font-size: 0.75rem;">${escapeHtml(sub.nickname)}</div>` : '';
+                const thisDeviceBadge = isCurrentDevice
+                    ? `<span class="badge bg-success text-white" style="font-size: 0.65rem;" title="You are currently viewing from this device"><i class="bi bi-check-circle-fill me-1"></i>This Device</span>`
+                    : '';
+
+                // Formatted times in local timezone
+                const createdInfo = formatUtcToLocal(sub.createdAt);
+                const lastActiveInfo = formatUtcToLocal(sub.lastActiveAt || sub.createdAt);
+
+                // Status Badge determination
+                let statusBadgeHtml = '';
+                if (lastActiveInfo.daysDiff <= 7) {
+                    statusBadgeHtml = `<span class="badge bg-success-subtle text-success border border-success-subtle"><i class="bi bi-circle-fill me-1" style="font-size: 0.45rem;"></i>Active</span>`;
+                } else if (lastActiveInfo.daysDiff <= 30) {
+                    statusBadgeHtml = `<span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle"><i class="bi bi-circle-fill me-1" style="font-size: 0.45rem;"></i>Idle (${escapeHtml(lastActiveInfo.relativeTime)})</span>`;
+                } else {
+                    statusBadgeHtml = `<span class="badge bg-danger-subtle text-danger border border-danger-subtle badge-stale-device" title="Inactive for ${lastActiveInfo.daysDiff} days"><i class="bi bi-exclamation-circle-fill me-1"></i>Stale (${escapeHtml(lastActiveInfo.relativeTime)})</span>`;
+                }
 
                 const actionHtml = isSuperAdmin ? `
-                    <td class="text-end pe-3">
+                    <td class="text-end pe-3 text-nowrap">
+                        <button class="btn btn-sm btn-outline-primary py-0 px-2 me-1" type="button"
+                                onclick="testSingleDevice(${sub.subscriptionId}, this)" title="Send test ping to this device">
+                            <i class="bi bi-send"></i>
+                        </button>
                         <button class="btn btn-sm btn-outline-danger py-0 px-2" type="button"
                                 onclick="deleteSubscription(${sub.subscriptionId})" title="Delete subscription">
                             <i class="bi bi-trash"></i>
@@ -487,32 +689,55 @@
                     </td>
                     <td>
                         <div class="d-flex align-items-center gap-2">
-                            <i class="bi fs-5 text-secondary ${deviceIconClass}"></i>
-                            <span class="text-truncate" style="max-width: 320px;" title="${escapeHtml(userAgent)}">${escapeHtml(userAgent || 'Unknown Client')}</span>
+                            <i class="bi fs-5 text-secondary ${parsed.icon}"></i>
+                            <div>
+                                <div class="fw-semibold text-body d-flex flex-column flex-md-row align-items-start align-items-md-center gap-1" style="font-size: 0.85rem;">
+                                    <span>${escapeHtml(parsed.display)}</span>
+                                    ${thisDeviceBadge}
+                                </div>
+                                <div class="d-none d-md-block text-muted text-truncate" style="font-size: 0.7rem; max-width: 280px;" title="${escapeHtml(parsed.raw)}">${escapeHtml(parsed.raw || 'Unknown Client')}</div>
+                            </div>
                         </div>
                     </td>
-                    <td class="endpoint-cell">
-                        <span class="badge bg-secondary-subtle text-secondary-emphasis me-1">${escapeHtml(serviceLabel)}</span>
-                        <span class="font-monospace text-muted" style="font-size: 0.75rem;">${escapeHtml(endpoint)}</span>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            ${statusBadgeHtml}
+                            ${lastActiveInfo.relativeTime ? `<span class="text-body-secondary small fw-medium">${escapeHtml(lastActiveInfo.relativeTime)}</span>` : ''}
+                        </div>
+                        <div class="mt-1 text-muted" style="font-size: 0.75rem;">
+                            <i class="bi bi-clock me-1"></i>${escapeHtml(lastActiveInfo.fullTime)}
+                        </div>
                     </td>
-                    <td class="text-muted">
-                        <span class="format-local-time" data-utc="${escapeHtml(sub.createdAt || '')}">${escapeHtml(sub.createdAt ? String(sub.createdAt).substring(0, 16).replace('T', ' ') : '-')}</span>
+                    <td>
+                        <span class="badge bg-secondary-subtle text-secondary-emphasis">${escapeHtml(serviceLabel)}</span>
+                        <div class="d-none d-md-block mt-1 font-monospace text-muted text-truncate" style="font-size: 0.75rem;max-width: 280px;" title="${escapeHtml(endpoint)}">${escapeHtml(endpoint)}</span>
                     </td>
-                    <td class="text-muted">
-                        <span class="format-local-time" data-utc="${escapeHtml(sub.lastActiveAt || '')}">${escapeHtml(sub.lastActiveAt ? String(sub.lastActiveAt).substring(0, 16).replace('T', ' ') : '-')}</span>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            ${createdInfo.relativeTime ? `<span class="text-body-secondary small fw-medium">${escapeHtml(createdInfo.relativeTime)}</span>` : ''}
+                        </div>
+                        <div class="mt-1 text-muted" style="font-size: 0.75rem;">
+                            <i class="bi bi-clock me-1"></i>${escapeHtml(createdInfo.fullTime)}
+                        </div>
                     </td>
                     ${actionHtml}
                 `;
                 tbody.appendChild(tr);
             });
-
-            if (typeof formatLocalTime === 'function') {
-                formatLocalTime(tbody);
-            }
         }
 
         let regenModal;
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Detect current browser push endpoint and render subscriptions table
+            await detectCurrentDeviceEndpoint();
+            renderSubscriptionsTable(initialSubscriptions, initialTotalSubscriptions);
+
+            // Format other static local time elements (e.g. VAPID key issued date)
+            if (typeof formatLocalTime === 'function') {
+                formatLocalTime();
+            }
+
+            // Key Regeneration Modal Setup
             const regenModalEl = document.getElementById('regenKeyModal');
             if (regenModalEl && typeof bootstrap !== 'undefined') {
                 regenModal = new bootstrap.Modal(regenModalEl);
@@ -551,7 +776,7 @@
                     alert('VAPID key pair regenerated successfully. The page will now reload.');
                     location.reload();
                 } else {
-                    alert((res && res.message) ? res.message : 'Failed to regenerate key.');
+                    alert(getErrorMessage(res, 'Failed to regenerate key.'));
                     confirmBtn.disabled = false;
                     confirmBtn.innerHTML = '<i class="bi bi-arrow-repeat me-1"></i> Confirm &amp; Regenerate';
                 }

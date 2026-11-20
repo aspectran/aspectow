@@ -25,6 +25,7 @@ import com.aspectran.aspectow.node.manager.NodeManager;
 import com.aspectran.core.component.bean.ablility.DisposableBean;
 import com.aspectran.core.component.bean.ablility.InitializableBean;
 import com.aspectran.core.component.bean.annotation.Autowired;
+import com.sun.management.OperatingSystemMXBean;
 import io.lettuce.core.SetArgs;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.sync.RedisCommands;
@@ -33,6 +34,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.management.ManagementFactory;
+import java.lang.management.MemoryMXBean;
+import java.lang.management.MemoryUsage;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
@@ -51,6 +54,9 @@ public class MonitoringAlertEvaluator extends NotificationSupport
 
     private static final Logger logger = LoggerFactory.getLogger(MonitoringAlertEvaluator.class);
 
+    private static final int CONSECUTIVE_VIOLATION_THRESHOLD = 2;
+    private static final long THRESHOLD_CACHE_TTL_MS = 180_000L; // 3 minutes
+
     public enum AlertState {
         NORMAL,
         ALERTING
@@ -62,8 +68,12 @@ public class MonitoringAlertEvaluator extends NotificationSupport
 
     // Key: nodeId + ":" + metricType (e.g. "node-1:CPU", "node-1:MEMORY")
     private final Map<String, AlertState> alertStates = new ConcurrentHashMap<>();
-    private final Map<String, Double> lastValues = new ConcurrentHashMap<>();
+    private final Map<String, Integer> violationCounts = new ConcurrentHashMap<>();
     private final Map<String, Long> localEventTimestamps = new ConcurrentHashMap<>();
+
+    private volatile int cachedCpuThreshold = ResourceThresholds.DEFAULT_CPU_THRESHOLD;
+    private volatile int cachedMemoryThreshold = ResourceThresholds.DEFAULT_MEMORY_THRESHOLD;
+    private volatile long lastThresholdFetchTime = 0L;
 
     private ScheduledExecutorService metricScheduler;
 
@@ -100,7 +110,7 @@ public class MonitoringAlertEvaluator extends NotificationSupport
             t.setDaemon(true);
             return t;
         });
-        metricScheduler.scheduleWithFixedDelay(this::sampleLocalMetrics, 15, 30, TimeUnit.SECONDS);
+        metricScheduler.scheduleWithFixedDelay(this::sampleLocalMetrics, 60, 30, TimeUnit.SECONDS);
     }
 
     @Override
@@ -116,12 +126,13 @@ public class MonitoringAlertEvaluator extends NotificationSupport
             }
         }
         alertStates.clear();
-        lastValues.clear();
+        violationCounts.clear();
         localEventTimestamps.clear();
+        lastThresholdFetchTime = 0L;
     }
 
     /**
-     * Samples local host/JVM CPU and memory metrics and evaluates them against user thresholds.
+     * Samples local JVM CPU and heap memory metrics and evaluates them against user thresholds.
      */
     private void sampleLocalMetrics() {
         if (!isNotificationEnabled()) {
@@ -130,22 +141,33 @@ public class MonitoringAlertEvaluator extends NotificationSupport
         try {
             String nodeId = (nodeManager != null && nodeManager.getNodeId() != null)
                     ? nodeManager.getNodeId() : "console";
-            java.lang.management.OperatingSystemMXBean baseOsBean = ManagementFactory.getOperatingSystemMXBean();
-            if (baseOsBean instanceof com.sun.management.OperatingSystemMXBean osBean) {
-                double cpuLoad = osBean.getCpuLoad();
+
+            // 1. JVM Process CPU Load
+            OperatingSystemMXBean osBean = ManagementFactory.getPlatformMXBean(OperatingSystemMXBean.class);
+            if (osBean != null) {
+                double cpuLoad = osBean.getProcessCpuLoad();
                 if (cpuLoad >= 0.0) {
                     evaluateMetric(nodeId, "CPU", cpuLoad * 100.0);
                 }
-                long totalMem = osBean.getTotalMemorySize();
-                long freeMem = osBean.getFreeMemorySize();
-                if (totalMem > 0) {
-                    double memUsage = ((double) (totalMem - freeMem) / totalMem) * 100.0;
+            }
+
+            // 2. JVM Heap Memory Usage
+            MemoryMXBean memoryMXBean = ManagementFactory.getPlatformMXBean(MemoryMXBean.class);
+            if (memoryMXBean != null) {
+                MemoryUsage heapUsage = memoryMXBean.getHeapMemoryUsage();
+                long maxMem = heapUsage.getMax();
+                if (maxMem <= 0) {
+                    maxMem = heapUsage.getCommitted();
+                }
+                long usedMem = heapUsage.getUsed();
+                if (maxMem > 0 && usedMem >= 0) {
+                    double memUsage = ((double) usedMem / maxMem) * 100.0;
                     evaluateMetric(nodeId, "MEMORY", memUsage);
                 }
             }
         } catch (Throwable t) {
             if (logger.isDebugEnabled()) {
-                logger.debug("Failed to sample local metrics for alert evaluation: {}", t.getMessage());
+                logger.debug("Failed to sample local JVM metrics for alert evaluation: {}", t.getMessage());
             }
         }
     }
@@ -250,20 +272,21 @@ public class MonitoringAlertEvaluator extends NotificationSupport
 
         String stateKey = nodeId + ":" + metricType.toUpperCase();
         AlertState currentState = alertStates.getOrDefault(stateKey, AlertState.NORMAL);
-        lastValues.put(stateKey, currentValue);
 
         // Determine effective threshold across subscribed users (or default 85%)
         int effectiveThreshold = determineThreshold(metricType);
 
         if (currentValue >= effectiveThreshold) {
-            if (currentState == AlertState.NORMAL) {
-                // Transition: NORMAL -> ALERTING (Fire alert once)
+            int violations = violationCounts.merge(stateKey, 1, Integer::sum);
+            if (currentState == AlertState.NORMAL && violations >= CONSECUTIVE_VIOLATION_THRESHOLD) {
+                // Transition: NORMAL -> ALERTING (Fire alert once after sustained violations)
                 alertStates.put(stateKey, AlertState.ALERTING);
                 String title = "[Alert] High " + metricType.toUpperCase() + " Usage on " + nodeId;
                 String msg = metricType.toUpperCase() + " usage reached " + Math.round(currentValue) +
                         "% (Threshold: " + effectiveThreshold + "%).";
 
-                logger.warn("Metric alert triggered: {} -> {}%", stateKey, currentValue);
+                logger.warn("Metric alert triggered ({} consecutive violations): {} -> {}%",
+                        violations, stateKey, currentValue);
                 notificationService.dispatchNotification(
                         "MONITORING",
                         "CRITICAL",
@@ -271,9 +294,13 @@ public class MonitoringAlertEvaluator extends NotificationSupport
                         msg,
                         "/appmon/dashboard/?nodeId=" + nodeId
                 );
+            } else if (currentState == AlertState.NORMAL) {
+                logger.debug("Metric threshold exceeded (count {}/{}): {} -> {}%",
+                        violations, CONSECUTIVE_VIOLATION_THRESHOLD, stateKey, currentValue);
             }
             // If already ALERTING, suppress repeated alerts (Throttling)
         } else {
+            violationCounts.remove(stateKey);
             if (currentState == AlertState.ALERTING) {
                 // Transition: ALERTING -> NORMAL (Fire resolved notification once)
                 alertStates.put(stateKey, AlertState.NORMAL);
@@ -294,24 +321,44 @@ public class MonitoringAlertEvaluator extends NotificationSupport
     }
 
     private int determineThreshold(String metricType) {
-        int defaultThreshold = 85;
+        long now = System.currentTimeMillis();
+        if (now - lastThresholdFetchTime > THRESHOLD_CACHE_TTL_MS) {
+            refreshThresholds(now);
+        }
+        return "CPU".equalsIgnoreCase(metricType) ? cachedCpuThreshold : cachedMemoryThreshold;
+    }
+
+    private synchronized void refreshThresholds(long now) {
+        if (now - lastThresholdFetchTime <= THRESHOLD_CACHE_TTL_MS) {
+            return;
+        }
         if (notificationMapper != null) {
             try {
-                return executeInActivity(() -> {
-                    if ("CPU".equalsIgnoreCase(metricType)) {
-                        int val = notificationMapper.getMinCpuThreshold();
-                        return val > 0 ? val : defaultThreshold;
-                    } else if ("MEMORY".equalsIgnoreCase(metricType)) {
-                        int val = notificationMapper.getMinMemoryThreshold();
-                        return val > 0 ? val : defaultThreshold;
+                executeInActivity(() -> {
+                    ResourceThresholds thresholds = notificationMapper.getMinThresholds();
+                    if (thresholds != null) {
+                        cachedCpuThreshold = thresholds.getMinCpu() > 0 ? thresholds.getMinCpu() : ResourceThresholds.DEFAULT_CPU_THRESHOLD;
+                        cachedMemoryThreshold = thresholds.getMinMemory() > 0 ? thresholds.getMinMemory() : ResourceThresholds.DEFAULT_MEMORY_THRESHOLD;
                     }
-                    return defaultThreshold;
+                    lastThresholdFetchTime = now;
+                    return null;
                 });
             } catch (Exception e) {
-                // fallback to default
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Failed to refresh alert thresholds from DB, using cached values (CPU: {}, MEM: {}): {}",
+                            cachedCpuThreshold, cachedMemoryThreshold, e.getMessage());
+                }
+                // Back off slightly on failure to avoid hammering DB on every check
+                lastThresholdFetchTime = now - THRESHOLD_CACHE_TTL_MS + 30_000L;
             }
         }
-        return defaultThreshold;
+    }
+
+    /**
+     * Invalidates the in-memory threshold cache, forcing a refresh on next evaluation.
+     */
+    public void invalidateThresholdCache() {
+        lastThresholdFetchTime = 0L;
     }
 
     public AlertState getAlertState(String nodeId, @NonNull String metricType) {

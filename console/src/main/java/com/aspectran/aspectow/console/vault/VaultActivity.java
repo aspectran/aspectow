@@ -36,7 +36,8 @@ import com.aspectran.web.support.rest.response.SuccessResponse;
 import com.aspectran.web.support.util.WebUtils;
 import org.jspecify.annotations.NonNull;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 
@@ -71,7 +72,7 @@ public class VaultActivity {
             "searchKeyword", (searchKeyword != null ? searchKeyword : ""),
             "encryptionAlgorithm", PBEncryptionUtils.getAlgorithm(),
             "encryptionSalt", StringUtils.nullToEmpty(PBEncryptionUtils.getSalt()),
-            "now", LocalDateTime.now()
+            "now", Instant.now()
         );
     }
 
@@ -137,7 +138,7 @@ public class VaultActivity {
         }
 
         if (expirationMinutes != null && expirationMinutes > 0) {
-            vault.setValidUntil(LocalDateTime.now().plusMinutes(expirationMinutes));
+            vault.setValidUntil(Instant.now().plus(expirationMinutes, ChronoUnit.MINUTES));
         }
 
         UserInfo userInfo = translet.getSessionAdapter().getAttribute(UserInfo.USERINFO_KEY);

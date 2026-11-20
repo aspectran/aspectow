@@ -198,6 +198,7 @@ public class WebPushManager extends NotificationSupport {
                     vk.setKeyId(1);
                     vk.setPublicKey(pub);
                     vk.setPrivateKey(priv);
+                    vk.setCreatedAt(Instant.now());
                     try {
                         notificationMapper.insertVapidKey(vk);
                         logger.info("Stored cluster-wide VAPID key pair in database successfully.");
@@ -286,6 +287,7 @@ public class WebPushManager extends NotificationSupport {
                 vk.setKeyId(1);
                 vk.setPublicKey(newPublicKeyBase64);
                 vk.setPrivateKey(newPrivateKeyBase64);
+                vk.setCreatedAt(Instant.now());
                 int updated = notificationMapper.updateVapidKey(vk);
                 if (updated == 0) {
                     notificationMapper.insertVapidKey(vk);
@@ -376,6 +378,7 @@ public class WebPushManager extends NotificationSupport {
                 .header("Content-Type", "application/octet-stream")
                 .header("Content-Encoding", "aes128gcm")
                 .header("TTL", "86400")
+                .header("Urgency", "high")
                 .header("Authorization", "vapid t=" + vapidJwt + ", k=" + vapidPublicKeyBase64)
                 .POST(HttpRequest.BodyPublishers.ofByteArray(encryptedBody))
                 .build();

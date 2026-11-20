@@ -51,6 +51,7 @@
                         <th class="text-muted small text-uppercase">Email</th>
                         <th class="text-muted small text-uppercase">Roles</th>
                         <th class="text-muted small text-uppercase">Status</th>
+                        <th class="text-muted small text-uppercase">Created</th>
                         <th class="text-muted small text-uppercase">Last Login</th>
                         <th th:if="${session.USER_INFO.hasPermission('USER_MANAGE') || session.USER_INFO.hasRole('SUPER_ADMIN')}" class="text-end pe-3 text-muted small text-uppercase">Actions</th>
                     </tr>
@@ -74,7 +75,8 @@
                                   th:title="'Failed login attempts: ' + ${user.failedAttempts}"
                                   th:text="${user.failedAttempts} + ' failed'">1 failed</span>
                         </td>
-                        <td class="small text-muted format-local-time" th:data-utc="${user.lastLoginAt}" th:text="${user.lastLoginAt != null ? #temporals.format(user.lastLoginAt, 'yyyy-MM-dd HH:mm:ss') : '-'}">2023-10-01</td>
+                        <td class="small text-muted format-local-time" data-relative="smart" th:data-utc="${user.createdAt}" th:text="${user.createdAt ?: '-'}">-</td>
+                        <td class="small text-muted format-local-time" data-relative="true" th:data-utc="${user.lastLoginAt}" th:text="${user.lastLoginAt ?: '-'}">-</td>
                         <td th:if="${session.USER_INFO.hasPermission('USER_MANAGE') || session.USER_INFO.hasRole('SUPER_ADMIN')}" class="text-end pe-3">
                             <button class="btn btn-sm btn-outline-secondary"
                                     th:onclick="openUserModal([[${user.userId}]], [[${user.username}]], [[${user.nickname}]], [[${user.email}]], [[${user.status}]], [[${user.roles != null ? user.roles.![roleId] : null}]], [[${user.allowedIps}]], [[${user.failedAttempts}]])">
@@ -86,7 +88,7 @@
                         </td>
                     </tr>
                     <tr th:if="${#lists.isEmpty(page.userList)}">
-                        <td th:colspan="${session.USER_INFO.hasPermission('USER_MANAGE') || session.USER_INFO.hasRole('SUPER_ADMIN') ? 8 : 7}" class="text-center py-4 text-muted">No users found.</td>
+                        <td th:colspan="${session.USER_INFO.hasPermission('USER_MANAGE') || session.USER_INFO.hasRole('SUPER_ADMIN') ? 9 : 8}" class="text-center py-4 text-muted">No users found.</td>
                     </tr>
                     </tbody>
                 </table>
@@ -154,7 +156,7 @@
                                 <option th:each="role : ${page.roleList}" th:value="${role.roleId}" th:text="${role.roleName}">ADMIN</option>
                             </select>
                         </div>
-                        <div class="mb-3">
+                        <div>
                             <label class="form-label">Permissions</label>
                             <div class="border rounded p-3 bg-body-tertiary">
                                 <div class="form-check mb-2" th:each="perm : ${page.permissionList}">
@@ -188,12 +190,10 @@
                     <div class="modal-body">
                         <input type="hidden" id="userId" name="userId" />
                         <input type="hidden" id="failedAttempts" name="failedAttempts" />
-                        
                         <div class="mb-3">
                             <label for="username" class="form-label">Username</label>
                             <input type="text" class="form-control" id="username" name="username" required>
                         </div>
-                        
                         <div class="mb-3">
                             <label for="password" class="form-label">Password</label>
                             <div class="input-group">
@@ -203,17 +203,14 @@
                                 </button>
                             </div>
                         </div>
-                        
                         <div class="mb-3">
                             <label for="nickname" class="form-label">Nickname</label>
                             <input type="text" class="form-control" id="nickname" name="nickname">
                         </div>
-                        
                         <div class="mb-3">
                             <label for="email" class="form-label">Email</label>
                             <input type="email" class="form-control" id="email" name="email">
                         </div>
-                        
                         <div class="mb-3">
                             <label for="status" class="form-label">Status</label>
                             <select class="form-select" id="status" name="status">
@@ -225,14 +222,12 @@
                                 <i class="bi bi-exclamation-triangle me-1"></i><span id="failedAttemptsCount">0</span> failed login attempt(s). Setting status to NORMAL will reset the count.
                             </div>
                         </div>
-
                         <div class="mb-3">
                             <label for="allowedIps" class="form-label">Allowed IPs</label>
                             <input type="text" class="form-control" id="allowedIps" name="allowedIps" placeholder="e.g. 192.168.1.*, 10.0.0.100 (leave blank for any IP)">
                             <div class="form-text">Comma or space-separated list of allowed IP patterns.</div>
                         </div>
-                        
-                        <div class="mb-3">
+                        <div>
                             <label class="form-label">Roles</label>
                             <div>
                                 <div class="form-check form-check-inline mb-1" th:each="role : ${page.roleList}">
@@ -257,7 +252,6 @@
         let userModal;
         let roleModal;
         const roleList = /*[[${page.roleList}]]*/ [];
-        const permissionList = /*[[${page.permissionList}]]*/ [];
         const isDemoUser = /*[[${session.USER_INFO.hasRole('DEMO')}]]*/ false;
 
         function setCookie(name, value, days) {

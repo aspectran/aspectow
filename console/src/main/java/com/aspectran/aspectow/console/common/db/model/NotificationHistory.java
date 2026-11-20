@@ -15,9 +15,11 @@
  */
 package com.aspectran.aspectow.console.common.db.model;
 
+import com.aspectran.utils.ToStringBuilder;
+
 import java.io.Serial;
 import java.io.Serializable;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 /**
  * Entity representing an in-app notification history record.
@@ -37,7 +39,7 @@ public class NotificationHistory implements Serializable {
     private String message;
     private String targetUrl;
     private String readYn = "N";
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     public Long getNotificationId() {
         return notificationId;
@@ -107,25 +109,27 @@ public class NotificationHistory implements Serializable {
         return "Y".equalsIgnoreCase(readYn);
     }
 
-    public LocalDateTime getCreatedAt() {
+    public Instant getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
+    public void setCreatedAt(Instant createdAt) {
         this.createdAt = createdAt;
     }
 
     @Override
     public String toString() {
-        return "NotificationHistory{" +
-                "notificationId=" + notificationId +
-                ", userId=" + userId +
-                ", category='" + category + '\'' +
-                ", severity='" + severity + '\'' +
-                ", title='" + title + '\'' +
-                ", readYn='" + readYn + '\'' +
-                ", createdAt=" + createdAt +
-                '}';
+        ToStringBuilder tsb = new ToStringBuilder();
+        tsb.append("notificationId", notificationId);
+        tsb.append("userId", userId);
+        tsb.append("category", category);
+        tsb.append("severity", severity);
+        tsb.append("title", title);
+        tsb.append("message", message);
+        tsb.append("targetUrl", targetUrl);
+        tsb.append("readYn", readYn);
+        tsb.append("createdAt", createdAt);
+        return tsb.toString();
     }
 
 }

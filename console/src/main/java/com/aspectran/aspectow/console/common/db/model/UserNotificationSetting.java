@@ -15,9 +15,14 @@
  */
 package com.aspectran.aspectow.console.common.db.model;
 
+import com.aspectran.utils.ToStringBuilder;
+
 import java.io.Serial;
 import java.io.Serializable;
-import java.time.LocalDateTime;
+import java.time.Instant;
+
+import static com.aspectran.aspectow.console.notification.alert.ResourceThresholds.DEFAULT_CPU_THRESHOLD;
+import static com.aspectran.aspectow.console.notification.alert.ResourceThresholds.DEFAULT_MEMORY_THRESHOLD;
 
 /**
  * Entity representing user notification preferences and monitoring thresholds.
@@ -31,15 +36,15 @@ public class UserNotificationSetting implements Serializable {
 
     private Long userId;
     private String pushEnabled = "Y";
-    private int cpuThreshold = 85;
-    private int memoryThreshold = 85;
+    private int cpuThreshold = DEFAULT_CPU_THRESHOLD;
+    private int memoryThreshold = DEFAULT_MEMORY_THRESHOLD;
     private String notifyNodeStatus = "Y";
     private String notifySchedulerFail = "Y";
     private String notifyBuildResult = "Y";
     private String notifySecurityAlert = "Y";
     private String notifyCommandFinish = "Y";
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    private Instant createdAt;
+    private Instant updatedAt;
 
     public Long getUserId() {
         return userId;
@@ -137,35 +142,37 @@ public class UserNotificationSetting implements Serializable {
         return "Y".equalsIgnoreCase(notifyCommandFinish);
     }
 
-    public LocalDateTime getCreatedAt() {
+    public Instant getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
+    public void setCreatedAt(Instant createdAt) {
         this.createdAt = createdAt;
     }
 
-    public LocalDateTime getUpdatedAt() {
+    public Instant getUpdatedAt() {
         return updatedAt;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
+    public void setUpdatedAt(Instant updatedAt) {
         this.updatedAt = updatedAt;
     }
 
     @Override
     public String toString() {
-        return "UserNotificationSetting{" +
-                "userId=" + userId +
-                ", pushEnabled='" + pushEnabled + '\'' +
-                ", cpuThreshold=" + cpuThreshold +
-                ", memoryThreshold=" + memoryThreshold +
-                ", notifyNodeStatus='" + notifyNodeStatus + '\'' +
-                ", notifySchedulerFail='" + notifySchedulerFail + '\'' +
-                ", notifyBuildResult='" + notifyBuildResult + '\'' +
-                ", notifySecurityAlert='" + notifySecurityAlert + '\'' +
-                ", notifyCommandFinish='" + notifyCommandFinish + '\'' +
-                '}';
+        ToStringBuilder tsb = new ToStringBuilder();
+        tsb.append("userId", userId);
+        tsb.append("pushEnabled", pushEnabled);
+        tsb.append("cpuThreshold", cpuThreshold);
+        tsb.append("memoryThreshold", memoryThreshold);
+        tsb.append("notifyNodeStatus", notifyNodeStatus);
+        tsb.append("notifySchedulerFail", notifySchedulerFail);
+        tsb.append("notifyBuildResult", notifyBuildResult);
+        tsb.append("notifySecurityAlert", notifySecurityAlert);
+        tsb.append("notifyCommandFinish", notifyCommandFinish);
+        tsb.append("createdAt", createdAt);
+        tsb.append("updatedAt", updatedAt);
+        return tsb.toString();
     }
 
 }

@@ -17,7 +17,7 @@ package com.aspectran.aspectow.console.common.db.model;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 /**
@@ -36,9 +36,9 @@ public class User implements Serializable {
     private String status;
     private String allowedIps;
     private int failedAttempts;
-    private LocalDateTime lastLoginAt;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    private Instant lastLoginAt;
+    private Instant createdAt;
+    private Instant updatedAt;
 
     private List<Role> roles;
 
@@ -174,7 +174,7 @@ public class User implements Serializable {
      * Gets the last login time.
      * @return the last login time
      */
-    public LocalDateTime getLastLoginAt() {
+    public Instant getLastLoginAt() {
         return lastLoginAt;
     }
 
@@ -182,7 +182,7 @@ public class User implements Serializable {
      * Sets the last login time.
      * @param lastLoginAt the last login time
      */
-    public void setLastLoginAt(LocalDateTime lastLoginAt) {
+    public void setLastLoginAt(Instant lastLoginAt) {
         this.lastLoginAt = lastLoginAt;
     }
 
@@ -190,7 +190,7 @@ public class User implements Serializable {
      * Gets the creation time.
      * @return the creation time
      */
-    public LocalDateTime getCreatedAt() {
+    public Instant getCreatedAt() {
         return createdAt;
     }
 
@@ -198,7 +198,7 @@ public class User implements Serializable {
      * Sets the creation time.
      * @param createdAt the creation time
      */
-    public void setCreatedAt(LocalDateTime createdAt) {
+    public void setCreatedAt(Instant createdAt) {
         this.createdAt = createdAt;
     }
 
@@ -206,7 +206,7 @@ public class User implements Serializable {
      * Gets the modification time.
      * @return the modification time
      */
-    public LocalDateTime getUpdatedAt() {
+    public Instant getUpdatedAt() {
         return updatedAt;
     }
 
@@ -214,7 +214,7 @@ public class User implements Serializable {
      * Sets the modification time.
      * @param updatedAt the modification time
      */
-    public void setUpdatedAt(LocalDateTime updatedAt) {
+    public void setUpdatedAt(Instant updatedAt) {
         this.updatedAt = updatedAt;
     }
 

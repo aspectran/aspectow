@@ -19,7 +19,7 @@ import com.aspectran.utils.ToStringBuilder;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 /**
  * Entity representing a persistent login token for Remember-Me authentication.
@@ -36,7 +36,7 @@ public class PersistentLogin implements Serializable {
     private String token;
     private String ipAddress;
     private String userAgent;
-    private LocalDateTime lastUsed;
+    private Instant lastUsed;
 
     /**
      * Gets the series identifier.
@@ -122,7 +122,7 @@ public class PersistentLogin implements Serializable {
      * Gets the last used timestamp.
      * @return the last used timestamp
      */
-    public LocalDateTime getLastUsed() {
+    public Instant getLastUsed() {
         return lastUsed;
     }
 
@@ -130,7 +130,7 @@ public class PersistentLogin implements Serializable {
      * Sets the last used timestamp.
      * @param lastUsed the last used timestamp
      */
-    public void setLastUsed(LocalDateTime lastUsed) {
+    public void setLastUsed(Instant lastUsed) {
         this.lastUsed = lastUsed;
     }
 

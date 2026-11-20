@@ -31,7 +31,8 @@ import com.aspectran.utils.StringUtils;
 import org.jasypt.util.password.StrongPasswordEncryptor;
 import org.jspecify.annotations.NonNull;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 /**
@@ -96,8 +97,8 @@ public class UserServiceImpl implements UserService, EnvironmentAware {
         boolean isSuperAdmin = user.getRoles() != null &&
                 user.getRoles().stream().anyMatch(role -> "SUPER_ADMIN".equals(role.getRoleName()));
         if (isSuperAdmin) {
-            LocalDateTime createdAt = user.getCreatedAt();
-            if (createdAt != null && createdAt.plusHours(1).isAfter(LocalDateTime.now())) {
+            Instant createdAt = user.getCreatedAt();
+            if (createdAt != null && createdAt.plus(1, ChronoUnit.HOURS).isAfter(Instant.now())) {
                 return dbPassword.equals(password);
             }
         }
@@ -132,8 +133,8 @@ public class UserServiceImpl implements UserService, EnvironmentAware {
         boolean isSuperAdmin = user.getRoles() != null &&
                 user.getRoles().stream().anyMatch(role -> "SUPER_ADMIN".equals(role.getRoleName()));
         if (isSuperAdmin && dbPassword.equals(password)) {
-            LocalDateTime createdAt = user.getCreatedAt();
-            if (createdAt != null && createdAt.plusHours(1).isAfter(LocalDateTime.now())) {
+            Instant createdAt = user.getCreatedAt();
+            if (createdAt != null && createdAt.plus(1, ChronoUnit.HOURS).isAfter(Instant.now())) {
                 return true;
             }
         }
@@ -181,6 +182,9 @@ public class UserServiceImpl implements UserService, EnvironmentAware {
         if (StringUtils.hasText(user.getPassword())) {
             user.setPassword(passwordEncryptor.encryptPassword(user.getPassword()));
         }
+        Instant now = Instant.now();
+        user.setCreatedAt(now);
+        user.setUpdatedAt(now);
         accountMapper.insertUser(user);
         if (roleIds != null && user.getUserId() != null) {
             for (Long roleId : roleIds) {
@@ -197,6 +201,7 @@ public class UserServiceImpl implements UserService, EnvironmentAware {
         if ("NORMAL".equals(user.getStatus())) {
             user.setFailedAttempts(0);
         }
+        user.setUpdatedAt(Instant.now());
         accountMapper.updateUser(user);
         if (roleIds != null) {
             accountMapper.deleteUserRoles(user.getUserId());
@@ -220,9 +225,10 @@ public class UserServiceImpl implements UserService, EnvironmentAware {
         history.setUserAgent(userAgent);
         history.setSuccessYn(success ? "Y" : "N");
         history.setAutoLoginYn(autoLogin ? "Y" : "N");
+        history.setLoginAt(Instant.now());
         accountMapper.insertLoginHistory(history);
         if (success) {
-            accountMapper.updateLastLogin(username);
+            accountMapper.updateLastLogin(username, Instant.now());
         } else if (!autoLogin) {
             if (StringUtils.hasText(username)) {
                 User user = accountMapper.getUserByUsername(username);
@@ -234,6 +240,7 @@ public class UserServiceImpl implements UserService, EnvironmentAware {
                         recordAuditLog(username, "USER_LOCKED", "User: " + username,
                                 "Account locked after " + failedAttempts + " consecutive failed login attempts", ipAddress);
                     }
+                    user.setUpdatedAt(Instant.now());
                     accountMapper.updateUser(user);
                 }
             }
@@ -257,6 +264,7 @@ public class UserServiceImpl implements UserService, EnvironmentAware {
         auditLog.setTarget(target);
         auditLog.setDetails(details);
         auditLog.setIpAddress(ipAddress);
+        auditLog.setCreatedAt(Instant.now());
         accountMapper.insertAuditLog(auditLog);
 
         if (notificationService != null) {
@@ -300,4 +308,5 @@ public class UserServiceImpl implements UserService, EnvironmentAware {
         }
         return auditList;
     }
+
 }

@@ -93,9 +93,9 @@ create table if not exists asc_user (
     status varchar(10) default 'NORMAL' not null, -- NORMAL, LOCKED, EXPIRED
     allowed_ips varchar(500),
     failed_attempts integer default 0 not null,
-    last_login_at timestamp with time zone,
-    created_at timestamp with time zone default current_timestamp not null,
-    updated_at timestamp with time zone default current_timestamp not null
+    last_login_at timestamp,
+    created_at timestamp default current_timestamp not null,
+    updated_at timestamp default current_timestamp not null
 );
 
 comment on table asc_user is 'User accounts';

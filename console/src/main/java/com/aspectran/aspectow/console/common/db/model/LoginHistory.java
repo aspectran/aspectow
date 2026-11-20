@@ -17,7 +17,7 @@ package com.aspectran.aspectow.console.common.db.model;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 /**
  * Entity representing a login history record.
@@ -29,7 +29,7 @@ public class LoginHistory implements Serializable {
 
     private Long historyId;
     private String username;
-    private LocalDateTime loginAt;
+    private Instant loginAt;
     private String ipAddress;
     private String countryCode;
     private String userAgent;
@@ -72,7 +72,7 @@ public class LoginHistory implements Serializable {
      * Gets the login timestamp.
      * @return the login timestamp
      */
-    public LocalDateTime getLoginAt() {
+    public Instant getLoginAt() {
         return loginAt;
     }
 
@@ -80,7 +80,7 @@ public class LoginHistory implements Serializable {
      * Sets the login timestamp.
      * @param loginAt the login timestamp
      */
-    public void setLoginAt(LocalDateTime loginAt) {
+    public void setLoginAt(Instant loginAt) {
         this.loginAt = loginAt;
     }
 

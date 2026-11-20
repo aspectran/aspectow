@@ -50,7 +50,7 @@ create table if not exists appmon_event_count_last (
     total int not null comment 'Last cumulative total count',
     delta int not null comment 'Last incremental count',
     error int not null comment 'Last incremental error count',
-    reg_dt timestamp default now() not null comment 'Database registration timestamp',
+    reg_dt datetime default current_timestamp not null comment 'Database registration timestamp',
     constraint appmon_event_count_last_pk primary key (node_id, app_id, event_id)
 )
     engine = MyISAM
@@ -74,9 +74,9 @@ create table if not exists asc_user (
     status varchar(10) default 'NORMAL' not null, -- NORMAL, LOCKED, EXPIRED
     allowed_ips varchar(500),
     failed_attempts int default 0 not null,
-    last_login_at timestamp null,
-    created_at timestamp default current_timestamp not null,
-    updated_at timestamp default current_timestamp not null on update current_timestamp,
+    last_login_at datetime null,
+    created_at datetime default current_timestamp not null,
+    updated_at datetime default current_timestamp not null on update current_timestamp,
     primary key (user_id)
 ) comment = 'User accounts';
 
@@ -118,7 +118,7 @@ create table if not exists asc_role_permission (
 create table if not exists asc_login_history (
     history_id bigint not null auto_increment,
     username varchar(50) not null,
-    login_at timestamp default current_timestamp not null,
+    login_at datetime default current_timestamp not null,
     ip_address varchar(45),
     country_code varchar(2),
     user_agent varchar(500),
@@ -134,7 +134,7 @@ create table if not exists asc_persistent_login (
     token varchar(64) not null,
     ip_address varchar(45),
     user_agent varchar(500),
-    last_used timestamp default current_timestamp on update current_timestamp not null,
+    last_used datetime default current_timestamp on update current_timestamp not null,
     primary key (series)
 ) comment = 'Persistent Login Tokens (Remember-Me)';
 
@@ -145,9 +145,9 @@ create table if not exists asc_vault (
     token_type varchar(20) default 'SIMPLE' not null, -- SIMPLE, PERSISTENT, TIME_LIMITED
     encrypted_value varchar(500) not null,
     description varchar(500),
-    valid_until timestamp null,
-    created_at timestamp default current_timestamp not null,
-    updated_at timestamp default current_timestamp not null,
+    valid_until datetime null,
+    created_at datetime default current_timestamp not null,
+    updated_at datetime default current_timestamp not null,
     primary key (vault_id)
 ) comment = 'Vault (Encrypted Tokens)';
 
@@ -159,7 +159,7 @@ create table if not exists asc_audit_log (
     target varchar(100),
     details varchar(1000),
     ip_address varchar(45),
-    created_at timestamp default current_timestamp not null,
+    created_at datetime default current_timestamp not null,
     primary key (audit_id)
 ) comment = 'Security Audit Log';
 
@@ -172,8 +172,8 @@ create table if not exists asc_build_history (
     requester varchar(50) default 'SYSTEM' not null,
     status varchar(20) default 'PENDING' not null, -- PENDING, RUNNING, SUCCESS, FAILED, CANCELLED, TIMEOUT
     exit_code int,
-    started_at timestamp default current_timestamp not null,
-    finished_at timestamp,
+    started_at datetime default current_timestamp not null,
+    finished_at datetime,
     duration_ms bigint,
     git_branch varchar(100),
     git_commit_before varchar(64),
@@ -181,7 +181,7 @@ create table if not exists asc_build_history (
     git_commit_msg varchar(500),
     integrity_hash varchar(64),
     error_summary varchar(1000),
-    created_at timestamp default current_timestamp not null,
+    created_at datetime default current_timestamp not null,
     primary key (history_id),
     index idx_asc_build_hist_exec (execution_id, target_node_id)
 ) comment = 'Build and Deployment Audit History Master';
@@ -195,7 +195,7 @@ create table if not exists asc_build_log (
     compressed_yn char(1) default 'N' not null,
     line_count int default 0 not null,
     byte_size bigint default 0 not null,
-    created_at timestamp default current_timestamp not null,
+    created_at datetime default current_timestamp not null,
     primary key (log_id),
     foreign key (history_id) references asc_build_history(history_id) on delete cascade
 ) comment = 'Build and Deployment Console Output Logs';
@@ -211,8 +211,8 @@ create table if not exists asc_user_notification_setting (
     notify_build_result char(1) default 'Y' not null,
     notify_security_alert char(1) default 'Y' not null,
     notify_command_finish char(1) default 'Y' not null,
-    created_at timestamp default current_timestamp not null,
-    updated_at timestamp default current_timestamp not null,
+    created_at datetime default current_timestamp not null,
+    updated_at datetime default current_timestamp not null,
     primary key (user_id),
     foreign key (user_id) references asc_user(user_id) on delete cascade
 ) comment = 'User Notification Preferences';
@@ -225,8 +225,8 @@ create table if not exists asc_push_subscription (
     p256dh_key varchar(200) not null,
     auth_key varchar(100) not null,
     user_agent varchar(500),
-    created_at timestamp default current_timestamp not null,
-    last_active_at timestamp default current_timestamp not null,
+    created_at datetime default current_timestamp not null,
+    last_active_at datetime default current_timestamp not null,
     primary key (subscription_id),
     foreign key (user_id) references asc_user(user_id) on delete cascade,
     index idx_push_sub_user (user_id)
@@ -242,7 +242,7 @@ create table if not exists asc_notification_history (
     message varchar(1000) not null,
     target_url varchar(500),
     read_yn char(1) default 'N' not null,
-    created_at timestamp default current_timestamp not null,
+    created_at datetime default current_timestamp not null,
     primary key (notification_id),
     foreign key (user_id) references asc_user(user_id) on delete cascade,
     index idx_notif_hist_user_read (user_id, read_yn, created_at desc)
@@ -253,7 +253,7 @@ create table if not exists asc_vapid_key (
     key_id int default 1 not null,
     public_key varchar(200) not null,
     private_key varchar(200) not null,
-    created_at timestamp default current_timestamp not null,
+    created_at datetime default current_timestamp not null,
     primary key (key_id)
 ) comment = 'Web Push VAPID Key Pair (Shared across cluster nodes)';
 

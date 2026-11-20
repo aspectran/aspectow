@@ -523,9 +523,18 @@ public class LocalScriptRunner implements ActivityContextAware {
             // Optional environment setup
             Map<String, String> env = pb.environment();
             env.put("BASE_DIR", baseDir.getAbsolutePath());
+            env.put("TZ", "UTC");
             String mavenArgs = env.get("MAVEN_ARGS");
             if (mavenArgs == null || mavenArgs.isBlank()) {
-                env.put("MAVEN_ARGS", "-B");
+                env.put("MAVEN_ARGS", "-B -Duser.timezone=UTC");
+            } else if (!mavenArgs.contains("user.timezone")) {
+                env.put("MAVEN_ARGS", mavenArgs + " -Duser.timezone=UTC");
+            }
+            String mavenOpts = env.get("MAVEN_OPTS");
+            if (mavenOpts == null || mavenOpts.isBlank()) {
+                env.put("MAVEN_OPTS", "-Duser.timezone=UTC");
+            } else if (!mavenOpts.contains("user.timezone")) {
+                env.put("MAVEN_OPTS", mavenOpts + " -Duser.timezone=UTC");
             }
             if (StringUtils.hasText(info.getTargetNodeId())) {
                 env.put("PARAM_TARGET_NODE_ID", info.getTargetNodeId());

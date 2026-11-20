@@ -15,9 +15,11 @@
  */
 package com.aspectran.aspectow.console.common.db.model;
 
+import com.aspectran.utils.ToStringBuilder;
+
 import java.io.Serial;
 import java.io.Serializable;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 /**
  * Entity representing a Web Push subscription endpoint and encryption keys for a device.
@@ -35,8 +37,8 @@ public class PushSubscription implements Serializable {
     private String p256dhKey;
     private String authKey;
     private String userAgent;
-    private LocalDateTime createdAt;
-    private LocalDateTime lastActiveAt;
+    private Instant createdAt;
+    private Instant lastActiveAt;
     private String username;
     private String nickname;
 
@@ -88,19 +90,19 @@ public class PushSubscription implements Serializable {
         this.userAgent = userAgent;
     }
 
-    public LocalDateTime getCreatedAt() {
+    public Instant getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
+    public void setCreatedAt(Instant createdAt) {
         this.createdAt = createdAt;
     }
 
-    public LocalDateTime getLastActiveAt() {
+    public Instant getLastActiveAt() {
         return lastActiveAt;
     }
 
-    public void setLastActiveAt(LocalDateTime lastActiveAt) {
+    public void setLastActiveAt(Instant lastActiveAt) {
         this.lastActiveAt = lastActiveAt;
     }
 
@@ -122,13 +124,18 @@ public class PushSubscription implements Serializable {
 
     @Override
     public String toString() {
-        return "PushSubscription{" +
-                "subscriptionId=" + subscriptionId +
-                ", userId=" + userId +
-                ", endpoint='" + endpoint + '\'' +
-                ", userAgent='" + userAgent + '\'' +
-                ", lastActiveAt=" + lastActiveAt +
-                '}';
+        ToStringBuilder tsb = new ToStringBuilder();
+        tsb.append("subscriptionId", subscriptionId);
+        tsb.append("userId", userId);
+        tsb.append("username", username);
+        tsb.append("nickname", nickname);
+        tsb.append("endpoint", endpoint);
+        tsb.append("p256dhKey", p256dhKey);
+        tsb.append("authKey", authKey);
+        tsb.append("userAgent", userAgent);
+        tsb.append("createdAt", createdAt);
+        tsb.append("lastActiveAt", lastActiveAt);
+        return tsb.toString();
     }
 
 }

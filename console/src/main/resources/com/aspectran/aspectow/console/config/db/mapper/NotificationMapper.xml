@@ -63,7 +63,7 @@
         ) values (
             #{userId}, #{pushEnabled}, #{cpuThreshold}, #{memoryThreshold},
             #{notifyNodeStatus}, #{notifySchedulerFail}, #{notifyBuildResult},
-            #{notifySecurityAlert}, #{notifyCommandFinish}, current_timestamp, current_timestamp
+            #{notifySecurityAlert}, #{notifyCommandFinish}, #{createdAt}, #{updatedAt}
         )
     </insert>
 
@@ -77,7 +77,7 @@
             notify_build_result = #{notifyBuildResult},
             notify_security_alert = #{notifySecurityAlert},
             notify_command_finish = #{notifyCommandFinish},
-            updated_at = current_timestamp
+            updated_at = #{updatedAt}
         where user_id = #{userId}
     </update>
 
@@ -93,6 +93,13 @@
         where push_enabled = 'Y'
     </select>
 
+    <select id="getMinThresholds" resultType="com.aspectran.aspectow.console.notification.alert.ResourceThresholds">
+        select coalesce(min(cpu_threshold), 85) as minCpu,
+               coalesce(min(memory_threshold), 85) as minMemory
+        from asc_user_notification_setting
+        where push_enabled = 'Y'
+    </select>
+
     <!-- VapidKey -->
     <select id="getVapidKey" resultMap="VapidKeyResultMap">
         select * from asc_vapid_key where key_id = 1
@@ -102,7 +109,7 @@
         insert into asc_vapid_key (
             key_id, public_key, private_key, created_at
         ) values (
-            1, #{publicKey}, #{privateKey}, current_timestamp
+            1, #{publicKey}, #{privateKey}, #{createdAt}
         )
     </insert>
 
@@ -110,7 +117,7 @@
         update asc_vapid_key
         set public_key = #{publicKey},
             private_key = #{privateKey},
-            created_at = current_timestamp
+            created_at = #{createdAt}
         where key_id = 1
     </update>
 
@@ -161,17 +168,24 @@
         order by s.subscription_id desc
     </select>
 
+    <select id="getPushSubscriptionById" parameterType="long" resultMap="PushSubscriptionResultMap">
+        select s.*, u.username, u.nickname
+        from asc_push_subscription s
+        left join asc_user u on s.user_id = u.user_id
+        where s.subscription_id = #{subscriptionId}
+    </select>
+
     <insert id="insertPushSubscription" parameterType="com.aspectran.aspectow.console.common.db.model.PushSubscription" useGeneratedKeys="true" keyProperty="subscriptionId">
         insert into asc_push_subscription (
             user_id, endpoint, p256dh_key, auth_key, user_agent, created_at, last_active_at
         ) values (
-            #{userId}, #{endpoint}, #{p256dhKey}, #{authKey}, #{userAgent}, current_timestamp, current_timestamp
+            #{userId}, #{endpoint}, #{p256dhKey}, #{authKey}, #{userAgent}, #{createdAt}, #{lastActiveAt}
         )
     </insert>
 
-    <update id="updatePushSubscriptionLastActive" parameterType="string">
+    <update id="updatePushSubscriptionLastActive">
         update asc_push_subscription
-        set last_active_at = current_timestamp
+        set last_active_at = #{lastActiveAt}
         where endpoint = #{endpoint}
     </update>
 
@@ -185,6 +199,11 @@
 
     <delete id="deletePushSubscriptionsByUserId" parameterType="long">
         delete from asc_push_subscription where user_id = #{userId}
+    </delete>
+
+    <delete id="deletePushSubscriptionsOlderThan" parameterType="java.time.Instant">
+        delete from asc_push_subscription
+        where last_active_at &lt; #{cutoff}
     </delete>
 
     <delete id="deleteAllPushSubscriptions">
@@ -208,7 +227,7 @@
         insert into asc_notification_history (
             user_id, category, severity, title, message, target_url, read_yn, created_at
         ) values (
-            #{userId}, #{category}, #{severity}, #{title}, #{message}, #{targetUrl}, 'N', current_timestamp
+            #{userId}, #{category}, #{severity}, #{title}, #{message}, #{targetUrl}, 'N', #{createdAt}
         )
     </insert>
 

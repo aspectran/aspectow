@@ -30,6 +30,7 @@ import com.aspectran.mybatis.SqlMapperAccess;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import java.time.Instant;
 import java.util.List;
 
 /**
@@ -58,14 +59,14 @@ public interface AccountMapper {
      * @param searchKeyword the search keyword
      * @return the list of users
      */
-    List<User> getUserList(@Param("pageInfo") PageInfo pageInfo, @Param("searchKeyword") String searchKeyword);
+    List<User> getUserList(PageInfo pageInfo, String searchKeyword);
 
     /**
      * Retrieves the total count of users matching the search keyword.
      * @param searchKeyword the search keyword
      * @return the total count of users
      */
-    long getUserCount(@Param("searchKeyword") String searchKeyword);
+    long getUserCount(String searchKeyword);
 
     /**
      * Inserts a new user record into the database.
@@ -91,9 +92,10 @@ public interface AccountMapper {
     /**
      * Updates the last login timestamp for a user.
      * @param username the username
+     * @param lastLoginAt the last login timestamp
      * @return the number of affected rows
      */
-    int updateLastLogin(String username);
+    int updateLastLogin(String username, Instant lastLoginAt);
 
     /**
      * Retrieves all roles assigned to a specific user.
@@ -165,7 +167,7 @@ public interface AccountMapper {
      * @param searchKeyword the search keyword
      * @return the list of login history records
      */
-    List<LoginHistory> getLoginHistoryList(@Param("pageInfo") PageInfo pageInfo, @Param("username") String username, @Param("searchKeyword") String searchKeyword);
+    List<LoginHistory> getLoginHistoryList(PageInfo pageInfo, String username, String searchKeyword);
 
     /**
      * Retrieves the total count of login history records matching the search keyword.
@@ -173,7 +175,7 @@ public interface AccountMapper {
      * @param searchKeyword the search keyword
      * @return the total count
      */
-    long getLoginHistoryCount(@Param("username") String username, @Param("searchKeyword") String searchKeyword);
+    long getLoginHistoryCount(String username, String searchKeyword);
 
     /**
      * Inserts a new audit log record into the database.
@@ -189,7 +191,7 @@ public interface AccountMapper {
      * @param searchKeyword the search keyword
      * @return the list of audit log records
      */
-    List<AuditLog> getAuditLogList(@Param("pageInfo") PageInfo pageInfo, @Param("username") String username, @Param("searchKeyword") String searchKeyword);
+    List<AuditLog> getAuditLogList(PageInfo pageInfo, String username, String searchKeyword);
 
     /**
      * Retrieves total count of audit log records matching the search criteria.
@@ -197,7 +199,7 @@ public interface AccountMapper {
      * @param searchKeyword the search keyword
      * @return total count
      */
-    long getAuditLogCount(@Param("username") String username, @Param("searchKeyword") String searchKeyword);
+    long getAuditLogCount(String username, String searchKeyword);
 
     /**
      * Retrieves a persistent login record by its series ID.
@@ -287,8 +289,8 @@ public interface AccountMapper {
         }
 
         @Override
-        public int updateLastLogin(String username) {
-            return mapper().updateLastLogin(username);
+        public int updateLastLogin(String username, Instant lastLoginAt) {
+            return mapper().updateLastLogin(username, lastLoginAt);
         }
 
         @Override

@@ -97,7 +97,7 @@
 <body>
     <th:block layout:fragment="content">
         <th:block th:if="${session.USER_INFO.hasPermission('BUILD_VIEW') || session.USER_INFO.hasPermission('BUILD_EXECUTE') || session.USER_INFO.hasRole('SUPER_ADMIN')}">
-            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-start gap-3 mb-3">
+            <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-start gap-3 mb-3">
                 <div class="d-flex justify-content-between align-items-start">
                     <div>
                         <div class="d-flex align-items-center gap-2 mb-1">
@@ -105,7 +105,7 @@
                         </div>
                         <p class="text-muted mb-0 small">Immutable compliance execution logs, Git commit track records, and SHA-256 integrity proofs</p>
                     </div>
-                    <button type="button" class="btn-close d-md-none ms-2" onclick="window.close()" aria-label="Close" title="Close" th:if="${page.layout == 'popup'}"></button>
+                    <button type="button" class="btn-close d-lg-none ms-2" onclick="window.close()" aria-label="Close" title="Close" th:if="${page.layout == 'popup'}"></button>
                 </div>
                 <div class="d-flex flex-wrap justify-content-end align-items-center gap-2">
                     <button th:if="${page.layout != 'popup'}" type="button" class="btn btn-sm btn-outline-primary" onclick="openBuildConsole('', '')">
@@ -117,6 +117,7 @@
                     <a class="btn btn-sm btn-success" href="javascript:void(0)" onclick="exportCsv()">
                         <i class="bi bi-file-earmark-spreadsheet"></i> Export CSV Report
                     </a>
+                    <button th:if="${page.layout == 'popup'}" type="button" class="btn-close d-none d-lg-block" onclick="window.close()"></button>
                 </div>
             </div>
 
@@ -221,7 +222,7 @@
                                     </div>
                                     <span th:if="${item.gitCommitBefore == null && item.gitCommitAfter == null}" class="text-muted small">-</span>
                                 </td>
-                                <td class="small format-local-time" th:data-utc="${item.startedAt}" th:text="${#temporals.format(item.startedAt, 'yyyy-MM-dd HH:mm:ss')}">2026-08-18 12:00:00</td>
+                                <td class="small format-local-time" data-relative="smart" th:data-utc="${item.startedAt}" th:text="${#temporals.format(item.startedAt, 'yyyy-MM-dd HH:mm:ss')}">2026-08-18 12:00:00</td>
                                 <td class="small" th:text="${item.durationMs != null ? (item.durationMs / 1000.0) + 's' : '-'}">12.4s</td>
                                 <td>
                                     <span th:if="${item.integrityHash != null}" class="badge bg-success-subtle text-success" title="SHA-256 Verified">
@@ -299,8 +300,8 @@
                             <h5 class="modal-title fw-bold"><i class="bi bi-terminal me-2"></i>Console Output Stream</h5>
                             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
-                        <div class="modal-body p-0">
-                            <div id="modal-log-content" class="terminal-modal-body m-3">Loading logs...</div>
+                        <div class="modal-body">
+                            <div id="modal-log-content" class="terminal-modal-body" style="min-height: 400px;">Loading logs...</div>
                         </div>
                         <div class="modal-footer d-flex justify-content-between align-items-center">
                             <div class="form-check form-switch m-0 small d-flex align-items-center gap-1 ps-2">
