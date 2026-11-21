@@ -300,7 +300,9 @@ public class RemoteBuildDeployManager implements InitializableBean, DisposableBe
                     }
                 }
             } catch (Exception e) {
-                logger.trace("Failed to load build histories for execution {} from shared DB", executionId, e);
+                if (logger.isTraceEnabled()) {
+                    logger.trace("Failed to load build histories for execution {} from shared DB", executionId, e);
+                }
             }
         }
 

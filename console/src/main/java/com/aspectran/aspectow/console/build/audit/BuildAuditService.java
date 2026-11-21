@@ -23,7 +23,6 @@ import com.aspectran.core.component.bean.annotation.Bean;
 import com.aspectran.core.component.bean.annotation.Component;
 import com.aspectran.utils.StringUtils;
 import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,6 +36,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collection;
 import java.util.Collections;
@@ -290,7 +290,7 @@ public class BuildAuditService extends InstantActivitySupport {
                 return false;
             }
 
-            String rawLogs = getDecompressedLogsInternal(historyId);
+            String rawLogs = getDecompressedLogs(historyId);
             String calculated = calculateIntegrityHash(history, rawLogs);
             boolean verified = history.getIntegrityHash().equalsIgnoreCase(calculated);
             if (!verified) {
@@ -403,7 +403,7 @@ public class BuildAuditService extends InstantActivitySupport {
      * @param executionId the execution ID
      * @return map of node ID to list of log lines
      */
-    public java.util.Map<String, List<String>> getNodeLogsByExecutionId(String executionId) {
+    public Map<String, List<String>> getNodeLogsByExecutionId(String executionId) {
         if (StringUtils.isEmpty(executionId)) {
             return Collections.emptyMap();
         }
@@ -415,9 +415,9 @@ public class BuildAuditService extends InstantActivitySupport {
             Map<String, List<String>> result = new HashMap<>();
             for (BuildHistory h : histories) {
                 if (h.getHistoryId() != null && h.getTargetNodeId() != null) {
-                    String raw = getDecompressedLogsInternal(h.getHistoryId());
+                    String raw = getDecompressedLogs(h.getHistoryId());
                     List<String> lines = (StringUtils.hasText(raw))
-                            ? java.util.Arrays.asList(raw.split("\n"))
+                            ? Arrays.asList(raw.split("\n"))
                             : Collections.emptyList();
                     result.put(h.getTargetNodeId(), lines);
                 }
@@ -432,11 +432,6 @@ public class BuildAuditService extends InstantActivitySupport {
      * @return raw log string
      */
     public String getDecompressedLogs(Long historyId) {
-        return executeInActivity(() -> getDecompressedLogsInternal(historyId));
-    }
-
-    @Nullable
-    private String getDecompressedLogsInternal(Long historyId) {
         BuildLog buildLog = buildHistoryMapper.getBuildLogByHistoryId(historyId);
         if (buildLog == null || buildLog.getLogContent() == null) {
             return "";

@@ -53,7 +53,7 @@ public interface BuildHistoryMapper {
      * @param historyId the history ID
      * @return the build history entity, or null if not found
      */
-    BuildHistory getBuildHistoryById(@Param("historyId") Long historyId);
+    BuildHistory getBuildHistoryById(Long historyId);
 
     /**
      * Retrieves a single build history master record by its execution ID and target node ID.
@@ -61,36 +61,35 @@ public interface BuildHistoryMapper {
      * @param targetNodeId the target node ID
      * @return the build history entity, or null if not found
      */
-    BuildHistory getBuildHistoryByExecutionIdAndNodeId(
-            @Param("executionId") String executionId, @Param("targetNodeId") String targetNodeId);
+    BuildHistory getBuildHistoryByExecutionIdAndNodeId(String executionId, String targetNodeId);
 
     /**
      * Retrieves all build history master records by execution ID.
      * @param executionId the execution ID
      * @return list of build history entities for the execution
      */
-    List<BuildHistory> getBuildHistoriesByExecutionId(@Param("executionId") String executionId);
+    List<BuildHistory> getBuildHistoriesByExecutionId(String executionId);
 
     /**
      * Retrieves a single build history master record by its execution ID.
      * @param executionId the unique execution ID
      * @return the build history entity, or null if not found
      */
-    BuildHistory getBuildHistoryByExecutionId(@Param("executionId") String executionId);
+    BuildHistory getBuildHistoryByExecutionId(String executionId);
 
     /**
      * Retrieves the latest build history record for a specific target node ID.
      * @param targetNodeId the target node ID
      * @return the latest build history entity, or null if not found
      */
-    BuildHistory getLatestBuildHistoryByNodeId(@Param("targetNodeId") String targetNodeId);
+    BuildHistory getLatestBuildHistoryByNodeId(String targetNodeId);
 
     /**
      * Retrieves the latest build history record for each specified target node.
      * @param targetNodeIds the collection of target node IDs
      * @return list of latest build history entities per node
      */
-    List<BuildHistory> getLatestBuildHistories(@Param("targetNodeIds") Collection<String> targetNodeIds);
+    List<BuildHistory> getLatestBuildHistories(Collection<String> targetNodeIds);
 
     /**
      * Searches build history records matching the given criteria with pagination.
@@ -125,14 +124,14 @@ public interface BuildHistoryMapper {
      * @param historyId the history ID
      * @return the build log entity, or null if not found
      */
-    BuildLog getBuildLogByHistoryId(@Param("historyId") Long historyId);
+    BuildLog getBuildLogByHistoryId(Long historyId);
 
     /**
      * Retrieves the build log entity for a given execution ID.
      * @param executionId the execution ID
      * @return the build log entity, or null if not found
      */
-    BuildLog getBuildLogByExecutionId(@Param("executionId") String executionId);
+    BuildLog getBuildLogByExecutionId(String executionId);
 
     /**
      * Deletes build history records older than the specified retention days.
@@ -232,6 +231,7 @@ public interface BuildHistoryMapper {
         public int purgeOldHistories(int retentionDays) {
             return mapper().purgeOldHistories(retentionDays);
         }
+
     }
 
 }

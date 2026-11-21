@@ -144,26 +144,31 @@ public class WebsocketBuildDeployBridge extends SimplifiedEndpoint implements Bu
                     .setHeader("subscribed")
                     .setNodeId(nodeManager.getNodeId());
             sendText(session, res.toString());
-            logger.debug("BuildDeploy ConsoleClient joined/subscribed: session {}", session.getId());
+            if (logger.isDebugEnabled()) {
+                logger.debug("BuildDeploy ConsoleClient joined/subscribed: session {}", session.getId());
+            }
 
-            // If there are ongoing or recent executions across nodes, backfill status and logs
-            String targetExecId = (request != null ? request.getExecutionId() : null);
-            Map<String, BuildExecutionInfo> executions = StringUtils.hasText(targetExecId)
-                    ? remoteBuildDeployManager.getExecutions(targetExecId)
-                    : remoteBuildDeployManager.getLastExecutions();
+            executeInActivity(() -> {
+                // If there are ongoing or recent executions across nodes, backfill status and logs
+                String targetExecId = (request != null ? request.getExecutionId() : null);
+                Map<String, BuildExecutionInfo> executions = StringUtils.hasText(targetExecId)
+                        ? remoteBuildDeployManager.getExecutions(targetExecId)
+                        : remoteBuildDeployManager.getLastExecutions();
 
-            if (executions != null && !executions.isEmpty()) {
-                for (BuildExecutionInfo exec : executions.values()) {
-                    if (exec != null) {
-                        remoteBuildDeployManager.getBroker().broadcastStatusChanged(exec);
-                        List<String> logs = remoteBuildDeployManager.getRecentLogs(exec);
-                        if (logs != null && !logs.isEmpty()) {
-                            remoteBuildDeployManager.getBroker().sendLogBackfill(
-                                    buildSession, exec.getExecutionId(), exec.getTargetNodeId(), logs);
+                if (executions != null && !executions.isEmpty()) {
+                    for (BuildExecutionInfo exec : executions.values()) {
+                        if (exec != null) {
+                            remoteBuildDeployManager.getBroker().broadcastStatusChanged(exec);
+                            List<String> logs = remoteBuildDeployManager.getRecentLogs(exec);
+                            if (logs != null && !logs.isEmpty()) {
+                                remoteBuildDeployManager.getBroker().sendLogBackfill(
+                                        buildSession, exec.getExecutionId(), exec.getTargetNodeId(), logs);
+                            }
                         }
                     }
                 }
-            }
+                return null;
+            });
         }
     }
 

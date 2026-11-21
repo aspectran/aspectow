@@ -24,6 +24,7 @@ import com.aspectran.core.context.ActivityContext;
 import com.aspectran.core.context.config.AspectranConfig;
 import com.aspectran.core.service.CoreService;
 import com.aspectran.utils.StringUtils;
+import com.aspectran.utils.SystemUtils;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
@@ -74,7 +75,7 @@ public class LocalScriptRunner implements ActivityContextAware {
             "service.sh"
     );
 
-    private static final boolean IS_WINDOWS = System.getProperty("os.name").toLowerCase().contains("win");
+    private static final boolean IS_WINDOWS = SystemUtils.isWindows();
 
     private ActivityContext activityContext;
 

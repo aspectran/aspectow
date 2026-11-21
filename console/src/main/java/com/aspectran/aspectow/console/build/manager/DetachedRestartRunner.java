@@ -17,6 +17,7 @@ package com.aspectran.aspectow.console.build.manager;
 
 import com.aspectran.core.service.CoreService;
 import com.aspectran.core.service.CoreServiceHolder;
+import com.aspectran.utils.SystemUtils;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
@@ -26,7 +27,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.function.Consumer;
 
 /**
@@ -40,8 +40,7 @@ public class DetachedRestartRunner {
 
     private static final Logger logger = LoggerFactory.getLogger(DetachedRestartRunner.class);
 
-    private static final boolean IS_WINDOWS = System.getProperty("os.name")
-            .toLowerCase(Locale.ROOT).contains("win");
+    private static final boolean IS_WINDOWS = SystemUtils.isWindows();
 
     private static final File NULL_FILE = new File(IS_WINDOWS ? "NUL" : "/dev/null");
 

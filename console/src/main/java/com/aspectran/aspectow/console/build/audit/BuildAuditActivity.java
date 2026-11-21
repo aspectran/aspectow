@@ -264,10 +264,9 @@ public class BuildAuditActivity {
         }
         Long id = Long.valueOf(historyId.trim());
         String logs = buildAuditService.getDecompressedLogs(id);
-        if (logs == null) {
-            logs = "";
-        }
-        String cleanLogs = logs.replaceAll("\\u001b\\[[0-9;?]*[a-zA-Z]", "");
+        String cleanLogs = logs != null
+                ? logs.replaceAll("\\u001b\\[[0-9;?]*[a-zA-Z]", "")
+                : "";
 
         var response = translet.getResponseAdapter();
         response.setContentType("text/plain; charset=UTF-8");
