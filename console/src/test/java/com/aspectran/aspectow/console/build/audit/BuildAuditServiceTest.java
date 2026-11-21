@@ -300,6 +300,64 @@ class BuildAuditServiceTest {
             System.out.println("Recalculated Hash: " + recalculatedHash);
 
             assertEquals(verifiedHistory.getIntegrityHash(), recalculatedHash);
+
+            // 5. test date-range filtering and CSV export
+            // Insert records with specific dates
+            java.time.ZoneId sysZone = java.time.ZoneId.systemDefault();
+            BuildHistory oldRecord = new BuildHistory();
+            oldRecord.setExecutionId("bld_old_001");
+            oldRecord.setTargetNodeId("node-1");
+            oldRecord.setScriptName("build.sh");
+            oldRecord.setRequester("admin");
+            oldRecord.setStatus("SUCCESS");
+            oldRecord.setStartedAt(java.time.LocalDateTime.of(2026, 11, 1, 10, 0, 0).atZone(sysZone).toInstant());
+            mapper.insertBuildHistory(oldRecord);
+
+            BuildHistory targetRecord1 = new BuildHistory();
+            targetRecord1.setExecutionId("bld_target_001");
+            targetRecord1.setTargetNodeId("node-1");
+            targetRecord1.setScriptName("build.sh");
+            targetRecord1.setRequester("admin");
+            targetRecord1.setStatus("SUCCESS");
+            targetRecord1.setStartedAt(java.time.LocalDateTime.of(2026, 11, 15, 9, 30, 0).atZone(sysZone).toInstant());
+            mapper.insertBuildHistory(targetRecord1);
+
+            BuildHistory targetRecord2 = new BuildHistory();
+            targetRecord2.setExecutionId("bld_target_002");
+            targetRecord2.setTargetNodeId("node-1");
+            targetRecord2.setScriptName("build.sh");
+            targetRecord2.setRequester("admin");
+            targetRecord2.setStatus("SUCCESS");
+            // End of day test: 23:30 on 2026-11-20 should be included in 2026-11-20 end date
+            targetRecord2.setStartedAt(java.time.LocalDateTime.of(2026, 11, 20, 23, 30, 0).atZone(sysZone).toInstant());
+            mapper.insertBuildHistory(targetRecord2);
+
+            BuildHistory futureRecord = new BuildHistory();
+            futureRecord.setExecutionId("bld_future_001");
+            futureRecord.setTargetNodeId("node-1");
+            futureRecord.setScriptName("build.sh");
+            futureRecord.setRequester("admin");
+            futureRecord.setStatus("SUCCESS");
+            futureRecord.setStartedAt(java.time.LocalDateTime.of(2026, 11, 25, 12, 0, 0).atZone(sysZone).toInstant());
+            mapper.insertBuildHistory(futureRecord);
+
+            // Query with date range: 2026-11-10 ~ 2026-11-20
+            BuildAuditQuery rangeQuery = new BuildAuditQuery();
+            rangeQuery.setStartDate("2026-11-10");
+            rangeQuery.setEndDate("2026-11-20");
+
+            assertEquals("2026-11-10 00:00:00", rangeQuery.getStartDateTime());
+            assertEquals("2026-11-20 23:59:59", rangeQuery.getEndDateTime());
+
+            List<BuildHistory> matched = mapper.searchBuildHistory(rangeQuery);
+            assertEquals(2, matched.size());
+            assertTrue(matched.stream().anyMatch(h -> "bld_target_001".equals(h.getExecutionId())));
+            assertTrue(matched.stream().anyMatch(h -> "bld_target_002".equals(h.getExecutionId())));
+            assertFalse(matched.stream().anyMatch(h -> "bld_old_001".equals(h.getExecutionId())));
+            assertFalse(matched.stream().anyMatch(h -> "bld_future_001".equals(h.getExecutionId())));
+
+            long count = mapper.countBuildHistory(rangeQuery);
+            assertEquals(2, count);
         }
     }
 }

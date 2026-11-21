@@ -161,6 +161,36 @@ public class BuildAuditQuery implements Serializable {
     }
 
     /**
+     * Returns the normalized start datetime string (e.g. yyyy-MM-dd 00:00:00) for SQL timestamp comparison.
+     * @return the start datetime string
+     */
+    public String getStartDateTime() {
+        if (startDate != null && !startDate.isBlank()) {
+            String trimmed = startDate.trim();
+            if (trimmed.length() == 10) {
+                return trimmed + " 00:00:00";
+            }
+            return trimmed;
+        }
+        return null;
+    }
+
+    /**
+     * Returns the normalized end datetime string (e.g. yyyy-MM-dd 23:59:59) for SQL timestamp comparison.
+     * @return the end datetime string
+     */
+    public String getEndDateTime() {
+        if (endDate != null && !endDate.isBlank()) {
+            String trimmed = endDate.trim();
+            if (trimmed.length() == 10) {
+                return trimmed + " 23:59:59";
+            }
+            return trimmed;
+        }
+        return null;
+    }
+
+    /**
      * Returns the client time zone ID.
      * @return the time zone ID
      */

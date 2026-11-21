@@ -149,11 +149,25 @@
             <if test="status != null and status != ''">
                 and status = #{status}
             </if>
-            <if test="startDate != null and startDate != ''">
-                and started_at &gt;= #{startDate}
+            <if test="startDateTime != null and startDateTime != ''">
+                <choose>
+                    <when test="_databaseId == 'oracle'">
+                        and started_at &gt;= to_timestamp(#{startDateTime}, 'YYYY-MM-DD HH24:MI:SS')
+                    </when>
+                    <otherwise>
+                        and started_at &gt;= #{startDateTime}
+                    </otherwise>
+                </choose>
             </if>
-            <if test="endDate != null and endDate != ''">
-                and started_at &lt;= #{endDate}
+            <if test="endDateTime != null and endDateTime != ''">
+                <choose>
+                    <when test="_databaseId == 'oracle'">
+                        and started_at &lt;= to_timestamp(#{endDateTime}, 'YYYY-MM-DD HH24:MI:SS')
+                    </when>
+                    <otherwise>
+                        and started_at &lt;= #{endDateTime}
+                    </otherwise>
+                </choose>
             </if>
             <if test="searchKeyword != null and searchKeyword != ''">
                 <choose>

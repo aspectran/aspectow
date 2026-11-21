@@ -91,6 +91,9 @@
             .sidebar, .navbar, .filter-panel, .pagination-container, .btn, .d-print-none {
                 display: none !important;
             }
+            .shadow-sm {
+                box-shadow: none !important;
+            }
         }
     </style>
 </head>
@@ -105,7 +108,7 @@
                         </div>
                         <p class="text-muted mb-0 small">Immutable compliance execution logs, Git commit track records, and SHA-256 integrity proofs</p>
                     </div>
-                    <button type="button" class="btn-close d-lg-none ms-2" onclick="window.close()" aria-label="Close" title="Close" th:if="${page.layout == 'popup'}"></button>
+                    <button type="button" class="btn btn-close d-lg-none ms-2" onclick="window.close()" aria-label="Close" title="Close" th:if="${page.layout == 'popup'}"></button>
                 </div>
                 <div class="d-flex flex-wrap justify-content-end align-items-center gap-2">
                     <button th:if="${page.layout != 'popup'}" type="button" class="btn btn-sm btn-outline-primary" onclick="openBuildConsole('', '')">
@@ -117,14 +120,15 @@
                     <a class="btn btn-sm btn-success" href="javascript:void(0)" onclick="exportCsv()">
                         <i class="bi bi-file-earmark-spreadsheet"></i> Export CSV Report
                     </a>
-                    <button th:if="${page.layout == 'popup'}" type="button" class="btn-close d-none d-lg-block" onclick="window.close()"></button>
+                    <button th:if="${page.layout == 'popup'}" type="button" class="btn btn-close d-none d-lg-block" onclick="window.close()"></button>
                 </div>
             </div>
 
             <!-- Filter Panel -->
             <div class="card filter-panel">
                 <form method="get" th:action="@{/cluster/build/audit/}" class="row g-2 align-items-end">
-                    <div class="col-md-3">
+                    <input type="hidden" name="layout" th:if="${page.layout != null}" th:value="${page.layout}">
+                    <div class="col-xl-2 col-md-3 col-sm-6">
                         <label class="form-label small text-muted mb-1">Target Node</label>
                         <select name="nodeId" class="form-select form-select-sm">
                             <option value="">All Nodes</option>
@@ -140,7 +144,7 @@
                             </option>
                         </select>
                     </div>
-                    <div class="col-md-2">
+                    <div class="col-xl-2 col-md-3 col-sm-6">
                         <label class="form-label small text-muted mb-1">Status</label>
                         <select name="status" class="form-select form-select-sm">
                             <option value="">All Statuses</option>
@@ -150,15 +154,30 @@
                             <option value="CANCELLED" th:selected="${page.status == 'CANCELLED'}">CANCELLED</option>
                         </select>
                     </div>
-                    <div class="col-md-5">
+                    <div class="col-xl-3 col-md-6 col-sm-12">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <label class="form-label small text-muted mb-0">Build Period</label>
+                            <div class="btn-group btn-group-xs" role="group" aria-label="Quick Period">
+                                <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-1" style="font-size: 0.7rem;" onclick="setPeriodPreset('today')">Today</button>
+                                <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-1" style="font-size: 0.7rem;" onclick="setPeriodPreset('7d')">7D</button>
+                                <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-1" style="font-size: 0.7rem;" onclick="setPeriodPreset('30d')">30D</button>
+                            </div>
+                        </div>
+                        <div class="input-group input-group-sm">
+                            <input type="date" name="startDate" id="filter-start-date" class="form-control" th:value="${page.startDate}" title="Start Date">
+                            <span class="input-group-text bg-body-tertiary text-muted">~</span>
+                            <input type="date" name="endDate" id="filter-end-date" class="form-control" th:value="${page.endDate}" title="End Date">
+                        </div>
+                    </div>
+                    <div class="col-xl-4 col-md-9 col-sm-8">
                         <label class="form-label small text-muted mb-1">Keyword Search</label>
                         <div class="input-group input-group-sm">
                             <input type="text" name="q" class="form-control" placeholder="Search execution ID, script, commit, requester..." th:value="${page.searchKeyword}">
                             <button class="btn btn-primary" type="submit"><i class="bi bi-search"></i> Search</button>
                         </div>
                     </div>
-                    <div class="col-md-2 text-end">
-                        <a th:href="@{/cluster/build/audit/}" class="btn btn-sm btn-outline-secondary">Reset</a>
+                    <div class="col-xl-1 col-md-3 col-sm-4 text-end">
+                        <a th:href="@{/cluster/build/audit/(layout=${page.layout})}" class="btn btn-sm btn-outline-secondary w-100">Reset</a>
                     </div>
                 </form>
             </div>
@@ -179,7 +198,7 @@
                                 <th>Started At</th>
                                 <th>Duration</th>
                                 <th>Integrity</th>
-                                <th class="text-end pe-3">Actions</th>
+                                <th class="text-end pe-3 d-print-none">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -232,7 +251,7 @@
                                         Pending
                                     </span>
                                 </td>
-                                <td class="text-end pe-2">
+                                <td class="text-end pe-2 d-print-none">
                                     <button type="button"
                                             class="btn btn-xs btn-outline-success d-none d-xxl-inline-block"
                                             th:data-execution-id="${item.executionId}"
@@ -257,15 +276,15 @@
             <!-- Pagination -->
             <div th:if="${page.pageInfo != null && page.pageInfo.totalPages > 1}" class="d-flex justify-content-between align-items-center mt-3">
                 <span class="small text-muted" th:text="'Total ' + ${page.pageInfo.totalElements} + ' records (Page ' + ${page.pageInfo.number} + ' of ' + ${page.pageInfo.totalPages} + ')'"></span>
-                <ul class="pagination pagination-sm mb-0">
+                <ul class="pagination pagination-sm mb-0 d-print-none">
                     <li class="page-item" th:classappend="${page.pageInfo.number <= 1} ? 'disabled'">
-                        <a class="page-link" th:href="@{/cluster/build/audit/(page=${page.pageInfo.number - 1}, nodeId=${page.targetNodeId}, status=${page.status}, q=${page.searchKeyword})}">Previous</a>
+                        <a class="page-link" th:href="@{/cluster/build/audit/(page=${page.pageInfo.number - 1}, nodeId=${page.targetNodeId}, status=${page.status}, q=${page.searchKeyword}, startDate=${page.startDate}, endDate=${page.endDate}, layout=${page.layout})}">Previous</a>
                     </li>
                     <li class="page-item active">
                         <span class="page-link" th:text="${page.pageInfo.number}">1</span>
                     </li>
                     <li class="page-item" th:classappend="${page.pageInfo.number >= page.pageInfo.totalPages} ? 'disabled'">
-                        <a class="page-link" th:href="@{/cluster/build/audit/(page=${page.pageInfo.number + 1}, nodeId=${page.targetNodeId}, status=${page.status}, q=${page.searchKeyword})}">Next</a>
+                        <a class="page-link" th:href="@{/cluster/build/audit/(page=${page.pageInfo.number + 1}, nodeId=${page.targetNodeId}, status=${page.status}, q=${page.searchKeyword}, startDate=${page.startDate}, endDate=${page.endDate}, layout=${page.layout})}">Next</a>
                     </li>
                 </ul>
             </div>
@@ -333,10 +352,41 @@
 
             function exportCsv() {
                 const url = new URL(contextPath + '/cluster/build/audit/export', window.location.href);
-                const searchParams = new URLSearchParams(window.location.search);
+                const form = document.querySelector('.filter-panel form');
+                const searchParams = form ? new URLSearchParams(new FormData(form)) : new URLSearchParams(window.location.search);
+                for (const [key, value] of [...searchParams.entries()]) {
+                    if (!value) {
+                        searchParams.delete(key);
+                    }
+                }
                 searchParams.set('timeZone', Intl.DateTimeFormat().resolvedOptions().timeZone);
                 url.search = searchParams.toString();
                 location.href = url.href;
+            }
+
+            function setPeriodPreset(preset) {
+                const startInput = document.getElementById('filter-start-date');
+                const endInput = document.getElementById('filter-end-date');
+                if (!startInput || !endInput) return;
+                const today = new Date();
+                const formatDate = (d) => {
+                    const year = d.getFullYear();
+                    const month = String(d.getMonth() + 1).padStart(2, '0');
+                    const day = String(d.getDate()).padStart(2, '0');
+                    return `${year}-${month}-${day}`;
+                };
+                endInput.value = formatDate(today);
+                if (preset === 'today') {
+                    startInput.value = formatDate(today);
+                } else if (preset === '7d') {
+                    const d = new Date();
+                    d.setDate(d.getDate() - 7);
+                    startInput.value = formatDate(d);
+                } else if (preset === '30d') {
+                    const d = new Date();
+                    d.setDate(d.getDate() - 30);
+                    startInput.value = formatDate(d);
+                }
             }
 
             function openBuildConsole(executionId, nodeId) {

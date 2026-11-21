@@ -88,11 +88,15 @@ public class BuildAuditActivity {
         String targetNodeId = translet.getParameter("nodeId");
         String status = translet.getParameter("status");
         String searchKeyword = translet.getParameter("q");
+        String startDate = translet.getParameter("startDate");
+        String endDate = translet.getParameter("endDate");
 
         BuildAuditQuery query = new BuildAuditQuery();
         query.setTargetNodeId(targetNodeId);
         query.setStatus(status);
         query.setSearchKeyword(searchKeyword);
+        query.setStartDate(startDate);
+        query.setEndDate(endDate);
 
         PageInfo pageInfo = PageInfo.of(translet, 15);
         long totalCount = buildAuditService.countHistory(query);
@@ -118,6 +122,8 @@ public class BuildAuditActivity {
         model.put("targetNodeId", targetNodeId);
         model.put("status", status);
         model.put("searchKeyword", searchKeyword);
+        model.put("startDate", startDate);
+        model.put("endDate", endDate);
         return model;
     }
 
