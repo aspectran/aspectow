@@ -42,6 +42,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -77,7 +78,7 @@ public class LocalScriptRunner implements ActivityContextAware {
 
     private static final boolean IS_WINDOWS = SystemUtils.isWindows();
 
-    private ActivityContext activityContext;
+    private static final int MAX_LOG_BUFFER_SIZE = 10000;
 
     private final ReentrantLock buildLock = new ReentrantLock();
 
@@ -87,7 +88,10 @@ public class LocalScriptRunner implements ActivityContextAware {
 
     private final Map<String, List<String>> logRingBuffers = new ConcurrentHashMap<>();
 
-    private static final int MAX_LOG_BUFFER_SIZE = 10000;
+    private final Thread.Builder.OfVirtual virtualThreadBuilder =
+            Thread.ofVirtual().name("LocalScriptRunner-", 1);
+
+    private ActivityContext activityContext;
 
     @Override
     public void setActivityContext(@NonNull ActivityContext activityContext) {
@@ -157,12 +161,42 @@ public class LocalScriptRunner implements ActivityContextAware {
      * @return the resolved script File, or null if not found
      */
     public File resolveScriptFile(String scriptName, String targetNodeId) {
+        if (scriptName == null) {
+            return null;
+        }
+
         File baseDir = getBaseDir();
         String nodeId = targetNodeId;
         if (StringUtils.isEmpty(nodeId)) {
             nodeId = getCurrentNodeId();
         }
 
+        // Adjust extension based on OS: on Windows prefer .bat, on Unix prefer .sh
+        String effectiveScriptName = scriptName;
+        if (IS_WINDOWS && scriptName.endsWith(".sh")) {
+            effectiveScriptName = scriptName.substring(0, scriptName.length() - 3) + ".bat";
+        } else if (!IS_WINDOWS && scriptName.endsWith(".bat")) {
+            effectiveScriptName = scriptName.substring(0, scriptName.length() - 4) + ".sh";
+        }
+
+        File resolved = resolveScriptFileInternal(baseDir, effectiveScriptName, nodeId);
+        if (resolved != null && resolved.exists()) {
+            return resolved;
+        }
+
+        // If not found with converted extension, try original scriptName as fallback
+        if (!effectiveScriptName.equals(scriptName)) {
+            File fallback = resolveScriptFileInternal(baseDir, scriptName, nodeId);
+            if (fallback != null && fallback.exists()) {
+                return fallback;
+            }
+        }
+
+        return resolved != null ? resolved : new File(baseDir, effectiveScriptName);
+    }
+
+    @Nullable
+    private File resolveScriptFileInternal(File baseDir, String scriptName, String nodeId) {
         // 1. If generic daemon/service script requested, check if a node-specific script exists first (e.g. daemon-[nodeId].sh)
         if (StringUtils.hasText(nodeId) && isRestartScript(scriptName)) {
             int dotIdx = scriptName.lastIndexOf('.');
@@ -221,7 +255,7 @@ public class LocalScriptRunner implements ActivityContextAware {
      * @return set of allowed script file names
      */
     public Set<String> getAllowedScripts() {
-        Set<String> scripts = new java.util.LinkedHashSet<>(ALLOWED_SCRIPTS);
+        Set<String> scripts = new LinkedHashSet<>(ALLOWED_SCRIPTS);
         try {
             File baseDir = getBaseDir();
             if (baseDir.isDirectory()) {
@@ -269,7 +303,7 @@ public class LocalScriptRunner implements ActivityContextAware {
      * @param scriptName the script file name
      * @return true if it is a restart script
      */
-    public boolean isRestartScript(String scriptName) {
+    public static boolean isRestartScript(String scriptName) {
         if (StringUtils.isEmpty(scriptName)) {
             return false;
         }
@@ -354,7 +388,7 @@ public class LocalScriptRunner implements ActivityContextAware {
                          Consumer<BuildExecutionInfo> startedCallback,
                          Consumer<String> logConsumer,
                          Consumer<BuildExecutionInfo> completionCallback) {
-        Thread.ofVirtual().start(() -> {
+        virtualThreadBuilder.start(() -> {
             run(info, startedCallback, logConsumer, completionCallback);
         });
     }
@@ -453,6 +487,9 @@ public class LocalScriptRunner implements ActivityContextAware {
         }
 
         File scriptFile = resolveScriptFile(scriptName, info.getTargetNodeId());
+        if (scriptFile.exists()) {
+            info.setScriptName(scriptFile.getName());
+        }
         File baseDir = (scriptFile.getParentFile() != null ? scriptFile.getParentFile() : getBaseDir());
         if (!scriptFile.exists()) {
             buildLock.unlock();
@@ -514,7 +551,7 @@ public class LocalScriptRunner implements ActivityContextAware {
         // Capture Git information before execution
         captureGitInfoBefore(baseDir, info);
 
-        Process process = null;
+        Process process;
         try {
             List<String> command = buildCommandLine(scriptFile, info.getParameters());
             ProcessBuilder pb = new ProcessBuilder(command);

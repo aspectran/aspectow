@@ -2260,6 +2260,23 @@ const NotificationClient = (function () {
             .catch(() => {});
     }
 
+    function hideModal() {
+        const modalEl = document.getElementById('notificationModal');
+        if (modalEl) {
+            if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                const modalInstance = bootstrap.Modal.getInstance(modalEl);
+                if (modalInstance) {
+                    modalInstance.hide();
+                    return;
+                }
+            }
+            const closeBtn = modalEl.querySelector('[data-bs-dismiss="modal"]');
+            if (closeBtn) {
+                closeBtn.click();
+            }
+        }
+    }
+
     function clearHistory() {
         if (!confirm('Are you sure you want to clear all notification history?')) return;
 
@@ -2273,6 +2290,8 @@ const NotificationClient = (function () {
                 if (listContainer) listContainer.innerHTML = '';
                 listContainer.classList.add('d-none');
                 if (emptyNotice) emptyNotice.classList.remove('d-none');
+
+                setTimeout(hideModal, 1000);
             })
             .catch(err => {
                 alert('Failed to clear notification history: ' + err.message);
@@ -2375,6 +2394,8 @@ const NotificationClient = (function () {
 
     return {
         init: init,
+        hideModal: hideModal,
+        closeModal: hideModal,
         loadHistory: loadHistory,
         markAllRead: markAllRead,
         clearHistory: clearHistory,

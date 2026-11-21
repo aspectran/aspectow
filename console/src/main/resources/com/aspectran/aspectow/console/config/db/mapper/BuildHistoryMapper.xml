@@ -72,7 +72,8 @@
 
     <update id="updateBuildHistory" parameterType="com.aspectran.aspectow.console.build.audit.BuildHistory">
         update asc_build_history
-        set status = #{status},
+        set script_name = #{scriptName},
+            status = #{status},
             exit_code = #{exitCode},
             started_at = #{startedAt},
             finished_at = #{finishedAt},

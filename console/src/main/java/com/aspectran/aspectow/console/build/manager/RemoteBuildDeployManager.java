@@ -36,6 +36,7 @@ import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -611,6 +612,13 @@ public class RemoteBuildDeployManager implements InitializableBean, DisposableBe
 
         if (nodeManager.getNodeId().equals(targetNodeId)) {
             // Case 1: Local node execution
+            if (localScriptRunner != null && StringUtils.hasText(info.getScriptName())) {
+                File scriptFile = localScriptRunner.resolveScriptFile(info.getScriptName(), targetNodeId);
+                if (scriptFile != null && scriptFile.exists()) {
+                    info.setScriptName(scriptFile.getName());
+                }
+            }
+
             logger.info("Starting local build execution [{}] for script [{}]",
                     info.getExecutionId(), info.getScriptName());
 
@@ -811,6 +819,8 @@ public class RemoteBuildDeployManager implements InitializableBean, DisposableBe
                                 info = new BuildExecutionInfo();
                                 info.setExecutionId(res.getExecutionId());
                                 info.setTargetNodeId(nodeId);
+                                info.setScriptName(res.getScriptName());
+                            } else if (StringUtils.hasText(res.getScriptName())) {
                                 info.setScriptName(res.getScriptName());
                             }
                             try {

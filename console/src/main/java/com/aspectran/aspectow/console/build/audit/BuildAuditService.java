@@ -16,6 +16,7 @@
 package com.aspectran.aspectow.console.build.audit;
 
 import com.aspectran.aspectow.console.build.manager.BuildExecutionInfo;
+import com.aspectran.aspectow.console.build.manager.LocalScriptRunner;
 import com.aspectran.aspectow.console.notification.NotificationService;
 import com.aspectran.core.activity.InstantActivitySupport;
 import com.aspectran.core.component.bean.annotation.Autowired;
@@ -100,6 +101,9 @@ public class BuildAuditService extends InstantActivitySupport {
                 if (info.getStartedAt() != null) {
                     history.setStartedAt(info.getStartedAt());
                 }
+                if (StringUtils.hasText(info.getScriptName())) {
+                    history.setScriptName(info.getScriptName());
+                }
                 if (StringUtils.hasText(requester) && !"SYSTEM".equals(requester)) {
                     history.setRequester(requester);
                 }
@@ -163,6 +167,9 @@ public class BuildAuditService extends InstantActivitySupport {
                 if (info.getStartedAt() != null) {
                     history.setStartedAt(info.getStartedAt());
                 }
+                if (StringUtils.hasText(info.getScriptName())) {
+                    history.setScriptName(info.getScriptName());
+                }
                 history.setStatus(info.getStatus() != null ? info.getStatus().name() : BuildExecutionInfo.Status.FAILED.name());
                 history.setExitCode(info.getExitCode());
                 history.setFinishedAt(info.getFinishedAt() != null ? info.getFinishedAt() : Instant.now());
@@ -217,7 +224,7 @@ public class BuildAuditService extends InstantActivitySupport {
                 logger.info("Build audit record completed: historyId={}, executionId={}, status={}, lines={}, integrityHash={}",
                         history.getHistoryId(), history.getExecutionId(), history.getStatus(), lineCount, integrityHash);
 
-                if (notificationService != null) {
+                if (notificationService != null && !LocalScriptRunner.isRestartScript(history.getScriptName())) {
                     try {
                         boolean isSuccess = "SUCCESS".equalsIgnoreCase(history.getStatus())
                                 || (info.getExitCode() != null && info.getExitCode() == 0);
