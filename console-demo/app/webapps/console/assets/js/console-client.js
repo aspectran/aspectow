@@ -19,7 +19,7 @@
  * automatically falling back to HTTP long-polling if WebSockets are unavailable.
  *
  * @version 4.3
- * @last-modified 2026-09-05
+ * @last-modified 2026-11-21
  */
 class ConsoleClient {
 
@@ -51,10 +51,28 @@ class ConsoleClient {
         this.retryCount = 0;
         this.established = false;
         this.manualClose = false;
+        this.unloading = false;
         this.activityPath = null;
         this.primaryNodeId = node.id;
         this.mode = 'websocket'; // 'websocket' or 'polling'
         this.wsEverConnected = false;
+
+        this.handlePageHide = () => {
+            this.unloading = true;
+            if (this.reconnectTimer) {
+                clearTimeout(this.reconnectTimer);
+                this.reconnectTimer = null;
+            }
+            if (this.pollingTimer) {
+                clearTimeout(this.pollingTimer);
+                this.pollingTimer = null;
+            }
+        };
+
+        if (typeof window !== "undefined") {
+            window.addEventListener("beforeunload", this.handlePageHide);
+            window.addEventListener("pagehide", this.handlePageHide);
+        }
     }
 
     /**
@@ -64,6 +82,7 @@ class ConsoleClient {
     start(activityPath) {
         this.activityPath = activityPath;
         this.manualClose = false;
+        this.unloading = false;
         this.openSocket();
     }
 
@@ -81,15 +100,26 @@ class ConsoleClient {
     }
 
     /**
+     * Destroys the client and removes event listeners.
+     */
+    destroy() {
+        this.stop();
+        if (typeof window !== "undefined") {
+            window.removeEventListener("beforeunload", this.handlePageHide);
+            window.removeEventListener("pagehide", this.handlePageHide);
+        }
+    }
+
+    /**
      * Opens a new connection.
      */
     openSocket() {
-        if (this.manualClose) {
+        if (this.manualClose || this.unloading) {
             return;
         }
         if (this.options.onBeforeConnect) {
             Promise.resolve(this.options.onBeforeConnect(this.node)).then((token) => {
-                if (this.manualClose) {
+                if (this.manualClose || this.unloading) {
                     return;
                 }
                 if (token) {
@@ -101,12 +131,12 @@ class ConsoleClient {
                     this.connect();
                 } else {
                     console.warn(this.node.id, "failed to obtain token before connect");
-                    if (!this.manualClose) {
+                    if (!this.manualClose && !this.unloading) {
                         this.reconnect();
                     }
                 }
             }).catch((err) => {
-                if (!this.manualClose) {
+                if (!this.manualClose && !this.unloading) {
                     console.error(this.node.id, "failed to prepare connection:", err);
                     this.reconnect();
                 }
@@ -123,15 +153,20 @@ class ConsoleClient {
      */
     closeSocket(afterClosing) {
         if (this.socket) {
+            const socket = this.socket;
+            this.socket = null;
             this.established = false;
+            socket.onopen = null;
+            socket.onmessage = null;
+            socket.onerror = null;
+            socket.onclose = null;
             if (!afterClosing) {
                 try {
-                    this.socket.close(1000, "Normal closure");
+                    socket.close(1000, "Normal closure");
                 } catch (e) {
                     // Ignore if already closed
                 }
             }
-            this.socket = null;
         }
         if (this.heartbeatTimer) {
             clearTimeout(this.heartbeatTimer);
@@ -159,7 +194,7 @@ class ConsoleClient {
      * @private
      */
     connect() {
-        if (this.manualClose) {
+        if (this.manualClose || this.unloading) {
             return;
         }
         if (this.node.endpoint && this.node.endpoint.mode === 'polling') {
@@ -168,7 +203,7 @@ class ConsoleClient {
         }
         if (!this.node.endpoint || !this.node.endpoint.token) {
             console.warn(this.node.id, "cannot connect to websocket without a valid token");
-            if (!this.manualClose) {
+            if (!this.manualClose && !this.unloading) {
                 this.reconnect();
             }
             return;
@@ -219,9 +254,13 @@ class ConsoleClient {
             this.socket.onclose = (event) => {
                 this.closeSocket(true);
                 if (this.mode === 'polling') return;
-                if (!this.manualClose) {
+                if (!this.manualClose && !this.unloading) {
                     if (this.options.onClose) {
-                        setTimeout(() => this.options.onClose(event), 100);
+                        setTimeout(() => {
+                            if (!this.manualClose && !this.unloading) {
+                                this.options.onClose(event);
+                            }
+                        }, 100);
                     }
                     if (event.code === 1003) {
                         console.warn("Websocket connection refused: ", event.code, (event.reason || "Unauthorized"));
@@ -241,6 +280,9 @@ class ConsoleClient {
             };
 
             this.socket.onerror = (event) => {
+                if (this.manualClose || this.unloading) {
+                    return;
+                }
                 console.error(this.node.id, "websocket error:", event);
                 if (!this.wsEverConnected) {
                     this.switchToPolling();
@@ -310,7 +352,7 @@ class ConsoleClient {
     }
 
     poll() {
-        if (this.mode !== 'polling' || this.manualClose) return;
+        if (this.mode !== 'polling' || this.manualClose || this.unloading) return;
 
         const pullUrl = this.endpointPath() + "/polling/pull";
         fetch(pullUrl, {
@@ -450,7 +492,7 @@ class ConsoleClient {
      * @private
      */
     reconnect() {
-        if (this.manualClose) {
+        if (this.manualClose || this.unloading) {
             return;
         }
         if (this.established) {
@@ -458,6 +500,7 @@ class ConsoleClient {
             if (this.options.onClose) {
                 const closeEvent = { code: 1006, reason: "Connection lost", wasClean: false };
                 setTimeout(() => {
+                    if (this.manualClose || this.unloading) return;
                     try {
                         this.options.onClose(closeEvent);
                     } catch (e) {

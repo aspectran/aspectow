@@ -19,7 +19,7 @@
  * Provides common functionality for connection management and retries.
  *
  * @version 4.3
- * @last-modified 2026-11-16
+ * @last-modified 2026-11-21
  */
 class BaseClient {
     constructor(node, viewer, onSubscribed, onClosed, onFailed, isGatewayMode) {
@@ -49,8 +49,10 @@ class BaseClient {
         this.lastResumeReconnect = 0;
         this.stopped = false;
         this.destroyed = false;
+        this.unloading = false;
 
         this.handleResume = () => {
+            this.unloading = false;
             if (this.destroyed || this.stopped) {
                 return;
             }
@@ -64,12 +66,21 @@ class BaseClient {
             }
             this.onResume();
         };
+        this.handlePageHide = () => {
+            this.unloading = true;
+            if (this.retryTimer) {
+                clearTimeout(this.retryTimer);
+                this.retryTimer = null;
+            }
+        };
 
         if (typeof document !== "undefined") {
             document.addEventListener("visibilitychange", this.handleResume);
         }
         if (typeof window !== "undefined") {
+            window.addEventListener("beforeunload", this.handlePageHide);
             window.addEventListener("pageshow", this.handleResume);
+            window.addEventListener("pagehide", this.handlePageHide);
             window.addEventListener("focus", this.handleResume);
             window.addEventListener("online", this.handleOnline);
         }
@@ -185,7 +196,9 @@ class BaseClient {
             document.removeEventListener("visibilitychange", this.handleResume);
         }
         if (typeof window !== "undefined") {
+            window.removeEventListener("beforeunload", this.handlePageHide);
             window.removeEventListener("pageshow", this.handleResume);
+            window.removeEventListener("pagehide", this.handlePageHide);
             window.removeEventListener("focus", this.handleResume);
             window.removeEventListener("online", this.handleOnline);
         }
@@ -211,6 +224,7 @@ class BaseClient {
      * Called when the page becomes visible or active again (e.g. after returning from mobile background).
      */
     onResume() {
+        this.unloading = false;
         if (this.destroyed || this.stopped) {
             return;
         }
@@ -267,7 +281,7 @@ class BaseClient {
      * @param {boolean} [immediate=false] - If true, reconnects immediately without backoff delay.
      */
     reconnect(immediate = false) {
-        if (this.destroyed || this.stopped) {
+        if (this.destroyed || this.stopped || this.unloading) {
             return;
         }
         if (this.retryTimer) {
@@ -315,7 +329,7 @@ class BaseClient {
  * In Gateway Mode, it manages a single physical connection for the entire cluster.
  *
  * @version 4.3
- * @last-modified 2026-11-16
+ * @last-modified 2026-11-21
  */
 class WebsocketClient extends BaseClient {
     constructor(node, viewer, onSubscribed, onClosed, onFailed, isGatewayMode) {
@@ -354,6 +368,7 @@ class WebsocketClient extends BaseClient {
     }
 
     onResume() {
+        this.unloading = false;
         if (this.destroyed || this.stopped || !this.everConnected) {
             return;
         }
@@ -496,7 +511,7 @@ class WebsocketClient extends BaseClient {
             const wasHandshakeSuccessful = this.handshakeSuccessful;
             this.closeSocket(true);
 
-            if (this.destroyed || this.stopped) {
+            if (this.destroyed || this.stopped || this.unloading) {
                 return;
             }
 
@@ -529,7 +544,7 @@ class WebsocketClient extends BaseClient {
         };
 
         this.socket.onerror = (event) => {
-            if (this.destroyed || this.stopped) {
+            if (this.destroyed || this.stopped || this.unloading) {
                 return;
             }
             console.error(this.getConnectedNodeId(), "websocket error:", event);

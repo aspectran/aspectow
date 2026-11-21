@@ -649,13 +649,6 @@
             $(function() {
                 $('#node-search').on('input', filterNodes);
 
-                let clients = [];
-                let isUnloading = false;
-                $(window).on('beforeunload pagehide', function() {
-                    isUnloading = true;
-                    clients.forEach(c => c.stop());
-                });
-
                 function refreshNodeList() {
                     return fetch(contextPath + "/cluster/nodes/list", {
                             headers: { 'Accept': 'application/json' }
@@ -676,9 +669,6 @@
                 function createConsoleClient(targetNode) {
                     return new ConsoleClient(targetNode, {
                         onBeforeConnect: () => {
-                            if (isUnloading) {
-                                return Promise.reject(new Error("Page is unloading"));
-                            }
                             return fetch(contextPath + "/cluster/token", {
                                     headers: { 'Accept': 'application/json' }
                                 })
@@ -690,9 +680,7 @@
                                 })
                                 .then(res => res.success ? res.data : null)
                                 .catch(err => {
-                                    if (!isUnloading) {
-                                        console.error("Failed to fetch new token:", err);
-                                    }
+                                    console.error("Failed to fetch new token:", err);
                                     return null;
                                 });
                         },
@@ -703,16 +691,12 @@
                             }
                         },
                         onClose: () => {
-                            if (!isUnloading) {
-                                targetNode.status = 'dead';
-                                updateNodeStatus(targetNode);
-                            }
+                            targetNode.status = 'dead';
+                            updateNodeStatus(targetNode);
                         },
                         onFailed: () => {
-                            if (!isUnloading) {
-                                targetNode.status = 'dead';
-                                updateNodeStatus(targetNode);
-                            }
+                            targetNode.status = 'dead';
+                            updateNodeStatus(targetNode);
                         },
                         onEstablished: () => {
                             if (targetNode.status !== 'paused') {
@@ -724,7 +708,6 @@
                             }
                         },
                         onMessage: (response) => {
-                            if (isUnloading) return;
                             if (response.error) {
                                 console.error("Received error message:", response.error);
                                 return;
@@ -751,14 +734,12 @@
                             }
                         };
                         const client = createConsoleClient(node);
-                        clients.push(client);
                         client.start('');
                     });
                 } else {
                     node.status = [[${page.node.status}]];
                     node.endpoint.path = contextPath + "/nodes/" + node.id;
                     const client = createConsoleClient(node);
-                    clients.push(client);
                     client.start('');
                 }
 
