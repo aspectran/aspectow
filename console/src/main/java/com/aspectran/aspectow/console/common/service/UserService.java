@@ -20,6 +20,7 @@ import com.aspectran.aspectow.console.common.db.model.LoginHistory;
 import com.aspectran.aspectow.console.common.db.model.Permission;
 import com.aspectran.aspectow.console.common.db.model.Role;
 import com.aspectran.aspectow.console.common.db.model.User;
+import com.aspectran.aspectow.console.common.pagination.DateRange;
 import com.aspectran.aspectow.console.common.pagination.PageInfo;
 
 import java.util.List;
@@ -152,7 +153,28 @@ public interface UserService {
      * @param searchKeyword the search keyword
      * @return the list of login history records
      */
-    List<LoginHistory> getLoginHistoryList(PageInfo pageInfo, String username, String searchKeyword);
+    /**
+     * Retrieves the login history for a specific user matching the search criteria and date range.
+     * @param pageInfo the pagination info
+     * @param username the username of the user
+     * @param searchKeyword the search keyword
+     * @param dateRange the date range filter
+     * @return the list of login history records
+     */
+    List<LoginHistory> getLoginHistoryList(PageInfo pageInfo, String username, String searchKeyword, DateRange dateRange);
+
+    /**
+     * Retrieves the login history for a specific user matching the search criteria.
+     * @param pageInfo the pagination info
+     * @param username the username of the user
+     * @param searchKeyword the search keyword
+     * @param startDate the start date
+     * @param endDate the end date
+     * @return the list of login history records
+     */
+    default List<LoginHistory> getLoginHistoryList(PageInfo pageInfo, String username, String searchKeyword, String startDate, String endDate) {
+        return getLoginHistoryList(pageInfo, username, searchKeyword, DateRange.of(startDate, endDate, null));
+    }
 
     /**
      * Retrieves the login history for a specific user.
@@ -161,7 +183,18 @@ public interface UserService {
      * @return the list of login history records
      */
     default List<LoginHistory> getLoginHistoryList(PageInfo pageInfo, String username) {
-        return getLoginHistoryList(pageInfo, username, null);
+        return getLoginHistoryList(pageInfo, username, (String)null);
+    }
+
+    /**
+     * Retrieves the login history for a specific user matching the search keyword.
+     * @param pageInfo the pagination info
+     * @param username the username of the user
+     * @param searchKeyword the search keyword
+     * @return the list of login history records
+     */
+    default List<LoginHistory> getLoginHistoryList(PageInfo pageInfo, String username, String searchKeyword) {
+        return getLoginHistoryList(pageInfo, username, searchKeyword, (DateRange)null);
     }
 
     /**
@@ -175,13 +208,31 @@ public interface UserService {
     void recordAuditLog(String username, String eventType, String target, String details, String ipAddress);
 
     /**
-     * Retrieves audit logs with pagination and search keyword.
+     * Retrieves audit logs with pagination, search criteria, and date range.
      * @param pageInfo the pagination info
      * @param username the username filter
      * @param searchKeyword the search keyword
+     * @param dateRange the date range filter
      * @return the list of audit log records
      */
-    List<AuditLog> getAuditLogList(PageInfo pageInfo, String username, String searchKeyword);
+    List<AuditLog> getAuditLogList(PageInfo pageInfo, String username, String searchKeyword, DateRange dateRange);
+
+    /**
+     * Retrieves audit logs with pagination and search criteria.
+     * @param pageInfo the pagination info
+     * @param username the username filter
+     * @param searchKeyword the search keyword
+     * @param startDate the start date
+     * @param endDate the end date
+     * @return the list of audit log records
+     */
+    default List<AuditLog> getAuditLogList(PageInfo pageInfo, String username, String searchKeyword, String startDate, String endDate) {
+        return getAuditLogList(pageInfo, username, searchKeyword, DateRange.of(startDate, endDate, null));
+    }
+
+    default List<AuditLog> getAuditLogList(PageInfo pageInfo, String username, String searchKeyword) {
+        return getAuditLogList(pageInfo, username, searchKeyword, (DateRange)null);
+    }
 
     default List<AuditLog> getAuditLogList(PageInfo pageInfo) {
         return getAuditLogList(pageInfo, null, null);

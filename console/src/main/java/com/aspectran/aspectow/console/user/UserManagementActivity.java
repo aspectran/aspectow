@@ -21,6 +21,7 @@ import com.aspectran.aspectow.console.common.db.model.LoginHistory;
 import com.aspectran.aspectow.console.common.db.model.Permission;
 import com.aspectran.aspectow.console.common.db.model.Role;
 import com.aspectran.aspectow.console.common.db.model.User;
+import com.aspectran.aspectow.console.common.pagination.DateRange;
 import com.aspectran.aspectow.console.common.pagination.PageInfo;
 import com.aspectran.aspectow.console.common.service.UserService;
 import com.aspectran.core.activity.Translet;
@@ -39,6 +40,7 @@ import com.aspectran.web.support.util.WebUtils;
 import org.jspecify.annotations.NonNull;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -114,16 +116,18 @@ public class UserManagementActivity {
         }
 
         PageInfo pageInfo = PageInfo.of(translet, "login_history_page_size");
-        List<LoginHistory> historyList = userService.getLoginHistoryList(pageInfo, targetUsername, searchKeyword);
-        return Map.of(
-            "title", "Login History",
-            "style", "login-history-page",
-            "group", "accounts-menu",
-            "historyList", historyList,
-            "pageInfo", pageInfo,
-            "username", (targetUsername != null ? targetUsername : ""),
-            "searchKeyword", (searchKeyword != null ? searchKeyword : "")
-        );
+        DateRange dateRange = DateRange.of(translet);
+        List<LoginHistory> historyList = userService.getLoginHistoryList(pageInfo, targetUsername, searchKeyword, dateRange);
+        Map<String, Object> model = new HashMap<>();
+        model.put("title", "Login History");
+        model.put("style", "login-history-page");
+        model.put("group", "accounts-menu");
+        model.put("historyList", historyList);
+        model.put("pageInfo", pageInfo);
+        model.put("username", (targetUsername != null ? targetUsername : ""));
+        model.put("searchKeyword", (searchKeyword != null ? searchKeyword : ""));
+        model.put("dateRange", dateRange);
+        return model;
     }
 
     /**
@@ -145,16 +149,18 @@ public class UserManagementActivity {
         }
 
         PageInfo pageInfo = PageInfo.of(translet, "audit_log_page_size");
-        List<AuditLog> auditList = userService.getAuditLogList(pageInfo, targetUsername, searchKeyword);
-        return Map.of(
-            "title", "Audit Log",
-            "style", "audit-log-page",
-            "group", "accounts-menu",
-            "auditList", auditList,
-            "pageInfo", pageInfo,
-            "username", (targetUsername != null ? targetUsername : ""),
-            "searchKeyword", (searchKeyword != null ? searchKeyword : "")
-        );
+        DateRange dateRange = DateRange.of(translet);
+        List<AuditLog> auditList = userService.getAuditLogList(pageInfo, targetUsername, searchKeyword, dateRange);
+        Map<String, Object> model = new HashMap<>();
+        model.put("title", "Audit Log");
+        model.put("style", "audit-log-page");
+        model.put("group", "accounts-menu");
+        model.put("auditList", auditList);
+        model.put("pageInfo", pageInfo);
+        model.put("username", (targetUsername != null ? targetUsername : ""));
+        model.put("searchKeyword", (searchKeyword != null ? searchKeyword : ""));
+        model.put("dateRange", dateRange);
+        return model;
     }
 
     /**

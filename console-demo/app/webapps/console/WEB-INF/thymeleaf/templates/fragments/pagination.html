@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="https://www.thymeleaf.org">
+<body>
+    <!--
+      Common Pagination Fragment
+      Uses URLSearchParams to retain all existing query parameters automatically.
+    -->
+    <nav th:fragment="pagination(pageInfo)" th:if="${pageInfo != null && pageInfo.totalPages > 1}" class="pagination-container" aria-label="Page navigation">
+        <ul class="pagination justify-content-center mt-3 mb-0">
+            <!-- First -->
+            <li class="page-item" th:classappend="${pageInfo.number <= 1} ? 'disabled'">
+                <a th:if="${pageInfo.number > 1}" href="javascript:void(0)" th:onclick="|gotoPage(1)|" title="First" class="page-link">First</a>
+                <span th:unless="${pageInfo.number > 1}" title="First" class="page-link">First</span>
+            </li>
+
+            <!-- Previous (5 Pages Block) -->
+            <li class="page-item" th:classappend="${pageInfo.number <= 5} ? 'disabled'">
+                <a th:if="${pageInfo.number > 5 and pageInfo.number % 5 == 1}"
+                   href="javascript:void(0)" th:onclick="|gotoPage(${pageInfo.number - 1})|" title="Previous" class="page-link">&laquo;</a>
+                <a th:if="${pageInfo.number > 5 and pageInfo.number % 5 != 1}"
+                   href="javascript:void(0)" th:onclick="|gotoPage(${pageInfo.number - 5})|" title="Previous" class="page-link">&laquo;</a>
+                <span th:unless="${pageInfo.number > 5}" title="Previous" class="page-link">&laquo;</span>
+            </li>
+
+            <!-- Page Number Sequence (5 per block) -->
+            <li class="page-item"
+                th:if="${i <= pageInfo.totalPages}"
+                th:each="i: ${#numbers.sequence(pageInfo.number - (pageInfo.number - 1) % 5, pageInfo.number - (pageInfo.number - 1) % 5 + 4)}"
+                th:classappend="${pageInfo.number == i} ? 'active'">
+                <a th:if="${pageInfo.number != i}" href="javascript:void(0)" th:onclick="|gotoPage(${i})|" th:text="${i}" class="page-link"></a>
+                <span th:if="${pageInfo.number == i}" th:text="${i}" class="page-link"></span>
+            </li>
+
+            <!-- Next (5 Pages Block) -->
+            <li class="page-item" th:classappend="${pageInfo.number > pageInfo.totalPages - 5 && pageInfo.number >= pageInfo.totalPages - (pageInfo.totalPages - 1) % 5} ? 'disabled'">
+                <a th:if="${pageInfo.number < pageInfo.totalPages - 5 and pageInfo.number % 5 == 0}"
+                   href="javascript:void(0)" th:onclick="|gotoPage(${pageInfo.number + 1})|" title="Next" class="page-link">&raquo;</a>
+                <a th:if="${pageInfo.number < pageInfo.totalPages - 5 and pageInfo.number % 5 != 0}"
+                   href="javascript:void(0)" th:onclick="|gotoPage(${pageInfo.number + 5})|" title="Next" class="page-link">&raquo;</a>
+                <a th:if="${pageInfo.number >= pageInfo.totalPages - 5 and pageInfo.number < pageInfo.totalPages - (pageInfo.totalPages - 1) % 5}"
+                   href="javascript:void(0)" th:onclick="|gotoPage(${pageInfo.totalPages})|" title="Next" class="page-link">&raquo;</a>
+                <span th:if="${pageInfo.number >= pageInfo.totalPages - (pageInfo.totalPages - 1) % 5}" title="Next" class="page-link">&raquo;</span>
+            </li>
+
+            <!-- Last -->
+            <li class="page-item" th:classappend="${pageInfo.number >= pageInfo.totalPages} ? 'disabled'">
+                <a th:if="${pageInfo.number < pageInfo.totalPages}" href="javascript:void(0)" th:onclick="|gotoPage(${pageInfo.totalPages})|" title="Last" class="page-link">Last</a>
+                <span th:unless="${pageInfo.number < pageInfo.totalPages}" title="Last" class="page-link">Last</span>
+            </li>
+        </ul>
+        <script>
+            window.gotoPage = window.gotoPage || function(page) {
+                const urlParams = new URLSearchParams(window.location.search);
+                urlParams.set('page', page);
+                window.location.search = urlParams.toString();
+            };
+        </script>
+    </nav>
+</body>
+</html>

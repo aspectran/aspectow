@@ -187,3 +187,138 @@ if (document.readyState === 'loading') {
 } else {
     formatLocalTime();
 }
+
+/**
+ * Sets a cookie with Lax same-site attribute.
+ * @param {string} name - Cookie name
+ * @param {string} value - Cookie value
+ * @param {number} [days] - Number of days to expire
+ */
+function setCookie(name, value, days) {
+    let expires = "";
+    if (days) {
+        const date = new Date();
+        date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+        expires = "; expires=" + date.toUTCString();
+    }
+    document.cookie = name + "=" + (value || "") + expires + "; path=/; SameSite=Lax";
+}
+
+/**
+ * Gets a cookie value by name.
+ * @param {string} name - Cookie name
+ * @returns {string|null} Cookie value or null
+ */
+function getCookie(name) {
+    const nameEQ = name + "=";
+    const ca = document.cookie.split(';');
+    for (let i = 0; i < ca.length; i++) {
+        let c = ca[i];
+        while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+        if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+    }
+    return null;
+}
+
+/**
+ * Returns client IANA time zone identifier (e.g. 'Asia/Seoul').
+ * @returns {string} Client time zone
+ */
+function getClientTimeZone() {
+    try {
+        return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+    } catch (e) {
+        return 'UTC';
+    }
+}
+
+/**
+ * Calculates optimal page size based on available window height.
+ * @param {number} [reservedHeight=310]
+ * @param {number} [rowHeight=41]
+ * @returns {number} Calculated page size (5~50)
+ */
+function calculateAutoPageSize(reservedHeight = 310, rowHeight = 41) {
+    const availableHeight = window.innerHeight - reservedHeight;
+    let count = Math.floor(availableHeight / rowHeight);
+    if (count < 5) count = 5;
+    if (count > 50) count = 50;
+    return count;
+}
+
+/**
+ * Initializes and manages page size selector with cookie persistence and auto-height adaptation.
+ * @param {object} options
+ * @param {string} options.cookiePrefix - Cookie prefix (e.g. 'login_history', 'audit_log')
+ * @param {string} [options.selector='#pageSizeSelect'] - Dropdown select element selector
+ * @param {number} [options.renderedSize] - Currently rendered page size
+ * @param {number} [options.reservedHeight=310]
+ * @param {number} [options.rowHeight=41]
+ */
+function initPageSizeControl(options) {
+    if (!options || !options.cookiePrefix) return;
+    const selector = options.selector || '#pageSizeSelect';
+    const $select = $(selector);
+    if (!$select.length) return;
+
+    const sizeCookieKey = options.cookiePrefix + '_page_size';
+    const modeCookieKey = options.cookiePrefix + '_page_size_mode';
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const currentSizeParam = urlParams.get('size');
+    const renderedSize = options.renderedSize || parseInt($select.val()) || 10;
+
+    let savedMode = getCookie(modeCookieKey) || 'auto';
+    let savedSize = getCookie(sizeCookieKey);
+
+    if (currentSizeParam) {
+        if (savedMode === 'manual' && savedSize !== currentSizeParam) {
+            setCookie(sizeCookieKey, currentSizeParam, 365);
+        }
+        $select.val(savedMode === 'auto' ? 'auto' : currentSizeParam);
+    } else {
+        if (savedMode === 'auto') {
+            $select.val('auto');
+            const optimalSize = calculateAutoPageSize(options.reservedHeight, options.rowHeight);
+            if (optimalSize !== renderedSize) {
+                setCookie(sizeCookieKey, optimalSize, 365);
+                setCookie(modeCookieKey, 'auto', 365);
+                urlParams.set('size', optimalSize);
+                window.location.search = urlParams.toString();
+                return;
+            }
+        } else {
+            $select.val(renderedSize);
+        }
+    }
+
+    $select.on('change', function() {
+        const val = $(this).val();
+        if (val === 'auto') {
+            setCookie(modeCookieKey, 'auto', 365);
+            const optimalSize = calculateAutoPageSize(options.reservedHeight, options.rowHeight);
+            setCookie(sizeCookieKey, optimalSize, 365);
+            urlParams.set('size', optimalSize);
+        } else {
+            setCookie(modeCookieKey, 'manual', 365);
+            setCookie(sizeCookieKey, val, 365);
+            urlParams.set('size', val);
+        }
+        urlParams.set('page', '1');
+        window.location.search = urlParams.toString();
+    });
+}
+
+/**
+ * Navigates to a specific page number while preserving all existing query parameters
+ * and ensuring timeZone is included.
+ * @param {number} page
+ */
+function gotoPage(page) {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (!urlParams.has('timeZone')) {
+        urlParams.set('timeZone', getClientTimeZone());
+    }
+    urlParams.set('page', page);
+    window.location.search = urlParams.toString();
+}

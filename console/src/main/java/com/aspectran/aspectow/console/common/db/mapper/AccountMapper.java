@@ -160,21 +160,33 @@ public interface AccountMapper {
     int insertLoginHistory(LoginHistory history);
 
     /**
-     * Retrieves the login history for a specific user matching the search keyword.
+     * Retrieves the login history for a specific user matching the search criteria.
      * @param pageInfo the pagination info
      * @param username the username
      * @param searchKeyword the search keyword
+     * @param startDate the start date
+     * @param endDate the end date
      * @return the list of login history records
      */
-    List<LoginHistory> getLoginHistoryList(PageInfo pageInfo, String username, String searchKeyword);
+    List<LoginHistory> getLoginHistoryList(PageInfo pageInfo, String username, String searchKeyword, String startDate, String endDate);
+
+    default List<LoginHistory> getLoginHistoryList(PageInfo pageInfo, String username, String searchKeyword) {
+        return getLoginHistoryList(pageInfo, username, searchKeyword, null, null);
+    }
 
     /**
-     * Retrieves the total count of login history records matching the search keyword.
+     * Retrieves the total count of login history records matching the search criteria.
      * @param username the username
      * @param searchKeyword the search keyword
+     * @param startDate the start date
+     * @param endDate the end date
      * @return the total count
      */
-    long getLoginHistoryCount(String username, String searchKeyword);
+    long getLoginHistoryCount(String username, String searchKeyword, String startDate, String endDate);
+
+    default long getLoginHistoryCount(String username, String searchKeyword) {
+        return getLoginHistoryCount(username, searchKeyword, null, null);
+    }
 
     /**
      * Inserts a new audit log record into the database.
@@ -184,21 +196,33 @@ public interface AccountMapper {
     int insertAuditLog(AuditLog auditLog);
 
     /**
-     * Retrieves audit logs with pagination and search keyword.
+     * Retrieves audit logs with pagination and search criteria.
      * @param pageInfo the pagination info
      * @param username the username filter
      * @param searchKeyword the search keyword
+     * @param startDate the start date
+     * @param endDate the end date
      * @return the list of audit log records
      */
-    List<AuditLog> getAuditLogList(PageInfo pageInfo, String username, String searchKeyword);
+    List<AuditLog> getAuditLogList(PageInfo pageInfo, String username, String searchKeyword, String startDate, String endDate);
+
+    default List<AuditLog> getAuditLogList(PageInfo pageInfo, String username, String searchKeyword) {
+        return getAuditLogList(pageInfo, username, searchKeyword, null, null);
+    }
 
     /**
      * Retrieves total count of audit log records matching the search criteria.
      * @param username the username filter
      * @param searchKeyword the search keyword
+     * @param startDate the start date
+     * @param endDate the end date
      * @return total count
      */
-    long getAuditLogCount(String username, String searchKeyword);
+    long getAuditLogCount(String username, String searchKeyword, String startDate, String endDate);
+
+    default long getAuditLogCount(String username, String searchKeyword) {
+        return getAuditLogCount(username, searchKeyword, null, null);
+    }
 
     /**
      * Retrieves a persistent login record by its series ID.
@@ -338,13 +362,13 @@ public interface AccountMapper {
         }
 
         @Override
-        public List<LoginHistory> getLoginHistoryList(PageInfo pageInfo, String username, String searchKeyword) {
-            return mapper().getLoginHistoryList(pageInfo, username, searchKeyword);
+        public List<LoginHistory> getLoginHistoryList(PageInfo pageInfo, String username, String searchKeyword, String startDate, String endDate) {
+            return mapper().getLoginHistoryList(pageInfo, username, searchKeyword, startDate, endDate);
         }
 
         @Override
-        public long getLoginHistoryCount(String username, String searchKeyword) {
-            return mapper().getLoginHistoryCount(username, searchKeyword);
+        public long getLoginHistoryCount(String username, String searchKeyword, String startDate, String endDate) {
+            return mapper().getLoginHistoryCount(username, searchKeyword, startDate, endDate);
         }
 
         @Override
@@ -353,13 +377,13 @@ public interface AccountMapper {
         }
 
         @Override
-        public List<AuditLog> getAuditLogList(PageInfo pageInfo, String username, String searchKeyword) {
-            return mapper().getAuditLogList(pageInfo, username, searchKeyword);
+        public List<AuditLog> getAuditLogList(PageInfo pageInfo, String username, String searchKeyword, String startDate, String endDate) {
+            return mapper().getAuditLogList(pageInfo, username, searchKeyword, startDate, endDate);
         }
 
         @Override
-        public long getAuditLogCount(String username, String searchKeyword) {
-            return mapper().getAuditLogCount(username, searchKeyword);
+        public long getAuditLogCount(String username, String searchKeyword, String startDate, String endDate) {
+            return mapper().getAuditLogCount(username, searchKeyword, startDate, endDate);
         }
 
         @Override

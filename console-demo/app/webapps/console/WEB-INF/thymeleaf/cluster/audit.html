@@ -128,6 +128,7 @@
             <div class="card filter-panel">
                 <form method="get" th:action="@{/cluster/build/audit/}" class="row g-2 align-items-end">
                     <input type="hidden" name="layout" th:if="${page.layout != null}" th:value="${page.layout}">
+                    <input type="hidden" name="timeZone" id="filter-time-zone" th:value="${page.dateRange?.timeZone}">
                     <div class="col-xl-2 col-md-3 col-sm-6">
                         <label class="form-label small text-muted mb-1">Target Node</label>
                         <select name="nodeId" class="form-select form-select-sm">
@@ -164,9 +165,9 @@
                             </div>
                         </div>
                         <div class="input-group input-group-sm">
-                            <input type="date" name="startDate" id="filter-start-date" class="form-control" th:value="${page.startDate}" title="Start Date">
+                            <input type="date" name="startDate" id="filter-start-date" class="form-control" th:value="${page.dateRange?.startDate}" title="Start Date">
                             <span class="input-group-text bg-body-tertiary text-muted">~</span>
-                            <input type="date" name="endDate" id="filter-end-date" class="form-control" th:value="${page.endDate}" title="End Date">
+                            <input type="date" name="endDate" id="filter-end-date" class="form-control" th:value="${page.dateRange?.endDate}" title="End Date">
                         </div>
                     </div>
                     <div class="col-xl-4 col-md-9 col-sm-8">
@@ -274,20 +275,7 @@
             </div>
 
             <!-- Pagination -->
-            <div th:if="${page.pageInfo != null && page.pageInfo.totalPages > 1}" class="d-flex justify-content-between align-items-center mt-3">
-                <span class="small text-muted" th:text="'Total ' + ${page.pageInfo.totalElements} + ' records (Page ' + ${page.pageInfo.number} + ' of ' + ${page.pageInfo.totalPages} + ')'"></span>
-                <ul class="pagination pagination-sm mb-0 d-print-none">
-                    <li class="page-item" th:classappend="${page.pageInfo.number <= 1} ? 'disabled'">
-                        <a class="page-link" th:href="@{/cluster/build/audit/(page=${page.pageInfo.number - 1}, nodeId=${page.targetNodeId}, status=${page.status}, q=${page.searchKeyword}, startDate=${page.startDate}, endDate=${page.endDate}, layout=${page.layout})}">Previous</a>
-                    </li>
-                    <li class="page-item active">
-                        <span class="page-link" th:text="${page.pageInfo.number}">1</span>
-                    </li>
-                    <li class="page-item" th:classappend="${page.pageInfo.number >= page.pageInfo.totalPages} ? 'disabled'">
-                        <a class="page-link" th:href="@{/cluster/build/audit/(page=${page.pageInfo.number + 1}, nodeId=${page.targetNodeId}, status=${page.status}, q=${page.searchKeyword}, startDate=${page.startDate}, endDate=${page.endDate}, layout=${page.layout})}">Next</a>
-                    </li>
-                </ul>
-            </div>
+            <th:block th:replace="~{templates/fragments/pagination :: pagination(${page.pageInfo})}"></th:block>
 
             <div th:if="${page.layout == 'popup'}" class="d-flex justify-content-end mt-3 pt-3 border-top d-print-none">
                 <button type="button" class="btn btn-secondary btn-sm" onclick="window.close()">Close</button>
@@ -359,7 +347,7 @@
                         searchParams.delete(key);
                     }
                 }
-                searchParams.set('timeZone', Intl.DateTimeFormat().resolvedOptions().timeZone);
+                searchParams.set('timeZone', getClientTimeZone());
                 url.search = searchParams.toString();
                 location.href = url.href;
             }
@@ -386,6 +374,11 @@
                     const d = new Date();
                     d.setDate(d.getDate() - 30);
                     startInput.value = formatDate(d);
+                }
+                const form = document.querySelector('.filter-panel form');
+                if (form) {
+                    $('#filter-time-zone').val(getClientTimeZone());
+                    form.submit();
                 }
             }
 
@@ -617,6 +610,18 @@
             }
 
             $(function() {
+                $('.filter-panel form').on('submit', function() {
+                    $('#filter-time-zone').val(getClientTimeZone());
+                });
+
+                $('#filter-start-date, #filter-end-date').on('change', function() {
+                    const form = document.querySelector('.filter-panel form');
+                    if (form) {
+                        $('#filter-time-zone').val(getClientTimeZone());
+                        form.submit();
+                    }
+                });
+
                 try {
                     const savedShowLineNumbers = localStorage.getItem('buildConsole_showLineNumbers');
                     if (savedShowLineNumbers !== null) {

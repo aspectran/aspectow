@@ -15,7 +15,9 @@
  */
 package com.aspectran.aspectow.console.build.audit;
 
+import com.aspectran.aspectow.console.common.pagination.DateRange;
 import com.aspectran.aspectow.console.common.pagination.PageInfo;
+import org.jspecify.annotations.Nullable;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -40,11 +42,7 @@ public class BuildAuditQuery implements Serializable {
 
     private String searchKeyword;
 
-    private String startDate;
-
-    private String endDate;
-
-    private String timeZone;
+    private DateRange dateRange;
 
     private PageInfo pageInfo;
 
@@ -129,81 +127,59 @@ public class BuildAuditQuery implements Serializable {
     }
 
     /**
-     * Returns the start date string for time-range filtering.
-     * @return the start date string
+     * Returns the date range criteria for time-range filtering.
+     * @return the date range, or null if not set
      */
-    public String getStartDate() {
-        return startDate;
+    @Nullable
+    public DateRange getDateRange() {
+        return dateRange;
     }
 
     /**
-     * Sets the start date string for time-range filtering.
-     * @param startDate the start date string
+     * Sets the date range criteria for time-range filtering.
+     * @param dateRange the date range
      */
-    public void setStartDate(String startDate) {
-        this.startDate = startDate;
+    public void setDateRange(DateRange dateRange) {
+        this.dateRange = dateRange;
     }
 
     /**
-     * Returns the end date string for time-range filtering.
-     * @return the end date string
+     * Sets the date range criteria using start and end date strings.
+     * @param startDate the start date string (e.g. yyyy-MM-dd)
+     * @param endDate the end date string (e.g. yyyy-MM-dd)
      */
-    public String getEndDate() {
-        return endDate;
+    public void setDateRange(String startDate, String endDate) {
+        this.dateRange = (startDate != null || endDate != null)
+                ? DateRange.of(startDate, endDate, null)
+                : null;
     }
 
     /**
-     * Sets the end date string for time-range filtering.
-     * @param endDate the end date string
+     * Sets the date range criteria using start date, end date, and time zone.
+     * @param startDate the start date string (e.g. yyyy-MM-dd)
+     * @param endDate the end date string (e.g. yyyy-MM-dd)
+     * @param timeZone the client time zone ID
      */
-    public void setEndDate(String endDate) {
-        this.endDate = endDate;
+    public void setDateRange(String startDate, String endDate, String timeZone) {
+        this.dateRange = (startDate != null || endDate != null || timeZone != null)
+                ? DateRange.of(startDate, endDate, timeZone)
+                : null;
     }
 
     /**
-     * Returns the normalized start datetime string (e.g. yyyy-MM-dd 00:00:00) for SQL timestamp comparison.
+     * Returns the normalized start datetime string (e.g. yyyy-MM-dd HH:mm:ss in UTC) for SQL timestamp comparison.
      * @return the start datetime string
      */
     public String getStartDateTime() {
-        if (startDate != null && !startDate.isBlank()) {
-            String trimmed = startDate.trim();
-            if (trimmed.length() == 10) {
-                return trimmed + " 00:00:00";
-            }
-            return trimmed;
-        }
-        return null;
+        return (dateRange != null ? dateRange.getStartUtc() : null);
     }
 
     /**
-     * Returns the normalized end datetime string (e.g. yyyy-MM-dd 23:59:59) for SQL timestamp comparison.
+     * Returns the normalized end datetime string (e.g. yyyy-MM-dd HH:mm:ss in UTC) for SQL timestamp comparison.
      * @return the end datetime string
      */
     public String getEndDateTime() {
-        if (endDate != null && !endDate.isBlank()) {
-            String trimmed = endDate.trim();
-            if (trimmed.length() == 10) {
-                return trimmed + " 23:59:59";
-            }
-            return trimmed;
-        }
-        return null;
-    }
-
-    /**
-     * Returns the client time zone ID.
-     * @return the time zone ID
-     */
-    public String getTimeZone() {
-        return timeZone;
-    }
-
-    /**
-     * Sets the client time zone ID.
-     * @param timeZone the time zone ID
-     */
-    public void setTimeZone(String timeZone) {
-        this.timeZone = timeZone;
+        return (dateRange != null ? dateRange.getEndUtc() : null);
     }
 
     /**

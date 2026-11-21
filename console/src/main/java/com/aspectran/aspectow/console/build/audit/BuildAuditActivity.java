@@ -16,6 +16,7 @@
 package com.aspectran.aspectow.console.build.audit;
 
 import com.aspectran.aspectow.console.cluster.NodeConsoleHelper;
+import com.aspectran.aspectow.console.common.pagination.DateRange;
 import com.aspectran.aspectow.console.common.pagination.PageInfo;
 import com.aspectran.aspectow.node.manager.NodeManager;
 import com.aspectran.core.activity.Translet;
@@ -88,15 +89,13 @@ public class BuildAuditActivity {
         String targetNodeId = translet.getParameter("nodeId");
         String status = translet.getParameter("status");
         String searchKeyword = translet.getParameter("q");
-        String startDate = translet.getParameter("startDate");
-        String endDate = translet.getParameter("endDate");
+        DateRange dateRange = DateRange.of(translet);
 
         BuildAuditQuery query = new BuildAuditQuery();
         query.setTargetNodeId(targetNodeId);
         query.setStatus(status);
         query.setSearchKeyword(searchKeyword);
-        query.setStartDate(startDate);
-        query.setEndDate(endDate);
+        query.setDateRange(dateRange);
 
         PageInfo pageInfo = PageInfo.of(translet, 15);
         long totalCount = buildAuditService.countHistory(query);
@@ -122,8 +121,7 @@ public class BuildAuditActivity {
         model.put("targetNodeId", targetNodeId);
         model.put("status", status);
         model.put("searchKeyword", searchKeyword);
-        model.put("startDate", startDate);
-        model.put("endDate", endDate);
+        model.put("dateRange", dateRange);
         return model;
     }
 
@@ -140,8 +138,7 @@ public class BuildAuditActivity {
             String scriptName = translet.getParameter("scriptName");
             String requester = translet.getParameter("requester");
             String searchKeyword = translet.getParameter("q");
-            String startDate = translet.getParameter("startDate");
-            String endDate = translet.getParameter("endDate");
+            DateRange dateRange = DateRange.of(translet);
 
             BuildAuditQuery query = new BuildAuditQuery();
             query.setTargetNodeId(targetNodeId);
@@ -149,8 +146,7 @@ public class BuildAuditActivity {
             query.setScriptName(scriptName);
             query.setRequester(requester);
             query.setSearchKeyword(searchKeyword);
-            query.setStartDate(startDate);
-            query.setEndDate(endDate);
+            query.setDateRange(dateRange);
 
             PageInfo pageInfo = PageInfo.of(translet, 15);
             long totalCount = buildAuditService.countHistory(query);
@@ -238,17 +234,13 @@ public class BuildAuditActivity {
         String targetNodeId = translet.getParameter("nodeId");
         String status = translet.getParameter("status");
         String searchKeyword = translet.getParameter("q");
-        String startDate = translet.getParameter("startDate");
-        String endDate = translet.getParameter("endDate");
-        String timeZone = translet.getParameter("timeZone");
+        DateRange dateRange = DateRange.of(translet);
 
         BuildAuditQuery query = new BuildAuditQuery();
         query.setTargetNodeId(targetNodeId);
         query.setStatus(status);
         query.setSearchKeyword(searchKeyword);
-        query.setStartDate(startDate);
-        query.setEndDate(endDate);
-        query.setTimeZone(timeZone);
+        query.setDateRange(dateRange);
 
         String csvData = buildAuditService.exportCsvReport(query);
 

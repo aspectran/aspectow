@@ -484,14 +484,8 @@ public class BuildAuditService extends InstantActivitySupport {
         return executeInActivity(() -> {
             List<BuildHistory> list = buildHistoryMapper.searchBuildHistory(query);
             ZoneId zoneId = ZoneOffset.UTC;
-            if (query != null && query.getTimeZone() != null) {
-                try {
-                    zoneId = ZoneId.of(query.getTimeZone());
-                } catch (Exception e) {
-                    if (logger.isDebugEnabled()) {
-                        logger.debug("Invalid time zone: {}", query.getTimeZone());
-                    }
-                }
+            if (query != null && query.getDateRange() != null) {
+                zoneId = query.getDateRange().getZoneId();
             }
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 

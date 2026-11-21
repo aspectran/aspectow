@@ -343,8 +343,7 @@ class BuildAuditServiceTest {
 
             // Query with date range: 2026-11-10 ~ 2026-11-20
             BuildAuditQuery rangeQuery = new BuildAuditQuery();
-            rangeQuery.setStartDate("2026-11-10");
-            rangeQuery.setEndDate("2026-11-20");
+            rangeQuery.setDateRange("2026-11-10", "2026-11-20");
 
             assertEquals("2026-11-10 00:00:00", rangeQuery.getStartDateTime());
             assertEquals("2026-11-20 23:59:59", rangeQuery.getEndDateTime());

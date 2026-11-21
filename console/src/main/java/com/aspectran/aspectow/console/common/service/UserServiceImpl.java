@@ -21,6 +21,7 @@ import com.aspectran.aspectow.console.common.db.model.LoginHistory;
 import com.aspectran.aspectow.console.common.db.model.Permission;
 import com.aspectran.aspectow.console.common.db.model.Role;
 import com.aspectran.aspectow.console.common.db.model.User;
+import com.aspectran.aspectow.console.common.pagination.DateRange;
 import com.aspectran.aspectow.console.common.pagination.PageInfo;
 import com.aspectran.aspectow.console.notification.NotificationService;
 import com.aspectran.core.component.bean.annotation.Autowired;
@@ -248,12 +249,19 @@ public class UserServiceImpl implements UserService, EnvironmentAware {
     }
 
     @Override
-    public List<LoginHistory> getLoginHistoryList(PageInfo pageInfo, String username, String searchKeyword) {
-        List<LoginHistory> historyList = accountMapper.getLoginHistoryList(pageInfo, username, searchKeyword);
+    public List<LoginHistory> getLoginHistoryList(PageInfo pageInfo, String username, String searchKeyword, DateRange dateRange) {
+        String startUtc = (dateRange != null ? dateRange.getStartUtc() : null);
+        String endUtc = (dateRange != null ? dateRange.getEndUtc() : null);
+        List<LoginHistory> historyList = accountMapper.getLoginHistoryList(pageInfo, username, searchKeyword, startUtc, endUtc);
         if (pageInfo != null) {
-            pageInfo.setTotalElements(historyList.size(), () -> accountMapper.getLoginHistoryCount(username, searchKeyword));
+            pageInfo.setTotalElements(historyList.size(), () -> accountMapper.getLoginHistoryCount(username, searchKeyword, startUtc, endUtc));
         }
         return historyList;
+    }
+
+    @Override
+    public List<LoginHistory> getLoginHistoryList(PageInfo pageInfo, String username, String searchKeyword, String startDate, String endDate) {
+        return getLoginHistoryList(pageInfo, username, searchKeyword, DateRange.of(startDate, endDate, null));
     }
 
     @Override
@@ -301,12 +309,24 @@ public class UserServiceImpl implements UserService, EnvironmentAware {
     }
 
     @Override
-    public List<AuditLog> getAuditLogList(PageInfo pageInfo, String username, String searchKeyword) {
-        List<AuditLog> auditList = accountMapper.getAuditLogList(pageInfo, username, searchKeyword);
+    public List<AuditLog> getAuditLogList(PageInfo pageInfo, String username, String searchKeyword, DateRange dateRange) {
+        String startUtc = (dateRange != null ? dateRange.getStartUtc() : null);
+        String endUtc = (dateRange != null ? dateRange.getEndUtc() : null);
+        List<AuditLog> auditList = accountMapper.getAuditLogList(pageInfo, username, searchKeyword, startUtc, endUtc);
         if (pageInfo != null) {
-            pageInfo.setTotalElements(auditList.size(), () -> accountMapper.getAuditLogCount(username, searchKeyword));
+            pageInfo.setTotalElements(auditList.size(), () -> accountMapper.getAuditLogCount(username, searchKeyword, startUtc, endUtc));
         }
         return auditList;
+    }
+
+    @Override
+    public List<AuditLog> getAuditLogList(PageInfo pageInfo, String username, String searchKeyword, String startDate, String endDate) {
+        return getAuditLogList(pageInfo, username, searchKeyword, DateRange.of(startDate, endDate, null));
+    }
+
+    @Override
+    public List<AuditLog> getAuditLogList(PageInfo pageInfo, String username, String searchKeyword) {
+        return getAuditLogList(pageInfo, username, searchKeyword, (DateRange)null);
     }
 
 }

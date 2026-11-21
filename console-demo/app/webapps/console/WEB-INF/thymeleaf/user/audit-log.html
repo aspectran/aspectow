@@ -14,24 +14,35 @@
             </h3>
         </div>
         <div class="d-flex flex-wrap justify-content-end align-items-center gap-2">
-            <div class="d-flex flex-wrap justify-content-end align-items-center gap-2">
-                <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle fw-semibold text-nowrap me-2" id="total-audit-count" th:text="${page.pageInfo != null ? page.pageInfo.totalElements : (#lists.size(page.auditList))} + ' Records'">0 Records</span>
-                <div class="input-group input-group-sm" style="width: 180px;">
-                    <span class="input-group-text cursor-pointer" onclick="performSearch()"><i class="bi bi-search"></i></span>
-                    <input type="text" id="audit-search" class="form-control" placeholder="Search..." th:value="${page.searchKeyword}">
-                    <button th:if="${!#strings.isEmpty(page.searchKeyword)}" class="btn btn-outline-secondary" type="button" onclick="clearSearch()" title="Clear search">
-                        <i class="bi bi-x"></i>
-                    </button>
-                </div>
-                <select class="form-select form-select-sm" id="pageSizeSelect" style="width: auto;">
-                    <option value="auto">Auto</option>
-                    <option value="10">10 / page</option>
-                    <option value="20">20 / page</option>
-                    <option value="30">30 / page</option>
-                    <option value="50">50 / page</option>
-                    <option value="100">100 / page</option>
-                </select>
+            <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle fw-semibold text-nowrap me-1" id="total-audit-count" th:text="${page.pageInfo != null ? page.pageInfo.totalElements : (#lists.size(page.auditList))} + ' Records'">0 Records</span>
+            <div class="btn-group btn-group-sm" role="group" aria-label="Quick Period">
+                <button type="button" class="btn btn-outline-secondary" onclick="setPeriodPreset('today')">Today</button>
+                <button type="button" class="btn btn-outline-secondary" onclick="setPeriodPreset('7d')">7D</button>
+                <button type="button" class="btn btn-outline-secondary" onclick="setPeriodPreset('30d')">30D</button>
             </div>
+            <div class="input-group input-group-sm" style="width: 250px;">
+                <input type="date" id="audit-start-date" class="form-control" th:value="${page.dateRange?.startDate}" title="Start Date">
+                <span class="input-group-text bg-body-tertiary text-muted">~</span>
+                <input type="date" id="audit-end-date" class="form-control" th:value="${page.dateRange?.endDate}" title="End Date">
+                <button th:if="${page.dateRange != null && page.dateRange.hasValue()}" class="btn btn-outline-secondary" type="button" onclick="clearDateRange()" title="Clear date range">
+                    <i class="bi bi-x"></i>
+                </button>
+            </div>
+            <div class="input-group input-group-sm" style="width: 180px;">
+                <span class="input-group-text cursor-pointer" onclick="performSearch()"><i class="bi bi-search"></i></span>
+                <input type="text" id="audit-search" class="form-control" placeholder="Search..." th:value="${page.searchKeyword}">
+                <button th:if="${!#strings.isEmpty(page.searchKeyword)}" class="btn btn-outline-secondary" type="button" onclick="clearSearch()" title="Clear search">
+                    <i class="bi bi-x"></i>
+                </button>
+            </div>
+            <select class="form-select form-select-sm w-auto" id="pageSizeSelect">
+                <option value="auto">Auto</option>
+                <option value="10">10 / page</option>
+                <option value="20">20 / page</option>
+                <option value="30">30 / page</option>
+                <option value="50">50 / page</option>
+                <option value="100">100 / page</option>
+            </select>
             <div th:if="${!#strings.isEmpty(page.username)}">
                 <a th:href="@{/user/audit-log(size=${page.pageInfo.size})}" class="btn btn-outline-secondary btn-sm text-nowrap">Show All</a>
             </div>
@@ -80,80 +91,32 @@
     </div>
 
     <!-- Pagination -->
-    <nav th:if="${page.pageInfo.totalPages > 1}" aria-label="Page navigation">
-        <ul class="pagination justify-content-center mt-3 mb-0">
-            <li class="page-item">
-                <a th:if="${page.pageInfo.number > 1}" th:href="@{/user/audit-log(page=1, size=${page.pageInfo.size}, username=${#strings.isEmpty(page.username) ? null : page.username}, searchKeyword=${#strings.isEmpty(page.searchKeyword) ? null : page.searchKeyword})}" title="First"
-                   class="page-link">First</a>
-                <span th:unless="${page.pageInfo.number > 1}" title="First" class="page-link disabled">First</span>
-            </li>
-            <li class="page-item">
-                <a th:if="${page.pageInfo.number > 5 and page.pageInfo.number % 5 == 1}"
-                   th:href="@{/user/audit-log(page=${page.pageInfo.number - 1}, size=${page.pageInfo.size}, username=${#strings.isEmpty(page.username) ? null : page.username}, searchKeyword=${#strings.isEmpty(page.searchKeyword) ? null : page.searchKeyword})}" title="Previous"
-                   class="page-link">&laquo;</a>
-                <a th:if="${page.pageInfo.number > 5 and page.pageInfo.number % 5 != 1}"
-                   th:href="@{/user/audit-log(page=${page.pageInfo.number - 5}, size=${page.pageInfo.size}, username=${#strings.isEmpty(page.username) ? null : page.username}, searchKeyword=${#strings.isEmpty(page.searchKeyword) ? null : page.searchKeyword})}" title="Previous"
-                   class="page-link">&laquo;</a>
-                <span th:unless="${page.pageInfo.number > 5}" title="Previous" class="page-link disabled">&laquo;</span>
-            </li>
-            <li class="page-item"
-                th:if="${i <= page.pageInfo.totalPages}"
-                th:each="i: ${#numbers.sequence(page.pageInfo.number - (page.pageInfo.number - 1) % 5, page.pageInfo.number - (page.pageInfo.number - 1) % 5 + 4)}">
-                <a th:if="${page.pageInfo.number != i}" th:href="@{/user/audit-log(page=${i}, size=${page.pageInfo.size}, username=${#strings.isEmpty(page.username) ? null : page.username}, searchKeyword=${#strings.isEmpty(page.searchKeyword) ? null : page.searchKeyword})}"
-                   th:text="${i}" class="page-link"></a>
-                <span th:if="${page.pageInfo.number == i}" th:text="${i}" class="page-link active"></span>
-            </li>
-            <li class="page-item">
-                <a th:if="${page.pageInfo.number < page.pageInfo.totalPages - 5 and page.pageInfo.number % 5 == 0}"
-                   th:href="@{/user/audit-log(page=${page.pageInfo.number + 1}, size=${page.pageInfo.size}, username=${#strings.isEmpty(page.username) ? null : page.username}, searchKeyword=${#strings.isEmpty(page.searchKeyword) ? null : page.searchKeyword})}"
-                   title="Next" class="page-link">&raquo;</a>
-                <a th:if="${page.pageInfo.number < page.pageInfo.totalPages - 5 and page.pageInfo.number % 5 != 0}"
-                   th:href="@{/user/audit-log(page=${page.pageInfo.number + 5}, size=${page.pageInfo.size}, username=${#strings.isEmpty(page.username) ? null : page.username}, searchKeyword=${#strings.isEmpty(page.searchKeyword) ? null : page.searchKeyword})}"
-                   title="Next" class="page-link">&raquo;</a>
-                <a th:if="${page.pageInfo.number >= page.pageInfo.totalPages - 5 and page.pageInfo.number < page.pageInfo.totalPages - (page.pageInfo.totalPages - 1) % 5}"
-                   th:href="@{/user/audit-log(page=${page.pageInfo.totalPages}, size=${page.pageInfo.size}, username=${#strings.isEmpty(page.username) ? null : page.username}, searchKeyword=${#strings.isEmpty(page.searchKeyword) ? null : page.searchKeyword})}" title="Next" class="page-link">&raquo;</a>
-                <span th:if="${page.pageInfo.number >= page.pageInfo.totalPages - (page.pageInfo.totalPages - 1) % 5}" title="Next" class="page-link disabled">&raquo;</span>
-            </li>
-            <li class="page-item">
-                <a th:if="${page.pageInfo.number < page.pageInfo.totalPages}" th:href="@{/user/audit-log(page=${page.pageInfo.totalPages}, size=${page.pageInfo.size}, username=${#strings.isEmpty(page.username) ? null : page.username}, searchKeyword=${#strings.isEmpty(page.searchKeyword) ? null : page.searchKeyword})}"
-                   title="Last" class="page-link">Last</a>
-                <span th:unless="${page.pageInfo.number < page.pageInfo.totalPages}" title="Last" class="page-link disabled">Last</span>
-            </li>
-        </ul>
-    </nav>
+    <th:block th:replace="~{templates/fragments/pagination :: pagination(${page.pageInfo})}"></th:block>
 </th:block>
 
 <th:block layout:fragment="script">
     <script th:inline="javascript">
-        function setCookie(name, value, days) {
-            let expires = "";
-            if (days) {
-                const date = new Date();
-                date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-                expires = "; expires=" + date.toUTCString();
-            }
-            document.cookie = name + "=" + (value || "")  + expires + "; path=/; SameSite=Lax";
-        }
-
-        function getCookie(name) {
-            const nameEQ = name + "=";
-            const ca = document.cookie.split(';');
-            for(let i=0; i < ca.length; i++) {
-                let c = ca[i];
-                while (c.charAt(0) === ' ') c = c.substring(1, c.length);
-                if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
-            }
-            return null;
-        }
-
         function performSearch() {
             const query = $.trim($('#audit-search').val());
+            const startDate = $('#audit-start-date').val();
+            const endDate = $('#audit-end-date').val();
             const urlParams = new URLSearchParams(window.location.search);
             if (query) {
                 urlParams.set('searchKeyword', query);
             } else {
                 urlParams.delete('searchKeyword');
             }
+            if (startDate) {
+                urlParams.set('startDate', startDate);
+            } else {
+                urlParams.delete('startDate');
+            }
+            if (endDate) {
+                urlParams.set('endDate', endDate);
+            } else {
+                urlParams.delete('endDate');
+            }
+            urlParams.set('timeZone', getClientTimeZone());
             urlParams.set('page', '1');
             window.location.search = urlParams.toString();
         }
@@ -165,85 +128,54 @@
             window.location.search = urlParams.toString();
         }
 
+        function clearDateRange() {
+            $('#audit-start-date').val('');
+            $('#audit-end-date').val('');
+            performSearch();
+        }
+
+        function setPeriodPreset(preset) {
+            const startInput = document.getElementById('audit-start-date');
+            const endInput = document.getElementById('audit-end-date');
+            if (!startInput || !endInput) return;
+            const today = new Date();
+            const formatDate = (d) => {
+                const year = d.getFullYear();
+                const month = String(d.getMonth() + 1).padStart(2, '0');
+                const day = String(d.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            };
+            endInput.value = formatDate(today);
+            if (preset === 'today') {
+                startInput.value = formatDate(today);
+            } else if (preset === '7d') {
+                const d = new Date();
+                d.setDate(d.getDate() - 7);
+                startInput.value = formatDate(d);
+            } else if (preset === '30d') {
+                const d = new Date();
+                d.setDate(d.getDate() - 30);
+                startInput.value = formatDate(d);
+            }
+            performSearch();
+        }
+
         $(function() {
+            initPageSizeControl({
+                cookiePrefix: 'audit_log',
+                renderedSize: [[${page.pageInfo.size}]]
+            });
+
             $('#audit-search').on('keydown', function(e) {
                 if (e.key === 'Enter') {
                     e.preventDefault();
                     performSearch();
                 }
             });
-            const sizeCookieKey = 'audit_log_page_size';
-            const modeCookieKey = 'audit_log_page_size_mode';
-            
-            const urlParams = new URLSearchParams(window.location.search);
-            const currentSizeParam = urlParams.get('size');
-            const currentUsername = [[${page.username}]];
-            const renderedSize = [[${page.pageInfo.size}]];
-            
-            let savedMode = getCookie(modeCookieKey) || 'auto';
-            let savedSize = getCookie(sizeCookieKey);
-
-            if (currentSizeParam) {
-                if (savedMode === 'manual') {
-                    if (savedSize !== currentSizeParam) {
-                        setCookie(sizeCookieKey, currentSizeParam, 365);
-                    }
-                }
-                $('#pageSizeSelect').val(savedMode === 'auto' ? 'auto' : currentSizeParam);
-            } else {
-                if (savedMode === 'auto') {
-                    $('#pageSizeSelect').val('auto');
-                    
-                    const optimalSize = calculateAutoPageSize();
-                    if (optimalSize !== renderedSize) {
-                        setCookie(sizeCookieKey, optimalSize, 365);
-                        setCookie(modeCookieKey, 'auto', 365);
-                        
-                        urlParams.set('size', optimalSize);
-                        if (currentUsername) {
-                            urlParams.set('username', currentUsername);
-                        }
-                        window.location.search = urlParams.toString();
-                        return;
-                    }
-                } else {
-                    $('#pageSizeSelect').val(renderedSize);
-                }
-            }
-
-            $('#pageSizeSelect').on('change', function() {
-                const val = $(this).val();
-                
-                if (val === 'auto') {
-                    setCookie(modeCookieKey, 'auto', 365);
-                    const optimalSize = calculateAutoPageSize();
-                    setCookie(sizeCookieKey, optimalSize, 365);
-                    urlParams.set('size', optimalSize);
-                } else {
-                    setCookie(modeCookieKey, 'manual', 365);
-                    setCookie(sizeCookieKey, val, 365);
-                    urlParams.set('size', val);
-                }
-                
-                urlParams.set('page', '1');
-                if (currentUsername) {
-                    urlParams.set('username', currentUsername);
-                } else {
-                    urlParams.delete('username');
-                }
-                window.location.search = urlParams.toString();
+            $('#audit-start-date, #audit-end-date').on('change', function() {
+                performSearch();
             });
         });
-
-        function calculateAutoPageSize() {
-            const reservedHeight = 310;
-            const rowHeight = 41;
-            const availableHeight = window.innerHeight - reservedHeight;
-            let count = Math.floor(availableHeight / rowHeight);
-            if (count < 5) count = 5;
-            if (count > 50) count = 50;
-            return count;
-        }
     </script>
 </th:block>
 </body>
