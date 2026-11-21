@@ -18,7 +18,7 @@
  * WebSocket implementation of the AppMon client.
  * In Gateway Mode, it manages a single physical connection for the entire cluster.
  *
- * @version 4.3
+ * @version 4.4
  * @last-modified 2026-11-21
  */
 class WebsocketClient extends BaseClient {

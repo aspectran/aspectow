@@ -18,7 +18,7 @@
  * The base class for AppMon communication clients.
  * Provides common functionality for connection management and retries.
  *
- * @version 4.3
+ * @version 4.4
  * @last-modified 2026-11-21
  */
 class BaseClient {
@@ -328,7 +328,7 @@ class BaseClient {
  * WebSocket implementation of the AppMon client.
  * In Gateway Mode, it manages a single physical connection for the entire cluster.
  *
- * @version 4.3
+ * @version 4.4
  * @last-modified 2026-11-21
  */
 class WebsocketClient extends BaseClient {
@@ -656,7 +656,7 @@ class WebsocketClient extends BaseClient {
 /**
  * HTTP Polling implementation of the AppMon client.
  *
- * @version 4.3
+ * @version 4.4
  * @last-modified 2026-11-16
  */
 class PollingClient extends BaseClient {
@@ -944,7 +944,7 @@ class PollingClient extends BaseClient {
  * Advanced Canvas-based particle engine for AppMon traffic visualization.
  * Handles tab visibility to prevent "bullet bursts" when returning to the tab.
  *
- * @version 4.3
+ * @version 4.4
  * @last-modified 2026-10-30
  */
 class TrafficPainter {
@@ -1452,7 +1452,7 @@ class TrafficPainter {
  * The chart component for the AppMon dashboard.
  * Responsible for rendering and updating individual charts using Chart.js.
  *
- * @version 4.3
+ * @version 4.4
  * @last-modified 2026-11-04
  */
 class DashboardChart {
@@ -2475,7 +2475,7 @@ class DashboardChart {
  * The viewer component for the AppMon dashboard.
  * Responsible for rendering monitoring data, including logs, metrics, and charts.
  *
- * @version 4.3
+ * @version 4.4
  * @last-modified 2026-11-07
  */
 class DashboardViewer {
@@ -3830,7 +3830,7 @@ class DashboardViewer {
  * Dedicated to managing real-time node and application metrics,
  * sparkline history charts, and metric detail popovers.
  *
- * @version 4.3
+ * @version 4.4
  * @last-modified 2026-10-09
  */
 class MetricsViewer {
@@ -4366,7 +4366,7 @@ class MetricsViewer {
  * The builder component for the AppMon dashboard.
  * Responsible for assembling the dashboard UI based on configuration data.
  *
- * @version 4.3
+ * @version 4.4
  * @last-modified 2026-11-07
  */
 class DashboardBuilder {

@@ -18,7 +18,7 @@
  * The builder component for the AppMon dashboard.
  * Responsible for assembling the dashboard UI based on configuration data.
  *
- * @version 4.3
+ * @version 4.4
  * @last-modified 2026-11-07
  */
 class DashboardBuilder {

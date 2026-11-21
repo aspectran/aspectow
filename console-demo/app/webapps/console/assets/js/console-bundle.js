@@ -14,6 +14,11 @@
  * limitations under the License.
  */
 
+/*
+ * @version 4.4
+ * @last-modified 2026-11-21
+ */
+
 /**
  * Parses various date value representations (ISO string, epochSecond object,
  * timestamp number, or Dayjs/Date) into a Day.js instance in the client's local time zone.
@@ -1056,7 +1061,7 @@ function highlightApon(text) {
  * ConsoleClient provides a unified interface for real-time communication with Console activities,
  * automatically falling back to HTTP long-polling if WebSockets are unavailable.
  *
- * @version 4.3
+ * @version 4.4
  * @last-modified 2026-11-21
  */
 class ConsoleClient {

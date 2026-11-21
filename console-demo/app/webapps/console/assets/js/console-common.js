@@ -14,6 +14,11 @@
  * limitations under the License.
  */
 
+/*
+ * @version 4.4
+ * @last-modified 2026-11-21
+ */
+
 /**
  * Parses various date value representations (ISO string, epochSecond object,
  * timestamp number, or Dayjs/Date) into a Day.js instance in the client's local time zone.

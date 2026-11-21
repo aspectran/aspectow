@@ -19,7 +19,7 @@
  * Provides common functionality for connection management and retries.
  *
  * @version 4.3
- * @last-modified 2026-11-21
+ * @last-modified 2026-10-28
  */
 class BaseClient {
     constructor(node, viewer, onSubscribed, onClosed, onFailed, isGatewayMode) {
@@ -49,10 +49,8 @@ class BaseClient {
         this.lastResumeReconnect = 0;
         this.stopped = false;
         this.destroyed = false;
-        this.unloading = false;
 
         this.handleResume = () => {
-            this.unloading = false;
             if (this.destroyed || this.stopped) {
                 return;
             }
@@ -66,21 +64,12 @@ class BaseClient {
             }
             this.onResume();
         };
-        this.handlePageHide = () => {
-            this.unloading = true;
-            if (this.retryTimer) {
-                clearTimeout(this.retryTimer);
-                this.retryTimer = null;
-            }
-        };
 
         if (typeof document !== "undefined") {
             document.addEventListener("visibilitychange", this.handleResume);
         }
         if (typeof window !== "undefined") {
-            window.addEventListener("beforeunload", this.handlePageHide);
             window.addEventListener("pageshow", this.handleResume);
-            window.addEventListener("pagehide", this.handlePageHide);
             window.addEventListener("focus", this.handleResume);
             window.addEventListener("online", this.handleOnline);
         }
@@ -176,6 +165,39 @@ class BaseClient {
     }
 
     /**
+     * Checks if the client is currently connected.
+     * @returns {boolean}
+     */
+    isConnected() {
+        return false;
+    }
+
+    getConnectedNodeId() {
+        return this.connectedNodeId || (this.node ? this.node.id : null);
+    }
+
+    setConnectedNodeId(nodeId) {
+        this.connectedNodeId = nodeId;
+    }
+
+    /**
+     * Called when the page becomes visible or active again (e.g. after returning from mobile background).
+     */
+    onResume() {
+        if (this.destroyed || this.stopped) {
+            return;
+        }
+        if (!this.isConnected()) {
+            if (this.lastResumeReconnect && (Date.now() - this.lastResumeReconnect < 500)) {
+                return;
+            }
+            this.lastResumeReconnect = Date.now();
+            console.log(this.getConnectedNodeId(), "app/page resumed, attempting immediate reconnect");
+            this.reconnect(true);
+        }
+    }
+
+    /**
      * Stops the client connection.
      */
     stop() {
@@ -196,45 +218,9 @@ class BaseClient {
             document.removeEventListener("visibilitychange", this.handleResume);
         }
         if (typeof window !== "undefined") {
-            window.removeEventListener("beforeunload", this.handlePageHide);
             window.removeEventListener("pageshow", this.handleResume);
-            window.removeEventListener("pagehide", this.handlePageHide);
             window.removeEventListener("focus", this.handleResume);
             window.removeEventListener("online", this.handleOnline);
-        }
-    }
-
-    /**
-     * Checks if the client is currently connected.
-     * @returns {boolean}
-     */
-    isConnected() {
-        return false;
-    }
-
-    getConnectedNodeId() {
-        return this.connectedNodeId || (this.node ? this.node.id : null);
-    }
-
-    setConnectedNodeId(nodeId) {
-        this.connectedNodeId = nodeId;
-    }
-
-    /**
-     * Called when the page becomes visible or active again (e.g. after returning from mobile background).
-     */
-    onResume() {
-        this.unloading = false;
-        if (this.destroyed || this.stopped) {
-            return;
-        }
-        if (!this.isConnected()) {
-            if (this.lastResumeReconnect && (Date.now() - this.lastResumeReconnect < 500)) {
-                return;
-            }
-            this.lastResumeReconnect = Date.now();
-            console.log(this.getConnectedNodeId(), "app/page resumed, attempting immediate reconnect");
-            this.reconnect(true);
         }
     }
 
@@ -281,7 +267,7 @@ class BaseClient {
      * @param {boolean} [immediate=false] - If true, reconnects immediately without backoff delay.
      */
     reconnect(immediate = false) {
-        if (this.destroyed || this.stopped || this.unloading) {
+        if (this.destroyed || this.stopped) {
             return;
         }
         if (this.retryTimer) {
@@ -329,7 +315,7 @@ class BaseClient {
  * In Gateway Mode, it manages a single physical connection for the entire cluster.
  *
  * @version 4.3
- * @last-modified 2026-11-21
+ * @last-modified 2026-10-28
  */
 class WebsocketClient extends BaseClient {
     constructor(node, viewer, onSubscribed, onClosed, onFailed, isGatewayMode) {
@@ -340,7 +326,6 @@ class WebsocketClient extends BaseClient {
         this.handshakeSuccessful = false;
         this.everConnected = false;
         this.established = false;
-        this.connectStartTime = 0;
     }
 
     start(appsToSubscribe, nodeToSubscribe) {
@@ -368,43 +353,28 @@ class WebsocketClient extends BaseClient {
     }
 
     onResume() {
-        this.unloading = false;
         if (this.destroyed || this.stopped || !this.everConnected) {
             return;
         }
-
-        const now = Date.now();
-        if (this.lastResumeReconnect && (now - this.lastResumeReconnect < 500)) {
-            return;
-        }
-
         if (this.socket && this.socket.readyState === WebSocket.CONNECTING) {
-            if (this.connectStartTime && (now - this.connectStartTime > 5000)) {
-                console.log(this.getConnectedNodeId(), "WebSocket connecting timed out while resuming, reconnecting immediately");
-                this.closeSocket(true);
-                this.reconnect(true);
-            }
             return;
         }
-
         if (!this.socket || this.socket.readyState === WebSocket.CLOSING || this.socket.readyState === WebSocket.CLOSED || !this.handshakeSuccessful) {
-            this.lastResumeReconnect = now;
+            if (this.lastResumeReconnect && (Date.now() - this.lastResumeReconnect < 500)) {
+                return;
+            }
+            this.lastResumeReconnect = Date.now();
             console.log(this.getConnectedNodeId(), "WebSocket disconnected while in background, reconnecting immediately");
             this.closeSocket(true);
             this.reconnect(true);
-            return;
-        }
-
-        if (this.socket.readyState === WebSocket.OPEN) {
+        } else if (this.socket.readyState === WebSocket.OPEN) {
             this.sendPing();
-            this.heartbeatPing();
         }
     }
 
     openSocket() {
         if (this.destroyed || this.stopped) return;
         this.closeSocket(false);
-        this.connectStartTime = Date.now();
         const url = new URL(this.node.endpoint.path + "/appmon/websocket/" + this.node.endpoint.token, location.href);
         if (!this.isGatewayMode && this.node.port && (location.hostname === "localhost" || location.hostname === "127.0.0.1")) {
             url.port = this.node.port;
@@ -430,7 +400,7 @@ class WebsocketClient extends BaseClient {
 
             // Connect to the current node
             this.subscribe();
-            this.heartbeatPing();
+            this.sendPing();
             this.retryCount = 0;
         };
 
@@ -450,7 +420,7 @@ class WebsocketClient extends BaseClient {
             // Standard control messages
             if (message.startsWith(":pong:")) {
                 this.node.endpoint.token = message.substring(6);
-                this.heartbeatPing();
+                this.sendPing();
                 return;
             }
 
@@ -511,7 +481,7 @@ class WebsocketClient extends BaseClient {
             const wasHandshakeSuccessful = this.handshakeSuccessful;
             this.closeSocket(true);
 
-            if (this.destroyed || this.stopped || this.unloading) {
+            if (this.destroyed || this.stopped) {
                 return;
             }
 
@@ -544,7 +514,7 @@ class WebsocketClient extends BaseClient {
         };
 
         this.socket.onerror = (event) => {
-            if (this.destroyed || this.stopped || this.unloading) {
+            if (this.destroyed || this.stopped) {
                 return;
             }
             console.error(this.getConnectedNodeId(), "websocket error:", event);
@@ -568,7 +538,6 @@ class WebsocketClient extends BaseClient {
 
     closeSocket(afterClosing) {
         this.established = false;
-        this.connectStartTime = 0;
         if (this.socket) {
             const socket = this.socket;
             this.socket = null;
@@ -637,19 +606,15 @@ class WebsocketClient extends BaseClient {
         }
     }
 
-    heartbeatPing() {
+    sendPing() {
         if (this.heartbeatTimer) {
             clearTimeout(this.heartbeatTimer);
         }
         this.heartbeatTimer = setTimeout(() => {
-            this.sendPing();
+            if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+                this.socket.send("command:ping");
+            }
         }, this.heartbeatInterval);
-    }
-
-    sendPing() {
-        if (this.socket && this.socket.readyState === WebSocket.OPEN) {
-            this.socket.send("command:ping");
-        }
     }
 }
 
@@ -657,7 +622,7 @@ class WebsocketClient extends BaseClient {
  * HTTP Polling implementation of the AppMon client.
  *
  * @version 4.3
- * @last-modified 2026-11-16
+ * @last-modified 2026-10-28
  */
 class PollingClient extends BaseClient {
     constructor(node, viewer, onSubscribed, onClosed, onFailed, isGatewayMode = false) {
@@ -704,18 +669,13 @@ class PollingClient extends BaseClient {
     }
 
     onResume() {
-        if (this.stopped) {
-            return;
-        }
-        if (this.reconnecting) {
+        if (!this.stopped && this.reconnecting) {
             if (this.lastResumeReconnect && (Date.now() - this.lastResumeReconnect < 500)) {
                 return;
             }
             this.lastResumeReconnect = Date.now();
             console.log(this.getConnectedNodeId(), "PollingClient resumed while disconnected, reconnecting immediately");
             this.reconnect(true);
-        } else if (this.everConnected) {
-            this.immediatePoll();
         }
     }
 
@@ -1453,7 +1413,7 @@ class TrafficPainter {
  * Responsible for rendering and updating individual charts using Chart.js.
  *
  * @version 4.3
- * @last-modified 2026-11-04
+ * @last-modified 2026-11-02
  */
 class DashboardChart {
     constructor($container, eventId) {
@@ -2476,7 +2436,7 @@ class DashboardChart {
  * Responsible for rendering monitoring data, including logs, metrics, and charts.
  *
  * @version 4.3
- * @last-modified 2026-11-07
+ * @last-modified 2026-11-02
  */
 class DashboardViewer {
     constructor(sampleInterval, options = {}) {
@@ -2637,9 +2597,6 @@ class DashboardViewer {
                 this.updateActiveUserCount($display);
                 if (this.isGroupView) {
                     this.updateSessionNodeFilterButtons($display);
-                }
-                if ($display.hasClass("is-table-view")) {
-                    this.renderSessionTable($display);
                 }
             }
         }
@@ -3498,181 +3455,6 @@ class DashboardViewer {
         $sessionBox.find(".numberOfUsers").text(userKeys.size);
     }
 
-    toggleSessionTableView($sessionBox) {
-        if (!$sessionBox || !$sessionBox.length) return;
-        const $tableWrap = $sessionBox.find(".session-table-wrap");
-        if ($tableWrap.length && $tableWrap.is(":visible")) {
-            this.closeSessionTableView($sessionBox);
-        } else {
-            this.openSessionTableView($sessionBox);
-        }
-    }
-
-    openSessionTableView($sessionBox) {
-        if (!$sessionBox || !$sessionBox.length) return;
-        $sessionBox.addClass("is-table-view");
-        $sessionBox.find(".stat-card.stat-users, .stat-card:has(.numberOfUsers)").addClass("active");
-        this.renderSessionTable($sessionBox);
-    }
-
-    closeSessionTableView($sessionBox) {
-        if (!$sessionBox || !$sessionBox.length) return;
-        $sessionBox.removeClass("is-table-view");
-        $sessionBox.find(".stat-card.stat-users, .stat-card:has(.numberOfUsers)").removeClass("active");
-        $sessionBox.find(".session-table-wrap").remove();
-    }
-
-    renderSessionTable($sessionBox) {
-        if (!$sessionBox || !$sessionBox.length) return;
-        const $ground = $sessionBox.find(".ground-panel");
-        if (!$ground.length) return;
-
-        let $tableWrap = $ground.find(".session-table-wrap").show();
-        if (!$tableWrap.length) {
-            $tableWrap = $('<div class="session-table-wrap"></div>').appendTo($ground);
-        }
-
-        const $sessions = $sessionBox.find("ul.sessions");
-        const sessionList = [];
-        const isGroup = this.isGroupView;
-
-        $sessions.find("li").each(function () {
-            const $li = $(this);
-            if ($li.hasClass("filtered-out")) return;
-
-            const sid = $li.attr("data-sid") || $li.data("sid") || "";
-            const userKey = $li.attr("data-user-key") || "";
-            const nodeId = $li.attr("data-node-id") || "";
-            const inactive = $li.hasClass("inactive");
-            const count = $li.find(".count").text().trim() || "0";
-
-            const $flag = $li.find("img.flag");
-            const flagSrc = $flag.attr("src") || "";
-            const countryCode = $flag.attr("alt") || "";
-            const countryName = $flag.attr("title") || "";
-
-            const username = $li.find(".username").text().trim();
-
-            const $details = $li.find(".detail p");
-            const createdAt = $details.eq(1).text().trim();
-            const ipAddress = $details.eq(2).text().trim();
-
-            sessionList.push({
-                sid,
-                userKey,
-                nodeId,
-                inactive,
-                count: parseInt(count, 10) || 0,
-                flagSrc,
-                countryCode,
-                countryName,
-                username,
-                createdAt,
-                ipAddress
-            });
-        });
-
-        // Unique active users count
-        const uniqueUserKeys = new Set();
-        sessionList.forEach(s => {
-            if (!s.inactive && s.userKey) {
-                uniqueUserKeys.add(s.userKey);
-            }
-        });
-        const activeUsersCount = uniqueUserKeys.size;
-
-        let html = '';
-        html += '<div class="session-table-header">';
-        html += '  <div class="table-title">';
-        html += '    <i class="bi bi-people-fill me-1"></i> Active Users';
-        html += `    <span class="badge rounded-pill session-table-count ms-1" title="Unique Active Users">${activeUsersCount}</span>`;
-        html += `    <span class="total-sessions ms-2" style="font-size: 0.75rem; font-weight: normal; opacity: 0.85;">(${sessionList.length} session${sessionList.length === 1 ? '' : 's'})</span>`;
-        html += '  </div>';
-        html += '  <div class="table-actions">';
-        html += '    <button type="button" class="btn btn-refresh-table bi bi-arrow-clockwise" title="Refresh"></button>';
-        html += '    <button type="button" class="btn btn-close-table bi bi-x-lg" title="Close table view"></button>';
-        html += '  </div>';
-        html += '</div>';
-
-        html += '<div class="session-table-body">';
-        if (sessionList.length === 0) {
-            html += '<div class="text-muted p-4 text-center">No active users</div>';
-        } else {
-            html += '<table class="table table-sm table-striped table-hover">';
-            html += '  <thead><tr>';
-            if (isGroup) {
-                html += '    <th class="col-node">Node</th>';
-            }
-            html += '    <th class="col-country">Country</th>';
-            html += '    <th class="col-user">User</th>';
-            html += '    <th class="col-ip">IP Address</th>';
-            html += '    <th class="col-sid">Session ID</th>';
-            html += '    <th class="text-end col-activities">Activities</th>';
-            html += '    <th class="col-created">Created Time</th>';
-            html += '  </tr></thead>';
-            html += '  <tbody>';
-
-            sessionList.forEach(s => {
-                const rowClass = s.inactive ? ' class="session-inactive text-muted"' : '';
-                html += `<tr${rowClass}>`;
-                if (isGroup) {
-                    html += `<td><span class="badge text-bg-secondary">${this.escapeHtml(s.nodeId || "-")}</span></td>`;
-                }
-                // Country
-                html += '<td>';
-                if (s.flagSrc) {
-                    html += `<span class="flag-wrap" title="${this.escapeHtml(s.countryName)}"><img class="flag" src="${this.escapeHtml(s.flagSrc)}" alt="${this.escapeHtml(s.countryCode)}"> <span class="country-code">${this.escapeHtml(s.countryCode)}</span></span>`;
-                } else {
-                    html += '-';
-                }
-                html += '</td>';
-                // User
-                html += '<td>';
-                if (s.username) {
-                    html += `<span class="fw-semibold">${this.escapeHtml(s.username)}</span>`;
-                } else {
-                    html += '<span class="text-muted fst-italic">Anonymous</span>';
-                }
-                html += '</td>';
-                // IP Address
-                html += `<td>${s.ipAddress ? this.escapeHtml(s.ipAddress) : "-"}</td>`;
-                // Session ID
-                html += `<td><code class="session-id" title="${this.escapeHtml(s.sid)}">${this.escapeHtml(s.sid)}</code></td>`;
-                // Activities
-                html += `<td class="text-end"><span class="fw-bold">${s.count}</span></td>`;
-                // Created Time
-                html += `<td>${s.createdAt ? this.escapeHtml(s.createdAt) : "-"}</td>`;
-                html += '</tr>';
-            });
-
-            html += '  </tbody>';
-            html += '</table>';
-        }
-        html += '</div>';
-
-        $tableWrap.html(html);
-
-        $tableWrap.find(".btn-close-table").off("click").on("click", (e) => {
-            e.stopPropagation();
-            this.closeSessionTableView($sessionBox);
-        });
-
-        $tableWrap.find(".btn-refresh-table").off("click").on("click", (e) => {
-            e.stopPropagation();
-            this.renderSessionTable($sessionBox);
-        });
-    }
-
-    escapeHtml(str) {
-        if (!str) return "";
-        return String(str)
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
-    }
-
     processChartData(nodeId, appId, exporterType, eventId, exporterKey, chartData) {
         const dashboardChart = this.getChart$(exporterKey);
         if (!dashboardChart) return;
@@ -4367,7 +4149,7 @@ class MetricsViewer {
  * Responsible for assembling the dashboard UI based on configuration data.
  *
  * @version 4.3
- * @last-modified 2026-11-07
+ * @last-modified 2026-10-31
  */
 class DashboardBuilder {
     constructor(options = {}) {
@@ -5258,9 +5040,9 @@ class DashboardBuilder {
                 popup.focus();
             }
         });
-        $(document).off("click", ".session-box .status-panel")
-            .on("click", ".session-box .status-panel", function(e) {
-                if ($(e.target).closest(".uptime, .stat-card").length) return;
+        $(document).off("click", ".session-box .panel.status")
+            .on("click", ".session-box .panel.status", function(e) {
+                if ($(e.target).closest(".uptime").length) return;
 
                 const $panel = $(this);
                 const isMobile = $panel.find(".knob-bar").is(":visible");
@@ -5272,42 +5054,8 @@ class DashboardBuilder {
                     $panel.removeClass("expanded");
                 }
             });
-        $(document).off("click", ".session-box .stat-card.stat-users, .session-box .stat-card:has(.numberOfUsers)")
-            .on("click", ".session-box .stat-card.stat-users, .session-box .stat-card:has(.numberOfUsers)", (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                const $card = $(e.currentTarget);
-                const $sessionBox = $card.closest(".session-box");
-                const groupId = $sessionBox.data("group-id");
-                const nodeIndex = $sessionBox.data("node-index");
-
-                let viewer = null;
-                if (groupId && this.groupViewers[groupId]) {
-                    viewer = this.groupViewers[groupId];
-                } else if (nodeIndex !== undefined && this.viewers[nodeIndex]) {
-                    viewer = this.viewers[nodeIndex];
-                }
-
-                if (viewer && typeof viewer.toggleSessionTableView === "function") {
-                    viewer.toggleSessionTableView($sessionBox);
-                }
-            });
-        $(document).off("keydown.sessionTable")
-            .on("keydown.sessionTable", (e) => {
-                if (e.key === "Escape") {
-                    $(".session-box.is-table-view").each((_, el) => {
-                        const $box = $(el);
-                        const groupId = $box.data("group-id");
-                        const nodeIndex = $box.data("node-index");
-                        const viewer = (groupId && this.groupViewers[groupId]) || (nodeIndex !== undefined && this.viewers[nodeIndex]);
-                        if (viewer && typeof viewer.closeSessionTableView === "function") {
-                            viewer.closeSessionTableView($box);
-                        }
-                    });
-                }
-            });
-        $(document).off("click", ".session-box .status-panel .uptime")
-            .on("click", ".session-box .status-panel .uptime", (e) => {
+        $(document).off("click", ".session-box .panel .uptime")
+            .on("click", ".session-box .panel .uptime", (e) => {
                 e.preventDefault();
                 this.uptimeMode = (this.uptimeMode === "uptime" ? "since" : "uptime");
                 this.renderUptime();
@@ -5520,7 +5268,7 @@ class DashboardBuilder {
     }
 
     renderUptime($uptime, startTime) {
-        const $targets = ($uptime && $uptime.length) ? $uptime : $(".session-box .status-panel .uptime");
+        const $targets = ($uptime && $uptime.length) ? $uptime : $(".session-box .panel .uptime");
         const mode = this.uptimeMode || "uptime";
 
         $targets.each((_, el) => {

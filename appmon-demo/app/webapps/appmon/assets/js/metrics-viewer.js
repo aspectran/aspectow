@@ -19,7 +19,7 @@
  * Dedicated to managing real-time node and application metrics,
  * sparkline history charts, and metric detail popovers.
  *
- * @version 4.3
+ * @version 4.4
  * @last-modified 2026-10-09
  */
 class MetricsViewer {
