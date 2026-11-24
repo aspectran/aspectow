@@ -96,7 +96,7 @@ public class ActivityEventCounter extends AbstractEventCounter {
                 getEventCount().count();
                 if (activity.hasSessionAdapter()) {
                     SessionAdapter sessionAdapter = activity.getSessionAdapter();
-                    if (!sessionAdapter.isNew()) {
+                    if (sessionAdapter.getId() != null && !sessionAdapter.isNew()) {
                         AtomicInteger count = sessionAdapter.getAttribute(USER_ACTIVITY_COUNT);
                         if (count != null) {
                             count.incrementAndGet();

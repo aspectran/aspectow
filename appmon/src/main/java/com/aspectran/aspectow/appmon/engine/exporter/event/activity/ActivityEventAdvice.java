@@ -15,11 +15,18 @@
  */
 package com.aspectran.aspectow.appmon.engine.exporter.event.activity;
 
+import com.aspectran.aspectow.appmon.common.support.IPCountryResolver;
 import com.aspectran.core.activity.Activity;
+import com.aspectran.core.activity.Translet;
+import com.aspectran.core.adapter.RequestAdapter;
 import com.aspectran.core.adapter.SessionAdapter;
+import com.aspectran.utils.DigestUtils;
+import com.aspectran.utils.StringUtils;
 import com.aspectran.utils.json.JsonBuilder;
+import com.aspectran.web.support.util.WebUtils;
 import org.jspecify.annotations.NonNull;
 
+import java.util.Locale;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.aspectran.aspectow.appmon.engine.exporter.event.session.SessionEventReader.USER_ACTIVITY_COUNT;
@@ -36,7 +43,7 @@ public class ActivityEventAdvice {
 
     private long startTime;
 
-    private String sessionId;
+    private String previousSessionId;
 
     /**
      * Instantiates a new ActivityEventAdvice.
@@ -49,16 +56,13 @@ public class ActivityEventAdvice {
 
     /**
      * Called before the advised activity executes.
-     * Records the start time and session ID.
-     * @param activity the activity that is about to be executed
+     * Records the start time and the existing session ID if available.
+     * @param activity the activity that is about to execute
      */
     public void before(@NonNull Activity activity) {
         startTime = System.currentTimeMillis();
-
-        // Since the servlet container does not allow session creation after
-        // the response is committed, the session ID must be secured in advance.
         if (activity.hasSessionAdapter()) {
-            sessionId = activity.getSessionAdapter().getId();
+            previousSessionId = activity.getSessionAdapter().getId();
         }
     }
 
@@ -81,15 +85,40 @@ public class ActivityEventAdvice {
 
         long elapsedTime = System.currentTimeMillis() - startTime;
 
+        String sessionId = null;
         int activityCount = 0;
+        String clientKey = null;
+        String ipAddress = null;
+        String countryCode = null;
+
         if (activity.hasSessionAdapter()) {
             SessionAdapter sessionAdapter = activity.getSessionAdapter();
-            if (sessionAdapter.isNew()) {
-                activityCount = 1;
-            } else {
-                AtomicInteger counter = sessionAdapter.getAttribute(USER_ACTIVITY_COUNT);
-                if (counter != null) {
-                    activityCount = counter.get();
+            sessionId = sessionAdapter.getId();
+            if (sessionId != null) {
+                if (sessionAdapter.isNew()) {
+                    activityCount = 1;
+                } else {
+                    AtomicInteger counter = sessionAdapter.getAttribute(USER_ACTIVITY_COUNT);
+                    if (counter != null) {
+                        activityCount = counter.get();
+                    }
+                }
+            }
+        }
+
+        boolean sessionTerminated = (sessionId == null && previousSessionId != null);
+        if (sessionId == null && !sessionTerminated && activity.hasTranslet()) {
+            Translet translet = activity.getTranslet();
+            RequestAdapter requestAdapter = translet.getRequestAdapter();
+            ipAddress = WebUtils.getRemoteAddr(translet);
+            if (StringUtils.hasLength(ipAddress)) {
+                String userAgent = (requestAdapter != null ? requestAdapter.getHeader("User-Agent") : null);
+                String raw = ipAddress + "|" + (userAgent != null ? userAgent : "");
+                clientKey = "anon:" + DigestUtils.md5DigestAsHex(raw).substring(0, 12);
+                IPCountryResolver ipCountryResolver = activityEventReader.getIpCountryResolver();
+                if (ipCountryResolver != null) {
+                    Locale locale = (requestAdapter != null ? requestAdapter.getLocale() : null);
+                    countryCode = ipCountryResolver.resolveCountryCode(ipAddress, locale);
                 }
             }
         }
@@ -108,7 +137,10 @@ public class ActivityEventAdvice {
                     .put("thread", Thread.currentThread().getName())
                     .put("sessionId", sessionId)
                     .put("activityCount", activityCount)
-                    .put("error", error)
+                    .put("clientKey", clientKey)
+                    .put("ipAddress", ipAddress)
+                    .put("countryCode", countryCode)
+                    .put("error", error != null ? true : null)
                 .endObject()
                 .toString();
     }

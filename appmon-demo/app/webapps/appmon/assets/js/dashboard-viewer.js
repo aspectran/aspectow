@@ -19,7 +19,7 @@
  * Responsible for rendering monitoring data, including logs, metrics, and charts.
  *
  * @version 4.4
- * @last-modified 2026-11-07
+ * @last-modified 2026-11-24
  */
 class DashboardViewer {
     constructor(sampleInterval, options = {}) {
@@ -75,7 +75,8 @@ class DashboardViewer {
             for (let key in this.displays) {
                 if (key.includes(":event:session")) {
                     const $display = this.displays[key];
-                    $display.find(`ul.sessions li[data-node-id='${nodeId}']`).each(function () {
+                    const $sessions = $display.find("ul.sessions");
+                    $sessions.children(`li[data-node-id='${nodeId}']`).each(function () {
                         const timer = $(this).data("timer");
                         if (timer) clearTimeout(timer);
                         $(this).remove();
@@ -172,7 +173,7 @@ class DashboardViewer {
             if (key.includes(":event:session")) {
                 const $display = this.displays[key];
                 const $sessions = $display.find("ul.sessions");
-                $sessions.find("li").each(function () {
+                $sessions.children("li").each(function () {
                     const timer = $(this).data("timer");
                     if (timer) clearTimeout(timer);
                 });
@@ -294,7 +295,7 @@ class DashboardViewer {
 
     prepareToLoadPrevious($console) {
         if (!$console) return 0;
-        const loadedLines = $console.find("div").not(".event").length;
+        const loadedLines = $console.children("div:not(.event)").length;
 
         if ($console.data("tailing")) {
             $console.data("tailing", false);
@@ -547,11 +548,18 @@ class DashboardViewer {
                 } else {
                     this.printCurrentActivityCount(exporterKey, 0);
                 }
-                this.updateActivityCount(
-                    nodeId,
-                    appId + ":" + exporterType + ":session",
-                    eventData.sessionId,
-                    eventData.activityCount || 0);
+                if (eventData.sessionId) {
+                    this.updateActivityCount(
+                        nodeId,
+                        appId + ":" + exporterType + ":session",
+                        eventData.sessionId,
+                        eventData.activityCount || 0);
+                } else if (eventData.clientKey) {
+                    this.updateStatelessActivity(
+                        nodeId,
+                        appId + ":" + exporterType + ":session",
+                        eventData);
+                }
                 break;
             case "session":
                 if (this.isGroupView && nodeId) {
@@ -648,19 +656,21 @@ class DashboardViewer {
         const $activityStatus = this.getIndicator$(exporterKey);
         if ($activityStatus) {
             const separator = (activities.errors > 0 ? " / " : (activities.interim > 0 ? "+" : "-"));
-            $activityStatus.find(".interim .separator").text(separator);
-            $activityStatus.find(".interim .total").text(activities.interim > 0 ? activities.interim : "");
-            $activityStatus.find(".interim .errors").text(activities.errors > 0 ? activities.errors : "");
-            $activityStatus.find(".cumulative .total").text(activities.total);
+            const $interim = $activityStatus.children(".interim");
+            $interim.children(".separator").text(separator);
+            $interim.children(".total").text(activities.interim > 0 ? activities.interim : "");
+            $interim.children(".errors").text(activities.errors > 0 ? activities.errors : "");
+            $activityStatus.children(".cumulative").children(".total").text(activities.total);
         }
     }
 
     resetInterimActivityStatus(exporterKey) {
         const $activityStatus = this.getIndicator$(exporterKey);
         if ($activityStatus) {
-            $activityStatus.find(".interim .separator").text("");
-            $activityStatus.find(".interim .total").text(0);
-            $activityStatus.find(".interim .errors").text("");
+            const $interim = $activityStatus.children(".interim");
+            $interim.children(".separator").text("");
+            $interim.children(".total").text(0);
+            $interim.children(".errors").text("");
         }
     }
 
@@ -668,8 +678,8 @@ class DashboardViewer {
         if (this.sampleInterval) {
             const $activityStatus = this.getIndicator$(exporterKey);
             if ($activityStatus) {
-                const $samplingTimerBar = $activityStatus.find(".sampling-timer-bar");
-                const $samplingTimerStatus = $activityStatus.find(".sampling-timer-status");
+                const $samplingTimerBar = $activityStatus.children(".sampling-timer-bar");
+                const $samplingTimerStatus = $activityStatus.children(".sampling-timer-status");
                 if ($samplingTimerBar.length) {
                     const now = Date.now();
                     const lastReset = $samplingTimerBar.data("last-reset") || 0;
@@ -720,7 +730,7 @@ class DashboardViewer {
     printCurrentActivityCount(exporterKey, count) {
         const $activityStatus = this.getIndicator$(exporterKey);
         if ($activityStatus) {
-            $activityStatus.find(".current .total").text(count);
+            $activityStatus.children(".current").children(".total").text(count);
         }
     }
     
@@ -765,12 +775,21 @@ class DashboardViewer {
     printSessionEventData(nodeId, exporterKey, eventData) {
         const $display = this.getDisplay$(exporterKey);
         if ($display) {
-            $display.find(".numberOfUsers").text(eventData.numberOfUsers || 0);
-            $display.find(".numberOfCreated").text(eventData.numberOfCreated);
-            $display.find(".numberOfExpired").text(eventData.numberOfExpired);
-            $display.find(".numberOfActives").text(eventData.numberOfActives);
-            $display.find(".highestNumberOfActives").text(eventData.highestNumberOfActives);
-            $display.find(".numberOfRejected").text(eventData.numberOfRejected);
+            const $stats = $display.find(".session-stats");
+            $stats.find(".numberOfUsers").text(eventData.numberOfUsers || 0);
+            $stats.find(".numberOfCreated").text(eventData.numberOfCreated);
+            $stats.find(".numberOfExpired").text(eventData.numberOfExpired);
+            $stats.find(".numberOfActives").text(eventData.numberOfActives);
+            $stats.find(".highestNumberOfActives").text(eventData.highestNumberOfActives);
+            $stats.find(".numberOfRejected").text(eventData.numberOfRejected);
+
+            const actives = Number(eventData.numberOfActives) || 0;
+            const highest = Number(eventData.highestNumberOfActives) || 0;
+            const ratio = highest > 0 ? Math.min(100, Math.round((actives / highest) * 100)) : 0;
+            $stats.find(".peak-bar-fill").css("width", ratio + "%");
+            $stats.find(".peak-ratio").text(ratio + "%");
+            $stats.find(".rejected-item").toggleClass("has-rejected", (Number(eventData.numberOfRejected) || 0) > 0);
+
             if (eventData.startTime) {
                 const $uptime = $display.find(".uptime");
                 $uptime.attr("data-start-time", eventData.startTime);
@@ -779,15 +798,6 @@ class DashboardViewer {
                 }
             }
 
-            const actives = Number(eventData.numberOfActives) || 0;
-            const highest = Number(eventData.highestNumberOfActives) || 0;
-            const ratio = highest > 0 ? Math.min(100, Math.round((actives / highest) * 100)) : 0;
-            $display.find(".peak-bar-fill").css("width", ratio + "%");
-            $display.find(".peak-ratio").text(ratio + "%");
-
-            const rejected = Number(eventData.numberOfRejected) || 0;
-            $display.find(".rejected-item").toggleClass("has-rejected", rejected > 0);
-
             const $sessions = $display.find("ul.sessions");
 
             if (eventData.fullSync) {
@@ -795,7 +805,7 @@ class DashboardViewer {
                     const session = (typeof s === "string" ? JSON.parse(s) : s);
                     return session.sessionId;
                 });
-                $sessions.find("li").each(function () {
+                $sessions.children("li").each(function () {
                     const $li = $(this);
                     const sid = $li.attr("data-sid") || $li.data("sid");
                     const nid = $li.attr("data-node-id");
@@ -813,13 +823,13 @@ class DashboardViewer {
             if (eventData.destroyedSessions) {
                 eventData.destroyedSessions.forEach(sessionId => {
                     const nodeSelector = (this.isGroupView && nodeId) ? `[data-node-id='${nodeId}']` : "";
-                    $sessions.find(`li[data-sid='${sessionId}']${nodeSelector}`).remove();
+                    $sessions.children(`li[data-sid='${sessionId}']${nodeSelector}`).remove();
                 });
             }
             if (eventData.evictedSessions) {
                 const nodeSelector = (this.isGroupView && nodeId) ? `[data-node-id='${nodeId}']` : "";
                 eventData.evictedSessions.forEach(sessionId => {
-                    const $li = $sessions.find(`li[data-sid='${sessionId}']${nodeSelector}`);
+                    const $li = $sessions.children(`li[data-sid='${sessionId}']${nodeSelector}`);
                     let timer = $li.data("timer");
                     if (timer) clearTimeout(timer);
                     if ($li.data("temp-resident")) {
@@ -857,7 +867,7 @@ class DashboardViewer {
 
     changeSessionId($sessions, oldSessionId, session, nodeId) {
         const nodeSelector = (this.isGroupView && nodeId) ? `[data-node-id='${nodeId}']` : "";
-        $sessions.find(`li[data-sid='${oldSessionId}']${nodeSelector}`).each(function () {
+        $sessions.children(`li[data-sid='${oldSessionId}']${nodeSelector}`).each(function () {
             const timer = $(this).data("timer");
             if (timer) clearTimeout(timer);
         }).remove();
@@ -866,10 +876,18 @@ class DashboardViewer {
 
     addSession($sessions, session, nodeId) {
         const nodeSelector = (this.isGroupView && nodeId) ? `[data-node-id='${nodeId}']` : "";
-        $sessions.find(`li[data-sid='${session.sessionId}']${nodeSelector}`).each(function () {
+        $sessions.children(`li[data-sid='${session.sessionId}']${nodeSelector}`).each(function () {
             const timer = $(this).data("timer");
             if (timer) clearTimeout(timer);
         }).remove();
+
+        // If promoting a temp-resident session with matching IP, remove previous anonymous card
+        if (!session.tempResident && session.ipAddress) {
+            $sessions.children(`li[data-temp-resident='true'][data-user-key='i:${session.ipAddress}']${nodeSelector}`).each(function () {
+                const timer = $(this).data("timer");
+                if (timer) clearTimeout(timer);
+            }).remove();
+        }
 
         const $count = $("<div class='count'></div>").text(session.activityCount || 0);
         if (session.activityCount > 0) $count.text(session.activityCount);
@@ -940,12 +958,17 @@ class DashboardViewer {
     }
 
     updateActivityCount(nodeId, exporterKey, sessionId, activityCount) {
+        if (!sessionId) return;
         const $display = this.getDisplay$(exporterKey);
         if ($display) {
             const nodeSelector = (this.isGroupView && nodeId) ? `[data-node-id='${nodeId}']` : "";
-            const $li = $display.find(`ul.sessions li[data-sid='${sessionId}']${nodeSelector}`);
-            const $count = $li.find(".count").text(activityCount);
-            if (activityCount > 1) $count.addClass("counting");
+            const $sessions = $display.find("ul.sessions");
+            const $li = $sessions.children(`li[data-sid='${sessionId}']${nodeSelector}`);
+            if ($li.length === 0) return;
+            const $count = $li.children(".count").text(activityCount);
+            if (activityCount > 1 && !$count.hasClass("counting")) {
+                $count.addClass("counting");
+            }
             const inactiveInterval = $li.data("inactive-interval");
             if (inactiveInterval) {
                 let timer = $li.data("timer");
@@ -962,6 +985,50 @@ class DashboardViewer {
         }
     }
 
+    updateStatelessActivity(nodeId, exporterKey, eventData) {
+        const clientKey = eventData.clientKey;
+        if (!clientKey) return;
+        const $display = this.getDisplay$(exporterKey);
+        if ($display) {
+            const nodeSelector = (this.isGroupView && nodeId) ? `[data-node-id='${nodeId}']` : "";
+            const $sessions = $display.find("ul.sessions");
+            let $li = $sessions.children(`li[data-sid='${clientKey}']${nodeSelector}`);
+            if ($li.length > 0) {
+                let currentCount = parseInt($li.children(".count").text().trim(), 10) || 0;
+                currentCount++;
+                const $count = $li.children(".count").text(currentCount);
+                if (currentCount > 1 && !$count.hasClass("counting")) {
+                    $count.addClass("counting");
+                }
+                let timer = $li.data("timer");
+                if (timer) clearTimeout(timer);
+                timer = setTimeout(() => {
+                    $li.remove();
+                    this.updateActiveUserCount($display);
+                    if (this.isGroupView) {
+                        this.updateSessionNodeFilterButtons($display);
+                    }
+                }, this.tempResidentInactiveSecs * 1000);
+                $li.data("timer", timer);
+            } else {
+                const session = {
+                    sessionId: clientKey,
+                    ipAddress: eventData.ipAddress,
+                    countryCode: eventData.countryCode,
+                    activityCount: 1,
+                    createAt: eventData.startTime || Date.now(),
+                    inactiveInterval: this.tempResidentInactiveSecs,
+                    tempResident: true
+                };
+                this.addSession($sessions, session, nodeId);
+                this.updateActiveUserCount($display);
+                if (this.isGroupView) {
+                    this.updateSessionNodeFilterButtons($display);
+                }
+            }
+        }
+    }
+
     setSessionFilter(appId, eventId, nodeId) {
         const key = appId + ":event:" + eventId;
         this.sessionFilterByDisplay[key] = nodeId || null;
@@ -974,9 +1041,9 @@ class DashboardViewer {
     applySessionFilter($display, targetNodeId) {
         const $sessions = $display.find("ul.sessions");
         if (!targetNodeId) {
-            $sessions.find("li").removeClass("filtered-out");
+            $sessions.children("li").removeClass("filtered-out");
         } else {
-            $sessions.find("li").each(function () {
+            $sessions.children("li").each(function () {
                 const nid = $(this).attr("data-node-id");
                 $(this).toggleClass("filtered-out", String(nid) !== String(targetNodeId));
             });
@@ -993,7 +1060,7 @@ class DashboardViewer {
 
         const $sessions = $sessionBox.find("ul.sessions");
         const nodeCounts = {};
-        $sessions.find("li").each(function () {
+        $sessions.children("li").each(function () {
             const nid = $(this).attr("data-node-id");
             if (nid) {
                 nodeCounts[nid] = (nodeCounts[nid] || 0) + 1;
@@ -1005,7 +1072,7 @@ class DashboardViewer {
         const key = appId + ":event:" + eventId;
         const currentFilterNodeId = this.sessionFilterByDisplay[key];
 
-        $filter.find(".btn-node").each(function () {
+        $filter.children(".btn-node").each(function () {
             const nid = $(this).attr("data-node-id");
             if (!nid) {
                 return; // "All" button remains visible
@@ -1019,8 +1086,8 @@ class DashboardViewer {
         });
 
         if (currentFilterNodeId && (!nodeCounts[currentFilterNodeId] || nodeCounts[currentFilterNodeId] <= 0)) {
-            $filter.find(".btn-node").removeClass("on");
-            $filter.find(".btn-node").filter(function () {
+            $filter.children(".btn-node").removeClass("on");
+            $filter.children(".btn-node").filter(function () {
                 return !$(this).attr("data-node-id");
             }).addClass("on");
             this.setSessionFilter(appId, eventId, null);
@@ -1032,7 +1099,7 @@ class DashboardViewer {
         const $sessionBox = $display.hasClass("session-box") ? $display : $display.closest(".session-box");
         const $sessions = $sessionBox.find("ul.sessions");
         const userKeys = new Set();
-        $sessions.find("li:not(.inactive)").each(function () {
+        $sessions.children("li:not(.inactive)").each(function () {
             const ukey = $(this).attr("data-user-key");
             if (ukey) {
                 userKeys.add(ukey);
@@ -1079,7 +1146,7 @@ class DashboardViewer {
         const sessionList = [];
         const isGroup = this.isGroupView;
 
-        $sessions.find("li").each(function () {
+        $sessions.children("li").each(function () {
             const $li = $(this);
             if ($li.hasClass("filtered-out")) return;
 
@@ -1087,16 +1154,16 @@ class DashboardViewer {
             const userKey = $li.attr("data-user-key") || "";
             const nodeId = $li.attr("data-node-id") || "";
             const inactive = $li.hasClass("inactive");
-            const count = $li.find(".count").text().trim() || "0";
+            const count = $li.children(".count").text().trim() || "0";
 
-            const $flag = $li.find("img.flag");
+            const $flag = $li.children("img.flag");
             const flagSrc = $flag.attr("src") || "";
             const countryCode = $flag.attr("alt") || "";
             const countryName = $flag.attr("title") || "";
 
-            const username = $li.find(".username").text().trim();
+            const username = $li.children(".username").text().trim();
 
-            const $details = $li.find(".detail p");
+            const $details = $li.children(".detail").children("p");
             const createdAt = $details.eq(1).text().trim();
             const ipAddress = $details.eq(2).text().trim();
 
@@ -1317,14 +1384,14 @@ class DashboardViewer {
         if (this.cachedCanvasWidth === 0) {
             let w = 0;
             if ($container) {
-                w = $container.find("canvas").width();
+                w = $container.children("canvas").width();
                 if (w === 0) w = $container.width();
             }
             if (w === 0) {
                 for (let key in this.charts) {
                     const dashboardChart = this.charts[key];
                     if (dashboardChart) {
-                        w = dashboardChart.$container.find("canvas").width();
+                        w = dashboardChart.$container.children("canvas").width();
                         if (w === 0) w = dashboardChart.$container.width();
                         if (w > 0) break;
                     }

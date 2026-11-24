@@ -15,6 +15,7 @@
  */
 package com.aspectran.aspectow.appmon.engine.exporter.event.activity;
 
+import com.aspectran.aspectow.appmon.common.support.IPCountryResolver;
 import com.aspectran.aspectow.appmon.engine.config.EventInfo;
 import com.aspectran.aspectow.appmon.engine.exporter.ExporterManager;
 import com.aspectran.aspectow.appmon.engine.exporter.event.AbstractEventReader;
@@ -29,6 +30,7 @@ import com.aspectran.core.context.rule.type.JoinpointTargetType;
 import com.aspectran.core.service.CoreServiceHolder;
 import com.aspectran.utils.json.JsonBuilder;
 import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,6 +47,8 @@ public class ActivityEventReader extends AbstractEventReader {
 
     private String aspectId;
 
+    private IPCountryResolver ipCountryResolver;
+
     /**
      * Instantiates a new ActivityEventReader.
      * @param exporterManager the exporter manager
@@ -58,9 +62,17 @@ public class ActivityEventReader extends AbstractEventReader {
         super(exporterManager, eventInfo, eventCount);
     }
 
+    @Nullable
+    public IPCountryResolver getIpCountryResolver() {
+        return ipCountryResolver;
+    }
+
     @Override
     public void init() throws Exception {
         aspectId = getClass().getName() + ".ASPECT@" + hashCode() + "[" + getEventInfo().getTarget() + "]";
+        if (getExporterManager().containsBean(IPCountryResolver.class)) {
+            ipCountryResolver = getExporterManager().getBean(IPCountryResolver.class);
+        }
     }
 
     @Override

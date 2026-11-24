@@ -2182,17 +2182,24 @@ const NotificationClient = (function () {
         return div;
     }
 
-    function resolveTargetUrl(targetUrl) {
-        if (!targetUrl) return null;
-        if (targetUrl.startsWith('http://') || targetUrl.startsWith('https://')) {
-            return targetUrl;
-        }
+    function clearHistory() {
+        if (!confirm('Are you sure you want to clear all notification history?')) return;
+
         const ctx = getContextPath();
-        const cleanTarget = targetUrl.replace(/^\.?\//, '');
-        if (!cleanTarget) {
-            return ctx ? ctx + '/' : '/';
-        }
-        return (ctx ? ctx + '/' : '/') + cleanTarget;
+        fetch(ctx + '/notification/clear', { method: 'POST' })
+            .then(() => {
+                hasNewNotification = false;
+                updateBadge(0);
+                const listContainer = document.getElementById('notif-history-list');
+                const emptyNotice = document.getElementById('notif-history-empty');
+                if (listContainer) listContainer.innerHTML = '';
+                listContainer.classList.add('d-none');
+                if (emptyNotice) emptyNotice.classList.remove('d-none');
+                setTimeout(hideModal, 1000);
+            })
+            .catch(err => {
+                alert('Failed to clear notification history: ' + err.message);
+            });
     }
 
     function markRead(notificationId, targetUrl) {
@@ -2260,42 +2267,27 @@ const NotificationClient = (function () {
             .catch(() => {});
     }
 
-    function hideModal() {
-        const modalEl = document.getElementById('notificationModal');
-        if (modalEl) {
-            if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
-                const modalInstance = bootstrap.Modal.getInstance(modalEl);
-                if (modalInstance) {
-                    modalInstance.hide();
-                    return;
-                }
-            }
-            const closeBtn = modalEl.querySelector('[data-bs-dismiss="modal"]');
-            if (closeBtn) {
-                closeBtn.click();
-            }
+    function resolveTargetUrl(targetUrl) {
+        if (!targetUrl) return null;
+        if (targetUrl.startsWith('http://') || targetUrl.startsWith('https://')) {
+            return targetUrl;
         }
+        const ctx = getContextPath();
+        const cleanTarget = targetUrl.replace(/^\.?\//, '');
+        if (!cleanTarget) {
+            return ctx ? ctx + '/' : '/';
+        }
+        return (ctx ? ctx + '/' : '/') + cleanTarget;
     }
 
-    function clearHistory() {
-        if (!confirm('Are you sure you want to clear all notification history?')) return;
-
-        const ctx = getContextPath();
-        fetch(ctx + '/notification/clear', { method: 'POST' })
-            .then(() => {
-                hasNewNotification = false;
-                updateBadge(0);
-                const listContainer = document.getElementById('notif-history-list');
-                const emptyNotice = document.getElementById('notif-history-empty');
-                if (listContainer) listContainer.innerHTML = '';
-                listContainer.classList.add('d-none');
-                if (emptyNotice) emptyNotice.classList.remove('d-none');
-
-                setTimeout(hideModal, 1000);
-            })
-            .catch(err => {
-                alert('Failed to clear notification history: ' + err.message);
-            });
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
     }
 
     function sendTestNotification() {
@@ -2324,16 +2316,6 @@ const NotificationClient = (function () {
             });
     }
 
-    function escapeHtml(str) {
-        if (!str) return '';
-        return String(str)
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#39;');
-    }
-
     function activateHistoryTab() {
         const historyTabBtn = document.getElementById('notif-history-tab');
         if (!historyTabBtn) return;
@@ -2342,6 +2324,23 @@ const NotificationClient = (function () {
             tabInstance.show();
         } else {
             historyTabBtn.click();
+        }
+    }
+
+    function hideModal() {
+        const modalEl = document.getElementById('notificationModal');
+        if (modalEl) {
+            if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                const modalInstance = bootstrap.Modal.getInstance(modalEl);
+                if (modalInstance) {
+                    modalInstance.hide();
+                    return;
+                }
+            }
+            const closeBtn = modalEl.querySelector('[data-bs-dismiss="modal"]');
+            if (closeBtn) {
+                closeBtn.click();
+            }
         }
     }
 
