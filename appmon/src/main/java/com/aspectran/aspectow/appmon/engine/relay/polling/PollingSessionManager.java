@@ -163,7 +163,7 @@ public class PollingSessionManager extends AbstractComponent {
      */
     public String[] pull(PollingRelaySession session) {
         String[] bMessages = broadcastMessageBuffer.pop(session);
-        java.util.List<String> pMessages = session.popMessages();
+        List<String> pMessages = session.popMessages();
         if (bMessages == null && pMessages == null) {
             return null;
         }
