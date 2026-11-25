@@ -945,7 +945,7 @@ class PollingClient extends BaseClient {
  * Handles tab visibility to prevent "bullet bursts" when returning to the tab.
  *
  * @version 4.4
- * @last-modified 2026-10-30
+ * @last-modified 2026-11-25
  */
 class TrafficPainter {
     constructor(canvas, options = {}) {
@@ -980,6 +980,20 @@ class TrafficPainter {
         this.canvas.width = rect.width;
         this.canvas.height = rect.height;
         this.updatePrismPositions();
+        if (this.bullets.length > 0) {
+            const finishLine = this.canvas.width - this.finishLineOffset;
+            if (finishLine > 0) {
+                const effectiveWidth = Math.max(finishLine, 300);
+                const baseSpeed = Math.max(effectiveWidth / (900 / 16.6), 4.0);
+                for (let i = 0; i < this.bullets.length; i++) {
+                    const b = this.bullets[i];
+                    if (b.speed < 1.0) {
+                        b.speed = b.bhStage >= 2 ? b.postBhSpeed : (this.enableBlackHole ? baseSpeed : baseSpeed * (1 - (b.timeIntensity * 0.6)));
+                        b.postBhSpeed = baseSpeed * (1 - (b.timeIntensity * 0.6)) * 1.25;
+                    }
+                }
+            }
+        }
         this.draw();
     }
 
@@ -990,8 +1004,8 @@ class TrafficPainter {
         const prismOffset = this.blackHole.radius + 2 + spreadDistance;
         const leftActiveX = bhX - prismOffset;
         const rightActiveX = bhX + prismOffset;
-        const leftParkedX = 10;
-        const rightParkedX = Math.max(leftParkedX + 40, finishLine - 10);
+        const leftParkedX = 15;
+        const rightParkedX = Math.max(leftParkedX + 40, finishLine - 15);
 
         const p = this.prismProgress || 0.0;
         const ease = p * p * (3 - 2 * p);
@@ -1018,7 +1032,8 @@ class TrafficPainter {
         const baseSize = initialSize + (timeIntensity * 4);
         const fullSize = baseSize + (activityIntensity * 4);
         const startSize = this.enableBlackHole ? initialSize : fullSize;
-        const baseSpeed = (this.canvas.width - this.finishLineOffset) / (900 / 16.6);
+        const effectiveWidth = Math.max(this.canvas.width - this.finishLineOffset, 300);
+        const baseSpeed = Math.max(effectiveWidth / (900 / 16.6), 4.0);
         const postBhSpeed = baseSpeed * (1 - (timeIntensity * 0.6)) * 1.25;
         const startSpeed = this.enableBlackHole ? baseSpeed : baseSpeed * (1 - (timeIntensity * 0.6));
         const finalColor = hasError ? '#ff0000' : (timeIntensity > 0.5 ? '#f1c40f' : '#11d539');
@@ -1026,7 +1041,7 @@ class TrafficPainter {
         const initY = Math.random() * (this.canvas.height - 20) + 10;
 
         const bullet = {
-            x: -(Math.random() * 150),
+            x: -startSize,
             y: initY,
             initY: initY,
             targetY: initY,
@@ -1043,6 +1058,7 @@ class TrafficPainter {
             color: startColor,
             finalColor: finalColor,
             elapsedTime: Math.max(elapsedTime, 500),
+            createdAt: Date.now(),
             arrived: false,
             arrivedTime: 0,
             impactPulse: 0,
@@ -1103,9 +1119,9 @@ class TrafficPainter {
         // 처음(대기 시)에는 양 끝에 보이고, 총알이 나타나면 유리막을 감춤 (페이드아웃)
         // 충분히 넓은 경우:
         // 총알이 나타나면 양 끝에서 중앙으로 슬라이딩 전개
-        const hasBullets = this.bullets.length > 0;
-        const targetProgress = (!isNarrowTrack && hasBullets) ? 1.0 : 0.0;
-        const targetAlpha = (isNarrowTrack && hasBullets) ? 0.0 : 1.0;
+        const hasActiveBullets = this.bullets.some(b => !b.arrived);
+        const targetProgress = (!isNarrowTrack && hasActiveBullets) ? 1.0 : 0.0;
+        const targetAlpha = (isNarrowTrack && hasActiveBullets) ? 0.0 : 1.0;
 
         // 슬라이딩 진행도 업데이트
         const deploySpeed = 0.14;  // 전개 속도: 총알 발생 시 신속히 블랙홀 옆으로 이동
@@ -1135,6 +1151,13 @@ class TrafficPainter {
             const b = this.bullets[i];
 
             if (!b.arrived) {
+                // 비정상 표류 총알 안전 폐기 (10초 이상 미도착 시 강제 종료)
+                if (b.createdAt && now - b.createdAt > 10000) {
+                    if (b.onArriving) b.onArriving();
+                    this.bullets.splice(i, 1);
+                    continue;
+                }
+
                 if (this.enableBlackHole && finishLine > 120) {
                     if (b.bhStage === 0) {
                         const distToBh = bhX - b.x;
