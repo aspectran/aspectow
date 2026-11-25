@@ -69,7 +69,7 @@ const NotificationClient = (function () {
 
     function refreshUnreadCount() {
         const ctx = getContextPath();
-        fetch(ctx + '/notification/count')
+        fetch(ctx + '/notification/count?_=' + Date.now(), { cache: 'no-store' })
             .then(res => res.json())
             .then(res => {
                 if (res && res.data && typeof res.data.unreadCount !== 'undefined') {
@@ -105,6 +105,8 @@ const NotificationClient = (function () {
                 if (event.data && event.data.type === 'PUSH_NOTIFICATION_RECEIVED') {
                     console.log('[NotificationClient] Realtime push notification received:', event.data);
                     hasNewNotification = true;
+                    // Optimistically increment badge count immediately on push arrival
+                    updateBadge(Math.max(1, unreadCount + 1));
                     refreshUnreadCount();
                     animateBell();
                     const modal = document.getElementById('notificationModal');

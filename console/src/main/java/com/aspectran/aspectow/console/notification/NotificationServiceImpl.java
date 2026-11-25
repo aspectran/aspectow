@@ -188,6 +188,18 @@ public class NotificationServiceImpl extends NotificationSupport implements Noti
             return 0;
         }
 
+        // Record to in-app notification history first so that realtime /notification/count
+        // queries triggered by push receipt reflect the new unread item immediately
+        NotificationHistory history = new NotificationHistory();
+        history.setUserId(userId);
+        history.setCategory("TEST");
+        history.setSeverity("INFO");
+        history.setTitle("Test Notification");
+        history.setMessage("Web Push test notification was successfully sent.");
+        history.setTargetUrl("/");
+        history.setCreatedAt(Instant.now());
+        notificationMapper.insertNotificationHistory(history);
+
         int sentCount = 0;
         if (webPushManager != null && isWebPushEnabled()) {
             String payloadJson = buildPayloadJson(
@@ -215,17 +227,6 @@ public class NotificationServiceImpl extends NotificationSupport implements Noti
         } else {
             logger.info("Web Push is disabled; test notification recorded to in-app history only");
         }
-
-        // Also record to in-app notification history
-        NotificationHistory history = new NotificationHistory();
-        history.setUserId(userId);
-        history.setCategory("TEST");
-        history.setSeverity("INFO");
-        history.setTitle("Test Notification");
-        history.setMessage("Web Push test notification was successfully sent.");
-        history.setTargetUrl("/");
-        history.setCreatedAt(Instant.now());
-        notificationMapper.insertNotificationHistory(history);
 
         return sentCount;
     }
