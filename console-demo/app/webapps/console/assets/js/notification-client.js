@@ -604,7 +604,7 @@ const NotificationClient = (function () {
                 if (listContainer) listContainer.innerHTML = '';
                 listContainer.classList.add('d-none');
                 if (emptyNotice) emptyNotice.classList.remove('d-none');
-                setTimeout(hideModal, 1000);
+                setTimeout(hideModal, 500);
             })
             .catch(err => {
                 alert('Failed to clear notification history: ' + err.message);
