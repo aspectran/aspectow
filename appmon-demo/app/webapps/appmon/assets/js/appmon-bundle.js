@@ -2499,7 +2499,7 @@ class DashboardChart {
  * Responsible for rendering monitoring data, including logs, metrics, and charts.
  *
  * @version 4.4
- * @last-modified 2026-11-24
+ * @last-modified 2026-11-25
  */
 class DashboardViewer {
     constructor(sampleInterval, options = {}) {
@@ -2532,6 +2532,8 @@ class DashboardViewer {
 
         this.cachedCanvasWidth = 0;
         this.rollupsByNode = {};
+        this.rawActivityChartDataByApp = {};
+        this.rawSessionChartDataByApp = {};
     }
 
     onNodeLeft(nodeId) {
@@ -2715,6 +2717,10 @@ class DashboardViewer {
     }
 
     setLoading(appId, isLoading) {
+        if (isLoading) {
+            delete this.rawActivityChartDataByApp[appId];
+            delete this.rawSessionChartDataByApp[appId];
+        }
         for (let key in this.charts) {
             if (key.startsWith(appId + ":")) {
                 const dashboardChart = this.charts[key];
@@ -3763,6 +3769,158 @@ class DashboardViewer {
             .replace(/'/g, "&#039;");
     }
 
+    mergeChartDataPair(activityData, sessionData) {
+        if (!activityData && !sessionData) return null;
+        if (!activityData) return { activity: null, session: sessionData };
+        if (!sessionData) return { activity: activityData, session: null };
+
+        const actLabels = activityData.labels || [];
+        const sesLabels = sessionData.labels || [];
+        if (!actLabels.length || !sesLabels.length) {
+            return { activity: activityData, session: sessionData };
+        }
+
+        const actStart = dayjs(actLabels[0]).valueOf();
+        const actEnd = dayjs(actLabels[actLabels.length - 1]).valueOf();
+        const sesStart = dayjs(sesLabels[0]).valueOf();
+        const sesEnd = dayjs(sesLabels[sesLabels.length - 1]).valueOf();
+
+        // Limit the union to the overlapping valid window (higher of start times to avoid 0-filling unqueried past)
+        const effectiveStartTime = Math.max(actStart, sesStart);
+        const effectiveEndTime = Math.max(actEnd, sesEnd);
+
+        const timeMap = new Map();
+        for (let i = 0; i < actLabels.length; i++) {
+            const label = actLabels[i];
+            const ts = dayjs(label).valueOf();
+            if (ts >= effectiveStartTime && ts <= effectiveEndTime) {
+                if (!timeMap.has(ts)) {
+                    timeMap.set(ts, label);
+                }
+            }
+        }
+        for (let i = 0; i < sesLabels.length; i++) {
+            const label = sesLabels[i];
+            const ts = dayjs(label).valueOf();
+            if (ts >= effectiveStartTime && ts <= effectiveEndTime) {
+                if (!timeMap.has(ts)) {
+                    timeMap.set(ts, label);
+                }
+            }
+        }
+
+        const sortedTimestamps = Array.from(timeMap.keys()).sort((a, b) => a - b);
+        const unionLabels = sortedTimestamps.map(ts => timeMap.get(ts));
+
+        const actDataMap = new Map();
+        const actD1 = activityData.data1 || [];
+        const actD2 = activityData.data2 || [];
+        for (let i = 0; i < actLabels.length; i++) {
+            actDataMap.set(dayjs(actLabels[i]).valueOf(), {
+                d1: actD1[i] !== undefined ? actD1[i] : 0,
+                d2: actD2[i] !== undefined ? actD2[i] : 0
+            });
+        }
+        const newActData1 = new Array(unionLabels.length).fill(0);
+        const newActData2 = new Array(unionLabels.length).fill(0);
+        for (let i = 0; i < unionLabels.length; i++) {
+            const item = actDataMap.get(sortedTimestamps[i]);
+            if (item) {
+                newActData1[i] = item.d1;
+                newActData2[i] = item.d2;
+            }
+        }
+
+        const sesDataMap = new Map();
+        const sesD1 = sessionData.data1 || [];
+        const sesD2 = sessionData.data2 || [];
+        for (let i = 0; i < sesLabels.length; i++) {
+            sesDataMap.set(dayjs(sesLabels[i]).valueOf(), {
+                d1: sesD1[i] !== undefined ? sesD1[i] : 0,
+                d2: sesD2[i] !== undefined ? sesD2[i] : 0
+            });
+        }
+        const newSesData1 = new Array(unionLabels.length).fill(0);
+        const newSesData2 = new Array(unionLabels.length).fill(0);
+        for (let i = 0; i < unionLabels.length; i++) {
+            const item = sesDataMap.get(sortedTimestamps[i]);
+            if (item) {
+                newSesData1[i] = item.d1;
+                newSesData2[i] = item.d2;
+            }
+        }
+
+        return {
+            activity: {
+                ...activityData,
+                labels: unionLabels,
+                data1: newActData1,
+                data2: newActData2
+            },
+            session: {
+                ...sessionData,
+                labels: [...unionLabels],
+                data1: newSesData1,
+                data2: newSesData2
+            }
+        };
+    }
+
+    syncAndRenderCharts(appId) {
+        const rawAct = this.rawActivityChartDataByApp[appId];
+        const rawSes = this.rawSessionChartDataByApp[appId];
+        const actChart = this.getChart$(appId + ":data:activity");
+        const sesChart = this.getChart$(appId + ":data:session");
+
+        if (rawAct && rawSes && actChart && sesChart) {
+            const isSameOffset = (rawAct.dateOffset === rawSes.dateOffset);
+            const isSameUnit = (rawAct.dateUnit === rawSes.dateUnit);
+            const isSameBatch = Math.abs((rawAct.receivedAt || 0) - (rawSes.receivedAt || 0)) < 3000;
+
+            let merged = null;
+            if (isSameOffset && isSameUnit && isSameBatch) {
+                merged = this.mergeChartDataPair(rawAct.chartData, rawSes.chartData);
+            }
+
+            if (merged) {
+                actChart.ensureCanvas();
+                sesChart.ensureCanvas();
+                this.pruneDataPoints(merged.activity.labels, merged.activity.data1, merged.activity.data2, actChart.$container);
+                this.pruneDataPoints(merged.session.labels, merged.session.data1, merged.session.data2, sesChart.$container);
+
+                actChart.draw(rawAct.dateUnit, merged.activity.labels, merged.activity.data1, merged.activity.data2);
+                actChart.dateOffset = rawAct.dateOffset;
+                actChart.period = null;
+
+                sesChart.draw(rawSes.dateUnit, merged.session.labels, merged.session.data1, merged.session.data2);
+                sesChart.dateOffset = rawSes.dateOffset;
+                sesChart.period = null;
+                return;
+            }
+        }
+
+        if (rawAct && actChart) {
+            actChart.ensureCanvas();
+            const labels = [...rawAct.chartData.labels];
+            const data1 = [...rawAct.chartData.data1];
+            const data2 = [...rawAct.chartData.data2];
+            this.pruneDataPoints(labels, data1, data2, actChart.$container);
+            actChart.draw(rawAct.dateUnit, labels, data1, data2);
+            actChart.dateOffset = rawAct.dateOffset;
+            actChart.period = null;
+        }
+        if (rawSes && sesChart) {
+            sesChart.ensureCanvas();
+            const labels = [...rawSes.chartData.labels];
+            const data1 = [...rawSes.chartData.data1];
+            const data2 = [...rawSes.chartData.data2];
+            this.pruneDataPoints(labels, data1, data2, sesChart.$container);
+            sesChart.draw(rawSes.dateUnit, labels, data1, data2);
+            sesChart.dateOffset = rawSes.dateOffset;
+            sesChart.period = null;
+        }
+    }
+
     processChartData(nodeId, appId, exporterType, eventId, exporterKey, chartData) {
         const dashboardChart = this.getChart$(exporterKey);
         if (!dashboardChart) return;
@@ -3790,15 +3948,48 @@ class DashboardViewer {
 
         const dateUnit = (chartData.rolledUp ? dashboardChart.dateUnit : (chartData.period || chartData.dateUnit));
         const dateOffset = (chartData.rolledUp ? dashboardChart.dateOffset : chartData.dateOffset);
-        const labels = chartData.labels;
-        const data1 = chartData.data1;
-        const data2 = chartData.data2;
+        let labels = chartData.labels;
+        let data1 = chartData.data1;
+        let data2 = chartData.data2;
 
         if (!chartData.rolledUp) {
             if (this.isGroupView && chartData.scope !== "group" ||
                 !this.isGroupView && chartData.scope === "group") {
                 return;
             }
+
+            if (!chartData.period) {
+                if (eventId === "activity") {
+                    this.rawActivityChartDataByApp[appId] = {
+                        chartData: {
+                            ...chartData,
+                            labels: [...(chartData.labels || [])],
+                            data1: [...(chartData.data1 || [])],
+                            data2: [...(chartData.data2 || [])]
+                        },
+                        dateUnit,
+                        dateOffset,
+                        receivedAt: Date.now()
+                    };
+                    this.syncAndRenderCharts(appId);
+                    return;
+                } else if (eventId === "session") {
+                    this.rawSessionChartDataByApp[appId] = {
+                        chartData: {
+                            ...chartData,
+                            labels: [...(chartData.labels || [])],
+                            data1: [...(chartData.data1 || [])],
+                            data2: [...(chartData.data2 || [])]
+                        },
+                        dateUnit,
+                        dateOffset,
+                        receivedAt: Date.now()
+                    };
+                    this.syncAndRenderCharts(appId);
+                    return;
+                }
+            }
+
             dashboardChart.ensureCanvas();
             if (!chartData.period) {
                 this.pruneDataPoints(labels, data1, data2, dashboardChart.$container);
@@ -3812,7 +4003,7 @@ class DashboardViewer {
             const aux = data2 && data2.length ? data2[0] : null;
             if (label) {
                 const diff = this.trackRollupDiff(nodeId, exporterKey, label, delta, aux);
-                if (diff.deltaDiff !== 0 || (diff.auxDiff !== null && diff.auxDiff !== 0)) {
+                if (diff.isFirstForLabel || diff.deltaDiff !== 0 || (diff.auxDiff !== null && diff.auxDiff !== 0)) {
                     dashboardChart.applyRollup(label, diff.deltaDiff, diff.auxDiff, this.isGroupView, dateUnit);
                     this.pruneDataPoints(
                         dashboardChart.getLabels(),
@@ -3822,9 +4013,40 @@ class DashboardViewer {
                     );
                     dashboardChart.requestUpdate();
                 }
-                if (eventId === "activity" && diff.isFirstForLabel) {
-                    const key = appId + ":event:" + eventId;
-                    this.resetInterimTimer(key);
+                if (eventId === "activity") {
+                    if (diff.isFirstForLabel) {
+                        const key = appId + ":event:" + eventId;
+                        this.resetInterimTimer(key);
+                    }
+                    const otherChart = this.getChart$(appId + ":data:session");
+                    if (otherChart && otherChart.isDrawn()) {
+                        const otherLabels = otherChart.getLabels();
+                        if (otherLabels && !otherLabels.includes(label)) {
+                            otherChart.applyRollup(label, 0, 0, this.isGroupView, dateUnit);
+                            this.pruneDataPoints(
+                                otherChart.getLabels(),
+                                otherChart.getDataset(0),
+                                otherChart.getDataset(1),
+                                otherChart.$container
+                            );
+                            otherChart.requestUpdate();
+                        }
+                    }
+                } else if (eventId === "session") {
+                    const otherChart = this.getChart$(appId + ":data:activity");
+                    if (otherChart && otherChart.isDrawn()) {
+                        const otherLabels = otherChart.getLabels();
+                        if (otherLabels && !otherLabels.includes(label)) {
+                            otherChart.applyRollup(label, 0, 0, this.isGroupView, dateUnit);
+                            this.pruneDataPoints(
+                                otherChart.getLabels(),
+                                otherChart.getDataset(0),
+                                otherChart.getDataset(1),
+                                otherChart.$container
+                            );
+                            otherChart.requestUpdate();
+                        }
+                    }
                 }
             }
         }
