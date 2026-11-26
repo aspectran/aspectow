@@ -75,7 +75,7 @@ public class ActivityEventAdvice {
      */
     public String after(@NonNull Activity activity) {
         Throwable error = activity.getRootCauseOfRaisedException();
-        if (error != null) {
+        if (error != null && !activity.isExceptionHandled()) {
             activityEventReader.getEventCount().error();
         }
 
@@ -140,7 +140,7 @@ public class ActivityEventAdvice {
                     .put("clientKey", clientKey)
                     .put("ipAddress", ipAddress)
                     .put("countryCode", countryCode)
-                    .put("error", error != null ? true : null)
+                    .put("error", (error != null && !activity.isExceptionHandled()) ? true : null)
                 .endObject()
                 .toString();
     }

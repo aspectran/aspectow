@@ -30,6 +30,7 @@ import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Proxy;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -78,6 +79,9 @@ class ActivityEventAdviceTest {
                     }
                     if ("getRootCauseOfRaisedException".equals(method.getName())) {
                         return null;
+                    }
+                    if ("isExceptionHandled".equals(method.getName())) {
+                        return false;
                     }
                     return null;
                 }
@@ -149,6 +153,37 @@ class ActivityEventAdviceTest {
         assertNotNull(json);
         assertFalse(json.contains("\"sessionId\""));
         assertFalse(json.contains("\"clientKey\""));
+    }
+
+    @Test
+    void testHandledExceptionDoesNotCountAsError() {
+        Activity activity = (Activity) Proxy.newProxyInstance(
+                Activity.class.getClassLoader(),
+                new Class<?>[]{Activity.class},
+                (proxy, method, args) -> {
+                    if ("hasSessionAdapter".equals(method.getName())) {
+                        return false;
+                    }
+                    if ("hasTranslet".equals(method.getName())) {
+                        return false;
+                    }
+                    if ("getRootCauseOfRaisedException".equals(method.getName())) {
+                        return new RuntimeException("Handled business exception");
+                    }
+                    if ("isExceptionHandled".equals(method.getName())) {
+                        return true;
+                    }
+                    return null;
+                }
+        );
+
+        ActivityEventAdvice advice = new ActivityEventAdvice(activityEventReader);
+        advice.before(activity);
+
+        String json = advice.after(activity);
+        assertNotNull(json);
+        assertFalse(json.contains("\"error\":true"));
+        assertEquals(0, activityEventReader.getEventCount().getTallying().getAux());
     }
 
 }
