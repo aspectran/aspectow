@@ -21,6 +21,9 @@ app: {
     event: {
         id: session
         target: netty.server/console
+        parameters: {
+            usernameAttribute: USER_INFO.username
+        }
     }
     log: {
         id: app
