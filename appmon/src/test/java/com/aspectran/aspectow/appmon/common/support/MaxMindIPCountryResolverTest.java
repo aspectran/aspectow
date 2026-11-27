@@ -17,8 +17,6 @@ package com.aspectran.aspectow.appmon.common.support;
 
 import org.junit.jupiter.api.Test;
 
-import java.util.Locale;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
@@ -30,45 +28,39 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 class MaxMindIPCountryResolverTest {
 
     @Test
-    void resolveCountryCode_withPrivateOrLocalIps_returnsLocaleCountry() {
+    void resolveCountryCode_withPrivateOrLocalIps_returnsNull() {
         MaxMindIPCountryResolver resolver = new MaxMindIPCountryResolver();
 
-        assertEquals("KR", resolver.resolveCountryCode("127.0.0.1", Locale.KOREA));
-        assertEquals("KR", resolver.resolveCountryCode("10.0.0.1", Locale.KOREA));
-        assertEquals("KR", resolver.resolveCountryCode("192.168.1.1", Locale.KOREA));
-        assertEquals("KR", resolver.resolveCountryCode("172.20.0.1", Locale.KOREA));
-        assertEquals("KR", resolver.resolveCountryCode("169.254.0.1", Locale.KOREA));
-        assertEquals("KR", resolver.resolveCountryCode("localhost", Locale.KOREA));
-        assertEquals("KR", resolver.resolveCountryCode("0000:0000:0000:0000:0000:0000:0000:0001", Locale.KOREA));
-        assertEquals("KR", resolver.resolveCountryCode("::1", Locale.KOREA));
-
-        assertNull(resolver.resolveCountryCode("127.0.0.1", null));
+        assertNull(resolver.resolveCountryCode("127.0.0.1"));
         assertNull(resolver.resolveCountryCode("10.0.0.1"));
+        assertNull(resolver.resolveCountryCode("192.168.1.1"));
+        assertNull(resolver.resolveCountryCode("172.20.0.1"));
+        assertNull(resolver.resolveCountryCode("169.254.0.1"));
+        assertNull(resolver.resolveCountryCode("localhost"));
+        assertNull(resolver.resolveCountryCode("0000:0000:0000:0000:0000:0000:0000:0001"));
+        assertNull(resolver.resolveCountryCode("::1"));
     }
 
     @Test
-    void resolveCountryCode_withoutDatabase_returnsLocaleCountry() {
+    void resolveCountryCode_withoutDatabase_returnsNull() {
         MaxMindIPCountryResolver resolver = new MaxMindIPCountryResolver();
 
-        assertEquals("US", resolver.resolveCountryCode("1.1.1.1", Locale.US));
-        assertEquals("JP", resolver.resolveCountryCode("8.8.8.8", Locale.JAPAN));
         assertNull(resolver.resolveCountryCode("1.1.1.1"));
+        assertNull(resolver.resolveCountryCode("8.8.8.8"));
     }
 
     @Test
     void resolveCountryCode_withNonExistentDatabase_gracefullyDegrades() {
         MaxMindIPCountryResolver resolver = new MaxMindIPCountryResolver("/non/existent/GeoLite2-Country.mmdb");
 
-        assertEquals("KR", resolver.resolveCountryCode("1.1.1.1", Locale.KOREA));
-        assertNull(resolver.resolveCountryCode("1.1.1.1", null));
+        assertNull(resolver.resolveCountryCode("1.1.1.1"));
     }
 
     @Test
     void resolveCountryCode_withClasspathLocation_gracefullyDegradesWhenNotFound() {
         MaxMindIPCountryResolver resolver = new MaxMindIPCountryResolver("classpath:non-existent.mmdb");
 
-        assertEquals("KR", resolver.resolveCountryCode("1.1.1.1", Locale.KOREA));
-        assertNull(resolver.resolveCountryCode("1.1.1.1", null));
+        assertNull(resolver.resolveCountryCode("1.1.1.1"));
     }
 
     @Test
@@ -86,8 +78,7 @@ class MaxMindIPCountryResolverTest {
         // Cache hit
         assertEquals("GB", resolver.resolveCountryCode("81.2.69.160"));
 
-        // Unmatched IP falls back to locale
-        assertEquals("KR", resolver.resolveCountryCode("0.0.0.0", Locale.KOREA));
+        // Unmatched IP returns null
         assertNull(resolver.resolveCountryCode("0.0.0.0"));
 
         resolver.destroy();

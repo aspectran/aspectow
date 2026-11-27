@@ -307,7 +307,7 @@ public class RememberMeService implements EnvironmentAware {
             String remoteAddr = WebUtils.getRemoteAddr(translet);
             String countryCode = null;
             if (ipCountryResolver != null && remoteAddr != null) {
-                countryCode = ipCountryResolver.resolveCountryCode(remoteAddr, translet.getRequestAdapter().getLocale());
+                countryCode = ipCountryResolver.resolveCountryCode(remoteAddr);
             }
             String userAgent = translet.getRequestAdapter().getHeader(HttpHeaders.USER_AGENT);
             userService.recordLogin(username, remoteAddr, countryCode, userAgent, false, true);

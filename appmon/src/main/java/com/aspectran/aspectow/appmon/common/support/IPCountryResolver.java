@@ -17,8 +17,6 @@ package com.aspectran.aspectow.appmon.common.support;
 
 import org.jspecify.annotations.Nullable;
 
-import java.util.Locale;
-
 /**
  * Strategy interface for resolving an ISO 3166-1 alpha-2 country code
  * (e.g., "KR", "US", "JP") from a client IP address.
@@ -31,22 +29,11 @@ import java.util.Locale;
 public interface IPCountryResolver {
 
     /**
-     * Resolves the country code for the given IP address and optional locale.
+     * Resolves the country code for the given IP address.
      * @param ipAddress the client IP address (IPv4 or IPv6)
-     * @param locale the request locale for fallback or resolution assistance (optional)
      * @return the 2-letter country code in uppercase, or {@code null} if resolution fails
      */
     @Nullable
-    String resolveCountryCode(String ipAddress, @Nullable Locale locale);
-
-    /**
-     * Resolves the country code using only the IP address.
-     * @param ipAddress the client IP address
-     * @return the 2-letter country code in uppercase, or {@code null} if resolution fails
-     */
-    @Nullable
-    default String resolveCountryCode(String ipAddress) {
-        return resolveCountryCode(ipAddress, null);
-    }
+    String resolveCountryCode(String ipAddress);
 
 }

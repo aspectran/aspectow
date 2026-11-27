@@ -25,8 +25,6 @@ import com.aspectran.utils.StringUtils;
 import com.aspectran.utils.json.JsonBuilder;
 import com.aspectran.web.support.util.WebUtils;
 import org.jspecify.annotations.NonNull;
-
-import java.util.Locale;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.aspectran.aspectow.appmon.engine.exporter.event.session.SessionEventReader.USER_ACTIVITY_COUNT;
@@ -117,8 +115,7 @@ public class ActivityEventAdvice {
                 clientKey = "anon:" + DigestUtils.md5DigestAsHex(raw).substring(0, 12);
                 IPCountryResolver ipCountryResolver = activityEventReader.getIpCountryResolver();
                 if (ipCountryResolver != null) {
-                    Locale locale = (requestAdapter != null ? requestAdapter.getLocale() : null);
-                    countryCode = ipCountryResolver.resolveCountryCode(ipAddress, locale);
+                    countryCode = ipCountryResolver.resolveCountryCode(ipAddress);
                 }
             }
         }

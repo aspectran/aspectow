@@ -28,8 +28,6 @@ import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Locale;
-
 import static com.aspectran.aspectow.appmon.engine.exporter.event.session.SessionEventReader.USER_COUNTRY_CODE;
 import static com.aspectran.aspectow.appmon.engine.exporter.event.session.SessionEventReader.USER_IP_ADDRESS;
 
@@ -112,8 +110,7 @@ public class UserTrackingListener implements SessionListener {
                     logger.debug("Tracked user IP '{}' for session '{}'", ipAddress, session.getId());
                 }
                 if (ipCountryResolver != null) {
-                    Locale locale = translet.getRequestAdapter().getLocale();
-                    String countryCode = ipCountryResolver.resolveCountryCode(ipAddress, locale);
+                    String countryCode = ipCountryResolver.resolveCountryCode(ipAddress);
                     if (StringUtils.hasLength(countryCode)) {
                         session.setAttribute(USER_COUNTRY_CODE, countryCode);
                     }

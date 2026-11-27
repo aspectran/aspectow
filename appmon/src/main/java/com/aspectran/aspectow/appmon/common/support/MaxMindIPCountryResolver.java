@@ -206,7 +206,7 @@ public class MaxMindIPCountryResolver implements IPCountryResolver, DisposableBe
 
     @Override
     @Nullable
-    public String resolveCountryCode(String ipAddress, @Nullable Locale locale) {
+    public String resolveCountryCode(String ipAddress) {
         Assert.notNull(ipAddress, "ipAddress must not be null");
 
         String ip6 = IpAddressUtils.normalizeIPv6(ipAddress);
@@ -215,12 +215,12 @@ public class MaxMindIPCountryResolver implements IPCountryResolver, DisposableBe
         }
 
         if (cache == null || reader == null || isPrivateOrLocalIp(ipAddress)) {
-            return getCountryCode(locale);
+            return null;
         }
 
         String countryCode = cache.get(ipAddress);
         if (countryCode == null || NONE.equals(countryCode) || FAILED.equals(countryCode)) {
-            countryCode = getCountryCode(locale);
+            return null;
         }
         return countryCode;
     }
@@ -287,11 +287,6 @@ public class MaxMindIPCountryResolver implements IPCountryResolver, DisposableBe
             }
         }
         return false;
-    }
-
-    @Nullable
-    private String getCountryCode(Locale locale) {
-        return (locale != null ? locale.getCountry() : null);
     }
 
     @Nullable
